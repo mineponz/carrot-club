@@ -1,0 +1,16 @@
+{
+  // Cloudflare Workers の静的アセット配信でこのサイトを公開する設定。
+  // ダッシュボードの Deploy command (`npx wrangler deploy`) がこのファイルを読む。
+  "$schema": "./node_modules/wrangler/config-schema.json",
+  "name": "carrot-club",
+  "compatibility_date": "2026-08-10",
+  "assets": {
+    // Astro のビルド出力先（astro.config.mjs の既定値）
+    "directory": "./dist",
+    // マッチしないURLでは 404.html を返す。SPAではないので
+    // "single-page-application" にしてはいけない（全URLが200になり重複コンテンツ扱いになる）
+    "not_found_handling": "404-page"
+  }
+  // Worker のコードは不要なため "main" は指定しない（静的配信のみ）
+  // Phase2で集計APIを追加する際は "main" に Worker エントリを追加し、D1バインディングを足す
+}

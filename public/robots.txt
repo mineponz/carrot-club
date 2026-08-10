@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://carrot-club.mineponz.workers.dev/sitemap-index.xml

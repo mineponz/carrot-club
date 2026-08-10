@@ -1,0 +1,228 @@
+---
+import { SITE_URL, SITE_TITLE, SITE_DESCRIPTION } from '../consts';
+
+interface Props {
+  /** ページ固有のタイトル。トップページでは省略する */
+  title?: string;
+  description?: string;
+  /** パンくずの中間項目（トップとページ自身は自動で付く） */
+  breadcrumb?: { label: string; href: string }[];
+}
+
+const { title, description = SITE_DESCRIPTION, breadcrumb = [] } = Astro.props;
+
+const fullTitle = title ? `${title} | ${SITE_TITLE}` : `${SITE_TITLE} — 一口馬主 募集馬選定ツール`;
+const canonical = new URL(Astro.url.pathname, SITE_URL).href;
+
+// パンくずの構造化データ。トップ → 中間 → 現在ページ
+const crumbs = [
+  { label: 'ホーム', href: '/' },
+  ...breadcrumb,
+  ...(title ? [{ label: title, href: Astro.url.pathname }] : []),
+];
+
+const breadcrumbJsonLd = {
+  '@context': 'https://schema.org',
+  '@type': 'BreadcrumbList',
+  itemListElement: crumbs.map((c, i) => ({
+    '@type': 'ListItem',
+    position: i + 1,
+    name: c.label,
+    item: new URL(c.href, SITE_URL).href,
+  })),
+};
+---
+
+<!doctype html>
+<html lang="ja">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{fullTitle}</title>
+    <meta name="description" content={description} />
+    <link rel="canonical" href={canonical} />
+
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content={SITE_TITLE} />
+    <meta property="og:title" content={fullTitle} />
+    <meta property="og:description" content={description} />
+    <meta property="og:url" content={canonical} />
+    <meta name="twitter:card" content="summary" />
+
+    <link rel="sitemap" href="/sitemap-index.xml" />
+    <script type="application/ld+json" set:html={JSON.stringify(breadcrumbJsonLd)} is:inline />
+  </head>
+
+  <body>
+    <a class="skip-link" href="#main">本文へスキップ</a>
+
+    <header class="site-header">
+      <a href="/" class="wordmark">carrot-club</a>
+      <p class="tagline">募集馬をソート・フィルタで見比べる選定支援ツール</p>
+    </header>
+
+    {crumbs.length > 1 && (
+      <nav class="breadcrumb" aria-label="パンくずリスト">
+        <ol>
+          {crumbs.map((c, i) => (
+            <li>
+              {i === crumbs.length - 1 ? (
+                <span aria-current="page">{c.label}</span>
+              ) : (
+                <a href={c.href}>{c.label}</a>
+              )}
+            </li>
+          ))}
+        </ol>
+      </nav>
+    )}
+
+    <main id="main">
+      <slot />
+    </main>
+
+    <footer class="site-footer">
+      <p>
+        あなたの評価はこの端末のブラウザ内（localStorage）に保存され、現時点ではサーバーへ
+        送信されません。個人の非公式ツールです。キャロットクラブ公式とは関係ありません。
+      </p>
+      <p class="meta">
+        <a href="/">馬一覧へ戻る</a>
+      </p>
+    </footer>
+
+    <style is:global>
+      :root {
+        --bg: #fbfaf7;
+        --surface: #ffffff;
+        --border: #ddd8cd;
+        --text: #23201c;
+        --muted: #6b6558;
+        --accent: #b5651d;
+        --accent-weak: #f5e9dc;
+        --danger: #9d2f24;
+        --mono: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace;
+        --sans: -apple-system, BlinkMacSystemFont, "Hiragino Kaku Gothic ProN",
+          "Noto Sans JP", "Yu Gothic", sans-serif;
+      }
+
+      @media (prefers-color-scheme: dark) {
+        :root {
+          --bg: #17181a;
+          --surface: #1f2124;
+          --border: #34373c;
+          --text: #e8e6e1;
+          --muted: #9b978f;
+          --accent: #e0a45c;
+          --accent-weak: #2b241c;
+          --danger: #e08278;
+        }
+      }
+
+      * { box-sizing: border-box; }
+
+      body {
+        margin: 0;
+        background: var(--bg);
+        color: var(--text);
+        font-family: var(--sans);
+        line-height: 1.75;
+        -webkit-text-size-adjust: 100%;
+      }
+
+      .skip-link {
+        position: absolute;
+        left: -9999px;
+      }
+      .skip-link:focus {
+        left: 1rem;
+        top: 1rem;
+        z-index: 10;
+        background: var(--surface);
+        padding: 0.5rem 0.75rem;
+        border: 2px solid var(--accent);
+        border-radius: 4px;
+      }
+
+      .site-header,
+      .breadcrumb,
+      main,
+      .site-footer {
+        max-width: 64rem;
+        margin-inline: auto;
+        padding-inline: 1.25rem;
+      }
+
+      .site-header {
+        padding-top: 2.5rem;
+        padding-bottom: 1.25rem;
+      }
+
+      .wordmark {
+        font-family: var(--mono);
+        font-size: 1.35rem;
+        font-weight: 600;
+        letter-spacing: -0.02em;
+        color: var(--text);
+        text-decoration: none;
+      }
+      .wordmark:hover { color: var(--accent); }
+
+      .tagline {
+        margin: 0.15rem 0 0;
+        color: var(--muted);
+        font-size: 0.875rem;
+      }
+
+      .breadcrumb ol {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.4rem;
+        list-style: none;
+        margin: 0;
+        padding: 0;
+        font-size: 0.8125rem;
+        color: var(--muted);
+      }
+      .breadcrumb li + li::before {
+        content: "/";
+        margin-right: 0.4rem;
+        color: var(--border);
+      }
+      .breadcrumb a { color: var(--muted); }
+
+      main { padding-block: 1.5rem 3rem; }
+
+      h1 {
+        font-size: 1.75rem;
+        line-height: 1.35;
+        letter-spacing: -0.01em;
+        margin: 0.5rem 0 0.75rem;
+      }
+      h2 {
+        font-size: 1.15rem;
+        margin-top: 2.5rem;
+        margin-bottom: 0.5rem;
+      }
+
+      a { color: var(--accent); }
+
+      code, kbd, pre { font-family: var(--mono); font-size: 0.9em; }
+
+      code:not(pre code) {
+        background: var(--accent-weak);
+        padding: 0.1em 0.35em;
+        border-radius: 3px;
+      }
+
+      .site-footer {
+        border-top: 1px solid var(--border);
+        padding-block: 1.5rem 3rem;
+        color: var(--muted);
+        font-size: 0.8125rem;
+      }
+      .site-footer p { margin: 0 0 0.5rem; }
+      .site-footer .meta { margin: 0; }
+    </style>
+  </body>
+</html>

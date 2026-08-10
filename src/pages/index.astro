@@ -1,0 +1,393 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+
+const title = undefined;
+const description =
+  '一口馬主クラブの2025年募集馬を血統・測尺でソート・フィルタし、自分の評価をブラウザに保存できます。';
+---
+
+<BaseLayout title={title} description={description}>
+  <h1>2025年募集馬 一覧</h1>
+  <p class="lead">
+    列見出しをクリックするとソートできます。評価・お気に入り・消フラグ・メモは
+    この端末のブラウザ内（localStorage）に保存され、ページを再読み込みしても残ります。
+  </p>
+
+  <div class="filters">
+    <label>
+      父
+      <input type="text" id="filter-sire" placeholder="部分一致" />
+    </label>
+    <label>
+      母父
+      <input type="text" id="filter-bms" placeholder="部分一致" />
+    </label>
+    <label>
+      体高 (cm)
+      <span class="range">
+        <input type="number" id="filter-height-min" placeholder="下限" />
+        〜
+        <input type="number" id="filter-height-max" placeholder="上限" />
+      </span>
+    </label>
+    <label>
+      馬体重 (kg)
+      <span class="range">
+        <input type="number" id="filter-weight-min" placeholder="下限" />
+        〜
+        <input type="number" id="filter-weight-max" placeholder="上限" />
+      </span>
+    </label>
+    <label class="checkbox-label">
+      <input type="checkbox" id="filter-hide-skip" />
+      消フラグを付けた馬を隠す
+    </label>
+    <button type="button" id="filter-reset">条件をクリア</button>
+  </div>
+
+  <div class="table-wrap">
+    <table id="horse-table">
+      <thead>
+        <tr>
+          <th><button type="button" class="sort-btn" data-sort-key="name">馬名</button></th>
+          <th><button type="button" class="sort-btn" data-sort-key="sire">父</button></th>
+          <th><button type="button" class="sort-btn" data-sort-key="broodmareSire">母父</button></th>
+          <th><button type="button" class="sort-btn" data-sort-key="birthDate">生年月日</button></th>
+          <th><button type="button" class="sort-btn" data-sort-key="height">体高</button></th>
+          <th><button type="button" class="sort-btn" data-sort-key="chestGirth">胸囲</button></th>
+          <th><button type="button" class="sort-btn" data-sort-key="caretGirth">管囲</button></th>
+          <th><button type="button" class="sort-btn" data-sort-key="weight">馬体重</button></th>
+          <th><button type="button" class="sort-btn" data-sort-key="damAge">母齢</button></th>
+          <th>兄弟情報</th>
+          <th>評価</th>
+          <th>メモ</th>
+        </tr>
+      </thead>
+      <tbody id="horse-tbody">
+        <tr>
+          <td colspan="12">読み込み中…</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+  <p id="result-count" class="result-count"></p>
+
+  <h2>このツールについて</h2>
+  <p>
+    キャロットクラブの募集馬選定を、毎回スプレッドシートを作らなくてもできるようにする
+    個人開発のツールです。キャロットクラブ公式とは関係ありません。
+    現在表示している馬データはプレースホルダ（ダミー）で、実データは準備中です。
+  </p>
+
+  <style>
+    .lead { color: var(--muted); margin-top: 0; }
+
+    .filters {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 1rem;
+      align-items: end;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 1rem;
+      margin-block: 1.25rem;
+      font-size: 0.875rem;
+    }
+    .filters label {
+      display: flex;
+      flex-direction: column;
+      gap: 0.3rem;
+      color: var(--muted);
+    }
+    .filters input[type='text'],
+    .filters input[type='number'] {
+      font: inherit;
+      padding: 0.4rem 0.5rem;
+      border: 1px solid var(--border);
+      border-radius: 5px;
+      background: var(--bg);
+      color: var(--text);
+      width: 8rem;
+    }
+    .filters .range {
+      display: flex;
+      align-items: center;
+      gap: 0.3rem;
+    }
+    .filters .range input { width: 4.5rem; }
+    .checkbox-label {
+      flex-direction: row !important;
+      align-items: center;
+      gap: 0.4rem !important;
+    }
+    #filter-reset {
+      font: inherit;
+      font-size: 0.8125rem;
+      background: transparent;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 0.5rem 0.8rem;
+      cursor: pointer;
+      color: var(--text);
+    }
+    #filter-reset:hover { border-color: var(--accent); color: var(--accent); }
+
+    .table-wrap {
+      overflow-x: auto;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+    }
+    table {
+      border-collapse: collapse;
+      width: 100%;
+      font-size: 0.875rem;
+      white-space: nowrap;
+    }
+    th, td {
+      padding: 0.5rem 0.6rem;
+      border-bottom: 1px solid var(--border);
+      text-align: left;
+    }
+    thead th {
+      background: var(--accent-weak);
+      position: sticky;
+      top: 0;
+    }
+    .sort-btn {
+      font: inherit;
+      font-weight: 600;
+      background: transparent;
+      border: none;
+      cursor: pointer;
+      color: var(--text);
+      padding: 0;
+    }
+    .sort-btn:hover { color: var(--accent); }
+    .sort-btn[data-active='true'] { color: var(--accent); }
+
+    .eval-cell {
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+    }
+    .rating-select {
+      font: inherit;
+      padding: 0.25rem 0.35rem;
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      background: var(--bg);
+      color: var(--text);
+    }
+    .favorite-btn {
+      font-size: 1rem;
+      background: transparent;
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      width: 1.8rem;
+      height: 1.8rem;
+      cursor: pointer;
+      color: var(--border);
+    }
+    .favorite-btn[aria-pressed='true'] {
+      color: var(--accent);
+      border-color: var(--accent);
+    }
+    .skip-label {
+      display: flex;
+      align-items: center;
+      gap: 0.2rem;
+      color: var(--muted);
+    }
+    .memo-input {
+      font: inherit;
+      font-size: 0.8125rem;
+      padding: 0.3rem 0.4rem;
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      background: var(--bg);
+      color: var(--text);
+      width: 10rem;
+      white-space: normal;
+    }
+    tr[data-skip='true'] { opacity: 0.45; }
+
+    .result-count {
+      color: var(--muted);
+      font-size: 0.8125rem;
+    }
+  </style>
+
+  <script>
+    import { horses2025 } from '../data/horses2025.ts';
+    import { sortHorses, filterHorses, type Horse, type SortKey, type SortDirection, type HorseFilter } from '../lib/horses.ts';
+    import {
+      loadEvaluations,
+      saveEvaluations,
+      getEvaluation,
+      updateEvaluation,
+      type Evaluation,
+      type EvaluationMap,
+    } from '../lib/evaluations.ts';
+
+    const tbody = document.getElementById('horse-tbody') as HTMLTableSectionElement;
+    const resultCount = document.getElementById('result-count') as HTMLElement;
+    const sortButtons = document.querySelectorAll<HTMLButtonElement>('.sort-btn');
+
+    const filterSireInput = document.getElementById('filter-sire') as HTMLInputElement;
+    const filterBmsInput = document.getElementById('filter-bms') as HTMLInputElement;
+    const filterHeightMin = document.getElementById('filter-height-min') as HTMLInputElement;
+    const filterHeightMax = document.getElementById('filter-height-max') as HTMLInputElement;
+    const filterWeightMin = document.getElementById('filter-weight-min') as HTMLInputElement;
+    const filterWeightMax = document.getElementById('filter-weight-max') as HTMLInputElement;
+    const filterHideSkip = document.getElementById('filter-hide-skip') as HTMLInputElement;
+    const filterResetBtn = document.getElementById('filter-reset') as HTMLButtonElement;
+
+    let sortKey: SortKey = 'name';
+    let sortDirection: SortDirection = 'asc';
+    let evaluations: EvaluationMap = loadEvaluations(window.localStorage);
+
+    function escapeHtml(value: string): string {
+      return value
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;');
+    }
+
+    function currentFilter(): HorseFilter {
+      const filter: HorseFilter = {};
+      if (filterSireInput.value.trim()) filter.sire = filterSireInput.value.trim();
+      if (filterBmsInput.value.trim()) filter.broodmareSire = filterBmsInput.value.trim();
+      if (filterHeightMin.value !== '') filter.minHeight = Number(filterHeightMin.value);
+      if (filterHeightMax.value !== '') filter.maxHeight = Number(filterHeightMax.value);
+      if (filterWeightMin.value !== '') filter.minWeight = Number(filterWeightMin.value);
+      if (filterWeightMax.value !== '') filter.maxWeight = Number(filterWeightMax.value);
+      return filter;
+    }
+
+    function rowHtml(horse: Horse, evaluation: Evaluation): string {
+      const ratingOptions = ['', 'A', 'B', 'C', 'D', 'E']
+        .map((r) => `<option value="${r}" ${evaluation.rating === r || (r === '' && !evaluation.rating) ? 'selected' : ''}>${r || '-'}</option>`)
+        .join('');
+      return `
+        <tr data-horse-id="${horse.id}" data-skip="${evaluation.skip}">
+          <td>${escapeHtml(horse.name)}</td>
+          <td>${escapeHtml(horse.sire)}</td>
+          <td>${escapeHtml(horse.broodmareSire)}</td>
+          <td>${horse.birthDate}</td>
+          <td>${horse.height}</td>
+          <td>${horse.chestGirth}</td>
+          <td>${horse.caretGirth}</td>
+          <td>${horse.weight}</td>
+          <td>${horse.damAge}</td>
+          <td>${escapeHtml(horse.siblingInfo)}</td>
+          <td class="eval-cell">
+            <select class="rating-select" data-field="rating" aria-label="評価">${ratingOptions}</select>
+            <button type="button" class="favorite-btn" data-field="favorite" aria-pressed="${evaluation.favorite}" aria-label="お気に入り" title="お気に入り">★</button>
+            <label class="skip-label"><input type="checkbox" class="skip-checkbox" data-field="skip" ${evaluation.skip ? 'checked' : ''} /> 消</label>
+          </td>
+          <td><input type="text" class="memo-input" data-field="memo" value="${escapeHtml(evaluation.memo)}" placeholder="メモ" /></td>
+        </tr>
+      `;
+    }
+
+    function render() {
+      const filter = currentFilter();
+      let list = filterHorses(horses2025, filter);
+      if (filterHideSkip.checked) {
+        list = list.filter((h) => !getEvaluation(evaluations, h.id).skip);
+      }
+      list = sortHorses(list, sortKey, sortDirection);
+
+      if (list.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="12">条件に一致する馬がいません。</td></tr>`;
+      } else {
+        tbody.innerHTML = list.map((h) => rowHtml(h, getEvaluation(evaluations, h.id))).join('');
+      }
+      resultCount.textContent = `${list.length} / ${horses2025.length} 頭`;
+
+      for (const btn of sortButtons) {
+        btn.setAttribute('data-active', String(btn.dataset.sortKey === sortKey));
+        btn.textContent = `${btn.textContent!.replace(/[▲▼]$/u, '').trim()}${
+          btn.dataset.sortKey === sortKey ? (sortDirection === 'asc' ? ' ▲' : ' ▼') : ''
+        }`;
+      }
+    }
+
+    function persistEvaluation(horseId: string, patch: Partial<Evaluation>) {
+      evaluations = updateEvaluation(evaluations, horseId, patch);
+      saveEvaluations(window.localStorage, evaluations);
+    }
+
+    for (const btn of sortButtons) {
+      btn.addEventListener('click', () => {
+        const key = btn.dataset.sortKey as SortKey;
+        if (sortKey === key) {
+          sortDirection = sortDirection === 'asc' ? 'desc' : 'asc';
+        } else {
+          sortKey = key;
+          sortDirection = 'asc';
+        }
+        render();
+      });
+    }
+
+    for (const input of [filterSireInput, filterBmsInput, filterHeightMin, filterHeightMax, filterWeightMin, filterWeightMax]) {
+      input.addEventListener('input', render);
+    }
+    filterHideSkip.addEventListener('change', render);
+    filterResetBtn.addEventListener('click', () => {
+      filterSireInput.value = '';
+      filterBmsInput.value = '';
+      filterHeightMin.value = '';
+      filterHeightMax.value = '';
+      filterWeightMin.value = '';
+      filterWeightMax.value = '';
+      filterHideSkip.checked = false;
+      render();
+    });
+
+    // 評価UIの変更をイベント委譲で拾う（再描画のたびに listener を付け直さなくて良いように）。
+    // メモ欄は blur を待たず、入力のたびに保存する（'change'はblur/Enterまで発火せず、
+    // 未保存のまま離脱されるとメモが消えてしまうため）。
+    tbody.addEventListener('input', (e) => {
+      const target = e.target as HTMLElement;
+      if (target.getAttribute('data-field') !== 'memo') return;
+      const row = target.closest('tr[data-horse-id]') as HTMLTableRowElement | null;
+      if (!row) return;
+      persistEvaluation(row.dataset.horseId!, { memo: (target as HTMLInputElement).value });
+    });
+
+    tbody.addEventListener('change', (e) => {
+      const target = e.target as HTMLElement;
+      const row = target.closest('tr[data-horse-id]') as HTMLTableRowElement | null;
+      if (!row) return;
+      const horseId = row.dataset.horseId!;
+      const field = target.getAttribute('data-field');
+
+      if (field === 'rating') {
+        const value = (target as HTMLSelectElement).value;
+        persistEvaluation(horseId, { rating: value ? (value as Evaluation['rating']) : null });
+      } else if (field === 'skip') {
+        const checked = (target as HTMLInputElement).checked;
+        persistEvaluation(horseId, { skip: checked });
+        row.dataset.skip = String(checked);
+        if (filterHideSkip.checked) render();
+      }
+    });
+
+    tbody.addEventListener('click', (e) => {
+      const target = e.target as HTMLElement;
+      if (target.getAttribute('data-field') !== 'favorite') return;
+      const row = target.closest('tr[data-horse-id]') as HTMLTableRowElement | null;
+      if (!row) return;
+      const horseId = row.dataset.horseId!;
+      const pressed = target.getAttribute('aria-pressed') === 'true';
+      target.setAttribute('aria-pressed', String(!pressed));
+      persistEvaluation(horseId, { favorite: !pressed });
+    });
+
+    render();
+  </script>
+</BaseLayout>
