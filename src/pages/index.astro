@@ -1,26 +1,62 @@
 ---
 import BaseLayout from '../layouts/BaseLayout.astro';
+import { horses2025 } from '../data/horses2025.ts';
+import { uniqueValues } from '../lib/horses.ts';
 
-const title = undefined;
 const description =
-  '一口馬主クラブの2025年募集馬を血統・測尺でソート・フィルタし、自分の評価をブラウザに保存できます。';
+  '2025年募集馬を血統・測尺・一口価格でソート・フィルタし、自分の評価をブラウザに保存できる選定支援ツール。';
+
+// フィルタの選択肢はビルド時に確定できるのでサーバー側で作る
+const sires = uniqueValues(horses2025, 'sire');
+const stables = uniqueValues(horses2025, 'stable');
 ---
 
-<BaseLayout title={title} description={description}>
-  <h1>2025年募集馬 一覧</h1>
+<BaseLayout description={description}>
+  <h1>2025年募集馬 一覧（{horses2025.length}頭）</h1>
   <p class="lead">
-    列見出しをクリックするとソートできます。評価・お気に入り・消フラグ・メモは
-    この端末のブラウザ内（localStorage）に保存され、ページを再読み込みしても残ります。
+    列見出しをクリックするとソートできます。評価・お気に入り・消・メモは
+    この端末のブラウザ内（localStorage）に保存され、再読み込みしても残ります。
   </p>
 
   <div class="filters">
     <label>
+      馬名
+      <input type="text" id="filter-name" placeholder="部分一致" />
+    </label>
+    <label>
       父
-      <input type="text" id="filter-sire" placeholder="部分一致" />
+      <select id="filter-sire">
+        <option value="">すべて</option>
+        {sires.map((s) => <option value={s}>{s}</option>)}
+      </select>
     </label>
     <label>
       母父
       <input type="text" id="filter-bms" placeholder="部分一致" />
+    </label>
+    <label>
+      厩舎
+      <select id="filter-stable">
+        <option value="">すべて</option>
+        {stables.map((s) => <option value={s}>{s}</option>)}
+      </select>
+    </label>
+    <label>
+      性別
+      <select id="filter-sex">
+        <option value="">すべて</option>
+        <option value="牡">牡</option>
+        <option value="牝">牝</option>
+        <option value="セ">セ</option>
+      </select>
+    </label>
+    <label>
+      一口 (万円)
+      <span class="range">
+        <input type="number" id="filter-price-min" placeholder="下限" />
+        〜
+        <input type="number" id="filter-price-max" placeholder="上限" />
+      </span>
     </label>
     <label>
       体高 (cm)
@@ -38,60 +74,85 @@ const description =
         <input type="number" id="filter-weight-max" placeholder="上限" />
       </span>
     </label>
-    <label class="checkbox-label">
-      <input type="checkbox" id="filter-hide-skip" />
-      消フラグを付けた馬を隠す
-    </label>
-    <button type="button" id="filter-reset">条件をクリア</button>
+
+    <div class="toggles">
+      <label class="checkbox-label">
+        <input type="checkbox" id="filter-dam-priority" />
+        母優先のみ
+      </label>
+      <label class="checkbox-label">
+        <input type="checkbox" id="filter-exclude-surgery" />
+        手術・既往ありを除く
+      </label>
+      <label class="checkbox-label">
+        <input type="checkbox" id="filter-hide-skip" />
+        消を付けた馬を隠す
+      </label>
+      <label class="checkbox-label">
+        <input type="checkbox" id="filter-favorite-only" />
+        お気に入りのみ
+      </label>
+      <button type="button" id="filter-reset">条件をクリア</button>
+    </div>
   </div>
+
+  <p id="result-count" class="result-count"></p>
 
   <div class="table-wrap">
     <table id="horse-table">
       <thead>
         <tr>
+          <th><button type="button" class="sort-btn" data-sort-key="id">No</button></th>
           <th><button type="button" class="sort-btn" data-sort-key="name">馬名</button></th>
+          <th><button type="button" class="sort-btn" data-sort-key="sex">性</button></th>
           <th><button type="button" class="sort-btn" data-sort-key="sire">父</button></th>
           <th><button type="button" class="sort-btn" data-sort-key="broodmareSire">母父</button></th>
-          <th><button type="button" class="sort-btn" data-sort-key="birthDate">生年月日</button></th>
-          <th><button type="button" class="sort-btn" data-sort-key="height">体高</button></th>
-          <th><button type="button" class="sort-btn" data-sort-key="chestGirth">胸囲</button></th>
-          <th><button type="button" class="sort-btn" data-sort-key="caretGirth">管囲</button></th>
-          <th><button type="button" class="sort-btn" data-sort-key="weight">馬体重</button></th>
           <th><button type="button" class="sort-btn" data-sort-key="damAge">母齢</button></th>
-          <th>兄弟情報</th>
+          <th><button type="button" class="sort-btn" data-sort-key="birthDate">誕生日</button></th>
+          <th><button type="button" class="sort-btn" data-sort-key="stable">厩舎</button></th>
+          <th class="num"><button type="button" class="sort-btn" data-sort-key="pricePerShare">一口</button></th>
+          <th class="num"><button type="button" class="sort-btn" data-sort-key="height">体高</button></th>
+          <th class="num"><button type="button" class="sort-btn" data-sort-key="chestGirth">胸囲</button></th>
+          <th class="num"><button type="button" class="sort-btn" data-sort-key="caretGirth">管囲</button></th>
+          <th class="num"><button type="button" class="sort-btn" data-sort-key="weight">馬体重</button></th>
+          <th>兄弟</th>
+          <th>母優</th>
+          <th>手術・既往</th>
+          <th>リンク</th>
           <th>評価</th>
           <th>メモ</th>
         </tr>
       </thead>
       <tbody id="horse-tbody">
-        <tr>
-          <td colspan="12">読み込み中…</td>
-        </tr>
+        <tr><td colspan="19">読み込み中…</td></tr>
       </tbody>
     </table>
   </div>
-  <p id="result-count" class="result-count"></p>
 
   <h2>このツールについて</h2>
   <p>
-    キャロットクラブの募集馬選定を、毎回スプレッドシートを作らなくてもできるようにする
-    個人開発のツールです。キャロットクラブ公式とは関係ありません。
-    現在表示している馬データはプレースホルダ（ダミー）で、実データは準備中です。
+    一口馬主クラブの募集馬選定を、毎回スプレッドシートを作らなくてもできるようにする
+    個人開発のツールです。クラブ公式とは関係ありません。
+    掲載しているのは血統・測尺・厩舎などの客観データのみで、評価は各自が入力します。
+  </p>
+  <p class="note">
+    データは2025年募集馬の確定リスト時点のものです。出資の判断は必ず公式情報でご確認ください。
   </p>
 
   <style>
     .lead { color: var(--muted); margin-top: 0; }
+    .note { color: var(--muted); font-size: 0.875rem; }
 
     .filters {
       display: flex;
       flex-wrap: wrap;
-      gap: 1rem;
+      gap: 0.9rem 1.1rem;
       align-items: end;
       background: var(--surface);
       border: 1px solid var(--border);
       border-radius: 8px;
       padding: 1rem;
-      margin-block: 1.25rem;
+      margin-block: 1.25rem 0.75rem;
       font-size: 0.875rem;
     }
     .filters label {
@@ -101,25 +162,38 @@ const description =
       color: var(--muted);
     }
     .filters input[type='text'],
-    .filters input[type='number'] {
+    .filters input[type='number'],
+    .filters select {
       font: inherit;
       padding: 0.4rem 0.5rem;
       border: 1px solid var(--border);
       border-radius: 5px;
       background: var(--bg);
       color: var(--text);
-      width: 8rem;
+      max-width: 11rem;
     }
     .filters .range {
       display: flex;
       align-items: center;
       gap: 0.3rem;
+      color: var(--muted);
     }
     .filters .range input { width: 4.5rem; }
+
+    .toggles {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 0.9rem;
+      width: 100%;
+      border-top: 1px solid var(--border);
+      padding-top: 0.9rem;
+    }
     .checkbox-label {
       flex-direction: row !important;
       align-items: center;
-      gap: 0.4rem !important;
+      gap: 0.35rem !important;
+      color: var(--text) !important;
     }
     #filter-reset {
       font: inherit;
@@ -127,9 +201,10 @@ const description =
       background: transparent;
       border: 1px solid var(--border);
       border-radius: 6px;
-      padding: 0.5rem 0.8rem;
+      padding: 0.4rem 0.8rem;
       cursor: pointer;
       color: var(--text);
+      margin-left: auto;
     }
     #filter-reset:hover { border-color: var(--accent); color: var(--accent); }
 
@@ -137,24 +212,75 @@ const description =
       overflow-x: auto;
       border: 1px solid var(--border);
       border-radius: 8px;
+      background: var(--surface);
     }
-    table {
+
+    .result-count {
+      color: var(--muted);
+      font-size: 0.8125rem;
+      margin: 0 0 0.5rem;
+    }
+  </style>
+
+  <!--
+    表の行はクライアント側の script が innerHTML で生成するため、Astro のスコープ属性が
+    付かない。スコープ付き <style> のセレクタは一致せず無効になるので、表まわりだけは
+    is:global にする（誤爆を避けるため全セレクタを #horse-table 配下に限定する）。
+  -->
+  <style is:global>
+    #horse-table {
       border-collapse: collapse;
       width: 100%;
-      font-size: 0.875rem;
+      font-size: 0.8125rem;
       white-space: nowrap;
     }
-    th, td {
-      padding: 0.5rem 0.6rem;
+    #horse-table th,
+    #horse-table td {
+      padding: 0.4rem 0.55rem;
       border-bottom: 1px solid var(--border);
       text-align: left;
+      vertical-align: middle;
     }
-    thead th {
+    #horse-table thead th {
       background: var(--accent-weak);
       position: sticky;
       top: 0;
+      z-index: 2;
     }
-    .sort-btn {
+    #horse-table th.num,
+    #horse-table td.num { text-align: right; }
+    #horse-table tbody tr:hover td { background: var(--accent-weak); }
+
+    /* 表が画面幅に収まらないため（実データで約2400px）、右端の評価欄を操作している間も
+       どの馬を見ているか分かるように No と馬名を左端に固定する。
+       固定列は背景を塗らないと、下をスクロールする列が透けて重なって見える。
+       左オフセットは No 列の実幅と一致させる必要があるので、幅を固定する。 */
+    #horse-table th:nth-child(1),
+    #horse-table td:nth-child(1) {
+      position: sticky;
+      left: 0;
+      min-width: 3.5rem;
+      width: 3.5rem;
+      background: var(--surface);
+      z-index: 1;
+    }
+    #horse-table th:nth-child(2),
+    #horse-table td:nth-child(2) {
+      position: sticky;
+      left: 3.5rem;
+      background: var(--surface);
+      z-index: 1;
+      border-right: 1px solid var(--border);
+    }
+    #horse-table thead th:nth-child(1),
+    #horse-table thead th:nth-child(2) {
+      background: var(--accent-weak);
+      z-index: 3; /* 縦横どちらの固定にも勝つ必要がある */
+    }
+    #horse-table tbody tr:hover td:nth-child(1),
+    #horse-table tbody tr:hover td:nth-child(2) { background: var(--accent-weak); }
+
+    #horse-table .sort-btn {
       font: inherit;
       font-weight: 600;
       background: transparent;
@@ -162,65 +288,85 @@ const description =
       cursor: pointer;
       color: var(--text);
       padding: 0;
+      white-space: nowrap;
     }
-    .sort-btn:hover { color: var(--accent); }
-    .sort-btn[data-active='true'] { color: var(--accent); }
+    #horse-table .sort-btn:hover { color: var(--accent); }
+    #horse-table .sort-btn[data-active='true'] { color: var(--accent); }
 
-    .eval-cell {
+    #horse-table .horse-name { font-weight: 600; }
+    #horse-table .sibling,
+    #horse-table .surgery {
+      max-width: 12rem;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    #horse-table .surgery { color: var(--danger); }
+    #horse-table .dam-priority { color: var(--accent); font-weight: 600; }
+
+    #horse-table .links a {
+      margin-right: 0.35rem;
+      font-size: 0.75rem;
+    }
+
+    #horse-table .eval-cell {
       display: flex;
       align-items: center;
-      gap: 0.4rem;
+      gap: 0.35rem;
     }
-    .rating-select {
+    #horse-table .rating-select {
       font: inherit;
-      padding: 0.25rem 0.35rem;
+      font-size: 0.8125rem;
+      padding: 0.2rem 0.3rem;
       border: 1px solid var(--border);
       border-radius: 4px;
       background: var(--bg);
       color: var(--text);
     }
-    .favorite-btn {
-      font-size: 1rem;
+    #horse-table .favorite-btn {
+      font-size: 0.9rem;
       background: transparent;
       border: 1px solid var(--border);
       border-radius: 4px;
-      width: 1.8rem;
-      height: 1.8rem;
+      width: 1.7rem;
+      height: 1.7rem;
       cursor: pointer;
       color: var(--border);
+      line-height: 1;
     }
-    .favorite-btn[aria-pressed='true'] {
+    #horse-table .favorite-btn[aria-pressed='true'] {
       color: var(--accent);
       border-color: var(--accent);
     }
-    .skip-label {
+    #horse-table .skip-label {
       display: flex;
       align-items: center;
       gap: 0.2rem;
       color: var(--muted);
     }
-    .memo-input {
+    #horse-table .memo-input {
       font: inherit;
       font-size: 0.8125rem;
-      padding: 0.3rem 0.4rem;
+      padding: 0.25rem 0.4rem;
       border: 1px solid var(--border);
       border-radius: 4px;
       background: var(--bg);
       color: var(--text);
-      width: 10rem;
-      white-space: normal;
+      width: 11rem;
     }
-    tr[data-skip='true'] { opacity: 0.45; }
-
-    .result-count {
-      color: var(--muted);
-      font-size: 0.8125rem;
-    }
+    #horse-table tr[data-skip='true'] { opacity: 0.4; }
   </style>
 
   <script>
     import { horses2025 } from '../data/horses2025.ts';
-    import { sortHorses, filterHorses, type Horse, type SortKey, type SortDirection, type HorseFilter } from '../lib/horses.ts';
+    import {
+      sortHorses,
+      filterHorses,
+      type Horse,
+      type Sex,
+      type SortKey,
+      type SortDirection,
+      type HorseFilter,
+    } from '../lib/horses.ts';
     import {
       loadEvaluations,
       saveEvaluations,
@@ -234,16 +380,29 @@ const description =
     const resultCount = document.getElementById('result-count') as HTMLElement;
     const sortButtons = document.querySelectorAll<HTMLButtonElement>('.sort-btn');
 
-    const filterSireInput = document.getElementById('filter-sire') as HTMLInputElement;
-    const filterBmsInput = document.getElementById('filter-bms') as HTMLInputElement;
-    const filterHeightMin = document.getElementById('filter-height-min') as HTMLInputElement;
-    const filterHeightMax = document.getElementById('filter-height-max') as HTMLInputElement;
-    const filterWeightMin = document.getElementById('filter-weight-min') as HTMLInputElement;
-    const filterWeightMax = document.getElementById('filter-weight-max') as HTMLInputElement;
-    const filterHideSkip = document.getElementById('filter-hide-skip') as HTMLInputElement;
-    const filterResetBtn = document.getElementById('filter-reset') as HTMLButtonElement;
+    const el = <T extends HTMLElement>(id: string) => document.getElementById(id) as T;
+    const filterName = el<HTMLInputElement>('filter-name');
+    const filterSire = el<HTMLSelectElement>('filter-sire');
+    const filterBms = el<HTMLInputElement>('filter-bms');
+    const filterStable = el<HTMLSelectElement>('filter-stable');
+    const filterSex = el<HTMLSelectElement>('filter-sex');
+    const filterPriceMin = el<HTMLInputElement>('filter-price-min');
+    const filterPriceMax = el<HTMLInputElement>('filter-price-max');
+    const filterHeightMin = el<HTMLInputElement>('filter-height-min');
+    const filterHeightMax = el<HTMLInputElement>('filter-height-max');
+    const filterWeightMin = el<HTMLInputElement>('filter-weight-min');
+    const filterWeightMax = el<HTMLInputElement>('filter-weight-max');
+    const filterDamPriority = el<HTMLInputElement>('filter-dam-priority');
+    const filterExcludeSurgery = el<HTMLInputElement>('filter-exclude-surgery');
+    const filterHideSkip = el<HTMLInputElement>('filter-hide-skip');
+    const filterFavoriteOnly = el<HTMLInputElement>('filter-favorite-only');
+    const filterResetBtn = el<HTMLButtonElement>('filter-reset');
 
-    let sortKey: SortKey = 'name';
+    const textInputs = [filterName, filterBms, filterPriceMin, filterPriceMax, filterHeightMin, filterHeightMax, filterWeightMin, filterWeightMax];
+    const selects = [filterSire, filterStable, filterSex];
+    const toggles = [filterDamPriority, filterExcludeSurgery, filterHideSkip, filterFavoriteOnly];
+
+    let sortKey: SortKey = 'id';
     let sortDirection: SortDirection = 'asc';
     let evaluations: EvaluationMap = loadEvaluations(window.localStorage);
 
@@ -255,37 +414,64 @@ const description =
         .replace(/"/g, '&quot;');
     }
 
+    function numberValue(input: HTMLInputElement): number | undefined {
+      return input.value === '' ? undefined : Number(input.value);
+    }
+
     function currentFilter(): HorseFilter {
       const filter: HorseFilter = {};
-      if (filterSireInput.value.trim()) filter.sire = filterSireInput.value.trim();
-      if (filterBmsInput.value.trim()) filter.broodmareSire = filterBmsInput.value.trim();
-      if (filterHeightMin.value !== '') filter.minHeight = Number(filterHeightMin.value);
-      if (filterHeightMax.value !== '') filter.maxHeight = Number(filterHeightMax.value);
-      if (filterWeightMin.value !== '') filter.minWeight = Number(filterWeightMin.value);
-      if (filterWeightMax.value !== '') filter.maxWeight = Number(filterWeightMax.value);
+      if (filterName.value.trim()) filter.name = filterName.value.trim();
+      if (filterSire.value) filter.sire = filterSire.value;
+      if (filterBms.value.trim()) filter.broodmareSire = filterBms.value.trim();
+      if (filterStable.value) filter.stable = filterStable.value;
+      if (filterSex.value) filter.sex = filterSex.value as Sex;
+      filter.minPrice = numberValue(filterPriceMin);
+      filter.maxPrice = numberValue(filterPriceMax);
+      filter.minHeight = numberValue(filterHeightMin);
+      filter.maxHeight = numberValue(filterHeightMax);
+      filter.minWeight = numberValue(filterWeightMin);
+      filter.maxWeight = numberValue(filterWeightMax);
+      if (filterDamPriority.checked) filter.damPriorityOnly = true;
+      if (filterExcludeSurgery.checked) filter.excludeSurgery = true;
       return filter;
     }
 
     function rowHtml(horse: Horse, evaluation: Evaluation): string {
       const ratingOptions = ['', 'A', 'B', 'C', 'D', 'E']
-        .map((r) => `<option value="${r}" ${evaluation.rating === r || (r === '' && !evaluation.rating) ? 'selected' : ''}>${r || '-'}</option>`)
+        .map((r) => {
+          const selected = (evaluation.rating ?? '') === r ? ' selected' : '';
+          return `<option value="${r}"${selected}>${r || '-'}</option>`;
+        })
         .join('');
+      const surgeryText = horse.surgery.replace(/\n/g, ' / ');
       return `
         <tr data-horse-id="${horse.id}" data-skip="${evaluation.skip}">
-          <td>${escapeHtml(horse.name)}</td>
+          <td class="num">${horse.id}</td>
+          <td class="horse-name">${escapeHtml(horse.name)}</td>
+          <td>${horse.sex}</td>
           <td>${escapeHtml(horse.sire)}</td>
           <td>${escapeHtml(horse.broodmareSire)}</td>
-          <td>${horse.birthDate}</td>
-          <td>${horse.height}</td>
-          <td>${horse.chestGirth}</td>
-          <td>${horse.caretGirth}</td>
-          <td>${horse.weight}</td>
-          <td>${horse.damAge}</td>
-          <td>${escapeHtml(horse.siblingInfo)}</td>
-          <td class="eval-cell">
-            <select class="rating-select" data-field="rating" aria-label="評価">${ratingOptions}</select>
-            <button type="button" class="favorite-btn" data-field="favorite" aria-pressed="${evaluation.favorite}" aria-label="お気に入り" title="お気に入り">★</button>
-            <label class="skip-label"><input type="checkbox" class="skip-checkbox" data-field="skip" ${evaluation.skip ? 'checked' : ''} /> 消</label>
+          <td class="num">${horse.damAge}</td>
+          <td>${horse.birthDate.slice(5).replace('-', '/')}</td>
+          <td>${escapeHtml(horse.stable)}</td>
+          <td class="num">${horse.pricePerShare}</td>
+          <td class="num">${horse.height}</td>
+          <td class="num">${horse.chestGirth}</td>
+          <td class="num">${horse.caretGirth}</td>
+          <td class="num">${horse.weight}</td>
+          <td class="sibling" title="${escapeHtml(horse.sibling)}">${escapeHtml(horse.sibling)}</td>
+          <td class="dam-priority">${horse.damPriority ? '◯' : ''}</td>
+          <td class="surgery" title="${escapeHtml(surgeryText)}">${escapeHtml(surgeryText)}</td>
+          <td class="links">
+            <a href="${escapeHtml(horse.netkeibaUrl)}" target="_blank" rel="noopener">netkeiba</a>
+            <a href="${escapeHtml(horse.xSearchUrl)}" target="_blank" rel="noopener">X</a>
+          </td>
+          <td>
+            <div class="eval-cell">
+              <select class="rating-select" data-field="rating" aria-label="評価">${ratingOptions}</select>
+              <button type="button" class="favorite-btn" data-field="favorite" aria-pressed="${evaluation.favorite}" aria-label="お気に入り" title="お気に入り">★</button>
+              <label class="skip-label"><input type="checkbox" class="skip-checkbox" data-field="skip" ${evaluation.skip ? 'checked' : ''} /> 消</label>
+            </div>
           </td>
           <td><input type="text" class="memo-input" data-field="memo" value="${escapeHtml(evaluation.memo)}" placeholder="メモ" /></td>
         </tr>
@@ -293,25 +479,27 @@ const description =
     }
 
     function render() {
-      const filter = currentFilter();
-      let list = filterHorses(horses2025, filter);
+      let list = filterHorses(horses2025, currentFilter());
+      // 評価はユーザーごとの状態なので、客観データのフィルタとは分けてここで適用する
       if (filterHideSkip.checked) {
         list = list.filter((h) => !getEvaluation(evaluations, h.id).skip);
       }
+      if (filterFavoriteOnly.checked) {
+        list = list.filter((h) => getEvaluation(evaluations, h.id).favorite);
+      }
       list = sortHorses(list, sortKey, sortDirection);
 
-      if (list.length === 0) {
-        tbody.innerHTML = `<tr><td colspan="12">条件に一致する馬がいません。</td></tr>`;
-      } else {
-        tbody.innerHTML = list.map((h) => rowHtml(h, getEvaluation(evaluations, h.id))).join('');
-      }
+      tbody.innerHTML =
+        list.length === 0
+          ? '<tr><td colspan="19">条件に一致する馬がいません。</td></tr>'
+          : list.map((h) => rowHtml(h, getEvaluation(evaluations, h.id))).join('');
       resultCount.textContent = `${list.length} / ${horses2025.length} 頭`;
 
       for (const btn of sortButtons) {
-        btn.setAttribute('data-active', String(btn.dataset.sortKey === sortKey));
-        btn.textContent = `${btn.textContent!.replace(/[▲▼]$/u, '').trim()}${
-          btn.dataset.sortKey === sortKey ? (sortDirection === 'asc' ? ' ▲' : ' ▼') : ''
-        }`;
+        const active = btn.dataset.sortKey === sortKey;
+        btn.setAttribute('data-active', String(active));
+        const label = btn.textContent!.replace(/\s*[▲▼]$/u, '');
+        btn.textContent = active ? `${label} ${sortDirection === 'asc' ? '▲' : '▼'}` : label;
       }
     }
 
@@ -333,24 +521,20 @@ const description =
       });
     }
 
-    for (const input of [filterSireInput, filterBmsInput, filterHeightMin, filterHeightMax, filterWeightMin, filterWeightMax]) {
-      input.addEventListener('input', render);
-    }
-    filterHideSkip.addEventListener('change', render);
+    for (const input of textInputs) input.addEventListener('input', render);
+    for (const select of selects) select.addEventListener('change', render);
+    for (const toggle of toggles) toggle.addEventListener('change', render);
+
     filterResetBtn.addEventListener('click', () => {
-      filterSireInput.value = '';
-      filterBmsInput.value = '';
-      filterHeightMin.value = '';
-      filterHeightMax.value = '';
-      filterWeightMin.value = '';
-      filterWeightMax.value = '';
-      filterHideSkip.checked = false;
+      for (const input of textInputs) input.value = '';
+      for (const select of selects) select.value = '';
+      for (const toggle of toggles) toggle.checked = false;
       render();
     });
 
-    // 評価UIの変更をイベント委譲で拾う（再描画のたびに listener を付け直さなくて良いように）。
-    // メモ欄は blur を待たず、入力のたびに保存する（'change'はblur/Enterまで発火せず、
-    // 未保存のまま離脱されるとメモが消えてしまうため）。
+    // 評価UIの変更はイベント委譲で拾う（再描画のたびに listener を付け直さなくて済む）。
+    // メモ欄は blur を待たず入力のたびに保存する（'change' は blur/Enter まで発火しないため、
+    // 入力途中で離脱するとメモが失われてしまう）。
     tbody.addEventListener('input', (e) => {
       const target = e.target as HTMLElement;
       if (target.getAttribute('data-field') !== 'memo') return;
@@ -382,10 +566,10 @@ const description =
       if (target.getAttribute('data-field') !== 'favorite') return;
       const row = target.closest('tr[data-horse-id]') as HTMLTableRowElement | null;
       if (!row) return;
-      const horseId = row.dataset.horseId!;
       const pressed = target.getAttribute('aria-pressed') === 'true';
       target.setAttribute('aria-pressed', String(!pressed));
-      persistEvaluation(horseId, { favorite: !pressed });
+      persistEvaluation(row.dataset.horseId!, { favorite: !pressed });
+      if (filterFavoriteOnly.checked) render();
     });
 
     render();

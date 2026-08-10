@@ -1,70 +1,109 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { sortHorses, filterHorses, type Horse } from './horses.ts';
+import { sortHorses, filterHorses, uniqueValues, type Horse } from './horses.ts';
 
-const horses: Horse[] = [
-  {
-    id: 'a',
-    name: 'あお号',
-    sire: 'サンデーサイレンス',
-    broodmareSire: 'ノーザンテースト',
-    birthDate: '2024-02-10',
+function makeHorse(overrides: Partial<Horse> & Pick<Horse, 'id'>): Horse {
+  return {
+    name: `テスト号${overrides.id}`,
+    sex: '牡',
+    netkeibaUrl: 'https://example.com/',
+    sire: 'テストサイアー',
+    broodmareSire: 'テスト母父',
+    damAge: 8,
+    birthDate: '2024-03-01',
+    stable: 'テスト厩舎',
+    pricePerShare: 20,
     height: 158,
     chestGirth: 178,
-    caretGirth: 19.5,
-    weight: 420,
-    damAge: 8,
-    siblingInfo: '兄に重賞勝ち馬',
-  },
-  {
-    id: 'b',
-    name: 'いろは号',
-    sire: 'ディープインパクト',
+    caretGirth: 20,
+    weight: 440,
+    sibling: '',
+    damPriority: false,
+    surgery: '',
+    xSearchUrl: 'https://x.com/search',
+    ...overrides,
+  };
+}
+
+const horses: Horse[] = [
+  makeHorse({
+    id: '2',
+    name: 'あお号',
+    sex: '牡',
+    sire: 'キタサンブラック',
     broodmareSire: 'キングカメハメハ',
+    stable: '黒岩陽一',
+    birthDate: '2024-05-02',
+    pricePerShare: 20,
+    height: 158,
+    weight: 447,
+    damPriority: true,
+    surgery: '',
+  }),
+  makeHorse({
+    id: '1',
+    name: 'いろは号',
+    sex: '牝',
+    sire: 'ロードカナロア',
+    broodmareSire: 'ディープブリランテ',
+    stable: '田中博康',
     birthDate: '2024-01-05',
+    pricePerShare: 40,
     height: 162,
-    chestGirth: 182,
-    caretGirth: 20.1,
-    weight: 450,
-    damAge: 5,
-    siblingInfo: '初仔',
-  },
-  {
-    id: 'c',
+    weight: 486,
+    damPriority: false,
+    surgery: '',
+  }),
+  makeHorse({
+    id: '10',
     name: 'うめ号',
-    sire: 'ディープインパクト',
+    sex: '牝',
+    sire: 'キタサンブラック',
     broodmareSire: 'サンデーサイレンス',
+    stable: '木村哲也',
     birthDate: '2024-03-20',
-    height: 155,
-    chestGirth: 175,
-    caretGirth: 19.0,
+    pricePerShare: 15,
+    height: 154,
     weight: 400,
-    damAge: 11,
-    siblingInfo: '姉が牝馬三冠',
-  },
+    damPriority: true,
+    surgery: '左飛節OCD除去手術 (2025/5/19)',
+  }),
 ];
 
+// --- ソート ---
+
 test('sortHorses: 数値キーを昇順ソートする', () => {
-  const sorted = sortHorses(horses, 'height', 'asc');
   assert.deepEqual(
-    sorted.map((h) => h.id),
-    ['c', 'a', 'b'],
+    sortHorses(horses, 'height', 'asc').map((h) => h.id),
+    ['10', '2', '1'],
   );
 });
 
 test('sortHorses: 数値キーを降順ソートする', () => {
-  const sorted = sortHorses(horses, 'weight', 'desc');
   assert.deepEqual(
-    sorted.map((h) => h.id),
-    ['b', 'a', 'c'],
+    sortHorses(horses, 'weight', 'desc').map((h) => h.id),
+    ['1', '2', '10'],
   );
 });
 
-test('sortHorses: 文字列キー（生年月日）を昇順ソートする', () => {
-  const sorted = sortHorses(horses, 'birthDate', 'asc');
+test('sortHorses: 一口価格でソートできる', () => {
   assert.deepEqual(
-    sorted.map((h) => h.id),
-    ['b', 'a', 'c'],
+    sortHorses(horses, 'pricePerShare', 'asc').map((h) => h.id),
+    ['10', '2', '1'],
+  );
+});
+
+test('sortHorses: 生年月日（文字列）を昇順ソートする', () => {
+  assert.deepEqual(
+    sortHorses(horses, 'birthDate', 'asc').map((h) => h.id),
+    ['1', '10', '2'],
+  );
+});
+
+test('sortHorses: idは文字列だが番号として比較する（"10" が "2" より後）', () => {
+  assert.deepEqual(
+    sortHorses(horses, 'id', 'asc').map((h) => h.id),
+    ['1', '2', '10'],
   );
 });
 
@@ -74,44 +113,79 @@ test('sortHorses: 元の配列を変更しない', () => {
   assert.deepEqual(horses, original);
 });
 
+// --- フィルタ ---
+
 test('filterHorses: 父名の部分一致で絞り込む', () => {
-  const filtered = filterHorses(horses, { sire: 'ディープインパクト' });
   assert.deepEqual(
-    filtered.map((h) => h.id),
-    ['b', 'c'],
+    filterHorses(horses, { sire: 'キタサンブラック' }).map((h) => h.id),
+    ['2', '10'],
   );
 });
 
 test('filterHorses: マッチしない父名では0件になる', () => {
-  const filtered = filterHorses(horses, { sire: 'キタサンブラック' });
-  assert.deepEqual(filtered, []);
+  assert.deepEqual(filterHorses(horses, { sire: 'エピファネイア' }), []);
 });
 
-test('filterHorses: 体高の範囲で絞り込む', () => {
-  const filtered = filterHorses(horses, { minHeight: 156, maxHeight: 160 });
+test('filterHorses: 厩舎名の部分一致で絞り込む', () => {
   assert.deepEqual(
-    filtered.map((h) => h.id),
-    ['a'],
+    filterHorses(horses, { stable: '木村' }).map((h) => h.id),
+    ['10'],
   );
 });
 
-test('filterHorses: 生年月日の範囲で絞り込む', () => {
-  const filtered = filterHorses(horses, { bornAfter: '2024-02-01', bornBefore: '2024-03-01' });
+test('filterHorses: 性別で絞り込む', () => {
   assert.deepEqual(
-    filtered.map((h) => h.id),
-    ['a'],
+    filterHorses(horses, { sex: '牝' }).map((h) => h.id),
+    ['1', '10'],
+  );
+});
+
+test('filterHorses: 一口価格の範囲で絞り込む', () => {
+  assert.deepEqual(
+    filterHorses(horses, { minPrice: 16, maxPrice: 30 }).map((h) => h.id),
+    ['2'],
+  );
+});
+
+test('filterHorses: 体高の範囲で絞り込む', () => {
+  assert.deepEqual(
+    filterHorses(horses, { minHeight: 156, maxHeight: 160 }).map((h) => h.id),
+    ['2'],
+  );
+});
+
+test('filterHorses: 母優先のみに絞り込む', () => {
+  assert.deepEqual(
+    filterHorses(horses, { damPriorityOnly: true }).map((h) => h.id),
+    ['2', '10'],
+  );
+});
+
+test('filterHorses: 手術・既往歴のある馬を除外する', () => {
+  assert.deepEqual(
+    filterHorses(horses, { excludeSurgery: true }).map((h) => h.id),
+    ['2', '1'],
   );
 });
 
 test('filterHorses: 条件未指定なら全件返す', () => {
-  const filtered = filterHorses(horses, {});
-  assert.equal(filtered.length, horses.length);
+  assert.equal(filterHorses(horses, {}).length, horses.length);
 });
 
 test('filterHorses: 複数条件はAND条件', () => {
-  const filtered = filterHorses(horses, { sire: 'ディープインパクト', minWeight: 420 });
   assert.deepEqual(
-    filtered.map((h) => h.id),
-    ['b'],
+    filterHorses(horses, { sire: 'キタサンブラック', excludeSurgery: true }).map((h) => h.id),
+    ['2'],
   );
+});
+
+// --- フィルタ選択肢 ---
+
+test('uniqueValues: 重複を除いて昇順に返す', () => {
+  assert.deepEqual(uniqueValues(horses, 'sire'), ['キタサンブラック', 'ロードカナロア']);
+});
+
+test('uniqueValues: 空文字は選択肢に含めない', () => {
+  const withEmpty = [...horses, makeHorse({ id: '99', stable: '' })];
+  assert.ok(!uniqueValues(withEmpty, 'stable').includes(''));
 });
