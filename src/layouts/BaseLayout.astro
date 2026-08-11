@@ -1,5 +1,11 @@
 ---
-import { SITE_URL, SITE_TITLE, SITE_DESCRIPTION } from '../consts';
+import {
+  SITE_URL,
+  SITE_TITLE,
+  SITE_TAGLINE,
+  SITE_DESCRIPTION,
+  UNOFFICIAL_NOTICE,
+} from '../consts';
 
 interface Props {
   /** ページ固有のタイトル。トップページでは省略する */
@@ -11,8 +17,13 @@ interface Props {
 
 const { title, description = SITE_DESCRIPTION, breadcrumb = [] } = Astro.props;
 
-const fullTitle = title ? `${title} | ${SITE_TITLE}` : `${SITE_TITLE} — 一口馬主 募集馬選定ツール`;
+// トップは「サイト名｜内容」、下層は「ページ名 | サイト名」。
+const fullTitle = title ? `${title} | ${SITE_TITLE}` : `${SITE_TITLE}｜${SITE_TAGLINE}`;
 const canonical = new URL(Astro.url.pathname, SITE_URL).href;
+
+// OGP画像は public/og.png（1200x630）を絶対URLで参照する
+const ogImage = new URL('/og.png', SITE_URL).href;
+const ogImageAlt = `${SITE_TITLE}｜${SITE_TAGLINE}`;
 
 // パンくずの構造化データ。トップ → 中間 → 現在ページ
 const crumbs = [
@@ -31,6 +42,36 @@ const breadcrumbJsonLd = {
     item: new URL(c.href, SITE_URL).href,
   })),
 };
+
+const webSiteJsonLd = {
+  '@context': 'https://schema.org',
+  '@type': 'WebSite',
+  name: SITE_TITLE,
+  alternateName: SITE_TAGLINE,
+  url: SITE_URL,
+  description: SITE_DESCRIPTION,
+  inLanguage: 'ja',
+};
+
+// 実在しない評価・レビュー・利用者数は書かない（aggregateRating等は入れない）。
+// 完全無料なので offers は price 0 とする。
+const webAppJsonLd = {
+  '@context': 'https://schema.org',
+  '@type': 'WebApplication',
+  name: SITE_TITLE,
+  url: SITE_URL,
+  description: SITE_DESCRIPTION,
+  applicationCategory: 'UtilityApplication',
+  operatingSystem: 'Any',
+  browserRequirements: 'JavaScriptが有効なモダンブラウザ',
+  inLanguage: 'ja',
+  isAccessibleForFree: true,
+  offers: {
+    '@type': 'Offer',
+    price: '0',
+    priceCurrency: 'JPY',
+  },
+};
 ---
 
 <!doctype html>
@@ -40,16 +81,29 @@ const breadcrumbJsonLd = {
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>{fullTitle}</title>
     <meta name="description" content={description} />
+    <meta name="robots" content="index,follow,max-image-preview:large" />
     <link rel="canonical" href={canonical} />
 
     <meta property="og:type" content="website" />
+    <meta property="og:locale" content="ja_JP" />
     <meta property="og:site_name" content={SITE_TITLE} />
     <meta property="og:title" content={fullTitle} />
     <meta property="og:description" content={description} />
     <meta property="og:url" content={canonical} />
-    <meta name="twitter:card" content="summary" />
+    <meta property="og:image" content={ogImage} />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:image:alt" content={ogImageAlt} />
+
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content={fullTitle} />
+    <meta name="twitter:description" content={description} />
+    <meta name="twitter:image" content={ogImage} />
+    <meta name="twitter:image:alt" content={ogImageAlt} />
 
     <link rel="sitemap" href="/sitemap-index.xml" />
+    <script type="application/ld+json" set:html={JSON.stringify(webSiteJsonLd)} is:inline />
+    <script type="application/ld+json" set:html={JSON.stringify(webAppJsonLd)} is:inline />
     <script type="application/ld+json" set:html={JSON.stringify(breadcrumbJsonLd)} is:inline />
   </head>
 
@@ -57,8 +111,8 @@ const breadcrumbJsonLd = {
     <a class="skip-link" href="#main">本文へスキップ</a>
 
     <header class="site-header">
-      <a href="/" class="wordmark">carrot-club</a>
-      <p class="tagline">募集馬をソート・フィルタで見比べる選定支援ツール</p>
+      <a href="/" class="wordmark">{SITE_TITLE}</a>
+      <p class="tagline">{SITE_TAGLINE}</p>
     </header>
 
     {crumbs.length > 1 && (
@@ -82,9 +136,10 @@ const breadcrumbJsonLd = {
     </main>
 
     <footer class="site-footer">
+      <p class="unofficial">{UNOFFICIAL_NOTICE}</p>
       <p>
         あなたの評価はこの端末のブラウザ内（localStorage）に保存され、現時点ではサーバーへ
-        送信されません。個人の非公式ツールです。キャロットクラブ公式とは関係ありません。
+        送信されません。
       </p>
       <p class="meta">
         <a href="/">馬一覧へ戻る</a>
@@ -158,11 +213,12 @@ const breadcrumbJsonLd = {
         padding-bottom: 1.25rem;
       }
 
+      /* ワードマークは日本語になったので等幅ではなく本文フォントを使う */
       .wordmark {
-        font-family: var(--mono);
+        font-family: var(--sans);
         font-size: 1.35rem;
-        font-weight: 600;
-        letter-spacing: -0.02em;
+        font-weight: 700;
+        letter-spacing: -0.01em;
         color: var(--text);
         text-decoration: none;
       }
@@ -222,6 +278,7 @@ const breadcrumbJsonLd = {
         font-size: 0.8125rem;
       }
       .site-footer p { margin: 0 0 0.5rem; }
+      .site-footer .unofficial { color: var(--text); font-weight: 600; }
       .site-footer .meta { margin: 0; }
     </style>
   </body>

@@ -1,22 +1,129 @@
 ---
+/**
+ * 募集馬一覧（トップページ）。
+ *
+ * 表の行はビルド時とブラウザ側の両方で `horseRowHtml()` から作る。ビルド時に
+ * 全頭を埋め込んでおかないと、サーバーが返すHTMLに馬のデータが1件も含まれず
+ * （クローラーには「読み込み中…」しか見えず）検索に載らない。
+ * ブラウザ側は読み込み後に localStorage の評価を反映して同じ関数で描き直す。
+ */
 import BaseLayout from '../layouts/BaseLayout.astro';
+import { SITE_DESCRIPTION, UNOFFICIAL_NOTICE } from '../consts.ts';
 import { horses2025 } from '../data/horses2025.ts';
-import { uniqueValues } from '../lib/horses.ts';
-
-const description =
-  '2025年募集馬を血統・測尺・一口価格でソート・フィルタし、自分の評価をブラウザに保存できる選定支援ツール。';
+import { sortHorses, uniqueValues, type SortKey } from '../lib/horses.ts';
+import { DEFAULT_EVALUATION } from '../lib/evaluations.ts';
+import { COLUMNS, horseRowHtml } from '../lib/horse-row.ts';
 
 // フィルタの選択肢はビルド時に確定できるのでサーバー側で作る
 const sires = uniqueValues(horses2025, 'sire');
 const stables = uniqueValues(horses2025, 'stable');
+
+// COLUMNS は `as const` なので、そのままだと sortKey / align を持たない要素との
+// union になって参照できない。ここで緩い型に受け直す。
+const columns: readonly { label: string; sortKey?: SortKey; align?: string }[] = COLUMNS;
+
+// 初期表示はクライアント側の既定（id昇順）と揃える。評価は端末ごとの値なので
+// 初期HTMLでは未評価（DEFAULT_EVALUATION）で描き、読み込み後に上書きする。
+const initialRowsHtml = sortHorses(horses2025, 'id', 'asc')
+  .map((horse) => horseRowHtml(horse, DEFAULT_EVALUATION))
+  .join('\n');
+
+const total = horses2025.length;
+
+// 以下の数値はすべて src/data/horses2025.ts を集計した実測値。
+const damPriorityCount = horses2025.filter((h) => h.damPriority).length;
+const surgeryCount = horses2025.filter((h) => h.surgery !== '').length;
+const noSiblingCount = horses2025.filter((h) => h.sibling === '').length;
+const maleCount = horses2025.filter((h) => h.sex === '牡').length;
+const femaleCount = horses2025.filter((h) => h.sex === '牝').length;
+const sireKinds = uniqueValues(horses2025, 'sire').length;
+const bmsKinds = uniqueValues(horses2025, 'broodmareSire').length;
+const stableKinds = stables.length;
+
+function range(key: 'height' | 'chestGirth' | 'caretGirth' | 'weight' | 'pricePerShare') {
+  const values = horses2025.map((h) => h[key]).sort((a, b) => a - b);
+  const sum = values.reduce((a, b) => a + b, 0);
+  return {
+    min: values[0],
+    max: values[values.length - 1],
+    avg: Math.round((sum / values.length) * 10) / 10,
+    median: values[Math.floor(values.length / 2)],
+  };
+}
+
+const heightRange = range('height');
+const chestRange = range('chestGirth');
+const caretRange = range('caretGirth');
+const weightRange = range('weight');
+const priceRange = range('pricePerShare');
+
+const measurements = [
+  {
+    term: '体高',
+    unit: 'cm',
+    meaning: '地面から き甲（首の付け根の盛り上がり）までの高さ。馬の背丈にあたる。',
+    stat: heightRange,
+  },
+  {
+    term: '胸囲',
+    unit: 'cm',
+    meaning: 'き甲の後ろで胴回りを一周した長さ。胴の太さの目安。',
+    stat: chestRange,
+  },
+  {
+    term: '管囲',
+    unit: 'cm',
+    meaning: '前脚の管（前膝から球節までの部分）を一周した長さ。脚元の太さの目安。',
+    stat: caretRange,
+  },
+  {
+    term: '馬体重',
+    unit: 'kg',
+    meaning: '計測時点の体重。',
+    stat: weightRange,
+  },
+];
+
+// FAQは「画面に見えている文言」と JSON-LD を完全に一致させる必要があるため、
+// 必ずこの配列だけを唯一の出所にして両方を描画する（不一致はガイドライン違反）。
+const faqs = [
+  {
+    q: '入力した評価やメモはどこに保存されますか？',
+    a: '評価（A〜E）・お気に入り・消・メモは、お使いの端末のブラウザ内（localStorage）に保存されます。サーバーへは送信されません。同じブラウザで開き直せば復元されますが、別の端末やブラウザ、プライベートウィンドウとは共有されず、ブラウザの保存データを消すと評価も消えます。',
+  },
+  {
+    q: 'このサイトはキャロットクラブの公式サイトですか？',
+    a: `${UNOFFICIAL_NOTICE} 掲載しているのは募集馬リストの客観データを並べ替え・絞り込みできる形に整理したものだけで、出資の判断は必ずクラブ公式の情報でご確認ください。`,
+  },
+  {
+    q: '「母優先」とは何ですか？',
+    a: `その馬の母（繁殖牝馬）に出資している会員に優先枠がある、というクラブの制度上の区分です。この一覧では該当する馬の「母優」列に◯を付けており、2025年募集馬では${total}頭中${damPriorityCount}頭が該当します。「母優先のみ」にチェックを入れると該当馬だけに絞り込めます。`,
+  },
+  {
+    q: 'このツールに独自の評価やおすすめは載っていますか？',
+    a: '載っていません。掲載しているのは馬名・性別・父・母父・母齢・誕生日・厩舎・一口価格・体高・胸囲・管囲・馬体重・兄弟・母優先・手術や既往の記載といった客観データのみで、点数付けや順位付けは一切していません。評価は利用者自身が入力します。',
+  },
+];
+
+const faqJsonLd = {
+  '@context': 'https://schema.org',
+  '@type': 'FAQPage',
+  mainEntity: faqs.map((f) => ({
+    '@type': 'Question',
+    name: f.q,
+    acceptedAnswer: { '@type': 'Answer', text: f.a },
+  })),
+};
 ---
 
-<BaseLayout description={description}>
-  <h1>2025年募集馬 一覧（{horses2025.length}頭）</h1>
+<BaseLayout description={SITE_DESCRIPTION}>
+  <h1>2025年募集馬 一覧（{total}頭）</h1>
   <p class="lead">
-    列見出しをクリックするとソートできます。評価・お気に入り・消・メモは
-    この端末のブラウザ内（localStorage）に保存され、再読み込みしても残ります。
+    キャロットクラブ2025年募集馬{total}頭を、血統・測尺・一口価格・厩舎で並べ替え、絞り込みできる
+    非公式の選定支援ツールです。評価・お気に入り・消・メモはこの端末のブラウザ内（localStorage）に
+    保存され、再読み込みしても残ります。
   </p>
+  <p class="unofficial">{UNOFFICIAL_NOTICE}</p>
 
   <div class="filters">
     <label>
@@ -96,52 +203,137 @@ const stables = uniqueValues(horses2025, 'stable');
     </div>
   </div>
 
-  <p id="result-count" class="result-count"></p>
+  <p id="result-count" class="result-count">{total} / {total} 頭</p>
+  <p class="scroll-hint">
+    表は横スクロールで全{columns.length}列が見られます（父・母父・測尺・厩舎・netkeibaリンクなど）。
+    画面が広いときは <strong>No・馬名・評価</strong> の3列が左端に残るので、スクロールしても
+    どの馬に評価を入れているか分かります。
+  </p>
 
   <div class="table-wrap">
     <table id="horse-table">
+      <caption class="visually-hidden">
+        2025年募集馬{total}頭の血統・測尺・一口価格・厩舎の一覧（評価欄つき）
+      </caption>
       <thead>
         <tr>
-          <th><button type="button" class="sort-btn" data-sort-key="id">No</button></th>
-          <th><button type="button" class="sort-btn" data-sort-key="name">馬名</button></th>
-          <th><button type="button" class="sort-btn" data-sort-key="sex">性</button></th>
-          <th><button type="button" class="sort-btn" data-sort-key="sire">父</button></th>
-          <th><button type="button" class="sort-btn" data-sort-key="broodmareSire">母父</button></th>
-          <th><button type="button" class="sort-btn" data-sort-key="damAge">母齢</button></th>
-          <th><button type="button" class="sort-btn" data-sort-key="birthDate">誕生日</button></th>
-          <th><button type="button" class="sort-btn" data-sort-key="stable">厩舎</button></th>
-          <th class="num"><button type="button" class="sort-btn" data-sort-key="pricePerShare">一口</button></th>
-          <th class="num"><button type="button" class="sort-btn" data-sort-key="height">体高</button></th>
-          <th class="num"><button type="button" class="sort-btn" data-sort-key="chestGirth">胸囲</button></th>
-          <th class="num"><button type="button" class="sort-btn" data-sort-key="caretGirth">管囲</button></th>
-          <th class="num"><button type="button" class="sort-btn" data-sort-key="weight">馬体重</button></th>
-          <th>兄弟</th>
-          <th>母優</th>
-          <th>手術・既往</th>
-          <th>リンク</th>
-          <th>評価</th>
-          <th>メモ</th>
+          {
+            columns.map((col) => (
+              <th class={col.align === 'num' ? 'num' : undefined}>
+                {col.sortKey ? (
+                  <button type="button" class="sort-btn" data-sort-key={col.sortKey}>{col.label}</button>
+                ) : (
+                  col.label
+                )}
+              </th>
+            ))
+          }
         </tr>
       </thead>
-      <tbody id="horse-tbody">
-        <tr><td colspan="19">読み込み中…</td></tr>
-      </tbody>
+      <tbody id="horse-tbody" set:html={initialRowsHtml} />
     </table>
   </div>
 
-  <h2>このツールについて</h2>
+  <h2>このツールでできること</h2>
   <p>
-    一口馬主クラブの募集馬選定を、毎回スプレッドシートを作らなくてもできるようにする
-    個人開発のツールです。クラブ公式とは関係ありません。
-    掲載しているのは血統・測尺・厩舎などの客観データのみで、評価は各自が入力します。
+    募集馬選びのたびにスプレッドシートを作り直さなくても済むように、{total}頭を1つの表で見比べられる
+    ようにしたものです。次のことができます。
   </p>
+  <ul>
+    <li>列見出しをクリックして並べ替える（もう一度押すと昇順・降順が入れ替わります）</li>
+    <li>馬名・父・母父・厩舎・性別で絞り込む</li>
+    <li>一口価格・体高・馬体重を下限〜上限の範囲で絞り込む</li>
+    <li>「母優先のみ」「手術・既往ありを除く」で候補を狭める</li>
+    <li>各馬にA〜Eの評価・お気に入り（★）・消・メモを付け、「お気に入りのみ」「消を付けた馬を隠す」で見直す</li>
+    <li>気になった馬はその場で netkeiba の個体ページや X の検索結果を開いて調べる</li>
+  </ul>
+
+  <h2>使い方</h2>
+  <ol>
+    <li>まず「一口 (万円)」で出せる予算に絞り、頭数を減らします。</li>
+    <li>父・母父・厩舎など、自分が重視する条件で並べ替えて上から眺めます。</li>
+    <li>気になった馬の <strong>評価欄（馬名のすぐ右）</strong> でA〜Eを選ぶか、★を押します。</li>
+    <li>検討から外した馬は「消」にチェックを入れ、「消を付けた馬を隠す」で視界から外します。</li>
+    <li>最後に「お気に入りのみ」にチェックを入れると、残った候補だけを見比べられます。</li>
+  </ol>
   <p class="note">
-    データは2025年募集馬の確定リスト時点のものです。出資の判断は必ず公式情報でご確認ください。
+    条件を全部戻したいときは「条件をクリア」を押してください。評価・お気に入り・消・メモは
+    クリアされません。
   </p>
+
+  <h2>測尺（体高・胸囲・管囲・馬体重）の見方</h2>
+  <p>
+    測尺は募集時点で計測された馬体のサイズです。単体の数値だけでは判断しづらいので、
+    このツールでは同じ年の募集馬{total}頭の中での位置を見るために使えます
+    （下の範囲は掲載データを集計した実測値です）。
+  </p>
+  <dl class="measure-list">
+    {
+      measurements.map((m) => (
+        <div class="measure-item">
+          <dt>{m.term}</dt>
+          <dd>
+            <p class="measure-meaning">{m.meaning}</p>
+            <p class="measure-stat">
+              {total}頭では {m.stat.min}〜{m.stat.max}{m.unit}（平均 {m.stat.avg}{m.unit}）
+            </p>
+          </dd>
+        </div>
+      ))
+    }
+  </dl>
+  <p class="note">
+    数値の大小がそのまま良し悪しを表すわけではないため、このツールでは測尺に対する
+    点数付けや推奨は行っていません。どこを重視するかは利用者が決めるものとしています。
+  </p>
+
+  <h2>「母優先」とは</h2>
+  <p>
+    その馬の母（繁殖牝馬）に出資している会員に優先枠がある、というクラブの制度上の区分です。
+    一覧の「母優」列に◯が付いている馬が該当し、2025年募集馬では{total}頭中{damPriorityCount}頭が該当します。
+    フィルタの「母優先のみ」で該当馬だけに絞り込めます。
+  </p>
+
+  <h2>掲載しているデータ</h2>
+  <p>
+    2025年募集馬の確定リストに載っている客観情報だけを収録しています（{total}頭・
+    牡{maleCount}頭／牝{femaleCount}頭）。個人の評価・見送り判断は含みません。
+  </p>
+  <ul>
+    <li>父は{sireKinds}種類、母父は{bmsKinds}種類、厩舎の記載は{stableKinds}通り</li>
+    <li>一口価格は{priceRange.min}万円〜{priceRange.max}万円（中央値{priceRange.median}万円）</li>
+    <li>手術・既往の記載がある馬は{surgeryCount}頭（「手術・既往」列に赤字で表示）</li>
+    <li>兄弟欄に記載のない馬は{noSiblingCount}頭</li>
+  </ul>
+  <p class="note">
+    データは募集馬確定リスト時点のものです。最新の情報や実際の募集条件は必ずクラブ公式でご確認ください。
+  </p>
+
+  <h2>よくある質問</h2>
+  <div class="faq">
+    {
+      faqs.map((f) => (
+        <div class="faq-item">
+          <h3>{f.q}</h3>
+          <p>{f.a}</p>
+        </div>
+      ))
+    }
+  </div>
+
+  <script type="application/ld+json" set:html={JSON.stringify(faqJsonLd)} is:inline />
 
   <style>
     .lead { color: var(--muted); margin-top: 0; }
     .note { color: var(--muted); font-size: 0.875rem; }
+
+    .unofficial {
+      margin: 0 0 0.5rem;
+      padding: 0.6rem 0.8rem;
+      border-left: 3px solid var(--accent);
+      background: var(--accent-weak);
+      font-size: 0.8125rem;
+    }
 
     .filters {
       display: flex;
@@ -218,12 +410,49 @@ const stables = uniqueValues(horses2025, 'stable');
     .result-count {
       color: var(--muted);
       font-size: 0.8125rem;
+      margin: 0 0 0.25rem;
+    }
+
+    /* 表幅が画面に収まらないことに気づかず、評価欄（右方向）を見落とす人がいたため明示する */
+    .scroll-hint {
+      color: var(--muted);
+      font-size: 0.8125rem;
       margin: 0 0 0.5rem;
+    }
+    .scroll-hint strong { color: var(--text); }
+
+    .measure-list { margin: 0.75rem 0 0; }
+    .measure-item {
+      display: grid;
+      grid-template-columns: 5rem 1fr;
+      gap: 0.5rem 1rem;
+      padding: 0.6rem 0;
+      border-top: 1px solid var(--border);
+    }
+    .measure-item dt { font-weight: 600; }
+    .measure-item dd { margin: 0; }
+    .measure-meaning { margin: 0; }
+    .measure-stat { margin: 0.15rem 0 0; color: var(--muted); font-size: 0.875rem; }
+    @media (max-width: 32rem) {
+      .measure-item { grid-template-columns: 1fr; gap: 0.15rem; }
+    }
+
+    .faq-item { border-top: 1px solid var(--border); padding-top: 0.75rem; }
+    .faq-item h3 { font-size: 1rem; margin: 0 0 0.25rem; }
+    .faq-item p { margin: 0 0 1rem; }
+
+    .visually-hidden {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      overflow: hidden;
+      clip-path: inset(50%);
+      white-space: nowrap;
     }
   </style>
 
   <!--
-    表の行はクライアント側の script が innerHTML で生成するため、Astro のスコープ属性が
+    表の行はクライアント側の script が innerHTML で描き直すため、Astro のスコープ属性が
     付かない。スコープ付き <style> のセレクタは一致せず無効になるので、表まわりだけは
     is:global にする（誤爆を避けるため全セレクタを #horse-table 配下に限定する）。
   -->
@@ -251,34 +480,68 @@ const stables = uniqueValues(horses2025, 'stable');
     #horse-table td.num { text-align: right; }
     #horse-table tbody tr:hover td { background: var(--accent-weak); }
 
-    /* 表が画面幅に収まらないため（実データで約2400px）、右端の評価欄を操作している間も
-       どの馬を見ているか分かるように No と馬名を左端に固定する。
-       固定列は背景を塗らないと、下をスクロールする列が透けて重なって見える。
-       左オフセットは No 列の実幅と一致させる必要があるので、幅を固定する。 */
+    /* 左端3列（No・馬名・評価）は固定するので、幅を固定して left オフセットと一致させる。
+       auto レイアウトのままだと中身に応じて列幅が伸び、固定位置とずれて列が重なる。
+       3.5rem + 12.5rem = 16rem が評価列の左オフセットになる。 */
     #horse-table th:nth-child(1),
     #horse-table td:nth-child(1) {
-      position: sticky;
-      left: 0;
-      min-width: 3.5rem;
       width: 3.5rem;
-      background: var(--surface);
-      z-index: 1;
+      min-width: 3.5rem;
+      max-width: 3.5rem;
     }
     #horse-table th:nth-child(2),
     #horse-table td:nth-child(2) {
-      position: sticky;
-      left: 3.5rem;
-      background: var(--surface);
-      z-index: 1;
-      border-right: 1px solid var(--border);
+      width: 12.5rem;
+      min-width: 12.5rem;
+      max-width: 12.5rem;
+      overflow: hidden;
+      text-overflow: ellipsis;
     }
-    #horse-table thead th:nth-child(1),
-    #horse-table thead th:nth-child(2) {
-      background: var(--accent-weak);
-      z-index: 3; /* 縦横どちらの固定にも勝つ必要がある */
+    #horse-table th:nth-child(3),
+    #horse-table td:nth-child(3) {
+      width: 10rem;
+      min-width: 10rem;
+      max-width: 10rem;
     }
-    #horse-table tbody tr:hover td:nth-child(1),
-    #horse-table tbody tr:hover td:nth-child(2) { background: var(--accent-weak); }
+
+    /* 表は画面幅に収まらない（実データで約2000px）。評価欄を操作している間もどの馬か
+       分かるように、No・馬名・評価を左端に固定する。評価列まで固定するのは、右端に
+       あった頃に「評価できること自体に気づけない」問題が実際に起きたため。
+       固定列は背景を塗らないと、下を流れる列が透けて重なって見える。
+       狭い画面では固定すると残りの表示領域がほぼ無くなるので、広い画面だけに適用する。 */
+    @media (min-width: 56rem) {
+      #horse-table th:nth-child(1),
+      #horse-table td:nth-child(1) {
+        position: sticky;
+        left: 0;
+        background: var(--surface);
+        z-index: 1;
+      }
+      #horse-table th:nth-child(2),
+      #horse-table td:nth-child(2) {
+        position: sticky;
+        left: 3.5rem;
+        background: var(--surface);
+        z-index: 1;
+      }
+      #horse-table th:nth-child(3),
+      #horse-table td:nth-child(3) {
+        position: sticky;
+        left: 16rem;
+        background: var(--surface);
+        z-index: 1;
+        border-right: 1px solid var(--border);
+      }
+      #horse-table thead th:nth-child(1),
+      #horse-table thead th:nth-child(2),
+      #horse-table thead th:nth-child(3) {
+        background: var(--accent-weak);
+        z-index: 3; /* 縦横どちらの固定にも勝つ必要がある */
+      }
+      #horse-table tbody tr:hover td:nth-child(1),
+      #horse-table tbody tr:hover td:nth-child(2),
+      #horse-table tbody tr:hover td:nth-child(3) { background: var(--accent-weak); }
+    }
 
     #horse-table .sort-btn {
       font: inherit;
@@ -308,6 +571,7 @@ const stables = uniqueValues(horses2025, 'stable');
       font-size: 0.75rem;
     }
 
+    /* <td> 自体を flex にするとテーブルの縦位置計算が壊れるので、必ず内側の div に当てる */
     #horse-table .eval-cell {
       display: flex;
       align-items: center;
@@ -332,6 +596,7 @@ const stables = uniqueValues(horses2025, 'stable');
       cursor: pointer;
       color: var(--border);
       line-height: 1;
+      flex: none;
     }
     #horse-table .favorite-btn[aria-pressed='true'] {
       color: var(--accent);
@@ -361,7 +626,6 @@ const stables = uniqueValues(horses2025, 'stable');
     import {
       sortHorses,
       filterHorses,
-      type Horse,
       type Sex,
       type SortKey,
       type SortDirection,
@@ -375,6 +639,9 @@ const stables = uniqueValues(horses2025, 'stable');
       type Evaluation,
       type EvaluationMap,
     } from '../lib/evaluations.ts';
+    // 行のマークアップはビルド時と共有する。ここで別に組み立てると二重管理になり、
+    // 初期HTML（＝クローラーが見る内容）と描き直した後の表がずれる。
+    import { COLUMNS, horseRowHtml } from '../lib/horse-row.ts';
 
     const tbody = document.getElementById('horse-tbody') as HTMLTableSectionElement;
     const resultCount = document.getElementById('result-count') as HTMLElement;
@@ -406,14 +673,6 @@ const stables = uniqueValues(horses2025, 'stable');
     let sortDirection: SortDirection = 'asc';
     let evaluations: EvaluationMap = loadEvaluations(window.localStorage);
 
-    function escapeHtml(value: string): string {
-      return value
-        .replace(/&/g, '&amp;')
-        .replace(/</g, '&lt;')
-        .replace(/>/g, '&gt;')
-        .replace(/"/g, '&quot;');
-    }
-
     function numberValue(input: HTMLInputElement): number | undefined {
       return input.value === '' ? undefined : Number(input.value);
     }
@@ -436,48 +695,6 @@ const stables = uniqueValues(horses2025, 'stable');
       return filter;
     }
 
-    function rowHtml(horse: Horse, evaluation: Evaluation): string {
-      const ratingOptions = ['', 'A', 'B', 'C', 'D', 'E']
-        .map((r) => {
-          const selected = (evaluation.rating ?? '') === r ? ' selected' : '';
-          return `<option value="${r}"${selected}>${r || '-'}</option>`;
-        })
-        .join('');
-      const surgeryText = horse.surgery.replace(/\n/g, ' / ');
-      return `
-        <tr data-horse-id="${horse.id}" data-skip="${evaluation.skip}">
-          <td class="num">${horse.id}</td>
-          <td class="horse-name">${escapeHtml(horse.name)}</td>
-          <td>${horse.sex}</td>
-          <td>${escapeHtml(horse.sire)}</td>
-          <td>${escapeHtml(horse.broodmareSire)}</td>
-          <td class="num">${horse.damAge}</td>
-          <td>${horse.birthDate.slice(5).replace('-', '/')}</td>
-          <td>${escapeHtml(horse.stable)}</td>
-          <td class="num">${horse.pricePerShare}</td>
-          <td class="num">${horse.height}</td>
-          <td class="num">${horse.chestGirth}</td>
-          <td class="num">${horse.caretGirth}</td>
-          <td class="num">${horse.weight}</td>
-          <td class="sibling" title="${escapeHtml(horse.sibling)}">${escapeHtml(horse.sibling)}</td>
-          <td class="dam-priority">${horse.damPriority ? '◯' : ''}</td>
-          <td class="surgery" title="${escapeHtml(surgeryText)}">${escapeHtml(surgeryText)}</td>
-          <td class="links">
-            <a href="${escapeHtml(horse.netkeibaUrl)}" target="_blank" rel="noopener">netkeiba</a>
-            <a href="${escapeHtml(horse.xSearchUrl)}" target="_blank" rel="noopener">X</a>
-          </td>
-          <td>
-            <div class="eval-cell">
-              <select class="rating-select" data-field="rating" aria-label="評価">${ratingOptions}</select>
-              <button type="button" class="favorite-btn" data-field="favorite" aria-pressed="${evaluation.favorite}" aria-label="お気に入り" title="お気に入り">★</button>
-              <label class="skip-label"><input type="checkbox" class="skip-checkbox" data-field="skip" ${evaluation.skip ? 'checked' : ''} /> 消</label>
-            </div>
-          </td>
-          <td><input type="text" class="memo-input" data-field="memo" value="${escapeHtml(evaluation.memo)}" placeholder="メモ" /></td>
-        </tr>
-      `;
-    }
-
     function render() {
       let list = filterHorses(horses2025, currentFilter());
       // 評価はユーザーごとの状態なので、客観データのフィルタとは分けてここで適用する
@@ -491,8 +708,8 @@ const stables = uniqueValues(horses2025, 'stable');
 
       tbody.innerHTML =
         list.length === 0
-          ? '<tr><td colspan="19">条件に一致する馬がいません。</td></tr>'
-          : list.map((h) => rowHtml(h, getEvaluation(evaluations, h.id))).join('');
+          ? `<tr><td colspan="${COLUMNS.length}">条件に一致する馬がいません。</td></tr>`
+          : list.map((h) => horseRowHtml(h, getEvaluation(evaluations, h.id))).join('');
       resultCount.textContent = `${list.length} / ${horses2025.length} 頭`;
 
       for (const btn of sortButtons) {
@@ -572,6 +789,7 @@ const stables = uniqueValues(horses2025, 'stable');
       if (filterFavoriteOnly.checked) render();
     });
 
+    // 初期HTMLは未評価の状態なので、保存済みの評価を反映するために一度描き直す。
     render();
   </script>
 </BaseLayout>

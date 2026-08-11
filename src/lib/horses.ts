@@ -34,7 +34,7 @@ export interface Horse {
   weight: number;
   /** 兄弟情報（代表的な兄姉の馬名。無い場合は空文字） */
   sibling: string;
-  /** 母優先の対象か */
+  /** 母優先。その母（繁殖牝馬）に出資している会員に優先枠がある馬（クラブ側の制度上の区分） */
   damPriority: boolean;
   /** 手術・既往歴の記載（無い場合は空文字。複数行になりうる） */
   surgery: string;

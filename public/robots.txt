@@ -1,4 +1,11 @@
+# 全クローラーに全ページを開放する（非公開にしたいURLは無い）。
+# AI/LLM系のクローラー（GPTBot・ClaudeBot・CCBot 等）も意図的にブロックしていない。
+# 方針を変えるときは本人の判断を仰いでから Disallow を足すこと。
 User-agent: *
 Allow: /
 
+# 実在しないパスへの Disallow は書かない（クロール予算の無駄で、404の存在を晒すだけ）。
+
+# 下のURLは src/consts.ts の SITE_URL と必ず一致させる。
+# 独自ドメインへ移すときは consts.ts・astro.config.mjs と同時に直す。
 Sitemap: https://carrot-club.mineponz.workers.dev/sitemap-index.xml
