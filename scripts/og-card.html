@@ -25,6 +25,7 @@
         --muted: #6b6558;
         --accent: #b5651d;
         --accent-weak: #f5e9dc;
+        --danger: #9d2f24;
         --mono: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace;
         --sans: -apple-system, BlinkMacSystemFont, "Hiragino Kaku Gothic ProN",
           "Noto Sans JP", "Yu Gothic", sans-serif;
@@ -93,13 +94,26 @@
         padding: 56px 72px;
       }
 
+      /* 公式と誤認されないよう、カードの一番上に赤いバッジで「非公式」を出す */
       .wordmark {
+        display: flex;
+        align-items: center;
+        gap: 16px;
         margin: 0 0 24px;
-        font-family: var(--mono);
         font-size: 30px;
         font-weight: 600;
-        letter-spacing: -0.02em;
-        color: var(--accent);
+        letter-spacing: -0.01em;
+        color: var(--muted);
+      }
+
+      .wordmark .badge {
+        background: var(--danger);
+        color: #fff;
+        font-size: 30px;
+        font-weight: 700;
+        letter-spacing: 0.06em;
+        padding: 6px 20px;
+        border-radius: 8px;
       }
 
       h1 {
@@ -142,9 +156,10 @@
 
       .notice {
         margin: 30px 0 0;
-        font-size: 24px;
+        font-size: 26px;
+        font-weight: 600;
         line-height: 1.5;
-        color: var(--muted);
+        color: var(--text);
       }
     </style>
   </head>
@@ -155,7 +170,7 @@
       <div class="blob"></div>
 
       <div class="inner">
-        <p class="wordmark">carrot-club</p>
+        <p class="wordmark"><span class="badge">非公式</span>一口馬主が個人で作ったツール</p>
 
         <h1>キャロットクラブ<br />出資馬検討ツール</h1>
 
@@ -170,7 +185,7 @@
         </ul>
 
         <p class="notice">
-          個人が作った非公式ツールです。株式会社キャロットクラブとは関係ありません。
+          株式会社キャロットクラブとは関係のない非公式サイトです。
         </p>
       </div>
     </div>

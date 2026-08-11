@@ -5,6 +5,8 @@ import {
   SITE_TAGLINE,
   SITE_DESCRIPTION,
   UNOFFICIAL_NOTICE,
+  DOCUMENT_TITLE,
+  ALLOW_INDEXING,
 } from '../consts';
 
 interface Props {
@@ -18,12 +20,16 @@ interface Props {
 const { title, description = SITE_DESCRIPTION, breadcrumb = [] } = Astro.props;
 
 // トップは「サイト名｜内容」、下層は「ページ名 | サイト名」。
-const fullTitle = title ? `${title} | ${SITE_TITLE}` : `${SITE_TITLE}｜${SITE_TAGLINE}`;
+// 公式と誤認されないよう、タブ・検索結果・SNSカードに出る名前には必ず【非公式】を付ける。
+const fullTitle = title ? `${title} | ${DOCUMENT_TITLE}` : `${DOCUMENT_TITLE}｜${SITE_TAGLINE}`;
 const canonical = new URL(Astro.url.pathname, SITE_URL).href;
+
+// クラブの利用許可が下りるまでは noindex（src/consts.ts の ALLOW_INDEXING で切り替える）
+const robotsContent = ALLOW_INDEXING ? 'index,follow,max-image-preview:large' : 'noindex,follow';
 
 // OGP画像は public/og.png（1200x630）を絶対URLで参照する
 const ogImage = new URL('/og.png', SITE_URL).href;
-const ogImageAlt = `${SITE_TITLE}｜${SITE_TAGLINE}`;
+const ogImageAlt = `${DOCUMENT_TITLE}｜${SITE_TAGLINE}`;
 
 // パンくずの構造化データ。トップ → 中間 → 現在ページ
 const crumbs = [
@@ -43,10 +49,11 @@ const breadcrumbJsonLd = {
   })),
 };
 
+// 構造化データの name も【非公式】付きにする（検索結果に出る名前と食い違わせない）
 const webSiteJsonLd = {
   '@context': 'https://schema.org',
   '@type': 'WebSite',
-  name: SITE_TITLE,
+  name: DOCUMENT_TITLE,
   alternateName: SITE_TAGLINE,
   url: SITE_URL,
   description: SITE_DESCRIPTION,
@@ -58,7 +65,7 @@ const webSiteJsonLd = {
 const webAppJsonLd = {
   '@context': 'https://schema.org',
   '@type': 'WebApplication',
-  name: SITE_TITLE,
+  name: DOCUMENT_TITLE,
   url: SITE_URL,
   description: SITE_DESCRIPTION,
   applicationCategory: 'UtilityApplication',
@@ -81,12 +88,12 @@ const webAppJsonLd = {
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>{fullTitle}</title>
     <meta name="description" content={description} />
-    <meta name="robots" content="index,follow,max-image-preview:large" />
+    <meta name="robots" content={robotsContent} />
     <link rel="canonical" href={canonical} />
 
     <meta property="og:type" content="website" />
     <meta property="og:locale" content="ja_JP" />
-    <meta property="og:site_name" content={SITE_TITLE} />
+    <meta property="og:site_name" content={DOCUMENT_TITLE} />
     <meta property="og:title" content={fullTitle} />
     <meta property="og:description" content={description} />
     <meta property="og:url" content={canonical} />
@@ -111,8 +118,12 @@ const webAppJsonLd = {
     <a class="skip-link" href="#main">本文へスキップ</a>
 
     <header class="site-header">
-      <a href="/" class="wordmark">{SITE_TITLE}</a>
+      <p class="brand-line">
+        <span class="unofficial-badge">非公式</span>
+        <a href="/" class="wordmark">{SITE_TITLE}</a>
+      </p>
       <p class="tagline">{SITE_TAGLINE}</p>
+      <p class="header-notice">{UNOFFICIAL_NOTICE}</p>
     </header>
 
     {crumbs.length > 1 && (
@@ -214,6 +225,13 @@ const webAppJsonLd = {
       }
 
       /* ワードマークは日本語になったので等幅ではなく本文フォントを使う */
+      .brand-line {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        margin: 0;
+        flex-wrap: wrap;
+      }
       .wordmark {
         font-family: var(--sans);
         font-size: 1.35rem;
@@ -224,10 +242,39 @@ const webAppJsonLd = {
       }
       .wordmark:hover { color: var(--accent); }
 
+      /* クラブ公式と誤認されないよう、サイト名の直前に常に出す */
+      .unofficial-badge {
+        flex-shrink: 0;
+        background: var(--danger);
+        color: #fff;
+        font-size: 0.75rem;
+        font-weight: 700;
+        letter-spacing: 0.04em;
+        padding: 0.15rem 0.5rem;
+        border-radius: 4px;
+      }
+
+      /* ダークテーマの --danger は明るいサーモンなので、白文字だとコントラストが
+         2.3:1 程度しか出ずWCAG AA(4.5:1)を満たさない。暗い文字色に反転させる。 */
+      @media (prefers-color-scheme: dark) {
+        .unofficial-badge { color: #17181a; }
+      }
+
       .tagline {
         margin: 0.15rem 0 0;
         color: var(--muted);
         font-size: 0.875rem;
+      }
+
+      .header-notice {
+        margin: 0.6rem 0 0;
+        font-size: 0.8125rem;
+        line-height: 1.6;
+        color: var(--text);
+        background: var(--accent-weak);
+        border-left: 3px solid var(--danger);
+        padding: 0.5rem 0.75rem;
+        border-radius: 0 4px 4px 0;
       }
 
       .breadcrumb ol {

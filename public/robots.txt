@@ -1,10 +1,17 @@
-# 全クローラーに全ページを開放する（非公開にしたいURLは無い）。
-# AI/LLM系のクローラー（GPTBot・ClaudeBot・CCBot 等）も意図的にブロックしていない。
-# 方針を変えるときは本人の判断を仰いでから Disallow を足すこと。
+# クロールは許可する。ただし現在は全ページに noindex を出しているため検索結果には載らない
+# （src/consts.ts の ALLOW_INDEXING = false / クラブの利用許可が下りるまでの措置）。
+#
+# ここで Disallow にしてはいけない。クロールを止めるとクローラーがページを読めず、
+# noindex に気づけないまま「URLだけ」が検索結果に載ることがある。
+# インデックスさせたくない間こそ、クロールは許可して noindex を読ませる必要がある。
+#
+# 許可が下りたら src/consts.ts の ALLOW_INDEXING を true にする（このファイルは変更不要）。
 User-agent: *
 Allow: /
 
 # 実在しないパスへの Disallow は書かない（クロール予算の無駄で、404の存在を晒すだけ）。
+# AI/LLM系のクローラー（GPTBot・ClaudeBot・CCBot 等）も意図的にブロックしていない。
+# 方針を変えるときは本人の判断を仰いでから Disallow を足すこと。
 
 # 下のURLは src/consts.ts の SITE_URL と必ず一致させる。
 # 独自ドメインへ移すときは consts.ts・astro.config.mjs と同時に直す。
