@@ -10,16 +10,14 @@ export const SITE_URL = 'https://carrot-club.mineponz.workers.dev';
 /**
  * 検索エンジンにインデックスさせるか。
  *
- * **クラブへの利用許可が下りるまでは false**（本人の判断 / 2026-08-11）。
- * false の間は全ページに `noindex` を出す。
+ * クラブから「個人利用はOK」の許可を得たため true（本人の判断 / 2026-08-18）。
+ * 広告掲載まで許可されたかは不明確なため、広告は別途保留中（Phase3は未着手）。
  *
  * 注意: `noindex` は**クロールされて初めて読まれる**。robots.txt で Disallow すると
  * クローラーがページを読めず noindex に気づけないため、URLだけが検索結果に載りうる。
  * したがって robots.txt はクロール許可のまま維持すること（public/robots.txt のコメント参照）。
- *
- * 許可が下りたらここを true にするだけでよい。
  */
-export const ALLOW_INDEXING = false;
+export const ALLOW_INDEXING = true;
 
 /** アプリ名。構造化データやフッターなど「名前」として扱う場所で使う */
 export const SITE_TITLE = 'キャロットクラブ出資馬検討ツール';
