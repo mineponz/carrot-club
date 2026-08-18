@@ -1,22 +1,27 @@
 ---
 /**
- * 募集馬一覧（トップページ）。
+ * 2025年募集馬一覧（過去年度ページ / `/2025/`）。
+ *
+ * ルート（`/`）が最新年度（2026年募集）に切り替わったときに、旧トップページの内容を
+ * そのままここへ退避したもの。データ（horses2025）・文言・localStorageのキーはすべて
+ * 2025年のまま維持する。表示ロジックの共通部品（BaseLayout / horses.ts / horse-row.ts /
+ * evaluations.ts）はルートと共有しているので、共通部品を触るときは両方の年度を確認すること。
  *
  * 表の行はビルド時とブラウザ側の両方で `horseRowHtml()` から作る。ビルド時に
  * 全頭を埋め込んでおかないと、サーバーが返すHTMLに馬のデータが1件も含まれず
  * （クローラーには「読み込み中…」しか見えず）検索に載らない。
  * ブラウザ側は読み込み後に localStorage の評価を反映して同じ関数で描き直す。
  */
-import BaseLayout from '../layouts/BaseLayout.astro';
-import { SITE_DESCRIPTION, UNOFFICIAL_NOTICE } from '../consts.ts';
-import { horses2026 } from '../data/horses2026.ts';
-import { sortHorses, uniqueValues, type SortKey } from '../lib/horses.ts';
-import { DEFAULT_EVALUATION } from '../lib/evaluations.ts';
-import { COLUMNS, horseRowHtml } from '../lib/horse-row.ts';
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import { SITE_DESCRIPTION_2025, SITE_TAGLINE_2025, UNOFFICIAL_NOTICE } from '../../consts.ts';
+import { horses2025 } from '../../data/horses2025.ts';
+import { sortHorses, uniqueValues, type SortKey } from '../../lib/horses.ts';
+import { DEFAULT_EVALUATION } from '../../lib/evaluations.ts';
+import { COLUMNS, horseRowHtml } from '../../lib/horse-row.ts';
 
 // フィルタの選択肢はビルド時に確定できるのでサーバー側で作る
-const sires = uniqueValues(horses2026, 'sire');
-const stables = uniqueValues(horses2026, 'stable');
+const sires = uniqueValues(horses2025, 'sire');
+const stables = uniqueValues(horses2025, 'stable');
 
 // COLUMNS は `as const` なので、そのままだと sortKey / align を持たない要素との
 // union になって参照できない。ここで緩い型に受け直す。
@@ -24,28 +29,24 @@ const columns: readonly { label: string; sortKey?: SortKey; align?: string }[] =
 
 // 初期表示はクライアント側の既定（id昇順）と揃える。評価は端末ごとの値なので
 // 初期HTMLでは未評価（DEFAULT_EVALUATION）で描き、読み込み後に上書きする。
-const initialRowsHtml = sortHorses(horses2026, 'id', 'asc')
+const initialRowsHtml = sortHorses(horses2025, 'id', 'asc')
   .map((horse) => horseRowHtml(horse, DEFAULT_EVALUATION))
   .join('\n');
 
-const total = horses2026.length;
+const total = horses2025.length;
 
-// 以下の数値はすべて src/data/horses2026.ts を集計した実測値。
-const damPriorityCount = horses2026.filter((h) => h.damPriority).length;
-const surgeryCount = horses2026.filter((h) => h.surgery !== '').length;
-// 手術・既往は年によって情報源が無い（2026年募集はクラブの公開リストにもnetkeibaにも記載が無く全頭空）。
-// 1件も無い年に「手術・既往ありを除く」フィルタを出すと押しても何も起きない死んだUIになるので、
-// データがある年だけ出す。
-const hasSurgeryData = surgeryCount > 0;
-const noSiblingCount = horses2026.filter((h) => h.sibling === '').length;
-const maleCount = horses2026.filter((h) => h.sex === '牡').length;
-const femaleCount = horses2026.filter((h) => h.sex === '牝').length;
-const sireKinds = uniqueValues(horses2026, 'sire').length;
-const bmsKinds = uniqueValues(horses2026, 'broodmareSire').length;
+// 以下の数値はすべて src/data/horses2025.ts を集計した実測値。
+const damPriorityCount = horses2025.filter((h) => h.damPriority).length;
+const surgeryCount = horses2025.filter((h) => h.surgery !== '').length;
+const noSiblingCount = horses2025.filter((h) => h.sibling === '').length;
+const maleCount = horses2025.filter((h) => h.sex === '牡').length;
+const femaleCount = horses2025.filter((h) => h.sex === '牝').length;
+const sireKinds = uniqueValues(horses2025, 'sire').length;
+const bmsKinds = uniqueValues(horses2025, 'broodmareSire').length;
 const stableKinds = stables.length;
 
 function range(key: 'height' | 'chestGirth' | 'caretGirth' | 'weight' | 'pricePerShare') {
-  const values = horses2026.map((h) => h[key]).sort((a, b) => a - b);
+  const values = horses2025.map((h) => h[key]).sort((a, b) => a - b);
   const sum = values.reduce((a, b) => a + b, 0);
   return {
     min: values[0],
@@ -101,11 +102,11 @@ const faqs = [
   },
   {
     q: '「母優先」とは何ですか？',
-    a: `その馬の母（繁殖牝馬）に出資している会員に優先枠がある、というクラブの制度上の区分です。この一覧では該当する馬の「母優」列に◯を付けており、2026年募集馬では${total}頭中${damPriorityCount}頭が該当します。「母優先のみ」にチェックを入れると該当馬だけに絞り込めます。`,
+    a: `その馬の母（繁殖牝馬）に出資している会員に優先枠がある、というクラブの制度上の区分です。この一覧では該当する馬の「母優」列に◯を付けており、2025年募集馬では${total}頭中${damPriorityCount}頭が該当します。「母優先のみ」にチェックを入れると該当馬だけに絞り込めます。`,
   },
   {
     q: 'このツールに独自の評価やおすすめは載っていますか？',
-    a: `載っていません。掲載しているのは馬名・性別・父・母父・母齢・誕生日・厩舎・一口価格・体高・胸囲・管囲・馬体重・兄弟・母優先${hasSurgeryData ? '・手術や既往の記載' : ''}といった客観データのみで、点数付けや順位付けは一切していません。評価は利用者自身が入力します。`,
+    a: '載っていません。掲載しているのは馬名・性別・父・母父・母齢・誕生日・厩舎・一口価格・体高・胸囲・管囲・馬体重・兄弟・母優先・手術や既往の記載といった客観データのみで、点数付けや順位付けは一切していません。評価は利用者自身が入力します。',
   },
 ];
 
@@ -120,17 +121,22 @@ const faqJsonLd = {
 };
 ---
 
-<BaseLayout description={SITE_DESCRIPTION}>
-  <h1>2026年募集馬 一覧（{total}頭）</h1>
+<BaseLayout
+  title="2025年募集馬 一覧"
+  description={SITE_DESCRIPTION_2025}
+  tagline={SITE_TAGLINE_2025}
+  homeHref="/2025/"
+>
+  <h1>2025年募集馬 一覧（{total}頭）</h1>
   <p class="lead">
-    キャロットクラブ2026年募集馬{total}頭を、血統・測尺・一口価格・厩舎で並べ替え、絞り込みできる
+    キャロットクラブ2025年募集馬{total}頭を、血統・測尺・一口価格・厩舎で並べ替え、絞り込みできる
     非公式の選定支援ツールです。評価・お気に入り・消・メモはこの端末のブラウザ内（localStorage）に
     保存され、再読み込みしても残ります。
   </p>
   <!-- 非公式である旨は BaseLayout のヘッダーで全ページに常時表示しているため、ここには重ねない -->
   <p class="year-switch">
-    昨年の募集馬を見たい場合は <a href="/2025/">2025年募集馬の一覧はこちら</a>
-    （評価は年ごとに別々に保存されます）。
+    これは昨年（2025年募集）のアーカイブです。
+    <a href="/">2026年募集馬（最新）の一覧はこちら</a>（評価は年ごとに別々に保存されます）。
   </p>
 
 
@@ -196,14 +202,10 @@ const faqJsonLd = {
         <input type="checkbox" id="filter-dam-priority" />
         母優先のみ
       </label>
-      {
-        hasSurgeryData && (
-          <label class="checkbox-label">
-            <input type="checkbox" id="filter-exclude-surgery" />
-            手術・既往ありを除く
-          </label>
-        )
-      }
+      <label class="checkbox-label">
+        <input type="checkbox" id="filter-exclude-surgery" />
+        手術・既往ありを除く
+      </label>
       <label class="checkbox-label">
         <input type="checkbox" id="filter-hide-skip" />
         消を付けた馬を隠す
@@ -226,7 +228,7 @@ const faqJsonLd = {
   <div class="table-wrap">
     <table id="horse-table">
       <caption class="visually-hidden">
-        2026年募集馬{total}頭の血統・測尺・一口価格・厩舎の一覧（評価欄つき）
+        2025年募集馬{total}頭の血統・測尺・一口価格・厩舎の一覧（評価欄つき）
       </caption>
       <thead>
         <tr>
@@ -256,7 +258,7 @@ const faqJsonLd = {
     <li>列見出しをクリックして並べ替える（もう一度押すと昇順・降順が入れ替わります）</li>
     <li>馬名・父・母父・厩舎・性別で絞り込む</li>
     <li>一口価格・体高・馬体重を下限〜上限の範囲で絞り込む</li>
-    <li>{hasSurgeryData ? '「母優先のみ」「手術・既往ありを除く」で候補を狭める' : '「母優先のみ」で候補を狭める'}</li>
+    <li>「母優先のみ」「手術・既往ありを除く」で候補を狭める</li>
     <li>各馬にA〜Eの評価・お気に入り（★）・消・メモを付け、「お気に入りのみ」「消を付けた馬を隠す」で見直す</li>
     <li>気になった馬はその場で netkeiba の個体ページや X の検索結果を開いて調べる</li>
   </ul>
@@ -303,25 +305,19 @@ const faqJsonLd = {
   <h2>「母優先」とは</h2>
   <p>
     その馬の母（繁殖牝馬）に出資している会員に優先枠がある、というクラブの制度上の区分です。
-    一覧の「母優」列に◯が付いている馬が該当し、2026年募集馬では{total}頭中{damPriorityCount}頭が該当します。
+    一覧の「母優」列に◯が付いている馬が該当し、2025年募集馬では{total}頭中{damPriorityCount}頭が該当します。
     フィルタの「母優先のみ」で該当馬だけに絞り込めます。
   </p>
 
   <h2>掲載しているデータ</h2>
   <p>
-    2026年募集馬の確定リストに載っている客観情報だけを収録しています（{total}頭・
+    2025年募集馬の確定リストに載っている客観情報だけを収録しています（{total}頭・
     牡{maleCount}頭／牝{femaleCount}頭）。個人の評価・見送り判断は含みません。
   </p>
   <ul>
     <li>父は{sireKinds}種類、母父は{bmsKinds}種類、厩舎の記載は{stableKinds}通り</li>
     <li>一口価格は{priceRange.min}万円〜{priceRange.max}万円（中央値{priceRange.median}万円）</li>
-    <li>
-      {
-        hasSurgeryData
-          ? `手術・既往の記載がある馬は${surgeryCount}頭（「手術・既往」列に赤字で表示）`
-          : '手術・既往は今年の募集リストに記載が無いため、この一覧では収録していません'
-      }
-    </li>
+    <li>手術・既往の記載がある馬は{surgeryCount}頭（「手術・既往」列に赤字で表示）</li>
     <li>兄弟欄に記載のない馬は{noSiblingCount}頭</li>
   </ul>
   <p class="note">
@@ -344,9 +340,9 @@ const faqJsonLd = {
 
   <style>
     .lead { color: var(--muted); margin-top: 0; }
-    .note { color: var(--muted); font-size: 0.875rem; }
     /* 年度切り替えの導線。本文より弱く、でも見落とさない程度に */
     .year-switch { margin: 0 0 0.5rem; font-size: 0.875rem; color: var(--muted); }
+    .note { color: var(--muted); font-size: 0.875rem; }
 
     .unofficial {
       margin: 0 0 0.5rem;
@@ -643,7 +639,7 @@ const faqJsonLd = {
   </style>
 
   <script>
-    import { horses2026 } from '../data/horses2026.ts';
+    import { horses2025 } from '../../data/horses2025.ts';
     import {
       sortHorses,
       filterHorses,
@@ -651,7 +647,7 @@ const faqJsonLd = {
       type SortKey,
       type SortDirection,
       type HorseFilter,
-    } from '../lib/horses.ts';
+    } from '../../lib/horses.ts';
     import {
       loadEvaluations,
       saveEvaluations,
@@ -660,10 +656,10 @@ const faqJsonLd = {
       storageKeyForYear,
       type Evaluation,
       type EvaluationMap,
-    } from '../lib/evaluations.ts';
+    } from '../../lib/evaluations.ts';
     // 行のマークアップはビルド時と共有する。ここで別に組み立てると二重管理になり、
     // 初期HTML（＝クローラーが見る内容）と描き直した後の表がずれる。
-    import { COLUMNS, horseRowHtml } from '../lib/horse-row.ts';
+    import { COLUMNS, horseRowHtml } from '../../lib/horse-row.ts';
 
     const tbody = document.getElementById('horse-tbody') as HTMLTableSectionElement;
     const resultCount = document.getElementById('result-count') as HTMLElement;
@@ -682,23 +678,20 @@ const faqJsonLd = {
     const filterWeightMin = el<HTMLInputElement>('filter-weight-min');
     const filterWeightMax = el<HTMLInputElement>('filter-weight-max');
     const filterDamPriority = el<HTMLInputElement>('filter-dam-priority');
-    // 手術・既往のデータが1件も無い年はチェックボックス自体を出していないので null になりうる
-    const filterExcludeSurgery = document.getElementById('filter-exclude-surgery') as HTMLInputElement | null;
+    const filterExcludeSurgery = el<HTMLInputElement>('filter-exclude-surgery');
     const filterHideSkip = el<HTMLInputElement>('filter-hide-skip');
     const filterFavoriteOnly = el<HTMLInputElement>('filter-favorite-only');
     const filterResetBtn = el<HTMLButtonElement>('filter-reset');
 
     const textInputs = [filterName, filterBms, filterPriceMin, filterPriceMax, filterHeightMin, filterHeightMax, filterWeightMin, filterWeightMax];
     const selects = [filterSire, filterStable, filterSex];
-    const toggles = [filterDamPriority, filterExcludeSurgery, filterHideSkip, filterFavoriteOnly].filter(
-      (t): t is HTMLInputElement => t !== null,
-    );
+    const toggles = [filterDamPriority, filterExcludeSurgery, filterHideSkip, filterFavoriteOnly];
 
     let sortKey: SortKey = 'id';
     let sortDirection: SortDirection = 'asc';
-    // 保存キーは募集年ごとに分ける。/2025/ と同じキーを使うと、馬IDが年ごとに1から
-    // 振り直される都合で別の馬の評価が出てしまう。
-    const storageKey = storageKeyForYear(2026);
+    // 保存キーは募集年ごとに分ける。ルート（2026年）と共有すると、馬IDが年ごとに1から
+    // 振り直される都合で別の馬の評価が出てしまう。2025年は従来どおりのキーを使い続ける。
+    const storageKey = storageKeyForYear(2025);
     let evaluations: EvaluationMap = loadEvaluations(window.localStorage, storageKey);
 
     function numberValue(input: HTMLInputElement): number | undefined {
@@ -719,12 +712,12 @@ const faqJsonLd = {
       filter.minWeight = numberValue(filterWeightMin);
       filter.maxWeight = numberValue(filterWeightMax);
       if (filterDamPriority.checked) filter.damPriorityOnly = true;
-      if (filterExcludeSurgery?.checked) filter.excludeSurgery = true;
+      if (filterExcludeSurgery.checked) filter.excludeSurgery = true;
       return filter;
     }
 
     function render() {
-      let list = filterHorses(horses2026, currentFilter());
+      let list = filterHorses(horses2025, currentFilter());
       // 評価はユーザーごとの状態なので、客観データのフィルタとは分けてここで適用する
       if (filterHideSkip.checked) {
         list = list.filter((h) => !getEvaluation(evaluations, h.id).skip);
@@ -738,7 +731,7 @@ const faqJsonLd = {
         list.length === 0
           ? `<tr><td colspan="${COLUMNS.length}">条件に一致する馬がいません。</td></tr>`
           : list.map((h) => horseRowHtml(h, getEvaluation(evaluations, h.id))).join('');
-      resultCount.textContent = `${list.length} / ${horses2026.length} 頭`;
+      resultCount.textContent = `${list.length} / ${horses2025.length} 頭`;
 
       for (const btn of sortButtons) {
         const active = btn.dataset.sortKey === sortKey;

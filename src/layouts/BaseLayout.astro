@@ -5,6 +5,7 @@ import {
   SITE_TAGLINE,
   SITE_DESCRIPTION,
   UNOFFICIAL_NOTICE,
+  CLUB_PERMISSION_NOTICE,
   DOCUMENT_TITLE,
   ALLOW_INDEXING,
 } from '../consts';
@@ -13,11 +14,27 @@ interface Props {
   /** ページ固有のタイトル。トップページでは省略する */
   title?: string;
   description?: string;
+  /**
+   * ヘッダーとtitleに出す説明。既定は最新年度（ルート）向け。
+   * 過去年度ページ（`/2025/`）はその年の文言を渡す。
+   */
+  tagline?: string;
   /** パンくずの中間項目（トップとページ自身は自動で付く） */
   breadcrumb?: { label: string; href: string }[];
+  /**
+   * フッターの「馬一覧へ戻る」の遷移先。既定は最新年度（ルート）。
+   * 過去年度ページ（`/2025/`）は自分自身のパスを渡し、最新年度に飛ばされないようにする。
+   */
+  homeHref?: string;
 }
 
-const { title, description = SITE_DESCRIPTION, breadcrumb = [] } = Astro.props;
+const {
+  title,
+  description = SITE_DESCRIPTION,
+  tagline = SITE_TAGLINE,
+  breadcrumb = [],
+  homeHref = '/',
+} = Astro.props;
 
 // トップは「サイト名｜内容」、下層は「ページ名 | サイト名」。
 // 公式と誤認されないよう、タブ・検索結果・SNSカードに出る名前には必ず【非公式】を付ける。
@@ -29,7 +46,7 @@ const robotsContent = ALLOW_INDEXING ? 'index,follow,max-image-preview:large' : 
 
 // OGP画像は public/og.png（1200x630）を絶対URLで参照する
 const ogImage = new URL('/og.png', SITE_URL).href;
-const ogImageAlt = `${DOCUMENT_TITLE}｜${SITE_TAGLINE}`;
+const ogImageAlt = `${DOCUMENT_TITLE}｜${tagline}`;
 
 // パンくずの構造化データ。トップ → 中間 → 現在ページ
 const crumbs = [
@@ -122,7 +139,7 @@ const webAppJsonLd = {
         <span class="unofficial-badge">非公式</span>
         <a href="/" class="wordmark">{SITE_TITLE}</a>
       </p>
-      <p class="tagline">{SITE_TAGLINE}</p>
+      <p class="tagline">{tagline}</p>
       <p class="header-notice">{UNOFFICIAL_NOTICE}</p>
     </header>
 
@@ -152,8 +169,9 @@ const webAppJsonLd = {
         あなたの評価はこの端末のブラウザ内（localStorage）に保存され、現時点ではサーバーへ
         送信されません。
       </p>
+      <p class="permission">{CLUB_PERMISSION_NOTICE}</p>
       <p class="meta">
-        <a href="/">馬一覧へ戻る</a>
+        <a href={homeHref}>馬一覧へ戻る</a>
       </p>
     </footer>
 
@@ -170,6 +188,19 @@ const webAppJsonLd = {
         --mono: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace;
         --sans: -apple-system, BlinkMacSystemFont, "Hiragino Kaku Gothic ProN",
           "Noto Sans JP", "Yu Gothic", sans-serif;
+
+        /* 評価A〜Eの色。緑→赤の弱いグラデーションだが、彩度を抑えて表全体が
+           うるさくならないようにしている（意味を持つのは評価列だけ）。 */
+        --rating-a-bg: #cfe9d5;
+        --rating-a-fg: #1d4d2c;
+        --rating-b-bg: #e2efc9;
+        --rating-b-fg: #3b5220;
+        --rating-c-bg: #faecc4;
+        --rating-c-fg: #5a4611;
+        --rating-d-bg: #f8dcc0;
+        --rating-d-fg: #6b3a17;
+        --rating-e-bg: #f4d2cf;
+        --rating-e-fg: #6d2320;
       }
 
       @media (prefers-color-scheme: dark) {
@@ -182,6 +213,18 @@ const webAppJsonLd = {
           --accent: #e0a45c;
           --accent-weak: #2b241c;
           --danger: #e08278;
+
+          /* ダークでは同じ色相のまま明度を反転させる（背景は沈ませ、文字を明るく） */
+          --rating-a-bg: #1f3a2b;
+          --rating-a-fg: #a8d9b7;
+          --rating-b-bg: #2d3a22;
+          --rating-b-fg: #c3d9a4;
+          --rating-c-bg: #3d351d;
+          --rating-c-fg: #dfcb93;
+          --rating-d-bg: #402c1e;
+          --rating-d-fg: #e5bd95;
+          --rating-e-bg: #402625;
+          --rating-e-fg: #e7adab;
         }
       }
 
@@ -327,6 +370,21 @@ const webAppJsonLd = {
       .site-footer p { margin: 0 0 0.5rem; }
       .site-footer .unofficial { color: var(--text); font-weight: 600; }
       .site-footer .meta { margin: 0; }
+
+      /* 評価セレクトの色分け（スプレッドシートの条件付き書式のイメージ）。
+         表のマークアップは horse-row.ts が年度ページ共通で生成するので、ページ側の
+         <style> に置くと年度ぶんだけ同じCSSが増える。ここに1つだけ置いて共有する。
+         未評価（data-rating="")は既定の見た目のまま＝色を付けない。
+         ページ側の `#horse-table .rating-select` より詳細度を高くするため id 付きで書く。 */
+      #horse-table .rating-select[data-rating='A'] { background: var(--rating-a-bg); color: var(--rating-a-fg); }
+      #horse-table .rating-select[data-rating='B'] { background: var(--rating-b-bg); color: var(--rating-b-fg); }
+      #horse-table .rating-select[data-rating='C'] { background: var(--rating-c-bg); color: var(--rating-c-fg); }
+      #horse-table .rating-select[data-rating='D'] { background: var(--rating-d-bg); color: var(--rating-d-fg); }
+      #horse-table .rating-select[data-rating='E'] { background: var(--rating-e-bg); color: var(--rating-e-fg); }
+      #horse-table .rating-select:not([data-rating='']) {
+        font-weight: 700;
+        border-color: currentColor;
+      }
     </style>
   </body>
 </html>

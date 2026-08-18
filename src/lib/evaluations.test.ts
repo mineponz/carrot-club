@@ -7,6 +7,7 @@ import {
   updateEvaluation,
   DEFAULT_EVALUATION,
   STORAGE_KEY,
+  storageKeyForYear,
   type KeyValueStore,
   type EvaluationMap,
 } from './evaluations.ts';
@@ -24,13 +25,13 @@ function createMemoryStore(): KeyValueStore {
 
 test('loadEvaluations: 何も保存されていなければ空のマップを返す', () => {
   const store = createMemoryStore();
-  assert.deepEqual(loadEvaluations(store), {});
+  assert.deepEqual(loadEvaluations(store, STORAGE_KEY), {});
 });
 
 test('loadEvaluations: 壊れたJSONでもエラーを投げず空のマップを返す', () => {
   const store = createMemoryStore();
   store.setItem(STORAGE_KEY, '{not valid json');
-  assert.deepEqual(loadEvaluations(store), {});
+  assert.deepEqual(loadEvaluations(store, STORAGE_KEY), {});
 });
 
 test('saveEvaluations → loadEvaluations で往復できる', () => {
@@ -38,8 +39,26 @@ test('saveEvaluations → loadEvaluations で往復できる', () => {
   const map: EvaluationMap = {
     '2025-001': { rating: 'A', favorite: true, skip: false, memo: 'これは良い' },
   };
-  saveEvaluations(store, map);
-  assert.deepEqual(loadEvaluations(store), map);
+  saveEvaluations(store, STORAGE_KEY, map);
+  assert.deepEqual(loadEvaluations(store, STORAGE_KEY), map);
+});
+
+test('storageKeyForYear: 募集年ごとに別のキーになる（既存の2025キーは従来のまま）', () => {
+  assert.equal(storageKeyForYear(2025), 'carrot-club:evaluations:2025');
+  assert.equal(storageKeyForYear(2025), STORAGE_KEY);
+  assert.notEqual(storageKeyForYear(2026), storageKeyForYear(2025));
+});
+
+test('年度が違えば同じ馬IDでも評価が混ざらない', () => {
+  const store = createMemoryStore();
+  saveEvaluations(store, storageKeyForYear(2025), {
+    '1': { rating: 'A', favorite: false, skip: false, memo: '2025年のNo.1' },
+  });
+  saveEvaluations(store, storageKeyForYear(2026), {
+    '1': { rating: 'E', favorite: false, skip: false, memo: '2026年のNo.1' },
+  });
+  assert.equal(getEvaluation(loadEvaluations(store, storageKeyForYear(2025)), '1').memo, '2025年のNo.1');
+  assert.equal(getEvaluation(loadEvaluations(store, storageKeyForYear(2026)), '1').memo, '2026年のNo.1');
 });
 
 test('getEvaluation: 未評価の馬にはデフォルト値を返す', () => {

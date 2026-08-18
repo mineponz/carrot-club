@@ -50,6 +50,11 @@ export function formatBirthDate(isoDate: string): string {
   return isoDate.slice(5).replace('-', '/');
 }
 
+/**
+ * 評価セレクトの背景色はCSSの `[data-rating='A']` 等で当てる（スプレッドシートの条件付き書式に近い見え方）。
+ * `selected` 属性だけだとCSSから選択値を参照できないため、値そのものを属性に持たせている。
+ * ブラウザ側で値が変わったときは、この属性も更新しないと色が追随しない（各ページのchangeハンドラ参照）。
+ */
 export function horseRowHtml(horse: Horse, evaluation: Evaluation): string {
   const ratingOptions = ['', 'A', 'B', 'C', 'D', 'E']
     .map((r) => {
@@ -67,7 +72,7 @@ export function horseRowHtml(horse: Horse, evaluation: Evaluation): string {
   <td class="horse-name">${name}</td>
   <td>
     <div class="eval-cell">
-      <select class="rating-select" data-field="rating" aria-label="${name}の評価">${ratingOptions}</select>
+      <select class="rating-select" data-field="rating" data-rating="${evaluation.rating ?? ''}" aria-label="${name}の評価">${ratingOptions}</select>
       <button type="button" class="favorite-btn" data-field="favorite" aria-pressed="${evaluation.favorite}" aria-label="${name}をお気に入りにする" title="お気に入り">★</button>
       <label class="skip-label"><input type="checkbox" class="skip-checkbox" data-field="skip" ${evaluation.skip ? 'checked' : ''} aria-label="${name}を消にする" /> 消</label>
     </div>

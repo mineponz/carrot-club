@@ -79,6 +79,12 @@ test('horseRowHtml: 保存済みの評価を反映する', () => {
   assert.match(html, /data-skip="true"/);
 });
 
+test('horseRowHtml: 評価セルに data-rating を出す（CSSの色分けがこの属性に依存している）', () => {
+  assert.match(horseRowHtml(horse, { ...DEFAULT_EVALUATION, rating: 'C' }), /class="rating-select"[^>]*data-rating="C"/);
+  // 未評価は空文字。色を付けない側の条件なので固定しておく
+  assert.match(horseRowHtml(horse, DEFAULT_EVALUATION), /class="rating-select"[^>]*data-rating=""/);
+});
+
 test('horseRowHtml: 馬名の引用符をエスケープしてHTMLを壊さない', () => {
   const html = horseRowHtml({ ...horse, name: 'テスト"号' }, DEFAULT_EVALUATION);
   assert.ok(!html.includes('テスト"号'));

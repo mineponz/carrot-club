@@ -30,9 +30,35 @@ npm run build    # dist/ に静的出力
 
 ## データ
 
-`src/data/horses2025.ts` が2025年募集馬の客観データ。現状はプレースホルダ（ダミー3頭）。
-本人からCSV（客観列のみ）を受け取り次第、実データに差し替える
-（vault: `1-projects/carrot-club/tasks/20260810-build-phase1.md` 手順1）。
+年度ごとに `src/data/horses<募集年>.ts` を持つ。サイトが表示するのは最新年（現在は
+`horses2026.ts` = 2025年産・2026年募集の94頭）。過去年のファイルは参照用に残す。
+
+- `scripts/convert-csv.mjs`（2025年募集）: 本人のスプレッドシートCSV（客観列のみ）→ `horses2025.ts`。
+- `scripts/fetch-2026-data.mjs`（2026年募集）: クラブ公式の募集馬CSV（Shift-JIS）→ `horses2026.ts` と、
+  本人のスプレッドシート取込用CSV（`~/Downloads/carrot-club-2026-for-sheets.csv`）。
+  今年の公式CSVには netkeibaURL・兄弟・母齢が無いため netkeiba から取得している
+  （取得手順とレート配慮はスクリプト冒頭のコメント参照）。取得結果は `.cache/`（git管理外）に
+  キャッシュされ、再実行時は再取得しない。
+
+元CSV・生成したスプレッドシート用CSVは個人データを載せる前提なので**コミットしない**。
+手術・既往（`surgery`）は公式CSVにもnetkeibaにも無く、クラブ公式PDFの一覧が唯一の情報源。
+2026年募集ぶんは `scripts/fetch-2026-data.mjs` の `SURGERY_BY_NO` に対応表として持たせている
+（再生成しても消えない。PDFが更新されたらここを直す）。`horses2026.ts` を作った背景は
+vault: `1-projects/carrot-club/tasks/20260818-import-2026-data.md`。
+
+## 年度ページの構成
+
+- `/`（`src/pages/index.astro`）が**常に最新募集年**。`src/consts.ts` の `SITE_TAGLINE` /
+  `SITE_DESCRIPTION` もルート＝最新年度向け。
+- 過去年度は `/2025/`（`src/pages/2025/index.astro`）のように退避する。文言は
+  `SITE_TAGLINE_2025` のように年度別定数を足し、`BaseLayout` に `title` / `description` /
+  `tagline` を渡してメタ情報をその年のものにする。
+- **評価の localStorage キーは年度ごとに分ける**（`storageKeyForYear(年)`）。馬IDはクラブの
+  募集番号で年ごとに1から振り直されるため、キーを共有すると別の馬の評価が出てしまう。
+  2025年ぶんの既存データは `carrot-club:evaluations:2025` に入っているので変更しないこと。
+- 年度ページ同士は本文冒頭の `.year-switch` で相互リンクする。
+- 表の見た目（評価A〜Eの色分けなど）は `BaseLayout.astro` の `is:global` スタイルと
+  `src/lib/horse-row.ts` に置いて全年度で共有する。ページ側に書くと年度ぶんだけ複製になる。
 
 ## 注意点（minitoolsから引き継いだ実際の落とし穴）
 
