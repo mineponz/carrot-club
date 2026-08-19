@@ -205,18 +205,19 @@ const webAppJsonLd = {
         --sans: -apple-system, BlinkMacSystemFont, "Hiragino Kaku Gothic ProN",
           "Noto Sans JP", "Yu Gothic", sans-serif;
 
-        /* 評価A〜Eの色。緑→赤の弱いグラデーションだが、彩度を抑えて表全体が
-           うるさくならないようにしている（意味を持つのは評価列だけ）。 */
-        --rating-a-bg: #cfe9d5;
-        --rating-a-fg: #1d4d2c;
-        --rating-b-bg: #e2efc9;
-        --rating-b-fg: #3b5220;
+        /* 評価A〜Eの色。パワプロの能力ランク配色を意識し、最高評価Aをピンクにして
+           ピンク→オレンジ→黄→緑→グレーで下るグラデーションにしている
+           （Eに向かうほど彩度を落として「特に無し」感を出す）。 */
+        --rating-a-bg: #fbd7ea;
+        --rating-a-fg: #8a1155;
+        --rating-b-bg: #fbdccb;
+        --rating-b-fg: #7a3210;
         --rating-c-bg: #faecc4;
         --rating-c-fg: #5a4611;
-        --rating-d-bg: #f8dcc0;
-        --rating-d-fg: #6b3a17;
-        --rating-e-bg: #f4d2cf;
-        --rating-e-fg: #6d2320;
+        --rating-d-bg: #dbe9cf;
+        --rating-d-fg: #33501d;
+        --rating-e-bg: #e4e2dd;
+        --rating-e-fg: #55524c;
       }
 
       @media (prefers-color-scheme: dark) {
@@ -231,16 +232,16 @@ const webAppJsonLd = {
           --danger: #e08278;
 
           /* ダークでは同じ色相のまま明度を反転させる（背景は沈ませ、文字を明るく） */
-          --rating-a-bg: #1f3a2b;
-          --rating-a-fg: #a8d9b7;
-          --rating-b-bg: #2d3a22;
-          --rating-b-fg: #c3d9a4;
+          --rating-a-bg: #4a1f38;
+          --rating-a-fg: #f5a8cf;
+          --rating-b-bg: #47281a;
+          --rating-b-fg: #f0b98e;
           --rating-c-bg: #3d351d;
           --rating-c-fg: #dfcb93;
-          --rating-d-bg: #402c1e;
-          --rating-d-fg: #e5bd95;
-          --rating-e-bg: #402625;
-          --rating-e-fg: #e7adab;
+          --rating-d-bg: #2a3a1f;
+          --rating-d-fg: #b9d9a0;
+          --rating-e-bg: #33322e;
+          --rating-e-fg: #cfccc5;
         }
       }
 
