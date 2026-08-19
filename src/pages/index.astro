@@ -536,10 +536,25 @@ const faqJsonLd = {
     }
 
     /* 表は画面幅に収まらない（実データで約2000px）。評価欄を操作している間もどの馬か
-       分かるように、No・馬名・評価を左端に固定する。評価列まで固定するのは、右端に
-       あった頃に「評価できること自体に気づけない」問題が実際に起きたため。
-       固定列は背景を塗らないと、下を流れる列が透けて重なって見える。
-       狭い画面では固定すると残りの表示領域がほぼ無くなるので、広い画面だけに適用する。 */
+       分かるように、馬名は画面幅を問わず常に左端に固定する。No・評価まで固定するのは
+       狭い画面では表示領域をほぼ使い切ってしまうため、広い画面だけに追加で固定する。
+       固定列は背景を塗らないと、下を流れる列が透けて重なって見える。 */
+    #horse-table th:nth-child(2),
+    #horse-table td:nth-child(2) {
+      position: sticky;
+      left: 0;
+      background: var(--surface);
+      z-index: 1;
+      /* 固定列とスクロール部分の境目。罫線だと表の他の線と紛れるので、
+         「この下を内容が流れている」ことが分かる弱い影にする（枠線との二重使いはしない）。 */
+      box-shadow: 6px 0 5px -5px rgb(0 0 0 / 0.28);
+    }
+    #horse-table thead th:nth-child(2) {
+      background: var(--accent-weak);
+      z-index: 3; /* 縦横どちらの固定にも勝つ必要がある */
+    }
+    #horse-table tbody tr:hover td:nth-child(2) { background: var(--accent-weak); }
+
     @media (min-width: 56rem) {
       #horse-table th:nth-child(1),
       #horse-table td:nth-child(1) {
@@ -548,12 +563,12 @@ const faqJsonLd = {
         background: var(--surface);
         z-index: 1;
       }
+      /* 広い画面では No 列が左端に来るため、馬名列は No 列の幅ぶん右にずらし、
+         境目の影は評価列側（新しい右端）に移す。 */
       #horse-table th:nth-child(2),
       #horse-table td:nth-child(2) {
-        position: sticky;
         left: 3.5rem;
-        background: var(--surface);
-        z-index: 1;
+        box-shadow: none;
       }
       #horse-table th:nth-child(3),
       #horse-table td:nth-child(3) {
@@ -561,18 +576,14 @@ const faqJsonLd = {
         left: 16rem;
         background: var(--surface);
         z-index: 1;
-        /* 固定列とスクロール部分の境目。罫線だと表の他の線と紛れるので、
-           「この下を内容が流れている」ことが分かる弱い影にする（枠線との二重使いはしない）。 */
         box-shadow: 6px 0 5px -5px rgb(0 0 0 / 0.28);
       }
       #horse-table thead th:nth-child(1),
-      #horse-table thead th:nth-child(2),
       #horse-table thead th:nth-child(3) {
         background: var(--accent-weak);
-        z-index: 3; /* 縦横どちらの固定にも勝つ必要がある */
+        z-index: 3;
       }
       #horse-table tbody tr:hover td:nth-child(1),
-      #horse-table tbody tr:hover td:nth-child(2),
       #horse-table tbody tr:hover td:nth-child(3) { background: var(--accent-weak); }
     }
 

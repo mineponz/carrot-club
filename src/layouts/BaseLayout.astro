@@ -146,6 +146,7 @@ const webAppJsonLd = {
         <a href="/" class="wordmark">{SITE_TITLE}</a>
       </p>
       <p class="tagline">{tagline}</p>
+      <p class="header-permission">{CLUB_PERMISSION_NOTICE}</p>
       <p class="header-notice">{UNOFFICIAL_NOTICE}</p>
     </header>
 
@@ -324,6 +325,17 @@ const webAppJsonLd = {
         margin: 0.15rem 0 0;
         color: var(--muted);
         font-size: 0.875rem;
+      }
+
+      .header-permission {
+        margin: 0.6rem 0 0;
+        font-size: 0.8125rem;
+        line-height: 1.6;
+        color: var(--text);
+        background: var(--accent-weak);
+        border-left: 3px solid var(--accent);
+        padding: 0.5rem 0.75rem;
+        border-radius: 0 4px 4px 0;
       }
 
       .header-notice {
