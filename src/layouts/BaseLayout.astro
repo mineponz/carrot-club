@@ -132,6 +132,17 @@ const webAppJsonLd = {
     <meta name="twitter:image:alt" content={ogImageAlt} />
 
     <link rel="sitemap" href="/sitemap-index.xml" />
+
+    <!-- Google tag (gtag.js) -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-HV39111Z5T" is:inline></script>
+    <script is:inline>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+
+      gtag('config', 'G-HV39111Z5T');
+    </script>
+
     <script type="application/ld+json" set:html={JSON.stringify(webSiteJsonLd)} is:inline />
     <script type="application/ld+json" set:html={JSON.stringify(webAppJsonLd)} is:inline />
     <script type="application/ld+json" set:html={JSON.stringify(breadcrumbJsonLd)} is:inline />
