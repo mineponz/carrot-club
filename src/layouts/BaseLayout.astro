@@ -22,6 +22,11 @@ interface Props {
   /** パンくずの中間項目（トップとページ自身は自動で付く） */
   breadcrumb?: { label: string; href: string }[];
   /**
+   * パンくず最終項目の表示名。既定は `title`。
+   * 個別ページのように title を血統込みで長くしている場合、パンくずには馬名だけ出す。
+   */
+  breadcrumbLabel?: string;
+  /**
    * フッターの「馬一覧へ戻る」の遷移先。既定は最新年度（ルート）。
    * 過去年度ページ（`/2025/`）は自分自身のパスを渡し、最新年度に飛ばされないようにする。
    */
@@ -33,6 +38,7 @@ const {
   description = SITE_DESCRIPTION,
   tagline = SITE_TAGLINE,
   breadcrumb = [],
+  breadcrumbLabel,
   homeHref = '/',
 } = Astro.props;
 
@@ -52,7 +58,7 @@ const ogImageAlt = `${DOCUMENT_TITLE}｜${tagline}`;
 const crumbs = [
   { label: 'ホーム', href: '/' },
   ...breadcrumb,
-  ...(title ? [{ label: title, href: Astro.url.pathname }] : []),
+  ...(title ? [{ label: breadcrumbLabel ?? title, href: Astro.url.pathname }] : []),
 ];
 
 const breadcrumbJsonLd = {
@@ -176,6 +182,11 @@ const webAppJsonLd = {
       <div class="ad-slot ad-slot-sp">
         <!-- admax -->
         <script is:inline src="https://adm.shinobi.jp/s/8209f8c1f0b6861adf36d20d24ddf5b3"></script>
+        <!-- admax -->
+      </div>
+      <div class="ad-slot ad-slot-pc">
+        <!-- admax -->
+        <script is:inline src="https://adm.shinobi.jp/s/e63321a780d5a46c4027a2812076c695"></script>
         <!-- admax -->
       </div>
     </footer>
@@ -388,13 +399,21 @@ const webAppJsonLd = {
          表のマークアップは horse-row.ts が年度ページ共通で生成するので、ページ側の
          <style> に置くと年度ぶんだけ同じCSSが増える。ここに1つだけ置いて共有する。
          未評価（data-rating="")は既定の見た目のまま＝色を付けない。
-         ページ側の `#horse-table .rating-select` より詳細度を高くするため id 付きで書く。 */
-      #horse-table .rating-select[data-rating='A'] { background: var(--rating-a-bg); color: var(--rating-a-fg); }
-      #horse-table .rating-select[data-rating='B'] { background: var(--rating-b-bg); color: var(--rating-b-fg); }
-      #horse-table .rating-select[data-rating='C'] { background: var(--rating-c-bg); color: var(--rating-c-fg); }
-      #horse-table .rating-select[data-rating='D'] { background: var(--rating-d-bg); color: var(--rating-d-fg); }
-      #horse-table .rating-select[data-rating='E'] { background: var(--rating-e-bg); color: var(--rating-e-fg); }
-      #horse-table .rating-select:not([data-rating='']) {
+         一覧側は `#horse-table .rating-select` に地の色指定があるので、それに勝つよう id 付きで書く。
+         個別ページ（`#eval-panel`）にも同じ色を当てるため並記する。コンポーネント側のスコープ付き
+         スタイルに勝つ必要があるので、こちらは id セレクタで詳細度を上げている。 */
+      #horse-table .rating-select[data-rating='A'],
+      #eval-panel .rating-select[data-rating='A'] { background: var(--rating-a-bg); color: var(--rating-a-fg); }
+      #horse-table .rating-select[data-rating='B'],
+      #eval-panel .rating-select[data-rating='B'] { background: var(--rating-b-bg); color: var(--rating-b-fg); }
+      #horse-table .rating-select[data-rating='C'],
+      #eval-panel .rating-select[data-rating='C'] { background: var(--rating-c-bg); color: var(--rating-c-fg); }
+      #horse-table .rating-select[data-rating='D'],
+      #eval-panel .rating-select[data-rating='D'] { background: var(--rating-d-bg); color: var(--rating-d-fg); }
+      #horse-table .rating-select[data-rating='E'],
+      #eval-panel .rating-select[data-rating='E'] { background: var(--rating-e-bg); color: var(--rating-e-fg); }
+      #horse-table .rating-select:not([data-rating='']),
+      #eval-panel .rating-select:not([data-rating='']) {
         font-weight: 700;
         border-color: currentColor;
       }

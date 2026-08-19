@@ -15,6 +15,11 @@ export interface Horse {
   sex: Sex;
   /** netkeibaの馬個体ページ */
   netkeibaUrl: string;
+  /**
+   * 母馬自身のnetkeiba個体ページ（母の産駒成績を追うのに使う）。
+   * 母馬IDを取得していない年度（2025年募集ぶん）は空文字で、その場合はリンクを出さない。
+   */
+  damUrl: string;
   sire: string;
   broodmareSire: string;
   /** 母齢（出産時点の母の年齢） */

@@ -133,6 +133,9 @@ const horses = rows
       name: cell(row, COL.name),
       sex: cell(row, COL.sex),
       netkeibaUrl: cell(row, COL.netkeibaUrl),
+      // 母馬のnetkeibaページ。2025年募集ぶんは元スプレッドシートに列が無いため常に空文字
+      // （2026年版は scripts/fetch-2026-data.mjs が netkeiba から取得して埋めている）。
+      damUrl: '',
       sire: cell(row, COL.sire),
       broodmareSire: cell(row, COL.broodmareSire),
       damAge: toNumber(cell(row, COL.damAge), '母齢', id),

@@ -1,0 +1,28 @@
+---
+/**
+ * 2026年募集馬の個別ページ（`/horses/{id}/`）。全94頭ぶんを静的生成する。
+ *
+ * 一覧は横スクロールの表なので1行に出せる情報量に限りがある。個別ページを分けることで
+ * 馬名でのロングテール検索に載せる（本人の要望 / vault: 20260819-per-horse-detail-pages）。
+ * 表示部分は年度共通の `HorseDetail.astro`、文言生成は `horse-meta.ts` に寄せている。
+ */
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import HorseDetail from '../../components/HorseDetail.astro';
+import { horses2026 } from '../../data/horses2026.ts';
+import { horseDetailDescription, horseDetailTitle } from '../../lib/horse-meta.ts';
+import type { Horse } from '../../lib/horses.ts';
+
+export function getStaticPaths() {
+  return horses2026.map((horse) => ({ params: { id: horse.id }, props: { horse } }));
+}
+
+const { horse } = Astro.props as { horse: Horse };
+---
+
+<BaseLayout
+  title={horseDetailTitle(horse)}
+  breadcrumbLabel={horse.name}
+  description={horseDetailDescription(horse, 2026)}
+>
+  <HorseDetail horse={horse} recruitYear={2026} listHref="/" />
+</BaseLayout>

@@ -19,6 +19,9 @@ import { sortHorses, uniqueValues, type SortKey } from '../../lib/horses.ts';
 import { DEFAULT_EVALUATION } from '../../lib/evaluations.ts';
 import { COLUMNS, horseRowHtml } from '../../lib/horse-row.ts';
 
+// 個別ページは年度ごとに別ルート（`/2025/horses/{id}/`）。既定はルート年度なので明示的に渡す。
+const DETAIL_BASE_PATH = '/2025/horses/';
+
 // フィルタの選択肢はビルド時に確定できるのでサーバー側で作る
 const sires = uniqueValues(horses2025, 'sire');
 const stables = uniqueValues(horses2025, 'stable');
@@ -30,7 +33,7 @@ const columns: readonly { label: string; sortKey?: SortKey; align?: string }[] =
 // 初期表示はクライアント側の既定（id昇順）と揃える。評価は端末ごとの値なので
 // 初期HTMLでは未評価（DEFAULT_EVALUATION）で描き、読み込み後に上書きする。
 const initialRowsHtml = sortHorses(horses2025, 'id', 'asc')
-  .map((horse) => horseRowHtml(horse, DEFAULT_EVALUATION))
+  .map((horse) => horseRowHtml(horse, DEFAULT_EVALUATION, DETAIL_BASE_PATH))
   .join('\n');
 
 const total = horses2025.length;
@@ -257,8 +260,7 @@ const faqJsonLd = {
 
   <h2>このツールでできること</h2>
   <p>
-    募集馬選びのたびにスプレッドシートを作り直さなくても済むように、{total}頭を1つの表で見比べられる
-    ようにしたものです。次のことができます。
+    {total}頭を1つの表で並べ替え・絞り込みしながら比較できます。次のことができます。
   </p>
   <ul>
     <li>列見出しをクリックして並べ替える（もう一度押すと昇順・降順が入れ替わります）</li>
@@ -458,6 +460,17 @@ const faqJsonLd = {
     .measure-stat { margin: 0.15rem 0 0; color: var(--muted); font-size: 0.875rem; }
     @media (max-width: 32rem) {
       .measure-item { grid-template-columns: 1fr; gap: 0.15rem; }
+
+      /* 幅の狭い画面では .filters label が max-width: 11rem のまま伸びず、
+         右半分が空いた状態で1列ずつ折り返してしまう。各項目を横幅いっぱいにする。 */
+      .filters label { flex: 1 1 100%; }
+      .filters input[type='text'],
+      .filters input[type='number'],
+      .filters select {
+        max-width: none;
+        width: 100%;
+      }
+      .filters .range input { width: auto; flex: 1 1 0; min-width: 0; }
     }
 
     .faq-item { border-top: 1px solid var(--border); padding-top: 0.75rem; }
@@ -553,7 +566,9 @@ const faqJsonLd = {
         left: 16rem;
         background: var(--surface);
         z-index: 1;
-        border-right: 1px solid var(--border);
+        /* 固定列とスクロール部分の境目。罫線だと表の他の線と紛れるので、
+           「この下を内容が流れている」ことが分かる弱い影にする（枠線との二重使いはしない）。 */
+        box-shadow: 6px 0 5px -5px rgb(0 0 0 / 0.28);
       }
       #horse-table thead th:nth-child(1),
       #horse-table thead th:nth-child(2),
@@ -667,6 +682,9 @@ const faqJsonLd = {
     // 初期HTML（＝クローラーが見る内容）と描き直した後の表がずれる。
     import { COLUMNS, horseRowHtml } from '../../lib/horse-row.ts';
 
+    // frontmatter の定数はクライアント側から参照できないので同じ値をここにも置く
+    const DETAIL_BASE_PATH = '/2025/horses/';
+
     const tbody = document.getElementById('horse-tbody') as HTMLTableSectionElement;
     const resultCount = document.getElementById('result-count') as HTMLElement;
     const sortButtons = document.querySelectorAll<HTMLButtonElement>('.sort-btn');
@@ -736,7 +754,7 @@ const faqJsonLd = {
       tbody.innerHTML =
         list.length === 0
           ? `<tr><td colspan="${COLUMNS.length}">条件に一致する馬がいません。</td></tr>`
-          : list.map((h) => horseRowHtml(h, getEvaluation(evaluations, h.id))).join('');
+          : list.map((h) => horseRowHtml(h, getEvaluation(evaluations, h.id), DETAIL_BASE_PATH)).join('');
       resultCount.textContent = `${list.length} / ${horses2025.length} 頭`;
 
       for (const btn of sortButtons) {

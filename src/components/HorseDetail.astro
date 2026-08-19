@@ -1,0 +1,280 @@
+---
+/**
+ * 1頭ぶんの個別ページ本体。2026年版（`/horses/{id}/`）と2025年版（`/2025/horses/{id}/`）で共有する。
+ *
+ * 年度ごとの違いは props（募集年・一覧のURL）だけに閉じ込めている。ページ側にマークアップを
+ * コピーすると、年度が増えるたびに同じ修正を2か所に入れることになるため。
+ *
+ * 評価（A〜E・お気に入り・消・メモ）は一覧ページと**同じlocalStorageキー**
+ * （`storageKeyForYear(募集年)`）を読み書きするので、一覧↔個別ページを行き来しても保持される。
+ * クライアント側スクリプトはpropsを直接参照できないので、必要な値は data 属性で受け渡す。
+ */
+import type { Horse } from '../lib/horses.ts';
+import { damNameOf, formatBirthDateLong, type RecruitYear } from '../lib/horse-meta.ts';
+
+interface Props {
+  horse: Horse;
+  recruitYear: RecruitYear;
+  /** その年度の一覧ページ（`/` または `/2025/`） */
+  listHref: string;
+}
+
+const { horse, recruitYear, listHref } = Astro.props;
+const dam = damNameOf(horse);
+
+/** 定義リストに出す項目。値が無いものは出さない（空欄の行を並べても情報にならない）。 */
+const facts: { term: string; value: string }[] = [
+  { term: '性別', value: horse.sex },
+  { term: '父', value: horse.sire },
+  { term: '母', value: dam },
+  { term: '母父', value: horse.broodmareSire },
+  { term: '母齢', value: `${horse.damAge}` },
+  { term: '誕生日', value: formatBirthDateLong(horse.birthDate) },
+  { term: '厩舎', value: horse.stable },
+  { term: '一口価格', value: `${horse.pricePerShare}万円` },
+  { term: '体高', value: `${horse.height}cm` },
+  { term: '胸囲', value: `${horse.chestGirth}cm` },
+  { term: '管囲', value: `${horse.caretGirth}cm` },
+  { term: '馬体重', value: `${horse.weight}kg` },
+  { term: '兄弟', value: horse.sibling },
+  { term: '母優先', value: horse.damPriority ? '対象' : '対象外' },
+];
+---
+
+<article class="horse-detail">
+  <p class="back-link"><a href={listHref}>← {recruitYear}年募集馬の一覧へ戻る</a></p>
+
+  <h1>{horse.name}</h1>
+  <p class="lead">
+    キャロットクラブ{recruitYear}年募集馬（募集番号{horse.id}）。父{horse.sire}・母{dam}（母父{
+      horse.broodmareSire
+    }）。
+  </p>
+
+  <dl class="fact-list">
+    {
+      facts.map((f) => (
+        <div class="fact">
+          <dt>{f.term}</dt>
+          <dd>{f.value || '—'}</dd>
+        </div>
+      ))
+    }
+  </dl>
+
+  {
+    horse.surgery && (
+      <section class="surgery-note">
+        <h2>手術・既往</h2>
+        {/* クラブ公式の記載をそのまま出す。改行は行として保つ */}
+        {horse.surgery.split('\n').map((line) => (
+          <p>{line}</p>
+        ))}
+      </section>
+    )
+  }
+
+  <h2>この馬を調べる</h2>
+  <ul class="external-links">
+    <li>
+      <a href={horse.netkeibaUrl} target="_blank" rel="noopener">netkeibaで{horse.name}を見る</a>
+    </li>
+    {
+      horse.damUrl && (
+        <li>
+          <a href={horse.damUrl} target="_blank" rel="noopener">
+            netkeibaで母{dam}を見る（産駒成績）
+          </a>
+        </li>
+      )
+    }
+    <li>
+      <a href={horse.xSearchUrl} target="_blank" rel="noopener">Xで「{dam}」を検索する</a>
+    </li>
+  </ul>
+
+  <h2>自分の評価</h2>
+  <p class="note">
+    入力した内容はこの端末のブラウザ内（localStorage）に保存され、一覧ページと共有されます。
+    サーバーへは送信されません。
+  </p>
+  <div class="eval-panel" id="eval-panel" data-horse-id={horse.id} data-recruit-year={recruitYear}>
+    <label class="eval-item">
+      評価
+      <select class="rating-select" id="detail-rating" data-rating="">
+        <option value="">-</option>
+        <option value="A">A</option>
+        <option value="B">B</option>
+        <option value="C">C</option>
+        <option value="D">D</option>
+        <option value="E">E</option>
+      </select>
+    </label>
+    <button type="button" class="favorite-btn" id="detail-favorite" aria-pressed="false" title="お気に入り">
+      ★ お気に入り
+    </button>
+    <label class="eval-item checkbox">
+      <input type="checkbox" id="detail-skip" /> 消（検討から外す）
+    </label>
+    <label class="eval-item memo">
+      メモ
+      <input type="text" class="memo-input" id="detail-memo" placeholder="メモ" />
+    </label>
+  </div>
+
+  <p class="back-link bottom"><a href={listHref}>← {recruitYear}年募集馬の一覧へ戻る</a></p>
+</article>
+
+<style>
+  .back-link {
+    margin: 0 0 0.5rem;
+    font-size: 0.875rem;
+  }
+  .back-link.bottom {
+    margin-top: 2.5rem;
+  }
+  .lead {
+    color: var(--muted);
+    margin-top: 0;
+  }
+  .note {
+    color: var(--muted);
+    font-size: 0.875rem;
+  }
+
+  /* 1項目1行の縦積みだと縦に間延びするので、狭い画面でも2列以上に並ぶグリッドにする */
+  .fact-list {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(11rem, 1fr));
+    gap: 0.75rem 1rem;
+    margin: 1.5rem 0 0;
+    padding: 1rem;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+  }
+  .fact dt {
+    color: var(--muted);
+    font-size: 0.8125rem;
+  }
+  .fact dd {
+    margin: 0.1rem 0 0;
+    font-size: 1rem;
+    font-weight: 600;
+  }
+
+  .surgery-note p {
+    margin: 0 0 0.25rem;
+    color: var(--danger);
+  }
+
+  .external-links {
+    padding-left: 1.1rem;
+  }
+  .external-links li {
+    margin-bottom: 0.35rem;
+  }
+
+  .eval-panel {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.75rem 1rem;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 1rem;
+    font-size: 0.875rem;
+  }
+  .eval-item {
+    display: flex;
+    flex-direction: column;
+    gap: 0.3rem;
+    color: var(--muted);
+  }
+  .eval-item.checkbox {
+    flex-direction: row;
+    align-items: center;
+    gap: 0.35rem;
+  }
+  .eval-item.memo {
+    flex: 1 1 16rem;
+  }
+  .eval-panel .rating-select,
+  .eval-panel .memo-input {
+    font: inherit;
+    padding: 0.35rem 0.5rem;
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    background: var(--bg);
+    color: var(--text);
+  }
+  .eval-panel .memo-input {
+    width: 100%;
+  }
+  .eval-panel .favorite-btn {
+    font: inherit;
+    background: transparent;
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 0.4rem 0.7rem;
+    cursor: pointer;
+    color: var(--muted);
+  }
+  .eval-panel .favorite-btn[aria-pressed='true'] {
+    color: var(--accent);
+    border-color: var(--accent);
+    font-weight: 700;
+  }
+</style>
+
+<script>
+  import {
+    loadEvaluations,
+    saveEvaluations,
+    getEvaluation,
+    updateEvaluation,
+    storageKeyForYear,
+    type Evaluation,
+    type EvaluationMap,
+  } from '../lib/evaluations.ts';
+
+  // 年度・馬IDはビルド時にしか分からないので data 属性経由で受け取る
+  const panel = document.getElementById('eval-panel') as HTMLElement;
+  const horseId = panel.dataset.horseId!;
+  const storageKey = storageKeyForYear(Number(panel.dataset.recruitYear));
+
+  const rating = document.getElementById('detail-rating') as HTMLSelectElement;
+  const favorite = document.getElementById('detail-favorite') as HTMLButtonElement;
+  const skip = document.getElementById('detail-skip') as HTMLInputElement;
+  const memo = document.getElementById('detail-memo') as HTMLInputElement;
+
+  let evaluations: EvaluationMap = loadEvaluations(window.localStorage, storageKey);
+
+  // 保存済みの内容を初期表示に反映する（一覧で付けた評価がここでも見える）
+  const current = getEvaluation(evaluations, horseId);
+  rating.value = current.rating ?? '';
+  rating.dataset.rating = current.rating ?? '';
+  favorite.setAttribute('aria-pressed', String(current.favorite));
+  skip.checked = current.skip;
+  memo.value = current.memo;
+
+  function persist(patch: Partial<Evaluation>) {
+    evaluations = updateEvaluation(evaluations, horseId, patch);
+    saveEvaluations(window.localStorage, storageKey, evaluations);
+  }
+
+  rating.addEventListener('change', () => {
+    // 背景色はCSSの [data-rating] で当てているので属性も更新する（一覧側と同じ扱い）
+    rating.dataset.rating = rating.value;
+    persist({ rating: rating.value ? (rating.value as Evaluation['rating']) : null });
+  });
+  favorite.addEventListener('click', () => {
+    const pressed = favorite.getAttribute('aria-pressed') === 'true';
+    favorite.setAttribute('aria-pressed', String(!pressed));
+    persist({ favorite: !pressed });
+  });
+  skip.addEventListener('change', () => persist({ skip: skip.checked }));
+  // メモは blur を待たず入力のたびに保存する（一覧側と同じ理由: 離脱で失われないように）
+  memo.addEventListener('input', () => persist({ memo: memo.value }));
+</script>

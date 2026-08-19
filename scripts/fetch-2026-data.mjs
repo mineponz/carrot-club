@@ -26,7 +26,8 @@
  * 出力:
  *   - `src/data/horses2026.ts`（`Horse[]`。リポジトリにコミットする客観データ）
  *   - `~/Downloads/carrot-club-2026-for-sheets.csv`（本人のスプレッドシート取込用。A〜AA列は
- *     2025年版シートと同じ並びで、個人の評価・進捗列は空欄。AB「母URL」は2026年版で増えた列。
+ *     2025年版シートと同じ並びで、個人の評価・進捗列は空欄。AB「母URL」は2026年版で増えた列
+ *     （`Horse.damUrl` と同じ値）。
  *     **個人データ扱いなのでリポジトリにはコミットしない**）
  *
  * 手術・既往（surgery）は今年のCSVにも netkeiba にも無く、クラブ公式PDFの一覧にしか載らない。
@@ -601,8 +602,6 @@ console.log(`元CSV: ${args.csv}`);
 console.log(`対象: ${targets.length} 頭 / CSV全 ${sourceRows.length} 頭\n`);
 
 const horses = [];
-/** 馬ID → スプレッドシートにだけ出す付加情報（Horse型に無い列）。 */
-const sheetExtras = new Map();
 const issues = [];
 for (const [index, row] of targets.entries()) {
   const label = `[${index + 1}/${targets.length}] No.${row.id} ${row.name}（母:${row.dam}）`;
@@ -635,6 +634,8 @@ for (const [index, row] of targets.entries()) {
     name: row.name,
     sex: row.sex,
     netkeibaUrl: resolved.netkeibaUrl,
+    // 母馬自身のnetkeibaページ。サイトの「母」リンク列とスプレッドシートのAB列で同じ値を使う。
+    damUrl: resolved.damUrl,
     sire: row.sire,
     broodmareSire: row.broodmareSire,
     damAge: resolved.damAge,
@@ -651,7 +652,6 @@ for (const [index, row] of targets.entries()) {
     surgery,
     xSearchUrl: `https://x.com/search?q=${row.dam}&src=typed_query`,
   });
-  sheetExtras.set(row.id, { damUrl: resolved.damUrl });
 }
 
 // --- 出力1: src/data/horses2026.ts
@@ -660,7 +660,7 @@ const tsBody = `/**
  *
  * このファイルは \`scripts/fetch-2026-data.mjs\` が生成する。手で編集しない。
  * 元CSV（クラブ公式・Shift-JIS）はリポジトリにコミットしていない。
- * netkeibaUrl / damAge / sibling は netkeiba から自動取得した値。
+ * netkeibaUrl / damUrl / damAge / sibling は netkeiba から自動取得した値。
  * surgery は今年の情報源が無いため全件空文字。
  * 再生成: node scripts/fetch-2026-data.mjs --csv "<募集馬リストのCSV>"
  */
@@ -700,7 +700,7 @@ const sheetRows = horses.map((h) => {
   cells[18] = h.damPriority ? '◯' : '';         // S 母優
   cells[19] = h.surgery;                        // T 手術（今年は情報源が無く常に空）
   cells[26] = h.xSearchUrl;                     // AA X検索URL
-  cells[27] = sheetExtras.get(h.id)?.damUrl ?? ''; // AB 母URL（母馬自身のnetkeibaページ）
+  cells[27] = h.damUrl;                         // AB 母URL（サイトの「母」リンク列と同じ値）
   return cells;
 });
 const csvBody = [SHEET_HEADER, ...sheetRows].map((r) => r.map(toCsvField).join(',')).join('\n') + '\n';
@@ -715,9 +715,7 @@ console.log(`netkeibaリクエスト: ${requestCount} 件 / キャッシュヒ�
 console.log(`netkeibaUrl 取得済み: ${filled('netkeibaUrl')} / ${horses.length}`);
 console.log(`damAge 取得済み: ${filled('damAge')} / ${horses.length}`);
 console.log(`sibling あり: ${filled('sibling')} / ${horses.length}`);
-console.log(
-  `母URL（CSVのみ）取得済み: ${[...sheetExtras.values()].filter((e) => e.damUrl !== '').length} / ${horses.length}`,
-);
+console.log(`damUrl（母のnetkeibaページ）取得済み: ${filled('damUrl')} / ${horses.length}`);
 console.log(`母優先: ${horses.filter((h) => h.damPriority).length} 頭`);
 console.log(
   `手術・既往あり: ${filled('surgery')} 頭（対応表 SURGERY_BY_NO の登録は ${Object.keys(SURGERY_BY_NO).length} 頭）`,

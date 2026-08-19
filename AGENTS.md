@@ -60,6 +60,22 @@ vault: `1-projects/carrot-club/tasks/20260818-import-2026-data.md`。
 - 表の見た目（評価A〜Eの色分けなど）は `BaseLayout.astro` の `is:global` スタイルと
   `src/lib/horse-row.ts` に置いて全年度で共有する。ページ側に書くと年度ぶんだけ複製になる。
 
+### 個別ページ
+
+- 1頭1ページを `/horses/{募集番号}/`（最新年度）と `/2025/horses/{募集番号}/` に静的生成する
+  （`src/pages/horses/[id].astro` / `src/pages/2025/horses/[id].astro` の `getStaticPaths`）。
+  一覧の表は横スクロールで1行に出せる情報量に限りがあるため、馬名でのロングテール検索の
+  受け皿を別ページに分けている。
+- 表示は `src/components/HorseDetail.astro`（年度共通）。年度差はprops（募集年・一覧のURL）だけ。
+  コンポーネント内のクライアントスクリプトはpropsを直接読めないので、馬ID・募集年は
+  `#eval-panel` の `data-` 属性で受け渡している。
+- title / description は `src/lib/horse-meta.ts` で馬ごとに機械生成する。似た雛形が187ページ並ぶと
+  重複コンテンツになりうるので、馬名・血統・測尺などその馬固有の値を必ず混ぜること。
+- 一覧の馬名セルが個別ページへのリンク。年度ごとのURL接頭辞は `horseRowHtml()` の第3引数
+  （既定 `/horses/`、2025年版は `/2025/horses/`）。**ビルド時とクライアント側の両方**に同じ値を
+  渡すこと（片方だけだと再描画後にリンク先が年度をまたぐ）。
+- `trailingSlash: 'always'` なので内部リンクは末尾スラッシュ必須（`horseDetailHref()` が付ける）。
+
 ## 注意点（minitoolsから引き継いだ実際の落とし穴）
 
 - Node の型ストリップは TypeScript の**パラメータプロパティ**（`constructor(readonly x: T)`）に

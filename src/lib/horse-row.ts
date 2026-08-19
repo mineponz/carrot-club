@@ -14,11 +14,19 @@
 import type { Horse } from './horses.ts';
 import type { Evaluation } from './evaluations.ts';
 
-/** 表の列定義。`sortKey` があるものは見出しが並べ替えボタンになる。 */
+/**
+ * 表の列定義。`sortKey` があるものは見出しが並べ替えボタンになる。
+ *
+ * 並びは本人の使い方に合わせている（2026-08-19）:
+ * - No・馬名・評価は左端で固定表示（横スクロールしてもどの馬か見失わない）
+ * - netkeibaは血統より**左**（馬を見に行く動線が最優先で、スクロールせず押せる位置に置く）
+ * - X検索と母のnetkeibaは右端（調べ物として後から使う）
+ */
 export const COLUMNS = [
   { label: 'No', sortKey: 'id', align: 'num' },
   { label: '馬名', sortKey: 'name' },
   { label: '評価' },
+  { label: 'netkeiba' },
   { label: '父', sortKey: 'sire' },
   { label: '母父', sortKey: 'broodmareSire' },
   { label: '性', sortKey: 'sex' },
@@ -33,9 +41,13 @@ export const COLUMNS = [
   { label: '兄弟' },
   { label: '母優' },
   { label: '手術・既往' },
-  { label: 'リンク' },
   { label: 'メモ' },
+  { label: 'X検索' },
+  { label: '母' },
 ] as const;
+
+/** 個別ページのURL接頭辞の既定（最新年度＝ルート）。過去年度は `/2025/horses/` を渡す。 */
+export const DEFAULT_DETAIL_BASE_PATH = '/horses/';
 
 export function escapeHtml(value: string): string {
   return value
@@ -55,7 +67,19 @@ export function formatBirthDate(isoDate: string): string {
  * `selected` 属性だけだとCSSから選択値を参照できないため、値そのものを属性に持たせている。
  * ブラウザ側で値が変わったときは、この属性も更新しないと色が追随しない（各ページのchangeハンドラ参照）。
  */
-export function horseRowHtml(horse: Horse, evaluation: Evaluation): string {
+/**
+ * 個別ページのURL。`trailingSlash: 'always'` なので末尾スラッシュを必ず付ける。
+ * 年度によって接頭辞が違う（`/horses/` と `/2025/horses/`）ので呼び出し側が渡す。
+ */
+export function horseDetailHref(horseId: string, detailBasePath = DEFAULT_DETAIL_BASE_PATH): string {
+  return `${detailBasePath}${encodeURIComponent(horseId)}/`;
+}
+
+export function horseRowHtml(
+  horse: Horse,
+  evaluation: Evaluation,
+  detailBasePath = DEFAULT_DETAIL_BASE_PATH,
+): string {
   const ratingOptions = ['', 'A', 'B', 'C', 'D', 'E']
     .map((r) => {
       const selected = (evaluation.rating ?? '') === r ? ' selected' : '';
@@ -66,10 +90,15 @@ export function horseRowHtml(horse: Horse, evaluation: Evaluation): string {
   // 手術欄は複数行になりうるが、表のセルでは1行に畳んで表示する
   const surgeryText = horse.surgery.replace(/\n/g, ' / ');
   const name = escapeHtml(horse.name);
+  const detailHref = escapeHtml(horseDetailHref(horse.id, detailBasePath));
+  // 母のnetkeibaページは年度によっては未取得（空文字）。その場合はリンクを出さない。
+  const damLink = horse.damUrl
+    ? `<a href="${escapeHtml(horse.damUrl)}" target="_blank" rel="noopener">母</a>`
+    : '';
 
   return `<tr data-horse-id="${escapeHtml(horse.id)}" data-skip="${evaluation.skip}">
   <td class="num">${escapeHtml(horse.id)}</td>
-  <td class="horse-name">${name}</td>
+  <td class="horse-name"><a href="${detailHref}">${name}</a></td>
   <td>
     <div class="eval-cell">
       <select class="rating-select" data-field="rating" data-rating="${evaluation.rating ?? ''}" aria-label="${name}の評価">${ratingOptions}</select>
@@ -77,6 +106,7 @@ export function horseRowHtml(horse: Horse, evaluation: Evaluation): string {
       <label class="skip-label"><input type="checkbox" class="skip-checkbox" data-field="skip" ${evaluation.skip ? 'checked' : ''} aria-label="${name}を消にする" /> 消</label>
     </div>
   </td>
+  <td class="links"><a href="${escapeHtml(horse.netkeibaUrl)}" target="_blank" rel="noopener">netkeiba</a></td>
   <td>${escapeHtml(horse.sire)}</td>
   <td>${escapeHtml(horse.broodmareSire)}</td>
   <td>${escapeHtml(horse.sex)}</td>
@@ -91,7 +121,8 @@ export function horseRowHtml(horse: Horse, evaluation: Evaluation): string {
   <td class="sibling" title="${escapeHtml(horse.sibling)}">${escapeHtml(horse.sibling)}</td>
   <td class="dam-priority">${horse.damPriority ? '◯' : ''}</td>
   <td class="surgery" title="${escapeHtml(surgeryText)}">${escapeHtml(surgeryText)}</td>
-  <td class="links"><a href="${escapeHtml(horse.netkeibaUrl)}" target="_blank" rel="noopener">netkeiba</a> <a href="${escapeHtml(horse.xSearchUrl)}" target="_blank" rel="noopener">X</a></td>
   <td><input type="text" class="memo-input" data-field="memo" value="${escapeHtml(evaluation.memo)}" placeholder="メモ" aria-label="${name}のメモ" /></td>
+  <td class="links"><a href="${escapeHtml(horse.xSearchUrl)}" target="_blank" rel="noopener">X</a></td>
+  <td class="links">${damLink}</td>
 </tr>`;
 }

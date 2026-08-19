@@ -255,8 +255,7 @@ const faqJsonLd = {
 
   <h2>このツールでできること</h2>
   <p>
-    募集馬選びのたびにスプレッドシートを作り直さなくても済むように、{total}頭を1つの表で見比べられる
-    ようにしたものです。次のことができます。
+    {total}頭を1つの表で並べ替え・絞り込みしながら比較できます。次のことができます。
   </p>
   <ul>
     <li>列見出しをクリックして並べ替える（もう一度押すと昇順・降順が入れ替わります）</li>
@@ -462,6 +461,17 @@ const faqJsonLd = {
     .measure-stat { margin: 0.15rem 0 0; color: var(--muted); font-size: 0.875rem; }
     @media (max-width: 32rem) {
       .measure-item { grid-template-columns: 1fr; gap: 0.15rem; }
+
+      /* 幅の狭い画面では .filters label が max-width: 11rem のまま伸びず、
+         右半分が空いた状態で1列ずつ折り返してしまう。各項目を横幅いっぱいにする。 */
+      .filters label { flex: 1 1 100%; }
+      .filters input[type='text'],
+      .filters input[type='number'],
+      .filters select {
+        max-width: none;
+        width: 100%;
+      }
+      .filters .range input { width: auto; flex: 1 1 0; min-width: 0; }
     }
 
     .faq-item { border-top: 1px solid var(--border); padding-top: 0.75rem; }
@@ -557,7 +567,9 @@ const faqJsonLd = {
         left: 16rem;
         background: var(--surface);
         z-index: 1;
-        border-right: 1px solid var(--border);
+        /* 固定列とスクロール部分の境目。罫線だと表の他の線と紛れるので、
+           「この下を内容が流れている」ことが分かる弱い影にする（枠線との二重使いはしない）。 */
+        box-shadow: 6px 0 5px -5px rgb(0 0 0 / 0.28);
       }
       #horse-table thead th:nth-child(1),
       #horse-table thead th:nth-child(2),

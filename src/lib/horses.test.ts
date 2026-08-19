@@ -21,6 +21,7 @@ function makeHorse(overrides: Partial<Horse> & Pick<Horse, 'id'>): Horse {
     damPriority: false,
     surgery: '',
     xSearchUrl: 'https://x.com/search',
+    damUrl: '',
     ...overrides,
   };
 }
