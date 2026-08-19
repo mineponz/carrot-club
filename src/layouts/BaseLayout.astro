@@ -179,11 +179,6 @@ const webAppJsonLd = {
       <p class="meta">
         <a href={homeHref}>馬一覧へ戻る</a>
       </p>
-      <div class="ad-slot ad-slot-sp">
-        <!-- admax -->
-        <script is:inline src="https://adm.shinobi.jp/s/8209f8c1f0b6861adf36d20d24ddf5b3"></script>
-        <!-- admax -->
-      </div>
     </footer>
 
     <style is:global>
@@ -381,14 +376,6 @@ const webAppJsonLd = {
       .site-footer p { margin: 0 0 0.5rem; }
       .site-footer .unofficial { color: var(--text); font-weight: 600; }
       .site-footer .meta { margin: 0; }
-
-      /* 忍者AdMaxはPC/SPで別の広告枠コードが発行されるため、画面幅で出し分ける */
-      .ad-slot { margin-top: 1rem; }
-      .ad-slot-pc { display: none; }
-      @media (min-width: 48rem) {
-        .ad-slot-sp { display: none; }
-        .ad-slot-pc { display: block; }
-      }
 
       /* 評価セレクトの色分け（スプレッドシートの条件付き書式のイメージ）。
          表のマークアップは horse-row.ts が年度ページ共通で生成するので、ページ側の
