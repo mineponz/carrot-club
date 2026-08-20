@@ -94,6 +94,22 @@ test('COLUMNS: netkeibaは血統より左、X検索と母は右端、左3列は 
   assert.equal(labels.at(-2), 'X検索');
   assert.equal(labels.at(-1), '母');
   assert.deepEqual(labels.slice(0, 3), ['No', '馬名', '評価']);
+  // 「みんな」は自分の評価のすぐ右。固定列は3列のままにしておく
+  assert.equal(labels[3], 'みんな');
+});
+
+test('horseRowHtml: 他会員の評価は未取得・0票・票ありで表示を変える', () => {
+  // ビルド時（集計をまだ取っていない）は読み込み中
+  assert.match(horseRowHtml(horse, DEFAULT_EVALUATION), /class="peer-cell"><span class="peer-loading"/);
+  // 取得したが1票も無い
+  assert.match(
+    horseRowHtml(horse, DEFAULT_EVALUATION, undefined, null),
+    /class="peer-cell"><span class="peer-empty"/,
+  );
+  // 票あり
+  const html = horseRowHtml(horse, DEFAULT_EVALUATION, undefined, { A: 3, B: 0, C: 1, D: 0, E: 0 });
+  assert.match(html, /class="peer-bar"/);
+  assert.match(html, /<span class="peer-total">4<\/span>/);
 });
 
 test('horseRowHtml: 母優先の馬には◯を出す', () => {

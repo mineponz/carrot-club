@@ -11,11 +11,16 @@
   自分で入力する（下記）。
 - **ロジックは `src/lib/` に分離し、必ずテストを書く。** UIから切り離しておくことで
   `node --test` で検証できる。ロジックを `.astro` の `<script>` に直接書かない。
-- **Phase1（現状）は評価をブラウザの `localStorage` に保存する。外部送信はしない。**
-  Phase2として「他ユーザーの評価傾向を集計して見せる」機能を計画しており、その際は
-  Cloudflare D1 + Workers APIへの送信を追加する予定（[[20260810-build-phase1]]参照）。
+- **評価はブラウザの `localStorage` に保存する。サーバーへ送るのは A〜E の印と匿名IDだけ。**
+  Phase2（2026-08-19）で「他ユーザーの評価傾向を集計して見せる」機能を追加し、A〜Eの印だけ
+  Cloudflare D1 + Workers API へ送るようになった（[[20260810-build-phase1]] /
+  [[20260819-d1-evaluation-aggregation]]）。
+  **メモ・お気に入り（★）・消フラグは送信しない。** これは方針であると同時に構造で担保している:
+  D1のテーブルにその3つの列が無く（`migrations/0001_create_evaluations.sql`）、bodyの検証
+  （`src/lib/evaluation-api.ts` の `parseSubmissionBody()`）が既知の3キー
+  （horseId / year / rating）以外を読まずに捨てる。**この2つを緩める変更はしないこと。**
   minitoolsのような「絶対に外部送信しない」という恒久ポリシーではない点に注意
-  ―― ただし送信を追加する際は必ずvault側の決定ノートを作ってから実装すること
+  ―― ただし送信する項目を増やす際は必ずvault側の決定ノートを作ってから実装すること
   （黙って送信を始めない）。
 - 対応しない仕様は「対応しない」と明示する。
 
@@ -75,6 +80,34 @@ vault: `1-projects/carrot-club/tasks/20260818-import-2026-data.md`。
   （既定 `/horses/`、2025年版は `/2025/horses/`）。**ビルド時とクライアント側の両方**に同じ値を
   渡すこと（片方だけだと再描画後にリンク先が年度をまたぐ）。
 - `trailingSlash: 'always'` なので内部リンクは末尾スラッシュ必須（`horseDetailHref()` が付ける）。
+
+## 会員の評価の集計（Phase2 / D1 + Worker）
+
+一覧の「みんな」列と個別ページの「他の会員の評価」に、馬ごとのA〜E件数を出す。
+
+- **新しいサーバーは無い。** 同じWorkersプロジェクトに `main`（`worker/index.ts`）と
+  D1バインディングを足しただけ。`worker/index.ts` の最後は必ず `env.ASSETS.fetch(request)`
+  にフォールバックすること。ここを外すとアセットに一致しないURL（＝全ページ）がWorkerで
+  行き止まりになり、`not_found_handling: "404-page"` も効かなくなる。
+  **新しいルートはこのフォールバックより前に足す。**
+- API: `POST /api/evaluations`（自分のratingをupsert。`rating: null` なら行を削除） /
+  `GET /api/evaluations/summary?year=`（馬IDごとのA〜E件数）。それ以外は静的アセット。
+- **匿名IDはbodyではなく `X-Anon-Id` ヘッダで送る。** 「誰が」と「何を」を別の場所に置くと、
+  bodyの検証をrating関連だけに閉じ込められる。IDは `localStorage` の
+  `carrot-club:anon-id` に置くUUIDで、年度で分けない（`src/lib/anon-id.ts`）。
+- 送信・保存する項目を増やさないための作りは「このリポジトリの方針」を参照。
+- 通信は**失敗しても画面を壊さない**（`src/lib/evaluation-client.ts` が例外を飲む）。
+  一覧の「みんな」列は未取得＝「…」、取得済みで0票＝「−」と表示を分ける。
+  同じ表示にすると通信失敗と0票が利用者に区別できない。
+- ローカル確認:
+  ```
+  npx wrangler d1 migrations apply carrot-club-evaluations --local
+  npx wrangler dev --local
+  ```
+  ローカルのworkerdバイナリが `wrangler.jsonc` の `compatibility_date` に追いつくまでは
+  `--compatibility-date` で古い日付を渡して起動する（設定ファイル側は本番に合わせたまま）。
+- `wrangler.jsonc` の `database_id` は `wrangler d1 create` の出力に差し替えること。
+  ローカル実行はこの値を見ないので、未設定でも気づかずデプロイで失敗しうる。
 
 ## 注意点（minitoolsから引き継いだ実際の落とし穴）
 

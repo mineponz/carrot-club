@@ -173,8 +173,9 @@ const webAppJsonLd = {
     <footer class="site-footer">
       <p class="unofficial">{UNOFFICIAL_NOTICE}</p>
       <p>
-        あなたの評価はこの端末のブラウザ内（localStorage）に保存され、現時点ではサーバーへ
-        送信されません。
+        あなたの評価はこの端末のブラウザ内（localStorage）に保存されます。このうち
+        <strong>A〜Eの印だけ</strong>を、会員全体の傾向（「みんな」列）を集計するために
+        端末ごとの匿名IDとあわせて送信します。<strong>メモ・お気に入り・消は送信しません。</strong>
       </p>
       <p class="permission">{CLUB_PERMISSION_NOTICE}</p>
       <p class="meta">
@@ -219,6 +220,17 @@ const webAppJsonLd = {
         --rating-d-fg: #33501d;
         --rating-e-bg: #e4e2dd;
         --rating-e-fg: #55524c;
+
+        /* 他会員の評価分布（「みんな」列・個別ページ）の棒グラフ用。A〜Eと同じ色相のまま、
+           細い棒でも隣の段と見分けが付く明度に振ってある（上の背景色は淡すぎて、
+           数ピクセル幅の帯にすると全部同じ色に見える）。
+           ライト・ダークどちらの背景に対しても3:1以上のコントラストが出る明度を選んでいるので、
+           ダークテーマ側の上書きは持たない。 */
+        --rating-a-bar: #d1417f;
+        --rating-b-bar: #c26a28;
+        --rating-c-bar: #a98a1f;
+        --rating-d-bar: #5f8f3e;
+        --rating-e-bar: #8a877f;
       }
 
       @media (prefers-color-scheme: dark) {
@@ -430,6 +442,99 @@ const webAppJsonLd = {
       #eval-panel .rating-select:not([data-rating='']) {
         font-weight: 700;
         border-color: currentColor;
+      }
+
+      /* 他会員の評価分布（src/lib/peer-eval.ts が生成するマークアップ）。
+         一覧の「みんな」列は innerHTML で描き直されるためスコープ付きスタイルが効かない。
+         個別ページの「他の会員の評価」欄とも見た目を揃えたいので、両方ここに置く。
+         強調は「淡い塗り」だけに寄せ、枠線・影は足さない（自分の評価セルと同じ扱い）。 */
+      /* 棒と人数は一体で読むものなので、間隔は狭く取る（余白でグルーピングを示す） */
+      .peer-eval {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.25rem;
+      }
+      .peer-bar {
+        display: inline-flex;
+        width: 3.5rem;
+        height: 0.5rem;
+        border-radius: 999px;
+        overflow: hidden;
+        background: var(--border);
+        flex: none;
+      }
+      .peer-seg { display: block; }
+      .peer-seg[data-rating='A'] { background: var(--rating-a-bar); }
+      .peer-seg[data-rating='B'] { background: var(--rating-b-bar); }
+      .peer-seg[data-rating='C'] { background: var(--rating-c-bar); }
+      .peer-seg[data-rating='D'] { background: var(--rating-d-bar); }
+      .peer-seg[data-rating='E'] { background: var(--rating-e-bar); }
+      .peer-total {
+        color: var(--muted);
+        font-size: 0.75rem;
+        font-variant-numeric: tabular-nums;
+      }
+      /* 「まだ0票」「読み込み中」は情報が無い状態なので、色を薄くするのではなく
+         背景に近い色まで後退させて、票がある行だけが目に入るようにする */
+      .peer-empty,
+      .peer-loading { color: var(--border); }
+
+      /* 個別ページ用のA〜E内訳 */
+      .peer-breakdown {
+        display: grid;
+        gap: 0.25rem;
+        max-width: 24rem;
+        margin-top: 0.5rem;
+      }
+      .peer-row {
+        display: grid;
+        grid-template-columns: 1.5rem 1fr 3.5rem;
+        align-items: center;
+        gap: 0.5rem;
+      }
+      .peer-key {
+        text-align: center;
+        font-weight: 700;
+        font-size: 0.8125rem;
+        border-radius: 4px;
+      }
+      .peer-key[data-rating='A'] { background: var(--rating-a-bg); color: var(--rating-a-fg); }
+      .peer-key[data-rating='B'] { background: var(--rating-b-bg); color: var(--rating-b-fg); }
+      .peer-key[data-rating='C'] { background: var(--rating-c-bg); color: var(--rating-c-fg); }
+      .peer-key[data-rating='D'] { background: var(--rating-d-bg); color: var(--rating-d-fg); }
+      .peer-key[data-rating='E'] { background: var(--rating-e-bg); color: var(--rating-e-fg); }
+      .peer-track {
+        height: 0.5rem;
+        border-radius: 999px;
+        overflow: hidden;
+        background: var(--border);
+      }
+      .peer-fill { display: block; height: 100%; }
+      .peer-fill[data-rating='A'] { background: var(--rating-a-bar); }
+      .peer-fill[data-rating='B'] { background: var(--rating-b-bar); }
+      .peer-fill[data-rating='C'] { background: var(--rating-c-bar); }
+      .peer-fill[data-rating='D'] { background: var(--rating-d-bar); }
+      .peer-fill[data-rating='E'] { background: var(--rating-e-bar); }
+      .peer-count {
+        text-align: right;
+        font-size: 0.8125rem;
+        color: var(--muted);
+        font-variant-numeric: tabular-nums;
+      }
+      .peer-total-note,
+      .peer-none {
+        color: var(--muted);
+        font-size: 0.8125rem;
+      }
+
+      /* 棒グラフは aria-hidden なので、同じ内容をテキストでも置いている（読み上げ用） */
+      .visually-hidden {
+        position: absolute;
+        width: 1px;
+        height: 1px;
+        overflow: hidden;
+        clip-path: inset(50%);
+        white-space: nowrap;
       }
     </style>
   </body>

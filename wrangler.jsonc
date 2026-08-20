@@ -1,16 +1,37 @@
 {
-  // Cloudflare Workers の静的アセット配信でこのサイトを公開する設定。
+  // Cloudflare Workers の静的アセット配信 + 会員評価の集計API（Phase2）の設定。
   // ダッシュボードの Deploy command (`npx wrangler deploy`) がこのファイルを読む。
   "$schema": "./node_modules/wrangler/config-schema.json",
   "name": "carrot-club",
   "compatibility_date": "2026-08-10",
+  // 集計API本体（Phase2で追加）。アセットに一致しないURLはここへ来るので、
+  // worker/index.ts の最後で必ず env.ASSETS.fetch() にフォールバックしている
+  // （外すとサイトの全ページが壊れる）。
+  "main": "./worker/index.ts",
   "assets": {
     // Astro のビルド出力先（astro.config.mjs の既定値）
     "directory": "./dist",
+    // Worker から静的アセットを返すためのバインディング名。worker/index.ts の Env と揃える
+    "binding": "ASSETS",
     // マッチしないURLでは 404.html を返す。SPAではないので
     // "single-page-application" にしてはいけない（全URLが200になり重複コンテンツ扱いになる）
     "not_found_handling": "404-page"
+  },
+  "d1_databases": [
+    {
+      // 保存するのは rating(A〜E) と匿名IDだけ。メモ・お気に入り・消フラグは
+      // 列そのものを作っていない（migrations/0001_create_evaluations.sql）
+      "binding": "DB",
+      "database_name": "carrot-club-evaluations",
+      // ↓ `npx wrangler d1 create carrot-club-evaluations` が出力するIDに差し替える。
+      //   `wrangler dev` のローカル実行は .wrangler/state のSQLiteを使うのでこの値を見ないが、
+      //   本番デプロイ前には必ず実IDを入れること（未設定のままだと deploy が失敗する）。
+      "database_id": "REPLACE_WITH_D1_DATABASE_ID",
+      "migrations_dir": "./migrations"
+    }
+  ],
+  // worker/index.ts の console.* をダッシュボードのログから追えるようにする
+  "observability": {
+    "enabled": true
   }
-  // Worker のコードは不要なため "main" は指定しない（静的配信のみ）
-  // Phase2で集計APIを追加する際は "main" に Worker エントリを追加し、D1バインディングを足す
 }

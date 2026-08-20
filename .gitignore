@@ -4,6 +4,8 @@ dist/
 .astro/
 # scripts/fetch-2026-data.mjs が取得したnetkeibaのHTMLキャッシュ
 .cache/
+# wrangler dev のローカル状態（ローカルD1のSQLite実体など）。端末ごとの作業用データ
+.wrangler/
 
 # dependencies
 node_modules/

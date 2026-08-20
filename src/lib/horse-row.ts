@@ -13,6 +13,8 @@
  */
 import type { Horse } from './horses.ts';
 import type { Evaluation } from './evaluations.ts';
+import type { RatingCounts } from './evaluation-api.ts';
+import { peerCellHtml } from './peer-eval.ts';
 
 /**
  * 表の列定義。`sortKey` があるものは見出しが並べ替えボタンになる。
@@ -21,11 +23,16 @@ import type { Evaluation } from './evaluations.ts';
  * - No・馬名・評価は左端で固定表示（横スクロールしてもどの馬か見失わない）
  * - netkeibaは血統より**左**（馬を見に行く動線が最優先で、スクロールせず押せる位置に置く）
  * - X検索と母のnetkeibaは右端（調べ物として後から使う）
+ *
+ * 「みんな」（他会員の評価分布）は自分の「評価」の**すぐ右**に置く。自分の印と見比べる
+ * 列なので離すと意味が薄れる。ただし左端の固定列は3列のまま増やさない
+ * （狭い画面で固定列が表示領域を食い潰すため。index.astro の nth-child(1〜3) のCSSと対応）。
  */
 export const COLUMNS = [
   { label: 'No', sortKey: 'id', align: 'num' },
   { label: '馬名', sortKey: 'name' },
   { label: '評価' },
+  { label: 'みんな' },
   { label: 'netkeiba' },
   { label: '父', sortKey: 'sire' },
   { label: '母父', sortKey: 'broodmareSire' },
@@ -75,10 +82,15 @@ export function horseDetailHref(horseId: string, detailBasePath = DEFAULT_DETAIL
   return `${detailBasePath}${encodeURIComponent(horseId)}/`;
 }
 
+/**
+ * @param peerCounts 他会員の評価分布。`undefined` = まだ集計を取得していない（ビルド時の
+ *   初期HTMLはここ）、`null` = 取得したがこの馬には1票も無い。両者を見た目で区別する。
+ */
 export function horseRowHtml(
   horse: Horse,
   evaluation: Evaluation,
   detailBasePath = DEFAULT_DETAIL_BASE_PATH,
+  peerCounts?: RatingCounts | null,
 ): string {
   const ratingOptions = ['', 'A', 'B', 'C', 'D', 'E']
     .map((r) => {
@@ -106,6 +118,7 @@ export function horseRowHtml(
       <label class="skip-label"><input type="checkbox" class="skip-checkbox" data-field="skip" ${evaluation.skip ? 'checked' : ''} aria-label="${name}を消にする" /> 消</label>
     </div>
   </td>
+  <td class="peer-cell">${peerCellHtml(peerCounts)}</td>
   <td class="links"><a href="${escapeHtml(horse.netkeibaUrl)}" target="_blank" rel="noopener">netkeiba</a></td>
   <td>${escapeHtml(horse.sire)}</td>
   <td>${escapeHtml(horse.broodmareSire)}</td>

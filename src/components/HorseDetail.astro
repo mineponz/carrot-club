@@ -96,7 +96,8 @@ const facts: { term: string; value: string }[] = [
   <h2>自分の評価</h2>
   <p class="note">
     入力した内容はこの端末のブラウザ内（localStorage）に保存され、一覧ページと共有されます。
-    サーバーへは送信されません。
+    このうちA〜Eの印だけは、下の「他の会員の評価」を集計するために匿名で送信します
+    （メモ・お気に入り・消は送信しません）。
   </p>
   <div class="eval-panel" id="eval-panel" data-horse-id={horse.id} data-recruit-year={recruitYear}>
     <label class="eval-item">
@@ -121,6 +122,13 @@ const facts: { term: string; value: string }[] = [
       <input type="text" class="memo-input" id="detail-memo" placeholder="メモ" />
     </label>
   </div>
+
+  <h2>他の会員の評価</h2>
+  <p class="note">
+    このツールを使っている人が{horse.name}に付けたA〜Eの内訳です。誰が付けたかは記録していません。
+  </p>
+  {/* 中身はクライアント側で集計APIから差し替える。JSが無い・取得に失敗した場合はこの文言のまま */}
+  <div id="peer-eval-panel"><p class="peer-none">他の会員の評価を読み込んでいます…</p></div>
 
   <p class="back-link bottom"><a href={listHref}>← {recruitYear}年募集馬の一覧へ戻る</a></p>
 </article>
@@ -238,11 +246,14 @@ const facts: { term: string; value: string }[] = [
     type Evaluation,
     type EvaluationMap,
   } from '../lib/evaluations.ts';
+  import { fetchPeerSummary, submitRating } from '../lib/evaluation-client.ts';
+  import { peerBreakdownHtml } from '../lib/peer-eval.ts';
 
   // 年度・馬IDはビルド時にしか分からないので data 属性経由で受け取る
   const panel = document.getElementById('eval-panel') as HTMLElement;
   const horseId = panel.dataset.horseId!;
-  const storageKey = storageKeyForYear(Number(panel.dataset.recruitYear));
+  const recruitYear = Number(panel.dataset.recruitYear);
+  const storageKey = storageKeyForYear(recruitYear);
 
   const rating = document.getElementById('detail-rating') as HTMLSelectElement;
   const favorite = document.getElementById('detail-favorite') as HTMLButtonElement;
@@ -267,7 +278,10 @@ const facts: { term: string; value: string }[] = [
   rating.addEventListener('change', () => {
     // 背景色はCSSの [data-rating] で当てているので属性も更新する（一覧側と同じ扱い）
     rating.dataset.rating = rating.value;
-    persist({ rating: rating.value ? (rating.value as Evaluation['rating']) : null });
+    const value = rating.value ? (rating.value as Evaluation['rating']) : null;
+    persist({ rating: value });
+    // 集計へ送るのは A〜E だけ。★・消・メモは送らない（一覧側と同じ）
+    void submitRating(recruitYear, horseId, value);
   });
   favorite.addEventListener('click', () => {
     const pressed = favorite.getAttribute('aria-pressed') === 'true';
@@ -277,4 +291,11 @@ const facts: { term: string; value: string }[] = [
   skip.addEventListener('change', () => persist({ skip: skip.checked }));
   // メモは blur を待たず入力のたびに保存する（一覧側と同じ理由: 離脱で失われないように）
   memo.addEventListener('input', () => persist({ memo: memo.value }));
+
+  // 他の会員の評価。集計APIは年度単位なので、返ってきたマップからこの馬のぶんだけ取り出す。
+  // 取得できなくても上のUIには影響しない（この欄が「まだありません」になるだけ）。
+  const peerPanel = document.getElementById('peer-eval-panel') as HTMLElement;
+  void fetchPeerSummary(recruitYear).then((summary) => {
+    peerPanel.innerHTML = peerBreakdownHtml(summary[horseId] ?? null);
+  });
 </script>
