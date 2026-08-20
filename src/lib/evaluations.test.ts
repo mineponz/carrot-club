@@ -6,6 +6,7 @@ import {
   getEvaluation,
   isEmptyEvaluation,
   updateEvaluation,
+  ratingsByHorseId,
   DEFAULT_EVALUATION,
   STORAGE_KEY,
   storageKeyForYear,
@@ -109,4 +110,33 @@ test('isEmptyEvaluation: 何も入っていない評価だけ true（アップ�
   assert.equal(isEmptyEvaluation({ ...DEFAULT_EVALUATION, skip: true }), false);
   // A〜Eを付けていなくてもメモがあれば同期する（「気になるので後で調べる」の類）
   assert.equal(isEmptyEvaluation({ ...DEFAULT_EVALUATION, memo: 'あとで調べる' }), false);
+});
+
+// --- ratingsByHorseId（一覧の評価フィルタに渡す対応表） ---
+
+test('ratingsByHorseId: 馬IDとA〜Eの印だけの対応表になる', () => {
+  const map: EvaluationMap = {
+    '1': { rating: 'A', favorite: true, skip: false, memo: '良さそう' },
+    '2': { rating: 'C', favorite: false, skip: true, memo: '' },
+  };
+  assert.deepEqual(ratingsByHorseId(map), { '1': 'A', '2': 'C' });
+});
+
+test('ratingsByHorseId: 印が無い馬（★やメモだけ付けた馬）はキーごと落とす', () => {
+  const map: EvaluationMap = {
+    '1': { rating: null, favorite: true, skip: false, memo: 'あとで見る' },
+    '2': { rating: 'B', favorite: false, skip: false, memo: '' },
+  };
+  assert.deepEqual(ratingsByHorseId(map), { '2': 'B' });
+});
+
+test('ratingsByHorseId: 空のマップからは空の対応表を返す', () => {
+  assert.deepEqual(ratingsByHorseId({}), {});
+});
+
+test('ratingsByHorseId: メモ・お気に入り・消は対応表に含めない', () => {
+  const map: EvaluationMap = {
+    '1': { rating: 'A', favorite: true, skip: true, memo: '個人メモ' },
+  };
+  assert.deepEqual(Object.values(ratingsByHorseId(map)), ['A']);
 });

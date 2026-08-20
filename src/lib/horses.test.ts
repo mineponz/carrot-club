@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { sortHorses, filterHorses, uniqueValues, type Horse } from './horses.ts';
+import { sortHorses, filterHorses, uniqueValues, UNRATED, type Horse } from './horses.ts';
 
 function makeHorse(overrides: Partial<Horse> & Pick<Horse, 'id'>): Horse {
   return {
@@ -193,6 +193,70 @@ test('filterHorses: 条件未指定なら全件返す', () => {
 test('filterHorses: 複数条件はAND条件', () => {
   assert.deepEqual(
     filterHorses(horses, { sire: 'キタサンブラック', excludeSurgery: true }).map((h) => h.id),
+    ['2'],
+  );
+});
+
+// --- 評価フィルタ（自分が付けたA〜E） ---
+//
+// 評価は端末ごとのlocalStorage側のデータなので `Horse` には入っていない。
+// 呼び出し側が作った「馬ID→評価」の対応表を渡す前提のテスト。
+// '10'（うめ号）は対応表に載せず、未評価として扱われることを確かめる。
+
+const ratingByHorseId = { '2': 'A', '1': 'C' } as const;
+
+test('filterHorses: 評価1つで絞り込む', () => {
+  assert.deepEqual(
+    filterHorses(horses, { ratings: ['A'], ratingByHorseId }).map((h) => h.id),
+    ['2'],
+  );
+});
+
+test('filterHorses: 評価を複数選ぶとOR条件（いずれかが付いていれば残る）', () => {
+  assert.deepEqual(
+    filterHorses(horses, { ratings: ['A', 'C'], ratingByHorseId }).map((h) => h.id),
+    ['2', '1'],
+  );
+});
+
+test('filterHorses: 選ばれていない評価の馬は残らない', () => {
+  assert.deepEqual(filterHorses(horses, { ratings: ['B'], ratingByHorseId }), []);
+});
+
+test('filterHorses: 未評価だけに絞り込む', () => {
+  assert.deepEqual(
+    filterHorses(horses, { ratings: [UNRATED], ratingByHorseId }).map((h) => h.id),
+    ['10'],
+  );
+});
+
+test('filterHorses: 未評価はA〜Eと一緒に選べる', () => {
+  assert.deepEqual(
+    filterHorses(horses, { ratings: ['A', UNRATED], ratingByHorseId }).map((h) => h.id),
+    ['2', '10'],
+  );
+});
+
+test('filterHorses: 対応表で null の馬は未評価として扱う', () => {
+  assert.deepEqual(
+    filterHorses(horses, { ratings: [UNRATED], ratingByHorseId: { '2': 'A', '1': null } }).map((h) => h.id),
+    ['1', '10'],
+  );
+});
+
+test('filterHorses: 評価を1つも選んでいなければ全件返す（後方互換）', () => {
+  assert.equal(filterHorses(horses, { ratings: [], ratingByHorseId }).length, horses.length);
+  assert.equal(filterHorses(horses, { ratingByHorseId }).length, horses.length);
+});
+
+test('filterHorses: 対応表が無ければ全馬が未評価扱いになる', () => {
+  assert.deepEqual(filterHorses(horses, { ratings: ['A'] }), []);
+  assert.equal(filterHorses(horses, { ratings: [UNRATED] }).length, horses.length);
+});
+
+test('filterHorses: 評価フィルタは他の条件とAND条件', () => {
+  assert.deepEqual(
+    filterHorses(horses, { sire: 'キタサンブラック', ratings: ['A', 'C'], ratingByHorseId }).map((h) => h.id),
     ['2'],
   );
 });

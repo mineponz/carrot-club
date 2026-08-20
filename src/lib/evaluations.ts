@@ -89,6 +89,22 @@ export function isEmptyEvaluation(evaluation: Evaluation): boolean {
   );
 }
 
+/**
+ * 「馬ID→A〜Eの印」だけを抜き出した対応表を作る。
+ *
+ * 一覧の評価フィルタ（`filterHorses` の `ratingByHorseId`）に渡すためのもの。
+ * ★・消・メモは落とし、`rating` だけを渡すことで、絞り込み側が個人のメモを
+ * 受け取らずに済むようにしている。印が無い馬はキーごと落とす（受け取り側は
+ * キーの不在＝未評価として扱う）。
+ */
+export function ratingsByHorseId(map: EvaluationMap): Record<string, Rating> {
+  const result: Record<string, Rating> = {};
+  for (const [horseId, evaluation] of Object.entries(map)) {
+    if (evaluation?.rating) result[horseId] = evaluation.rating;
+  }
+  return result;
+}
+
 /** 指定した馬の評価を部分更新した新しいマップを返す（元のマップは変更しない）。 */
 export function updateEvaluation(map: EvaluationMap, horseId: string, patch: Partial<Evaluation>): EvaluationMap {
   const current = getEvaluation(map, horseId);

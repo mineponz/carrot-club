@@ -1,10 +1,15 @@
 /**
  * 募集馬の客観データ型と、ソート・フィルタの純粋関数。
  *
- * ここに入るのは公表されている客観情報のみ（血統・測尺・厩舎など）。個人の評価・メモ・
- * 見送り判定は `evaluations.ts`（ユーザーごとのlocalStorage）側の責務であり、
- * このファイルは一切関知しない。
+ * `Horse` に入るのは公表されている客観情報のみ（血統・測尺・厩舎など）。個人の評価・メモ・
+ * 見送り判定を**保存する**のは `evaluations.ts`（ユーザーごとのlocalStorage）側の責務で、
+ * このファイルは `localStorage` にも `EvaluationMap` にも触れない。
+ *
+ * 例外は「自分が付けた評価での絞り込み」（`HorseFilter.ratings`）だけ。これも呼び出し側が
+ * 作った「馬ID→評価」の対応表（`ratingByHorseId`）を受け取るだけに留めている。
+ * `Horse` 自体に評価を持たせると、全端末共通の客観データと端末ごとの状態の境界が崩れる。
  */
+import type { Rating } from './evaluations.ts';
 
 export type Sex = '牡' | '牝' | 'セ';
 
@@ -86,6 +91,15 @@ export function sortHorses(horses: Horse[], key: SortKey, direction: SortDirecti
   return sorted;
 }
 
+/**
+ * 評価フィルタの選択肢。A〜Eに加えて「まだ何も評価を付けていない」を `'none'` で表す。
+ *
+ * 未評価を `undefined` や空文字ではなく明示的な値にしているのは、チェックボックスの
+ * `value` にそのまま載せられるようにするため（UI側で特別扱いの分岐を増やさない）。
+ */
+export const UNRATED = 'none';
+export type RatingFilterValue = Rating | typeof UNRATED;
+
 export interface HorseFilter {
   /** 馬名の部分一致 */
   name?: string;
@@ -110,6 +124,20 @@ export interface HorseFilter {
   damPriorityOnly?: boolean;
   /** trueなら手術・既往歴の記載がある馬を除外する */
   excludeSurgery?: boolean;
+  /**
+   * 自分が付けた評価での絞り込み。並べた値の**いずれか**に当てはまる馬を残す（OR条件）。
+   * `'none'` を含めると未評価の馬も残す。
+   *
+   * **空配列・未指定は「絞り込まない」**（＝全件通す）。「どれも選んでいない＝0件」に
+   * してしまうと、初期表示で表が空になり後方互換が壊れる。
+   */
+  ratings?: readonly RatingFilterValue[];
+  /**
+   * 馬ID→自分が付けた評価。`ratings` を使うときだけ必要で、呼び出し側が
+   * `EvaluationMap` から作って渡す（`ratingsByHorseId()`）。
+   * ここに無いID・`null` の馬は未評価（`'none'`）として扱う。
+   */
+  ratingByHorseId?: Readonly<Record<string, Rating | null>>;
 }
 
 function includesCaseInsensitive(haystack: string, needle: string): boolean {
@@ -134,6 +162,10 @@ export function filterHorses(horses: Horse[], filter: HorseFilter): Horse[] {
     if (filter.maxWeight !== undefined && h.weight > filter.maxWeight) return false;
     if (filter.damPriorityOnly && !h.damPriority) return false;
     if (filter.excludeSurgery && h.surgery !== '') return false;
+    if (filter.ratings && filter.ratings.length > 0) {
+      const rating = filter.ratingByHorseId?.[h.id] ?? null;
+      if (!filter.ratings.includes(rating ?? UNRATED)) return false;
+    }
     return true;
   });
 }
