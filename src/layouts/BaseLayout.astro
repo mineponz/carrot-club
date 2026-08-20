@@ -198,9 +198,12 @@ const webAppJsonLd = {
     <footer class="site-footer">
       <p class="unofficial">{UNOFFICIAL_NOTICE}</p>
       <p>
-        あなたの評価はこの端末のブラウザ内（localStorage）に保存されます。このうち
-        <strong>A〜Eの印だけ</strong>を、会員全体の傾向（「みんな」列）を集計するために
-        端末ごとの匿名IDとあわせて送信します。<strong>メモ・お気に入り・消は送信しません。</strong>
+        あなたの評価はこの端末のブラウザ内（localStorage）に保存されます。端末を移っても
+        引き継げるように、メモ・お気に入り・消を含む内容を<strong>匿名の同期ID</strong>
+        （会員番号や氏名とは結び付きません）に紐づけて保存しますが、
+        <strong>これはあなたの同期IDからしか読み出せず、ほかの会員には公開されません。</strong>
+        ほかの会員に見えるのは、全体の傾向（「みんな」列）として集計した
+        <strong>A〜Eの件数だけ</strong>です。
       </p>
       <p class="permission">{CLUB_PERMISSION_NOTICE}</p>
       <p class="contact">

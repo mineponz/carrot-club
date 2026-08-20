@@ -4,6 +4,7 @@ import {
   loadEvaluations,
   saveEvaluations,
   getEvaluation,
+  isEmptyEvaluation,
   updateEvaluation,
   DEFAULT_EVALUATION,
   STORAGE_KEY,
@@ -99,4 +100,13 @@ test('updateEvaluation: 他の馬の評価に影響しない', () => {
   const updated = updateEvaluation(map, '2025-002', { rating: 'B' });
   assert.deepEqual(updated['2025-001'], map['2025-001']);
   assert.deepEqual(updated['2025-002'], { ...DEFAULT_EVALUATION, rating: 'B' });
+});
+
+test('isEmptyEvaluation: 何も入っていない評価だけ true（アップロード対象から外すため）', () => {
+  assert.equal(isEmptyEvaluation(DEFAULT_EVALUATION), true);
+  assert.equal(isEmptyEvaluation({ ...DEFAULT_EVALUATION, rating: 'A' }), false);
+  assert.equal(isEmptyEvaluation({ ...DEFAULT_EVALUATION, favorite: true }), false);
+  assert.equal(isEmptyEvaluation({ ...DEFAULT_EVALUATION, skip: true }), false);
+  // A〜Eを付けていなくてもメモがあれば同期する（「気になるので後で調べる」の類）
+  assert.equal(isEmptyEvaluation({ ...DEFAULT_EVALUATION, memo: 'あとで調べる' }), false);
 });

@@ -13,6 +13,7 @@
  * ブラウザ側は読み込み後に localStorage の評価を反映して同じ関数で描き直す。
  */
 import BaseLayout from '../../layouts/BaseLayout.astro';
+import SyncPanel from '../../components/SyncPanel.astro';
 import { SITE_DESCRIPTION_2025, SITE_TAGLINE_2025, UNOFFICIAL_NOTICE } from '../../consts.ts';
 import { horses2025 } from '../../data/horses2025.ts';
 import { sortHorses, uniqueValues, type SortKey } from '../../lib/horses.ts';
@@ -97,7 +98,7 @@ const measurements = [
 const faqs = [
   {
     q: '入力した評価やメモはどこに保存されますか？',
-    a: '評価（A〜E）・お気に入り・消・メモは、お使いの端末のブラウザ内（localStorage）に保存されます。このうちA〜Eの印だけは、「みんな」列に出す全体の傾向を集計するために、端末ごとにランダムに作られる匿名ID（会員番号や氏名とは結び付きません）とあわせて送信します。メモ・お気に入り・消は送信せず、この端末の中だけに残ります。同じブラウザで開き直せば復元されますが、別の端末やブラウザ、プライベートウィンドウとは共有されず、ブラウザの保存データを消すと評価も消えます。',
+    a: '評価（A〜E）・お気に入り・消・メモは、お使いの端末のブラウザ内（localStorage）に保存されます。あわせて、端末を移っても引き継げるように、端末ごとにランダムに作られる匿名の同期ID（会員番号や氏名とは結び付きません）に紐づけてサーバーにも控えを保存します。控えは同じ同期IDからしか読み出せず、ほかの会員には公開されません。ほかの会員に見えるのは「みんな」列に出るA〜Eの件数だけで、メモ・お気に入り・消は含まれません。別の端末に引き継ぐ手順はページ下部の「評価を別の端末に引き継ぐ」をご覧ください。',
   },
   {
     q: '「みんな」列は何ですか？',
@@ -138,8 +139,9 @@ const faqJsonLd = {
   <p class="lead">
     キャロットクラブ2025年募集馬{total}頭を、血統・測尺・一口価格・厩舎で並べ替え、絞り込みできる
     非公式の選定支援ツールです。評価・お気に入り・消・メモはこの端末のブラウザ内（localStorage）に
-    保存され、再読み込みしても残ります。A〜Eの印だけは匿名で集計し、「みんな」列に
-    他の利用者の評価の分かれ方として表示します（メモ・お気に入り・消は送信しません）。
+    保存され、再読み込みしても残ります（<a href="#sync-panel">同期IDで別の端末に引き継げます</a>）。
+    A〜Eの印だけは匿名で集計し、「みんな」列に他の利用者の評価の分かれ方として表示します
+    （メモ・お気に入り・消はほかの会員には公開されません）。
   </p>
   <!-- 非公式である旨は BaseLayout のヘッダーで全ページに常時表示しているため、ここには重ねない -->
   <p class="year-switch">
@@ -264,6 +266,9 @@ const faqJsonLd = {
       <tbody id="horse-tbody" set:html={initialRowsHtml} />
     </table>
   </div>
+
+  {/* 表のすぐ下に置く。評価を入れ終えた直後が「別の端末でも見たい」と思う場所なので */}
+  <SyncPanel recruitYear={2025} />
 
   <h2>このツールでできること</h2>
   <p>
@@ -707,8 +712,9 @@ const faqJsonLd = {
     // 行のマークアップはビルド時と共有する。ここで別に組み立てると二重管理になり、
     // 初期HTML（＝クローラーが見る内容）と描き直した後の表がずれる。
     import { COLUMNS, horseRowHtml } from '../../lib/horse-row.ts';
-    import { fetchPeerSummary, submitRating } from '../../lib/evaluation-client.ts';
+    import { fetchPeerSummary, queueEvaluationSync } from '../../lib/evaluation-client.ts';
     import type { EvaluationSummary, RatingCounts } from '../../lib/evaluation-api.ts';
+    import { EVALUATIONS_RESTORED_EVENT } from '../../lib/sync.ts';
 
     // frontmatter の定数はクライアント側から参照できないので同じ値をここにも置く
     const DETAIL_BASE_PATH = '/2025/horses/';
@@ -818,9 +824,15 @@ const faqJsonLd = {
       }
     }
 
+    /**
+     * localStorage（正本）に保存し、同じ内容を端末間同期のキューへ回す。
+     * 送信は evaluation-client 側で少しまとめられ、失敗しても握りつぶされる
+     * （手元の表示は常に localStorage の内容なので、通信状況に左右されない）。
+     */
     function persistEvaluation(horseId: string, patch: Partial<Evaluation>) {
       evaluations = updateEvaluation(evaluations, horseId, patch);
       saveEvaluations(window.localStorage, storageKey, evaluations);
+      queueEvaluationSync(RECRUIT_YEAR, horseId, getEvaluation(evaluations, horseId));
     }
 
     for (const btn of sortButtons) {
@@ -871,8 +883,6 @@ const faqJsonLd = {
         target.setAttribute('data-rating', value);
         const rating = value ? (value as Evaluation['rating']) : null;
         persistEvaluation(horseId, { rating });
-        // 集計へ送るのは A〜E だけ。★・消・メモは送らない（送信経路そのものが無い）
-        void submitRating(RECRUIT_YEAR, horseId, rating);
       } else if (field === 'skip') {
         const checked = (target as HTMLInputElement).checked;
         persistEvaluation(horseId, { skip: checked });
@@ -890,6 +900,13 @@ const faqJsonLd = {
       target.setAttribute('aria-pressed', String(!pressed));
       persistEvaluation(row.dataset.horseId!, { favorite: !pressed });
       if (filterFavoriteOnly.checked) render();
+    });
+
+    // 同期パネルが別の端末の評価を取り込むと localStorage だけが新しくなる。
+    // この表はメモリ上のマップを持っているので、合図を受けて読み直す。
+    document.addEventListener(EVALUATIONS_RESTORED_EVENT, () => {
+      evaluations = loadEvaluations(window.localStorage, storageKey);
+      render();
     });
 
     // 初期HTMLは未評価の状態なので、保存済みの評価を反映するために一度描き直す。

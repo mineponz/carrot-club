@@ -11,6 +11,8 @@
  */
 import type { Horse } from '../lib/horses.ts';
 import { damNameOf, formatBirthDateLong, type RecruitYear } from '../lib/horse-meta.ts';
+// メモ欄の上限はサーバー側の検証と同じ値（一覧の horse-row.ts と揃える）
+import { MAX_MEMO_LENGTH } from '../lib/evaluation-api.ts';
 
 interface Props {
   horse: Horse;
@@ -96,8 +98,10 @@ const facts: { term: string; value: string }[] = [
   <h2>自分の評価</h2>
   <p class="note">
     入力した内容はこの端末のブラウザ内（localStorage）に保存され、一覧ページと共有されます。
-    このうちA〜Eの印だけは、下の「他の会員の評価」を集計するために匿名で送信します
-    （メモ・お気に入り・消は送信しません）。
+    あわせて、端末を移っても引き継げるように匿名の同期IDに紐づけて控えを保存します
+    （<a href={listHref}>一覧ページ</a>の「評価を別の端末に引き継ぐ」から扱えます）。
+    ほかの会員に見えるのは下の「他の会員の評価」に出るA〜Eの件数だけで、
+    メモ・お気に入り・消は公開されません。
   </p>
   <div class="eval-panel" id="eval-panel" data-horse-id={horse.id} data-recruit-year={recruitYear}>
     <label class="eval-item">
@@ -119,7 +123,7 @@ const facts: { term: string; value: string }[] = [
     </label>
     <label class="eval-item memo">
       メモ
-      <input type="text" class="memo-input" id="detail-memo" placeholder="メモ" />
+      <input type="text" class="memo-input" id="detail-memo" placeholder="メモ" maxlength={MAX_MEMO_LENGTH} />
     </label>
   </div>
 
@@ -246,7 +250,7 @@ const facts: { term: string; value: string }[] = [
     type Evaluation,
     type EvaluationMap,
   } from '../lib/evaluations.ts';
-  import { fetchPeerSummary, submitRating } from '../lib/evaluation-client.ts';
+  import { fetchPeerSummary, queueEvaluationSync } from '../lib/evaluation-client.ts';
   import { peerBreakdownHtml } from '../lib/peer-eval.ts';
 
   // 年度・馬IDはビルド時にしか分からないので data 属性経由で受け取る
@@ -270,9 +274,11 @@ const facts: { term: string; value: string }[] = [
   skip.checked = current.skip;
   memo.value = current.memo;
 
+  /** localStorage（正本）に保存し、同じ内容を端末間同期へ回す（一覧ページと同じ扱い） */
   function persist(patch: Partial<Evaluation>) {
     evaluations = updateEvaluation(evaluations, horseId, patch);
     saveEvaluations(window.localStorage, storageKey, evaluations);
+    queueEvaluationSync(recruitYear, horseId, getEvaluation(evaluations, horseId));
   }
 
   rating.addEventListener('change', () => {
@@ -280,8 +286,6 @@ const facts: { term: string; value: string }[] = [
     rating.dataset.rating = rating.value;
     const value = rating.value ? (rating.value as Evaluation['rating']) : null;
     persist({ rating: value });
-    // 集計へ送るのは A〜E だけ。★・消・メモは送らない（一覧側と同じ）
-    void submitRating(recruitYear, horseId, value);
   });
   favorite.addEventListener('click', () => {
     const pressed = favorite.getAttribute('aria-pressed') === 'true';

@@ -11,17 +11,24 @@
   自分で入力する（下記）。
 - **ロジックは `src/lib/` に分離し、必ずテストを書く。** UIから切り離しておくことで
   `node --test` で検証できる。ロジックを `.astro` の `<script>` に直接書かない。
-- **評価はブラウザの `localStorage` に保存する。サーバーへ送るのは A〜E の印と匿名IDだけ。**
-  Phase2（2026-08-19）で「他ユーザーの評価傾向を集計して見せる」機能を追加し、A〜Eの印だけ
-  Cloudflare D1 + Workers API へ送るようになった（[[20260810-build-phase1]] /
-  [[20260819-d1-evaluation-aggregation]]）。
-  **メモ・お気に入り（★）・消フラグは送信しない。** これは方針であると同時に構造で担保している:
-  D1のテーブルにその3つの列が無く（`migrations/0001_create_evaluations.sql`）、bodyの検証
-  （`src/lib/evaluation-api.ts` の `parseSubmissionBody()`）が既知の3キー
-  （horseId / year / rating）以外を読まずに捨てる。**この2つを緩める変更はしないこと。**
-  minitoolsのような「絶対に外部送信しない」という恒久ポリシーではない点に注意
-  ―― ただし送信する項目を増やす際は必ずvault側の決定ノートを作ってから実装すること
-  （黙って送信を始めない）。
+- **評価の正本はブラウザの `localStorage`。サーバー（D1）にあるのは端末間で持ち回るための控え。**
+  画面が読むのは常に localStorage の内容で、通信に失敗してもツールはそのまま使える。
+- **「他会員に見せるもの」と「本人だけが読むもの」を混ぜない。** ここがこのリポジトリで一番
+  壊してはいけない境界（詳細は下の「会員の評価の集計」「個人評価の端末間同期」）。
+  - 他会員に見えるのは `GET /api/evaluations/summary` が返す **A〜Eの件数だけ**。
+    `summarizeRows()` は rating 以外を一切読まないので、ここにメモが混ざる経路が無い。
+    **集計APIに個人の項目を足さないこと。**
+  - メモ・お気に入り（★）・消は、2026-08-20 から**端末間同期のため**に匿名IDへ紐づけて
+    保存する（[[20260820-personal-eval-sync]]）。読み出せるのは `GET /api/evaluations/mine`
+    （`X-Anon-Id` が一致する行だけ）で、**他会員には公開しない**。
+    2026-08-19 の Phase2 までは「そもそも送らない」設計だったが、それは他会員への公開を防ぐ
+    ためであって、本人専用の置き場を作ることとは矛盾しない。
+  - 送信の組み立ては必ず `buildSubmissionBody()` を通し、受け側の `parseSubmissionBody()` も
+    既知のキーだけを1つずつ読む（`...evaluation` のようなスプレッドで写さない）。
+    **`Evaluation` に項目が増えても、この2か所を直さない限り送信対象にならない**状態を保つ。
+  - minitoolsのような「絶対に外部送信しない」という恒久ポリシーではない点に注意 ―― ただし
+    送信・公開する範囲を変える際は必ずvault側の決定ノートを作ってから実装すること
+    （黙って送信・公開を始めない）。画面の文言（フッター・FAQ・個別ページ）も同時に直す。
 - 対応しない仕様は「対応しない」と明示する。
 
 ## コマンド
@@ -90,8 +97,9 @@ vault: `1-projects/carrot-club/tasks/20260818-import-2026-data.md`。
   にフォールバックすること。ここを外すとアセットに一致しないURL（＝全ページ）がWorkerで
   行き止まりになり、`not_found_handling: "404-page"` も効かなくなる。
   **新しいルートはこのフォールバックより前に足す。**
-- API: `POST /api/evaluations`（自分のratingをupsert。`rating: null` なら行を削除） /
-  `GET /api/evaluations/summary?year=`（馬IDごとのA〜E件数）。それ以外は静的アセット。
+- API: `POST /api/evaluations`（自分の評価を1行upsert） /
+  `GET /api/evaluations/summary?year=`（馬IDごとのA〜E件数） /
+  `GET /api/evaluations/mine?year=`（自分の行だけ）。それ以外は静的アセット。
 - **匿名IDはbodyではなく `X-Anon-Id` ヘッダで送る。** 「誰が」と「何を」を別の場所に置くと、
   bodyの検証をrating関連だけに閉じ込められる。IDは `localStorage` の
   `carrot-club:anon-id` に置くUUIDで、年度で分けない（`src/lib/anon-id.ts`）。
@@ -108,6 +116,34 @@ vault: `1-projects/carrot-club/tasks/20260818-import-2026-data.md`。
   `--compatibility-date` で古い日付を渡して起動する（設定ファイル側は本番に合わせたまま）。
 - `wrangler.jsonc` の `database_id` は `wrangler d1 create` の出力に差し替えること。
   ローカル実行はこの値を見ないので、未設定でも気づかずデプロイで失敗しうる。
+- `wrangler dev` は**必ずバックグラウンドで起動して curl で確かめる**。フォアグラウンドで
+  起動するとプロンプトが返らず、AIセッションは無応答のまま止まる（実際に起きた）。
+
+## 個人評価の端末間同期（2026-08-20）
+
+ログインを持たないまま、スマホとPCで同じ評価を見られるようにする仕組み。
+
+- **同期ID＝匿名ID**（`carrot-club:anon-id` のUUID）。集計の重複除けと同じものを使い回す。
+  これは**知っている人が誰でもその人の評価とメモを読み書きできる合言葉**なので、
+  画面では既定で伏せ字（`maskAnonId()`）にし、「他人に教えない」注記と必ずセットで出す。
+  この注記を消す・弱めることはしない。
+- UIは `src/components/SyncPanel.astro`（年度一覧ページの表の直下）。BaseLayoutには置かない
+  ―― 評価の保存キーは年度ごとなので、年度を知らないページに出すと対象年が曖昧になる。
+- 取り込み（復元）は**明示操作のみ**。ページを開いただけでサーバーの内容を被せない
+  （オフラインで入れた手元の評価を黙って消さないため）。突き合わせは `mergeEvaluationMaps()`
+  ＝「同じ馬はサーバー側で上書き、サーバーに無い馬は手元のまま」。
+- 初回の「預ける」だけは全件アップロード（`uploadAllEvaluations()`）。Phase2までの評価は
+  rating しか送られていないため、これを押さないと引き継ぎ先にメモが出てこない。
+- 以後の変更は `queueEvaluationSync()` が少しまとめて送る（メモの打鍵ごとにPOSTしない）。
+  離脱時は `pagehide` / `visibilitychange` で送り切る。
+- メモの上限 `MAX_MEMO_LENGTH` は `evaluation-api.ts` の一箇所だけに置き、入力欄の
+  `maxlength` もそこから取る。別々に持つと「入力できるのに同期だけ400で失敗」する。
+- 同期パネルと一覧の表は別スクリプトなので、取り込み後は `EVALUATIONS_RESTORED_EVENT` を
+  `document` に投げて表に読み直させる（表はメモリ上にマップを持っている）。
+- マイグレーションは `0002`（memo / favorite / skip 列と anon_id 索引の追加）と
+  `0003`（rating を NULL 許容に作り直す）の2本。**両方適用しないと「メモだけ付けた馬」が
+  同期されない**（0001 の `rating TEXT NOT NULL` に引っかかってINSERTが落ちる）。
+  0002 だけの状態でも rating 付きの評価は同期でき、クライアントは失敗を握りつぶす。
 
 ## 注意点（minitoolsから引き継いだ実際の落とし穴）
 

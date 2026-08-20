@@ -1,26 +1,30 @@
 /**
- * 会員同士の評価（印）を集計するAPIの**送受信の形**を決める層。
+ * 評価APIの**送受信の形**を決める層。
  *
  * ブラウザ側（src/lib/evaluation-client.ts）とWorker側（worker/index.ts）の両方から
  * import する。ここに置いてあるのは副作用の無い純粋関数だけなので `node --test` で検証できる。
  *
- * ## 送るものを絞る（この層の一番の仕事）
- * サーバーへ送るのは **rating（A〜E）と匿名IDだけ**。メモ・お気に入り・消フラグは
- * 個人的な内容になりうるので送らない。これは src/lib/evaluations.ts 冒頭に書かれた
- * 当初からの設計方針で、D1のテーブルにもその3つの列を作っていない。
+ * ## 2つの用途をはっきり分ける（この層の一番の仕事）
+ * 1. **他会員に見せる集計**（`/api/evaluations/summary`）… A〜Eの**件数だけ**。
+ *    `summarizeRows()` が rating 以外を一切見ないので、メモが混ざる経路が無い。
+ * 2. **本人だけが読む同期用データ**（`/api/evaluations/mine`）… 匿名IDに紐づいた
+ *    rating・メモ・お気に入り・消。`X-Anon-Id` が一致する行しか返さない。
  *
- * 「うっかり混ざる」ことを防ぐため、payload は**オブジェクトを丸ごと渡さず**
- * `buildSubmissionBody()` で3つのキーを明示的に組み立て、受け側の
- * `parseSubmissionBody()` も既知のキーだけを1つずつ読む（スプレッドで写さない）。
- * evaluation-api.test.ts でメモ入りのオブジェクトを渡しても落ちることを検証している。
+ * 2026-08-20 以前は「メモ等はそもそも送らない」設計だった（他会員に見せないため）。
+ * 端末間で自分のデータを持ち回りたいという要望を受けて、**他会員への公開範囲は変えずに**
+ * 本人専用の置き場だけを足している。うっかり混線しないよう、送信の payload は
+ * オブジェクトを丸ごと写さず `buildSubmissionBody()` でキーを明示的に組み立て、
+ * 受け側の `parseSubmissionBody()` も既知のキーだけを1つずつ読む（スプレッドで写さない）。
  */
 
-import type { Rating } from './evaluations.ts';
+import type { Evaluation, EvaluationMap, Rating } from './evaluations.ts';
 
 /** 自分の評価を1件送る先（POST） */
 export const EVALUATIONS_API_PATH = '/api/evaluations';
-/** 年度ぶんの集計を取る先（GET） */
+/** 年度ぶんの集計を取る先（GET）。**他会員に見せるのはこの結果だけ** */
 export const SUMMARY_API_PATH = '/api/evaluations/summary';
+/** 自分（`X-Anon-Id` のID）の評価だけを取る先（GET）。端末間の復元に使う */
+export const MINE_API_PATH = '/api/evaluations/mine';
 
 /**
  * 匿名IDはbodyではなく**リクエストヘッダ**で送る。
@@ -37,13 +41,35 @@ export type RatingCounts = Record<Rating, number>;
 /** 馬IDごとの集計。1票も入っていない馬はキー自体を持たない */
 export type EvaluationSummary = Record<string, RatingCounts>;
 
-/** POSTのbody。**この3つ以外のフィールドは存在しない** */
+/**
+ * POSTのbody。**ここに書いてあるフィールド以外は存在しない**（受け側も読まない）。
+ *
+ * memo / favorite / skip は**省略可能**で、省略＝「この項目は変えない」。
+ * 古いJS（rating しか送らない Phase2 のキャッシュ）が動いていても、
+ * サーバー上のメモを消してしまわないようにするため。
+ */
 export interface EvaluationSubmission {
   horseId: string;
   year: number;
-  /** null は「評価を外した」= サーバー側の行を消す指示 */
+  /** null は「A〜Eを外した」。メモ等が空なら行ごと消える（worker/index.ts） */
   rating: Rating | null;
+  memo?: string;
+  favorite?: boolean;
+  skip?: boolean;
 }
+
+/** `buildSubmissionBody()` に渡す本人専用の項目（他会員には公開されない） */
+export interface PersonalFields {
+  memo: string;
+  favorite: boolean;
+  skip: boolean;
+}
+
+/**
+ * メモの上限。1頭ぶんの覚え書きとしては十分な長さで、
+ * D1に長文を溜め込めないようにする（超えた場合はサーバーが400で弾く）。
+ */
+export const MAX_MEMO_LENGTH = 2000;
 
 export type ParseResult<T> = { ok: true; value: T } | { ok: false; error: string };
 
@@ -83,20 +109,37 @@ export function isValidYear(value: unknown): value is number {
 
 /**
  * POSTのbodyを組み立てる。**必ずこの関数を通す**こと。
- * 呼び出し側の `Evaluation` オブジェクトをそのまま渡すとメモが混ざるため、
- * 引数を3つのプリミティブに分けてある。
+ *
+ * `personal` を渡さなければ rating だけの body になり、サーバー側のメモ等は変更されない。
+ * 渡す場合もキーを1つずつ書き写す（`...evaluation` のようなスプレッドは使わない）。
+ * 将来 `Evaluation` に項目が増えても、ここを直さない限り勝手に送信対象にはならない。
  */
 export function buildSubmissionBody(
   horseId: string,
   year: number,
   rating: Rating | null,
+  personal?: PersonalFields,
 ): EvaluationSubmission {
-  return { horseId, year, rating };
+  const body: EvaluationSubmission = { horseId, year, rating };
+  if (personal) {
+    body.memo = personal.memo;
+    body.favorite = personal.favorite;
+    body.skip = personal.skip;
+  }
+  return body;
+}
+
+/** `Evaluation` から送信する3項目だけを取り出す（rating は別引数で渡す） */
+export function personalFieldsOf(evaluation: Evaluation): PersonalFields {
+  return { memo: evaluation.memo, favorite: evaluation.favorite, skip: evaluation.skip };
 }
 
 /**
- * 受け取ったbodyを検証する。既知の3キーだけを1つずつ読み、
- * 他のフィールドは**読まずに捨てる**（保存する経路が存在しない）。
+ * 受け取ったbodyを検証する。既知のキーだけを1つずつ読み、
+ * 他のフィールド（例: bodyに紛れ込ませた anonId）は**読まずに捨てる**。
+ *
+ * memo / favorite / skip は未指定なら `undefined` のままにする。サーバーは
+ * `undefined` を「変更しない」として扱うので、空文字（＝メモを消した）と区別が要る。
  */
 export function parseSubmissionBody(raw: unknown): ParseResult<EvaluationSubmission> {
   if (typeof raw !== 'object' || raw === null || Array.isArray(raw)) {
@@ -113,7 +156,23 @@ export function parseSubmissionBody(raw: unknown): ParseResult<EvaluationSubmiss
   const rating = rawRating === null || rawRating === undefined || rawRating === '' ? null : rawRating;
   if (rating !== null && !isRating(rating)) return { ok: false, error: 'invalid rating' };
 
-  return { ok: true, value: { horseId: body.horseId, year: body.year, rating } };
+  const value: EvaluationSubmission = { horseId: body.horseId, year: body.year, rating };
+
+  if (body.memo !== undefined) {
+    if (typeof body.memo !== 'string') return { ok: false, error: 'invalid memo' };
+    if (body.memo.length > MAX_MEMO_LENGTH) return { ok: false, error: 'memo too long' };
+    value.memo = body.memo;
+  }
+  if (body.favorite !== undefined) {
+    if (typeof body.favorite !== 'boolean') return { ok: false, error: 'invalid favorite' };
+    value.favorite = body.favorite;
+  }
+  if (body.skip !== undefined) {
+    if (typeof body.skip !== 'boolean') return { ok: false, error: 'invalid skip' };
+    value.skip = body.skip;
+  }
+
+  return { ok: true, value };
 }
 
 /** D1の `GROUP BY horse_id, rating` の結果1行ぶん */
@@ -166,6 +225,83 @@ export function parseSummaryResponse(raw: unknown): EvaluationSummary {
 
 export function summaryUrlForYear(year: number): string {
   return `${SUMMARY_API_PATH}?year=${encodeURIComponent(String(year))}`;
+}
+
+// ---- 自分のデータ（端末間同期） --------------------------------------------
+//
+// ここから下は `/api/evaluations/mine` 専用。集計（上）とは別の関数・別の型にして、
+// 「集計のつもりでメモまで返す」実装ミスが起きないようにしている。
+
+export function mineUrlForYear(year: number): string {
+  return `${MINE_API_PATH}?year=${encodeURIComponent(String(year))}`;
+}
+
+/** D1から1人ぶんを引いた行。0/1 で入る favorite・skip を boolean に直すのが下の関数 */
+export interface MineRow {
+  horse_id: string;
+  rating: string | null;
+  memo: string | null;
+  favorite: number | boolean | null;
+  skip: number | boolean | null;
+}
+
+function toBool(value: unknown): boolean {
+  return value === true || value === 1 || value === '1';
+}
+
+/**
+ * 自分の行を localStorage と同じ形（`EvaluationMap`）に畳む。
+ * この形のまま保存できるので、復元側で項目を組み替える必要がない。
+ */
+export function rowsToEvaluationMap(rows: readonly MineRow[]): EvaluationMap {
+  const map: EvaluationMap = {};
+  for (const row of rows) {
+    if (!isValidHorseId(row.horse_id)) continue;
+    map[row.horse_id] = {
+      rating: isRating(row.rating) ? row.rating : null,
+      favorite: toBool(row.favorite),
+      skip: toBool(row.skip),
+      memo: typeof row.memo === 'string' ? row.memo : '',
+    };
+  }
+  return map;
+}
+
+/**
+ * `/api/evaluations/mine` のレスポンスを読む。**壊れていても例外を投げない**。
+ * 読めない・形が違う場合は `null`（＝復元できなかった）を返し、空の `{}`（＝0件だった）
+ * と区別する。区別しないと「通信に失敗したのに0件で上書き」が起こりうる。
+ */
+export function parseMineResponse(raw: unknown): EvaluationMap | null {
+  if (typeof raw !== 'object' || raw === null || Array.isArray(raw)) return null;
+  const evaluations = (raw as Record<string, unknown>).evaluations;
+  if (typeof evaluations !== 'object' || evaluations === null || Array.isArray(evaluations)) return null;
+
+  const map: EvaluationMap = {};
+  for (const [horseId, value] of Object.entries(evaluations as Record<string, unknown>)) {
+    if (!isValidHorseId(horseId)) continue;
+    if (typeof value !== 'object' || value === null) continue;
+    const v = value as Record<string, unknown>;
+    map[horseId] = {
+      rating: isRating(v.rating) ? v.rating : null,
+      favorite: toBool(v.favorite),
+      skip: toBool(v.skip),
+      memo: typeof v.memo === 'string' ? v.memo.slice(0, MAX_MEMO_LENGTH) : '',
+    };
+  }
+  return map;
+}
+
+/**
+ * 復元時の突き合わせ。**同じ馬はサーバー側（remote）で上書きし、
+ * サーバーに無い馬のローカルの評価はそのまま残す。**
+ *
+ * 丸ごと置き換えにすると、まだアップロードしていないこの端末だけの評価が消える。
+ * 逆にローカル優先にすると復元にならない。「同じ馬はサーバーが勝つ」が
+ * 復元の意図に沿っていて、かつ失うものが無い。
+ */
+export function mergeEvaluationMaps(local: EvaluationMap, remote: EvaluationMap): EvaluationMap {
+  return { ...local, ...remote };
 }
 
 /** A〜Eの合計票数 */

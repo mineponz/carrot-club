@@ -14,6 +14,9 @@
 import type { Horse } from './horses.ts';
 import type { Evaluation } from './evaluations.ts';
 import type { RatingCounts } from './evaluation-api.ts';
+// メモ欄の上限はサーバー側の検証（parseSubmissionBody）と同じ値を使う。
+// 別々に持つと、入力はできるのに同期だけ 400 で失敗する状態になる。
+import { MAX_MEMO_LENGTH } from './evaluation-api.ts';
 import { peerCellHtml } from './peer-eval.ts';
 
 /**
@@ -134,7 +137,7 @@ export function horseRowHtml(
   <td class="sibling" title="${escapeHtml(horse.sibling)}">${escapeHtml(horse.sibling)}</td>
   <td class="dam-priority">${horse.damPriority ? '◯' : ''}</td>
   <td class="surgery" title="${escapeHtml(surgeryText)}">${escapeHtml(surgeryText)}</td>
-  <td><input type="text" class="memo-input" data-field="memo" value="${escapeHtml(evaluation.memo)}" placeholder="メモ" aria-label="${name}のメモ" /></td>
+  <td><input type="text" class="memo-input" data-field="memo" value="${escapeHtml(evaluation.memo)}" placeholder="メモ" aria-label="${name}のメモ" maxlength="${MAX_MEMO_LENGTH}" /></td>
   <td class="links"><a href="${escapeHtml(horse.xSearchUrl)}" target="_blank" rel="noopener">X</a></td>
   <td class="links">${damLink}</td>
 </tr>`;

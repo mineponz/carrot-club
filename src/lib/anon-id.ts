@@ -36,6 +36,22 @@ export function getOrCreateAnonId(store: KeyValueStore, generate: () => string):
 }
 
 /**
+ * 別の端末で発行されたIDをこの端末に設定する（端末間同期の復元）。
+ *
+ * 形式が不正なら書き込まずに false を返す（貼り付けミスのIDを保存して、以後ずっと
+ * 送信が失敗し続ける状態を作らない）。**このIDは事実上の合言葉**で、知っている人は
+ * その人の評価を読み書きできる。画面側で「他人に教えない」注記を必ず出すこと。
+ *
+ * 乗り換える前のIDで入れた集計の票は消えずに残る（前のIDの票のまま）。
+ * 集計は正確な人数ではなく傾向を見るためのものなので、そこまでは面倒を見ない。
+ */
+export function setAnonId(store: KeyValueStore, id: string): boolean {
+  if (!isValidAnonId(id)) return false;
+  store.setItem(ANON_ID_STORAGE_KEY, id);
+  return true;
+}
+
+/**
  * ブラウザのUUID生成。`crypto.randomUUID()` はセキュアコンテキスト（https / localhost）
  * でしか生えないため、そうでない環境では `getRandomValues` から自前で組み立てる。
  * どちらも使えない場合は空文字を返し、呼び出し側が送信を諦める。

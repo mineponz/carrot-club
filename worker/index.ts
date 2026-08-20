@@ -5,29 +5,35 @@
  * **新しいサーバーは立てず**、同じWorkerプロジェクトにD1バインディングとこのファイルを足している。
  *
  * ## ルーティング
- * - `POST /api/evaluations`          … 自分のrating（A〜E）を1件upsert。ratingがnullなら削除
+ * - `POST /api/evaluations`          … 自分の評価を1件upsert（rating・メモ・★・消）
  * - `GET  /api/evaluations/summary`  … `?year=` で年度を指定し、馬IDごとのA〜E件数を返す
+ * - `GET  /api/evaluations/mine`     … `?year=` + `X-Anon-Id`。**そのIDの行だけ**を返す
  * - それ以外                          … `env.ASSETS.fetch(request)` にそのまま流す
  *
  * 最後のフォールバックが重要。"main" を設定するとアセットに一致しないURLもWorkerに来るため、
  * ここでASSETSへ渡さないと 404-page（wrangler.jsonc の not_found_handling）が効かなくなり、
  * サイトの全ページが壊れる。**新しいルートを足すときは必ずこのフォールバックより前に書く。**
  *
- * ## 保存するもの
- * rating と匿名IDだけ。メモ・お気に入り・消フラグは受け取らないし、D1のテーブルにも
- * 列が無い（migrations/0001_create_evaluations.sql）。bodyの検証は
- * src/lib/evaluation-api.ts の `parseSubmissionBody()` に集約していて、既知の3キー以外は
- * 読まずに捨てる。
+ * ## 誰に何が見えるか（ここを崩さないこと）
+ * - **他会員に見えるのは summary だけ**。SQLは `rating` を GROUP BY した件数しか SELECT せず、
+ *   メモ等の列に触れない。ここに個人の項目を足してはいけない。
+ * - メモ・★・消は `mine` でしか返さない。しかも `WHERE anon_id = ?` で本人の行に限る。
+ *   匿名IDを知っている人は本人と同じものを読めるので、画面側で「他人に教えない」と明示している。
+ * - bodyの検証は src/lib/evaluation-api.ts の `parseSubmissionBody()` に集約。
+ *   既知のキー以外は読まずに捨てる。
  */
 
 import {
   ANON_ID_HEADER,
   EVALUATIONS_API_PATH,
+  MINE_API_PATH,
   SUMMARY_API_PATH,
   isValidAnonId,
   isValidYear,
   parseSubmissionBody,
+  rowsToEvaluationMap,
   summarizeRows,
+  type MineRow,
   type SummaryRow,
 } from '../src/lib/evaluation-api.ts';
 
@@ -47,6 +53,8 @@ interface D1PreparedStatement {
 }
 interface D1Database {
   prepare(query: string): D1PreparedStatement;
+  /** 複数の文をまとめて（1トランザクションとして）順に実行する */
+  batch(statements: D1PreparedStatement[]): Promise<unknown[]>;
 }
 interface Env {
   DB: D1Database;
@@ -56,8 +64,11 @@ interface Env {
 
 const LOG_PREFIX = '[eval-api]';
 
-/** POSTのbodyの上限。3フィールドしか無いので数百バイトで十分足りる */
-const MAX_BODY_BYTES = 1024;
+/**
+ * POSTのbodyの上限。メモ（最大2000文字＝UTF-8で最大6KB）が入るので、
+ * それが収まる程度に取る。長さそのものは parseSubmissionBody() でも弾く。
+ */
+const MAX_BODY_BYTES = 8 * 1024;
 
 /**
  * 集計はリアルタイム性が要らない一方、一覧ページを開くたびに全頭ぶん読まれる。
@@ -99,35 +110,89 @@ async function handleSubmit(request: Request, env: Env): Promise<Response> {
     console.warn(LOG_PREFIX, `POST 拒否: ${parsed.error}`);
     return json({ error: parsed.error }, 400);
   }
-  const { horseId, year, rating } = parsed.value;
+  const { horseId, year, rating, memo, favorite, skip } = parsed.value;
+
+  // 送られてこなかった項目は「変えない」。SQL側で COALESCE(?, 既存値) にしたいので、
+  // 未指定を null に寄せる（boolean は 0/1 に直す）。
+  const memoParam = memo === undefined ? null : memo;
+  const favoriteParam = favorite === undefined ? null : favorite ? 1 : 0;
+  const skipParam = skip === undefined ? null : skip ? 1 : 0;
 
   try {
-    if (rating === null) {
-      // 未評価に戻した場合。0票として残すのではなく行ごと消す
-      await env.DB.prepare(
-        'DELETE FROM evaluations WHERE horse_id = ?1 AND year = ?2 AND anon_id = ?3',
-      )
-        .bind(horseId, year, anonId)
-        .run();
-      console.log(LOG_PREFIX, `評価を削除 year=${year} horse=${horseId}`);
-    } else {
-      // 主キー (horse_id, year, anon_id) で「1人1頭1票」を担保し、付け替えは上書きする
-      await env.DB.prepare(
-        `INSERT INTO evaluations (horse_id, year, anon_id, rating, updated_at)
-         VALUES (?1, ?2, ?3, ?4, ?5)
+    await env.DB.batch([
+      // 主キー (horse_id, year, anon_id) で「1人1頭1行」を担保し、付け替えは上書きする。
+      // rating は毎回上書き（null = A〜Eを外した）だが、メモ等は送られてきた時だけ上書きする。
+      env.DB.prepare(
+        `INSERT INTO evaluations (horse_id, year, anon_id, rating, memo, favorite, skip, updated_at)
+         VALUES (?1, ?2, ?3, ?4, COALESCE(?5, ''), COALESCE(?6, 0), COALESCE(?7, 0), ?8)
          ON CONFLICT (horse_id, year, anon_id)
-         DO UPDATE SET rating = excluded.rating, updated_at = excluded.updated_at`,
-      )
-        .bind(horseId, year, anonId, rating, Date.now())
-        .run();
-      console.log(LOG_PREFIX, `評価を保存 year=${year} horse=${horseId} rating=${rating}`);
-    }
+         DO UPDATE SET rating = excluded.rating,
+                       memo = COALESCE(?5, evaluations.memo),
+                       favorite = COALESCE(?6, evaluations.favorite),
+                       skip = COALESCE(?7, evaluations.skip),
+                       updated_at = excluded.updated_at`,
+      ).bind(horseId, year, anonId, rating, memoParam, favoriteParam, skipParam, Date.now()),
+      // 全部空になった行（A〜Eを外し、メモも★も消も無い）は残さず消す。
+      // 「未評価の行」を溜めても集計にも同期にも使わないうえ、集計の分母を汚さない。
+      env.DB.prepare(
+        `DELETE FROM evaluations
+          WHERE horse_id = ?1 AND year = ?2 AND anon_id = ?3
+            AND rating IS NULL AND memo = '' AND favorite = 0 AND skip = 0`,
+      ).bind(horseId, year, anonId),
+    ]);
+    // メモの中身はログに出さない（あるか無いかだけ）
+    console.log(
+      LOG_PREFIX,
+      `評価を保存 year=${year} horse=${horseId} rating=${rating ?? 'none'} memo=${
+        memo === undefined ? 'unchanged' : memo === '' ? 'empty' : `${memo.length}chars`
+      }`,
+    );
   } catch (e) {
     console.error(LOG_PREFIX, 'D1への書き込みに失敗', e);
     return json({ error: 'storage error' }, 500);
   }
 
   return json({ ok: true });
+}
+
+/**
+ * 自分の評価だけを返す（端末間の復元用）。
+ *
+ * **集計APIとは別物**として分けてある。`WHERE anon_id = ?` でヘッダのIDの行に限り、
+ * 他人の行は1件も返らない。返す内容は localStorage と同じ形なので、
+ * 受け取った側はそのまま保存できる。
+ */
+async function handleMine(request: Request, env: Env): Promise<Response> {
+  const anonId = request.headers.get(ANON_ID_HEADER);
+  if (!isValidAnonId(anonId)) {
+    console.warn(LOG_PREFIX, 'GET(mine) 拒否: 匿名IDの形式が不正');
+    return json({ error: 'invalid anon id' }, 400);
+  }
+
+  const year = Number(new URL(request.url).searchParams.get('year'));
+  if (!isValidYear(year)) {
+    console.warn(LOG_PREFIX, 'GET(mine) 拒否: yearが不正');
+    return json({ error: 'invalid year' }, 400);
+  }
+
+  try {
+    const { results } = await env.DB.prepare(
+      `SELECT horse_id, rating, memo, favorite, skip
+         FROM evaluations
+        WHERE year = ?1 AND anon_id = ?2`,
+    )
+      .bind(year, anonId)
+      .all<MineRow>();
+
+    const evaluations = rowsToEvaluationMap(results ?? []);
+    // 件数だけログに残す。匿名IDもメモも出さない
+    console.log(LOG_PREFIX, `自分の評価を返却 year=${year} horses=${Object.keys(evaluations).length}`);
+    // 本人だけのデータなので、経路上のどこにもキャッシュさせない
+    return json({ year, evaluations }, 200, { 'Cache-Control': 'no-store' });
+  } catch (e) {
+    console.error(LOG_PREFIX, 'D1からの読み取りに失敗', e);
+    return json({ error: 'storage error' }, 500);
+  }
 }
 
 async function handleSummary(request: Request, env: Env): Promise<Response> {
@@ -170,6 +235,11 @@ export default {
     if (pathname === SUMMARY_API_PATH) {
       if (request.method !== 'GET') return json({ error: 'method not allowed' }, 405);
       return handleSummary(request, env);
+    }
+
+    if (pathname === MINE_API_PATH) {
+      if (request.method !== 'GET') return json({ error: 'method not allowed' }, 405);
+      return handleMine(request, env);
     }
 
     // APIでないものは全部静的アセットへ。404-page の扱いもASSETS側が面倒を見る

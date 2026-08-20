@@ -1,0 +1,387 @@
+---
+/**
+ * 端末間同期パネル（年度一覧ページの下部に置く）。
+ *
+ * 評価の正本はブラウザの localStorage なので、スマホとPCのように端末が変わると
+ * 引き継げない。ここで**同期ID（＝匿名ID）を手で持ち回る**ことで引き継げるようにする。
+ * ログインは作らない（このサイトは会員情報を一切持たない方針のため）。
+ *
+ * ## 置き場所を一覧ページにしている理由
+ * 評価の保存キーは募集年ごとに分かれている（`storageKeyForYear()`）。BaseLayout に置くと
+ * 年度を知らないページ（個別ページ・404）にも出てしまい、どの年の評価を扱うのかが曖昧になる。
+ *
+ * ## 表示の約束（削らないこと）
+ * 同期IDは**知っている人が誰でもその評価とメモを読み書きできる合言葉**。既定では伏せ字にし、
+ * 「他人に共有しない」注記と必ずセットで出す。
+ */
+import { MAX_MEMO_LENGTH } from '../lib/evaluation-api.ts';
+
+interface Props {
+  /** この一覧ページの募集年。評価の保存キーと同期の対象年になる */
+  recruitYear: number;
+}
+
+const { recruitYear } = Astro.props;
+---
+
+<section class="sync" id="sync-panel" data-recruit-year={recruitYear}>
+  <h2>評価を別の端末に引き継ぐ</h2>
+  <p class="sync-lead">
+    評価（A〜E・お気に入り・消・メモ）はこの端末のブラウザに保存されます。同じ内容を
+    スマホとPCなど複数の端末で見たい場合は、下の<strong>同期ID</strong>を引き継ぎ先の端末に
+    貼り付けてください。<strong>ほかの会員に公開されることはありません。</strong>
+  </p>
+
+  <details class="sync-details">
+    <summary>同期の設定を開く</summary>
+
+    <div class="sync-step">
+      <h3>1. この端末の評価を預ける</h3>
+      <p>
+        いま入っている{recruitYear}年募集馬の評価を、あなたの同期IDに紐づけて保存します。
+        これ以降の変更は自動で反映されるので、押すのは最初の1回だけで構いません。
+      </p>
+      <button type="button" id="sync-upload" class="sync-btn-primary">この端末の評価を預ける</button>
+    </div>
+
+    <div class="sync-step">
+      <h3>2. あなたの同期ID</h3>
+      <p class="sync-id-row">
+        <code id="sync-id" class="sync-id">読み込み中…</code>
+        <button type="button" id="sync-reveal" class="sync-btn" aria-pressed="false">表示する</button>
+        <button type="button" id="sync-copy" class="sync-btn">コピー</button>
+      </p>
+      <p class="sync-warning">
+        <strong>このIDは他人に教えないでください。</strong>
+        IDを知っている人は誰でも、あなたの評価とメモを見たり書き換えたりできます
+        （パスワードの代わりになっているためです）。
+      </p>
+    </div>
+
+    <div class="sync-step">
+      <h3>3. 引き継ぎ先の端末で取り込む</h3>
+      <p>
+        引き継ぎ先の端末でこのページを開き、上のIDを貼り付けて「この端末に取り込む」を押してください。
+      </p>
+      <p class="sync-restore-row">
+        <label class="sync-label" for="sync-restore-input">引き継ぎ元の同期ID</label>
+        <input
+          type="text"
+          id="sync-restore-input"
+          class="sync-input"
+          autocomplete="off"
+          autocapitalize="off"
+          spellcheck="false"
+          placeholder="00000000-0000-4000-8000-000000000000"
+        />
+        <button type="button" id="sync-restore" class="sync-btn-primary">この端末に取り込む</button>
+      </p>
+      <p class="sync-note">
+        同じ馬は取り込んだ内容で上書きされ、預けた側に無い馬のこの端末の評価はそのまま残ります。
+        取り込むとこの端末の同期IDも引き継ぎ元のものに変わります。
+      </p>
+    </div>
+
+    <p id="sync-status" class="sync-status" role="status" aria-live="polite"></p>
+
+    <p class="sync-note">
+      預けた内容はあなたの同期IDでしか読み出せません。ほかの会員に見える「みんな」列は、
+      これまで通りA〜Eの件数だけを集計したもので、メモ・お気に入り・消は含まれません。
+      メモは1頭あたり{MAX_MEMO_LENGTH}文字までです。
+    </p>
+  </details>
+</section>
+
+<style>
+  /* カードの強調は枠線だけ（背景・影と二重使いしない）。余白は8px系に寄せる */
+  .sync {
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    background: var(--surface);
+    padding: 1rem;
+    margin-top: 2rem;
+  }
+  .sync h2 {
+    margin: 0 0 0.5rem;
+    font-size: 1.15rem;
+  }
+  .sync-lead {
+    margin: 0;
+    color: var(--muted);
+    font-size: 0.875rem;
+  }
+  .sync-lead strong {
+    color: var(--text);
+  }
+
+  .sync-details {
+    margin-top: 1rem;
+  }
+  /* 開閉のつまみはリンクではないのでアクセント色にしない（本文色のままでも押せると分かる） */
+  .sync-details > summary {
+    cursor: pointer;
+    font-size: 0.875rem;
+    color: var(--text);
+  }
+  .sync-details > summary:hover {
+    color: var(--accent);
+  }
+
+  .sync-step {
+    border-top: 1px solid var(--border);
+    margin-top: 1rem;
+    padding-top: 1rem;
+    font-size: 0.875rem;
+  }
+  .sync-step h3 {
+    margin: 0 0 0.5rem;
+    font-size: 1rem;
+  }
+  .sync-step p {
+    margin: 0 0 0.5rem;
+  }
+
+  /* IDとその操作は一体で読むものなので、間隔を狭めてまとめて見せる */
+  .sync-id-row,
+  .sync-restore-row {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.5rem;
+  }
+  .sync-id {
+    background: var(--accent-weak);
+    padding: 0.25rem 0.5rem;
+    border-radius: 4px;
+    /* IDは長いので、狭い画面では折り返して全体を見せる（横スクロールにしない） */
+    word-break: break-all;
+  }
+  .sync-label {
+    flex: 1 1 100%;
+    color: var(--muted);
+  }
+  .sync-input {
+    font: inherit;
+    font-family: var(--mono);
+    font-size: 0.8125rem;
+    flex: 1 1 22rem;
+    min-width: 0;
+    padding: 0.5rem;
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    background: var(--bg);
+    color: var(--text);
+  }
+
+  /* 主要アクション＝高コントラストの塗りつぶし。アクセント色の塗りは白文字にすると
+     コントラストが4.5:1に届かない（ダークテーマでは特に）ため、本文色で塗る。 */
+  .sync-btn-primary {
+    font: inherit;
+    font-size: 0.875rem;
+    background: var(--text);
+    color: var(--bg);
+    border: 1px solid var(--text);
+    border-radius: 6px;
+    padding: 0.5rem 1rem;
+    cursor: pointer;
+  }
+  /* 副次アクション＝枠線のみ */
+  .sync-btn {
+    font: inherit;
+    font-size: 0.8125rem;
+    background: transparent;
+    color: var(--text);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 0.25rem 0.5rem;
+    cursor: pointer;
+  }
+  /* 文字色はアクセントにしない（淡いオレンジは本文サイズでコントラストが足りない）。
+     状態は枠線と太さで示す。 */
+  .sync-btn:hover,
+  .sync-btn[aria-pressed='true'] {
+    border-color: var(--accent);
+  }
+  .sync-btn[aria-pressed='true'] {
+    font-weight: 700;
+  }
+  /* hoverでアクセント色に塗り替えると、白文字とのコントラストが4.5:1に届かない。
+     塗りはそのままに、少しだけ後退させて押せることを伝える。 */
+  .sync-btn-primary:hover {
+    opacity: 0.85;
+  }
+  .sync-btn-primary[disabled],
+  .sync-btn[disabled] {
+    opacity: 0.5;
+    cursor: progress;
+  }
+
+  /* 警告はヘッダーの注意書きと同じ形（危険色の縦線＋淡い塗り）に揃える */
+  .sync-warning {
+    margin: 0.5rem 0 0;
+    border-left: 3px solid var(--danger);
+    background: var(--accent-weak);
+    padding: 0.5rem 0.75rem;
+    border-radius: 0 4px 4px 0;
+  }
+
+  .sync-note {
+    margin: 0.5rem 0 0;
+    color: var(--muted);
+    font-size: 0.8125rem;
+  }
+
+  /* 結果表示。何も無いときは高さを取らない（枠だけが残ると押したのか分からない） */
+  .sync-status:empty {
+    display: none;
+  }
+  .sync-status {
+    margin: 1rem 0 0;
+    padding: 0.5rem 0.75rem;
+    border-left: 3px solid var(--accent);
+    background: var(--accent-weak);
+    font-size: 0.875rem;
+  }
+  .sync-status[data-state='error'] {
+    border-left-color: var(--danger);
+  }
+</style>
+
+<script>
+  import {
+    loadEvaluations,
+    saveEvaluations,
+    storageKeyForYear,
+  } from '../lib/evaluations.ts';
+  import { isValidAnonId, mergeEvaluationMaps } from '../lib/evaluation-api.ts';
+  import {
+    currentAnonId,
+    fetchMyEvaluations,
+    flushEvaluationSync,
+    uploadAllEvaluations,
+    useAnonId,
+  } from '../lib/evaluation-client.ts';
+  import {
+    EVALUATIONS_RESTORED_EVENT,
+    maskAnonId,
+    normalizeAnonIdInput,
+    restoreResultMessage,
+    uploadResultMessage,
+  } from '../lib/sync.ts';
+
+  const panel = document.getElementById('sync-panel') as HTMLElement;
+  const year = Number(panel.dataset.recruitYear);
+  const storageKey = storageKeyForYear(year);
+
+  const idText = document.getElementById('sync-id') as HTMLElement;
+  const revealBtn = document.getElementById('sync-reveal') as HTMLButtonElement;
+  const copyBtn = document.getElementById('sync-copy') as HTMLButtonElement;
+  const uploadBtn = document.getElementById('sync-upload') as HTMLButtonElement;
+  const restoreInput = document.getElementById('sync-restore-input') as HTMLInputElement;
+  const restoreBtn = document.getElementById('sync-restore') as HTMLButtonElement;
+  const statusEl = document.getElementById('sync-status') as HTMLElement;
+
+  /** この端末の同期ID。localStorageが使えない環境では空文字になる */
+  let anonId = currentAnonId();
+  /** 伏せ字を解除しているか。既定は伏せたまま（肩越し・スクショで漏れないように） */
+  let revealed = false;
+
+  function showStatus(message: string, state: 'info' | 'error' = 'info') {
+    statusEl.textContent = message;
+    statusEl.dataset.state = state;
+  }
+
+  function renderId() {
+    if (!anonId) {
+      idText.textContent = 'この端末では同期を使えません';
+      revealBtn.disabled = true;
+      copyBtn.disabled = true;
+      uploadBtn.disabled = true;
+      restoreBtn.disabled = true;
+      showStatus(
+        'ブラウザの保存領域（localStorage）が使えないため同期できません。プライベートウィンドウを閉じるか、サイトデータの許可設定をご確認ください。',
+        'error',
+      );
+      return;
+    }
+    idText.textContent = revealed ? anonId : maskAnonId(anonId);
+    revealBtn.textContent = revealed ? '隠す' : '表示する';
+    revealBtn.setAttribute('aria-pressed', String(revealed));
+  }
+
+  /** 通信中は二重に押させない。押したのに何も起きないように見えるのを防ぐ */
+  function setBusy(busy: boolean) {
+    uploadBtn.disabled = busy;
+    restoreBtn.disabled = busy;
+  }
+
+  revealBtn.addEventListener('click', () => {
+    revealed = !revealed;
+    renderId();
+  });
+
+  copyBtn.addEventListener('click', async () => {
+    try {
+      await navigator.clipboard.writeText(anonId);
+      showStatus('同期IDをコピーしました。引き継ぎ先の端末で貼り付けてください（他人には教えないでください）。');
+    } catch (e) {
+      // http などセキュアでない文脈ではクリップボードAPIが使えない。
+      // 黙って失敗させず、手でコピーできる状態にして知らせる。
+      console.warn('[sync]', 'クリップボードにコピーできませんでした', e);
+      revealed = true;
+      renderId();
+      showStatus('自動コピーできませんでした。表示されたIDを長押し（右クリック）でコピーしてください。', 'error');
+    }
+  });
+
+  uploadBtn.addEventListener('click', async () => {
+    // 入力直後の変更がまだ送信待ちのことがあるので、先に送り切ってから全件を送る
+    flushEvaluationSync();
+    const map = loadEvaluations(window.localStorage, storageKey);
+    setBusy(true);
+    showStatus('預けています…');
+    const { sent, failed } = await uploadAllEvaluations(year, map, (done, total) => {
+      showStatus(`預けています… ${done}/${total}頭`);
+    });
+    showStatus(uploadResultMessage(sent, failed), failed > 0 && sent === 0 ? 'error' : 'info');
+    setBusy(false);
+  });
+
+  restoreBtn.addEventListener('click', async () => {
+    const id = normalizeAnonIdInput(restoreInput.value);
+    if (!isValidAnonId(id)) {
+      showStatus('IDの形式が違います。引き継ぎ元の端末に表示されたIDをそのまま貼り付けてください。', 'error');
+      return;
+    }
+
+    setBusy(true);
+    showStatus('取り込んでいます…');
+    const remote = await fetchMyEvaluations(year, id);
+    if (!remote) {
+      showStatus('取り込めませんでした。通信状況を確かめてもう一度お試しください。', 'error');
+      setBusy(false);
+      return;
+    }
+
+    // 丸ごと置き換えず突き合わせる。まだ預けていないこの端末だけの評価を消さないため。
+    const merged = mergeEvaluationMaps(loadEvaluations(window.localStorage, storageKey), remote);
+    saveEvaluations(window.localStorage, storageKey, merged);
+
+    if (!useAnonId(id)) {
+      showStatus('取り込んだ内容は保存しましたが、同期IDを切り替えられませんでした。', 'error');
+      setBusy(false);
+      return;
+    }
+    anonId = id;
+    revealed = false;
+    restoreInput.value = '';
+    renderId();
+
+    // 表は別スクリプトが描いているので、読み直してもらうよう合図する
+    document.dispatchEvent(new CustomEvent(EVALUATIONS_RESTORED_EVENT));
+    showStatus(restoreResultMessage(Object.keys(remote).length));
+    setBusy(false);
+  });
+
+  renderId();
+</script>

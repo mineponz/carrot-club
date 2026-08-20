@@ -2,6 +2,8 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import {
   ANON_ID_HEADER,
+  MAX_MEMO_LENGTH,
+  MINE_API_PATH,
   RATINGS,
   buildSubmissionBody,
   emptyRatingCounts,
@@ -9,38 +11,94 @@ import {
   isValidAnonId,
   isValidHorseId,
   isValidYear,
+  mergeEvaluationMaps,
+  mineUrlForYear,
+  parseMineResponse,
   parseSubmissionBody,
   parseSummaryResponse,
+  personalFieldsOf,
+  rowsToEvaluationMap,
   summarizeRows,
   summaryUrlForYear,
   totalOf,
+  type MineRow,
   type SummaryRow,
 } from './evaluation-api.ts';
+import type { Evaluation } from './evaluations.ts';
 
 const VALID_ANON_ID = '2f8a1c3e-4b5d-4e6f-8a9b-0c1d2e3f4a5b';
 
+const MEMO = '脚元に不安あり。息子の誕生日に見に行った';
+
 // ---- 送るものを絞る（この層の一番の仕事） ----------------------------------
 
-test('buildSubmissionBody: horseId / year / rating の3キーしか作らない', () => {
+test('buildSubmissionBody: 本人専用の項目を渡さなければ rating しか作らない', () => {
   const body = buildSubmissionBody('12', 2026, 'A');
   assert.deepEqual(Object.keys(body).sort(), ['horseId', 'rating', 'year']);
 });
 
-test('parseSubmissionBody: メモ・お気に入り・消が混ざっていても取り込まない', () => {
+test('buildSubmissionBody: 渡した3項目だけを明示的に写す（オブジェクトを丸写ししない）', () => {
+  const evaluation = {
+    rating: 'A',
+    favorite: true,
+    skip: false,
+    memo: MEMO,
+    // 将来 Evaluation に項目が増えても、ここを直さない限り送信対象にならないことを担保する
+    secret: '送ってはいけない値',
+  } as unknown as Evaluation;
+  const body = buildSubmissionBody('12', 2026, 'A', personalFieldsOf(evaluation));
+  assert.deepEqual(Object.keys(body).sort(), ['favorite', 'horseId', 'memo', 'rating', 'skip', 'year']);
+  assert.equal(body.memo, MEMO);
+  assert.equal(body.favorite, true);
+  assert.equal(body.skip, false);
+});
+
+test('parseSubmissionBody: 未指定の memo / favorite / skip はキーごと作らない（＝変更しない）', () => {
+  const result = parseSubmissionBody({ horseId: '12', year: 2026, rating: 'A' });
+  assert(result.ok);
+  assert.deepEqual(Object.keys(result.value).sort(), ['horseId', 'rating', 'year']);
+});
+
+test('parseSubmissionBody: 既知のキーだけを読む（anonId は body から取らない）', () => {
   const result = parseSubmissionBody({
     horseId: '12',
     year: 2026,
     rating: 'A',
-    // 送られてきても保存する経路が無いことを保証する
-    memo: '脚元に不安あり。息子の誕生日に見に行った',
+    memo: MEMO,
     favorite: true,
     skip: true,
+    // 匿名IDはヘッダでしか受け取らない。bodyに紛れ込ませても無視される
     anonId: 'なりすまし用',
   });
-  assert.equal(result.ok, true);
   assert(result.ok);
-  assert.deepEqual(result.value, { horseId: '12', year: 2026, rating: 'A' });
-  assert.deepEqual(Object.keys(result.value).sort(), ['horseId', 'rating', 'year']);
+  assert.deepEqual(result.value, {
+    horseId: '12',
+    year: 2026,
+    rating: 'A',
+    memo: MEMO,
+    favorite: true,
+    skip: true,
+  });
+});
+
+test('parseSubmissionBody: 空文字のメモは「消した」として受け取る（未指定と区別する）', () => {
+  const result = parseSubmissionBody({ horseId: '12', year: 2026, rating: null, memo: '' });
+  assert(result.ok);
+  assert.equal(result.value.memo, '');
+});
+
+test('parseSubmissionBody: 本人専用の項目も型と長さを検証する', () => {
+  const cases: [unknown, string][] = [
+    [{ horseId: '1', year: 2026, rating: 'A', memo: 123 }, 'invalid memo'],
+    [{ horseId: '1', year: 2026, rating: 'A', memo: 'あ'.repeat(MAX_MEMO_LENGTH + 1) }, 'memo too long'],
+    [{ horseId: '1', year: 2026, rating: 'A', favorite: 'true' }, 'invalid favorite'],
+    [{ horseId: '1', year: 2026, rating: 'A', skip: 1 }, 'invalid skip'],
+  ];
+  for (const [input, expected] of cases) {
+    const result = parseSubmissionBody(input);
+    assert(!result.ok, `通ってはいけない入力が通った: ${JSON.stringify(input).slice(0, 60)}`);
+    assert.equal(result.error, expected);
+  }
 });
 
 test('parseSubmissionBody: rating が null / 未指定 / 空文字 なら null（評価の取り消し）', () => {
@@ -156,10 +214,85 @@ test('parseSummaryResponse: 数値でない件数・0件・マイナスは捨て
   assert.deepEqual(parsed, { '2': { A: 1, B: 0, C: 0, D: 0, E: 0 } });
 });
 
+// ---- 自分のデータ（端末間同期） --------------------------------------------
+
+test('summarizeRows: 他会員に見せる集計にはメモ等が混ざらない', () => {
+  // 集計SQLは rating しか SELECT しないが、万一行に混ざっても外へ出ないことを担保する
+  const rows = [
+    { horse_id: '1', rating: 'A', count: 1, memo: MEMO, favorite: 1, skip: 1 },
+  ] as unknown as SummaryRow[];
+  const summary = summarizeRows(rows);
+  assert.equal(JSON.stringify(summary).includes('脚元'), false);
+  assert.deepEqual(summary, { '1': { A: 1, B: 0, C: 0, D: 0, E: 0 } });
+});
+
+test('rowsToEvaluationMap: D1の 0/1 を boolean に直して localStorage と同じ形にする', () => {
+  const rows: MineRow[] = [
+    { horse_id: '3', rating: 'B', memo: MEMO, favorite: 1, skip: 0 },
+    // rating が無い（メモだけ付けた馬）も同期対象
+    { horse_id: '7', rating: null, memo: '', favorite: 0, skip: 1 },
+    // 馬IDが壊れている行は捨てる
+    { horse_id: '../etc', rating: 'A', memo: '', favorite: 0, skip: 0 },
+  ];
+  assert.deepEqual(rowsToEvaluationMap(rows), {
+    '3': { rating: 'B', favorite: true, skip: false, memo: MEMO },
+    '7': { rating: null, favorite: false, skip: true, memo: '' },
+  });
+});
+
+test('parseMineResponse: 正常なレスポンスを評価マップとして読む', () => {
+  const parsed = parseMineResponse({
+    year: 2026,
+    evaluations: { '3': { rating: 'C', favorite: true, skip: false, memo: MEMO } },
+  });
+  assert.deepEqual(parsed, { '3': { rating: 'C', favorite: true, skip: false, memo: MEMO } });
+});
+
+test('parseMineResponse: 壊れていたら null（0件の {} と区別する）', () => {
+  for (const input of [null, undefined, 'ok', 42, {}, { evaluations: null }, { evaluations: [] }]) {
+    assert.equal(parseMineResponse(input), null, `null を返すべき: ${JSON.stringify(input)}`);
+  }
+  // 0件は「取得できて空だった」なので {} を返す
+  assert.deepEqual(parseMineResponse({ evaluations: {} }), {});
+});
+
+test('parseMineResponse: 値が壊れていても既定値に丸めて落ちない', () => {
+  const parsed = parseMineResponse({
+    evaluations: { '5': { rating: 'S', favorite: 'yes', memo: 123 } },
+  });
+  assert.deepEqual(parsed, { '5': { rating: null, favorite: false, skip: false, memo: '' } });
+});
+
+test('parseMineResponse: 長すぎるメモは上限で切る（送り返せない値を持ち込まない）', () => {
+  const parsed = parseMineResponse({
+    evaluations: { '5': { rating: 'A', memo: 'あ'.repeat(MAX_MEMO_LENGTH + 100) } },
+  });
+  assert.equal(parsed!['5']!.memo.length, MAX_MEMO_LENGTH);
+});
+
+test('mergeEvaluationMaps: 同じ馬は取り込んだ側で上書きし、無い馬は手元のまま残す', () => {
+  const local = {
+    '1': { rating: 'A', favorite: false, skip: false, memo: 'ローカルだけの馬' },
+    '2': { rating: 'B', favorite: false, skip: false, memo: '古い' },
+  } as const;
+  const remote = {
+    '2': { rating: 'D', favorite: true, skip: false, memo: '新しい' },
+  } as const;
+  assert.deepEqual(mergeEvaluationMaps({ ...local }, { ...remote }), {
+    '1': { rating: 'A', favorite: false, skip: false, memo: 'ローカルだけの馬' },
+    '2': { rating: 'D', favorite: true, skip: false, memo: '新しい' },
+  });
+});
+
 // ---- URL / ヘッダ ----------------------------------------------------------
 
 test('summaryUrlForYear: 年度をクエリに付ける', () => {
   assert.equal(summaryUrlForYear(2026), '/api/evaluations/summary?year=2026');
+});
+
+test('mineUrlForYear: 自分のデータは集計とは別のパスから取る', () => {
+  assert.equal(mineUrlForYear(2026), '/api/evaluations/mine?year=2026');
+  assert.notEqual(MINE_API_PATH, summaryUrlForYear(2026).split('?')[0]);
 });
 
 test('ANON_ID_HEADER: 匿名IDはbodyではなくヘッダで送る', () => {

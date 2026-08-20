@@ -4,9 +4,12 @@
  * DOMや`localStorage`グローバルに直接触れず、`KeyValueStore`インタフェース越しに
  * 読み書きすることでテスト可能にしている（`window.localStorage`はこの型を満たす）。
  *
- * 将来Phase2で「他ユーザーの評価傾向を集計」する機能を足す際は、この形状
- * （馬IDごとのフラットなJSON）のまま`rating`と匿名IDだけをAPIに送る想定。
- * メモは個人情報になりうるため送信対象に含めない設計にしてある。
+ * ここが**正本**。サーバー（D1）にあるのは端末間で持ち回るための控えで、画面が読むのは
+ * 常にこのlocalStorageの内容。通信に失敗してもツールは今まで通り使える。
+ *
+ * サーバーへの送信は2種類に分かれる（詳細は evaluation-api.ts）。
+ * - 他会員に見せるのは A〜E の**件数の集計だけ**
+ * - メモ・お気に入り・消は、自分の匿名IDに紐づけて保存し、本人が同じIDで復元する時にだけ返る
  */
 
 export interface KeyValueStore {
@@ -74,6 +77,16 @@ export function saveEvaluations(store: KeyValueStore, key: string, map: Evaluati
 /** 指定した馬の評価を取得する。未評価ならデフォルト値を返す（マップは変更しない）。 */
 export function getEvaluation(map: EvaluationMap, horseId: string): Evaluation {
   return map[horseId] ?? { ...DEFAULT_EVALUATION };
+}
+
+/**
+ * 何も入力されていない評価か。アップロード時に「触っていない馬」を送らないために使う
+ * （サーバー側も、この状態になった行は保存せず消す）。
+ */
+export function isEmptyEvaluation(evaluation: Evaluation): boolean {
+  return (
+    evaluation.rating === null && !evaluation.favorite && !evaluation.skip && evaluation.memo === ''
+  );
 }
 
 /** 指定した馬の評価を部分更新した新しいマップを返す（元のマップは変更しない）。 */

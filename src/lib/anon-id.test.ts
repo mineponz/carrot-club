@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { getOrCreateAnonId, ANON_ID_STORAGE_KEY } from './anon-id.ts';
+import { getOrCreateAnonId, setAnonId, ANON_ID_STORAGE_KEY } from './anon-id.ts';
 import { isValidAnonId } from './evaluation-api.ts';
 import type { KeyValueStore } from './evaluations.ts';
 
@@ -34,6 +34,24 @@ test('getOrCreateAnonId: 保存値が壊れていたら作り直す（送信が�
   const store = createMemoryStore({ [ANON_ID_STORAGE_KEY]: 'not-a-uuid' });
   assert.equal(getOrCreateAnonId(store, () => ID_A), ID_A);
   assert.equal(store.getItem(ANON_ID_STORAGE_KEY), ID_A);
+});
+
+// ---- 端末間同期（別端末のIDに乗り換える） ----------------------------------
+
+test('setAnonId: 別端末のIDに乗り換えられる', () => {
+  const store = createMemoryStore({ [ANON_ID_STORAGE_KEY]: ID_A });
+  assert.equal(setAnonId(store, ID_B), true);
+  assert.equal(store.getItem(ANON_ID_STORAGE_KEY), ID_B);
+  // 以後の送信も新しいIDで行われる
+  assert.equal(getOrCreateAnonId(store, () => ID_A), ID_B);
+});
+
+test('setAnonId: 形式が不正なら書き込まない（貼り付けミスで壊さない）', () => {
+  const store = createMemoryStore({ [ANON_ID_STORAGE_KEY]: ID_A });
+  for (const bad of ['', 'not-a-uuid', ID_B.toUpperCase(), ` ${ID_B} `]) {
+    assert.equal(setAnonId(store, bad), false, `通ってはいけない: ${bad}`);
+    assert.equal(store.getItem(ANON_ID_STORAGE_KEY), ID_A);
+  }
 });
 
 test('匿名IDの保存キーは評価データと別（年度で分けない）', () => {
