@@ -1,6 +1,11 @@
 /**
  * OGP画像生成スクリプト（年に数回しか動かさない手動ツール）。
  *
+ * ## 注意: 現在サイトが使っている OGP 画像はこのスクリプトの出力ではない
+ * 本人が用意したデザイン画像を `scripts/generate-og-wide.mjs` で横長に組み直した
+ * `public/og-v2.png` を使っている。このスクリプトの出力先は `public/og.png` のままなので、
+ * 動かしても現行のカードは壊れないが、使うなら BaseLayout.astro の参照も直すこと。
+ *
  * `scripts/og-card.html` を Playwright の chromium で開き、1200x630 のスクリーンショットを
  * `public/og.png` に書き出す。
  *
@@ -24,6 +29,9 @@
  *
  * 任意の場所の playwright を使う場合:
  *   NODE_PATH=/path/to/node_modules node scripts/generate-og.mjs
+ *
+ * ブラウザ本体だけ既に手元にある場合（playwright のダウンロードを使わない）:
+ *   CHROMIUM_EXECUTABLE_PATH=/path/to/chrome node scripts/generate-og.mjs
  *
  * 生成した `public/og.png` はコミットする（ビルド成果物ではなく静的アセットの一部）。
  * 併せて BaseLayout.astro の og:image / twitter:image と twitter:card=summary_large_image を確認すること。
@@ -117,7 +125,12 @@ async function main() {
   console.log(`[og] 元HTML: ${htmlPath}`);
   let browser;
   try {
-    browser = await chromium.launch();
+    // ブラウザ本体を playwright に取得させず、環境に入っている chrome / chromium を
+    // 使いたい場合は CHROMIUM_EXECUTABLE_PATH でその実行ファイルを指定する
+    // （例: CHROMIUM_EXECUTABLE_PATH=/opt/pw-browsers/chromium node scripts/generate-og.mjs）。
+    const executablePath = process.env.CHROMIUM_EXECUTABLE_PATH;
+    if (executablePath) console.log(`[og] chromium 実行ファイル: ${executablePath}`);
+    browser = await chromium.launch(executablePath ? { executablePath } : {});
   } catch (error) {
     console.error(`[og] chromium の起動に失敗しました: ${error.message}`);
     console.error('[og] ブラウザ本体が未取得の可能性があります。`npx playwright install chromium` を実行してください。');

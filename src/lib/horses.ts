@@ -101,6 +101,9 @@ export interface HorseFilter {
   maxPrice?: number;
   minHeight?: number;
   maxHeight?: number;
+  /** 管囲 (cm)。0.1cm刻みの小数を取りうる */
+  minCaretGirth?: number;
+  maxCaretGirth?: number;
   minWeight?: number;
   maxWeight?: number;
   /** trueなら母優先の対象馬だけに絞る */
@@ -125,6 +128,8 @@ export function filterHorses(horses: Horse[], filter: HorseFilter): Horse[] {
     if (filter.maxPrice !== undefined && h.pricePerShare > filter.maxPrice) return false;
     if (filter.minHeight !== undefined && h.height < filter.minHeight) return false;
     if (filter.maxHeight !== undefined && h.height > filter.maxHeight) return false;
+    if (filter.minCaretGirth !== undefined && h.caretGirth < filter.minCaretGirth) return false;
+    if (filter.maxCaretGirth !== undefined && h.caretGirth > filter.maxCaretGirth) return false;
     if (filter.minWeight !== undefined && h.weight < filter.minWeight) return false;
     if (filter.maxWeight !== undefined && h.weight > filter.maxWeight) return false;
     if (filter.damPriorityOnly && !h.damPriority) return false;

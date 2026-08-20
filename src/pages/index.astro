@@ -124,7 +124,7 @@ const faqJsonLd = {
 };
 ---
 
-<BaseLayout description={SITE_DESCRIPTION}>
+<BaseLayout description={SITE_DESCRIPTION} showAds={false}>
   <h1>2026年募集馬 一覧（{total}頭）</h1>
   <p class="lead">
     キャロットクラブ2026年募集馬{total}頭を、血統・測尺・一口価格・厩舎で並べ替え、絞り込みできる
@@ -185,6 +185,14 @@ const faqJsonLd = {
         <input type="number" id="filter-height-min" placeholder="下限" />
         〜
         <input type="number" id="filter-height-max" placeholder="上限" />
+      </span>
+    </label>
+    <label>
+      管囲 (cm)
+      <span class="range">
+        <input type="number" id="filter-caret-min" step="0.1" placeholder="下限" />
+        〜
+        <input type="number" id="filter-caret-max" step="0.1" placeholder="上限" />
       </span>
     </label>
     <label>
@@ -259,7 +267,7 @@ const faqJsonLd = {
   <ul>
     <li>列見出しをクリックして並べ替える（もう一度押すと昇順・降順が入れ替わります）</li>
     <li>馬名・父・母父・厩舎・性別で絞り込む</li>
-    <li>一口価格・体高・馬体重を下限〜上限の範囲で絞り込む</li>
+    <li>一口価格・体高・管囲・馬体重を下限〜上限の範囲で絞り込む</li>
     <li>{hasSurgeryData ? '「母優先のみ」「手術・既往ありを除く」で候補を狭める' : '「母優先のみ」で候補を狭める'}</li>
     <li>各馬にA〜Eの評価・お気に入り（★）・消・メモを付け、「お気に入りのみ」「消を付けた馬を隠す」で見直す</li>
     <li>「みんな」列で、他の利用者がその馬にどのA〜Eを付けているか（人数の内訳）を見る</li>
@@ -717,6 +725,8 @@ const faqJsonLd = {
     const filterPriceMax = el<HTMLInputElement>('filter-price-max');
     const filterHeightMin = el<HTMLInputElement>('filter-height-min');
     const filterHeightMax = el<HTMLInputElement>('filter-height-max');
+    const filterCaretMin = el<HTMLInputElement>('filter-caret-min');
+    const filterCaretMax = el<HTMLInputElement>('filter-caret-max');
     const filterWeightMin = el<HTMLInputElement>('filter-weight-min');
     const filterWeightMax = el<HTMLInputElement>('filter-weight-max');
     const filterDamPriority = el<HTMLInputElement>('filter-dam-priority');
@@ -726,7 +736,7 @@ const faqJsonLd = {
     const filterFavoriteOnly = el<HTMLInputElement>('filter-favorite-only');
     const filterResetBtn = el<HTMLButtonElement>('filter-reset');
 
-    const textInputs = [filterName, filterBms, filterPriceMin, filterPriceMax, filterHeightMin, filterHeightMax, filterWeightMin, filterWeightMax];
+    const textInputs = [filterName, filterBms, filterPriceMin, filterPriceMax, filterHeightMin, filterHeightMax, filterCaretMin, filterCaretMax, filterWeightMin, filterWeightMax];
     const selects = [filterSire, filterStable, filterSex];
     const toggles = [filterDamPriority, filterExcludeSurgery, filterHideSkip, filterFavoriteOnly].filter(
       (t): t is HTMLInputElement => t !== null,
@@ -762,6 +772,8 @@ const faqJsonLd = {
       filter.maxPrice = numberValue(filterPriceMax);
       filter.minHeight = numberValue(filterHeightMin);
       filter.maxHeight = numberValue(filterHeightMax);
+      filter.minCaretGirth = numberValue(filterCaretMin);
+      filter.maxCaretGirth = numberValue(filterCaretMax);
       filter.minWeight = numberValue(filterWeightMin);
       filter.maxWeight = numberValue(filterWeightMax);
       if (filterDamPriority.checked) filter.damPriorityOnly = true;

@@ -14,6 +14,9 @@
         本体の色を変えたらここも合わせる（自動連動はしない）。
       - タイムラインのサムネイルは横400px程度まで縮む。文字が潰れないよう、
         最小でも24px（縮小後8px相当）を下限にしている。
+      - 下の「◯年募集馬◯頭」は src/consts.ts の SITE_TAGLINE と同じ内容にする。
+        募集年度が変わったらここを直して `node scripts/generate-og.mjs` を実行し、
+        public/og.png を作り直す（自動連動はしない）。
     -->
     <style>
       :root {
@@ -175,7 +178,7 @@
         <h1>キャロットクラブ<br />出資馬検討ツール</h1>
 
         <p class="lead">
-          2025年募集馬<span class="num">93頭</span>を血統・馬体・価格で比較
+          2026年募集馬<span class="num">94頭</span>を血統・馬体・価格で比較
         </p>
 
         <ul class="chips">

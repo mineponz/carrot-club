@@ -6,6 +6,7 @@ import {
   SITE_DESCRIPTION,
   UNOFFICIAL_NOTICE,
   CLUB_PERMISSION_NOTICE,
+  CONTACT_FORM_URL,
   DOCUMENT_TITLE,
   ALLOW_INDEXING,
 } from '../consts';
@@ -31,6 +32,11 @@ interface Props {
    * 過去年度ページ（`/2025/`）は自分自身のパスを渡し、最新年度に飛ばされないようにする。
    */
   homeHref?: string;
+  /**
+   * フッターの広告枠を出すか。既定は出す。
+   * トップページ（`/`）は本人の指示で広告を止めているので `false` を渡す。
+   */
+  showAds?: boolean;
 }
 
 const {
@@ -40,6 +46,7 @@ const {
   breadcrumb = [],
   breadcrumbLabel,
   homeHref = '/',
+  showAds = true,
 } = Astro.props;
 
 // トップは「サイト名｜内容」、下層は「ページ名 | サイト名」。
@@ -50,8 +57,14 @@ const canonical = new URL(Astro.url.pathname, SITE_URL).href;
 // クラブの利用許可が下りるまでは noindex（src/consts.ts の ALLOW_INDEXING で切り替える）
 const robotsContent = ALLOW_INDEXING ? 'index,follow,max-image-preview:large' : 'noindex,follow';
 
-// OGP画像は public/og.png（1200x630）を絶対URLで参照する
-const ogImage = new URL('/og.png', SITE_URL).href;
+// OGP画像は public/og-v2.png（1200x630）を絶対URLで参照する。
+// 中身は本人のデザイン画像を scripts/generate-og-wide.mjs で横長に組み直したもの。
+// サイズを変えたら下の og:image:width / height も直すこと。
+//
+// **画像を作り替えたらファイル名も必ず変える**（og-v2 → og-v3 …）。X やSNSは画像URL単位で
+// キャッシュするため、同じURLのまま中身だけ差し替えても古いカードが出続ける。
+// ページURLに ?1 を付けても画像URLは変わらないので効かない。
+const ogImage = new URL('/og-v2.png', SITE_URL).href;
 const ogImageAlt = `${DOCUMENT_TITLE}｜${tagline}`;
 
 // パンくずの構造化データ。トップ → 中間 → 現在ページ
@@ -189,19 +202,30 @@ const webAppJsonLd = {
         端末ごとの匿名IDとあわせて送信します。<strong>メモ・お気に入り・消は送信しません。</strong>
       </p>
       <p class="permission">{CLUB_PERMISSION_NOTICE}</p>
+      <p class="contact">
+        ご意見・不具合の報告は
+        <a href={CONTACT_FORM_URL} target="_blank" rel="noopener noreferrer">
+          お問い合わせフォーム（Googleフォーム）
+        </a>
+        へどうぞ。
+      </p>
       <p class="meta">
         <a href={homeHref}>馬一覧へ戻る</a>
       </p>
-      <div class="ad-slot ad-slot-sp">
-        <!-- admax -->
-        <script is:inline src="https://adm.shinobi.jp/s/8209f8c1f0b6861adf36d20d24ddf5b3"></script>
-        <!-- admax -->
-      </div>
-      <div class="ad-slot ad-slot-pc">
-        <!-- admax -->
-        <script is:inline src="https://adm.shinobi.jp/s/e63321a780d5a46c4027a2812076c695"></script>
-        <!-- admax -->
-      </div>
+      {showAds && (
+        <>
+          <div class="ad-slot ad-slot-sp">
+            <!-- admax -->
+            <script is:inline src="https://adm.shinobi.jp/s/8209f8c1f0b6861adf36d20d24ddf5b3"></script>
+            <!-- admax -->
+          </div>
+          <div class="ad-slot ad-slot-pc">
+            <!-- admax -->
+            <script is:inline src="https://adm.shinobi.jp/s/e63321a780d5a46c4027a2812076c695"></script>
+            <!-- admax -->
+          </div>
+        </>
+      )}
     </footer>
 
     <style is:global>
@@ -422,6 +446,7 @@ const webAppJsonLd = {
       .site-footer p { margin: 0 0 0.5rem; }
       .site-footer .unofficial { color: var(--text); font-weight: 600; }
       .site-footer .meta { margin: 0; }
+      .site-footer .contact a { color: inherit; }
 
       /* 忍者AdMaxはPC/SPで別の広告枠コードが発行されるため、画面幅で出し分ける。
          どちらもページ最下部（フッター内）に置く。 */
