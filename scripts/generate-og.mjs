@@ -1,10 +1,10 @@
 /**
  * OGP画像生成スクリプト（年に数回しか動かさない手動ツール）。
  *
- * ## 注意: 現在の public/og.png はこのスクリプトの出力ではない
- * 本人が用意したデザイン画像を `scripts/generate-og-wide.mjs` で横長に組み直したものに
- * 差し替えてある。このスクリプトを実行すると上書きしてしまうので、下のCSSカードに
- * 戻す意図があるときだけ動かすこと。
+ * ## 注意: 現在サイトが使っている OGP 画像はこのスクリプトの出力ではない
+ * 本人が用意したデザイン画像を `scripts/generate-og-wide.mjs` で横長に組み直した
+ * `public/og-v2.png` を使っている。このスクリプトの出力先は `public/og.png` のままなので、
+ * 動かしても現行のカードは壊れないが、使うなら BaseLayout.astro の参照も直すこと。
  *
  * `scripts/og-card.html` を Playwright の chromium で開き、1200x630 のスクリーンショットを
  * `public/og.png` に書き出す。

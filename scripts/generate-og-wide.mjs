@@ -22,7 +22,7 @@
  * ブラウザ本体が手元にある場合は実行ファイルを直接指定できる:
  *   CHROMIUM_EXECUTABLE_PATH=/path/to/chrome node scripts/generate-og-wide.mjs
  *
- * 生成した `public/og.png` はコミットする（ビルド成果物ではなく静的アセットの一部）。
+ * 生成した `public/og-v2.png` はコミットする（ビルド成果物ではなく静的アセットの一部）。
  * 画像サイズを変えたときは BaseLayout.astro の og:image:width / height も直すこと。
  */
 import { execFileSync } from 'node:child_process';
@@ -39,7 +39,9 @@ const SRC_SIZE = 1254;
 const scriptDir = dirname(fileURLToPath(import.meta.url));
 const repoRoot = join(scriptDir, '..');
 const srcPath = join(scriptDir, 'og-source.webp');
-const outPath = join(repoRoot, 'public', 'og.png');
+// 出力ファイル名。作り替えたら v3, v4 … と上げて BaseLayout.astro の参照も直す
+// （SNSは画像URL単位でキャッシュするので、同名のまま差し替えると古い画像が出続ける）
+const outPath = join(repoRoot, 'public', 'og-v2.png');
 
 /** 元画像(1254x1254)から切り出す部品。outW / outH のどちらかで拡大率を決める */
 const PARTS = {

@@ -57,10 +57,14 @@ const canonical = new URL(Astro.url.pathname, SITE_URL).href;
 // クラブの利用許可が下りるまでは noindex（src/consts.ts の ALLOW_INDEXING で切り替える）
 const robotsContent = ALLOW_INDEXING ? 'index,follow,max-image-preview:large' : 'noindex,follow';
 
-// OGP画像は public/og.png（1200x630）を絶対URLで参照する。
+// OGP画像は public/og-v2.png（1200x630）を絶対URLで参照する。
 // 中身は本人のデザイン画像を scripts/generate-og-wide.mjs で横長に組み直したもの。
 // サイズを変えたら下の og:image:width / height も直すこと。
-const ogImage = new URL('/og.png', SITE_URL).href;
+//
+// **画像を作り替えたらファイル名も必ず変える**（og-v2 → og-v3 …）。X やSNSは画像URL単位で
+// キャッシュするため、同じURLのまま中身だけ差し替えても古いカードが出続ける。
+// ページURLに ?1 を付けても画像URLは変わらないので効かない。
+const ogImage = new URL('/og-v2.png', SITE_URL).href;
 const ogImageAlt = `${DOCUMENT_TITLE}｜${tagline}`;
 
 // パンくずの構造化データ。トップ → 中間 → 現在ページ
