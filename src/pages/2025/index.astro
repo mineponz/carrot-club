@@ -192,6 +192,14 @@ const faqJsonLd = {
       </span>
     </label>
     <label>
+      管囲 (cm)
+      <span class="range">
+        <input type="number" id="filter-caret-min" step="0.1" placeholder="下限" />
+        〜
+        <input type="number" id="filter-caret-max" step="0.1" placeholder="上限" />
+      </span>
+    </label>
+    <label>
       馬体重 (kg)
       <span class="range">
         <input type="number" id="filter-weight-min" placeholder="下限" />
@@ -259,7 +267,7 @@ const faqJsonLd = {
   <ul>
     <li>列見出しをクリックして並べ替える（もう一度押すと昇順・降順が入れ替わります）</li>
     <li>馬名・父・母父・厩舎・性別で絞り込む</li>
-    <li>一口価格・体高・馬体重を下限〜上限の範囲で絞り込む</li>
+    <li>一口価格・体高・管囲・馬体重を下限〜上限の範囲で絞り込む</li>
     <li>「母優先のみ」「手術・既往ありを除く」で候補を狭める</li>
     <li>各馬にA〜Eの評価・お気に入り（★）・消・メモを付け、「お気に入りのみ」「消を付けた馬を隠す」で見直す</li>
     <li>気になった馬はその場で netkeiba の個体ページや X の検索結果を開いて調べる</li>
@@ -707,6 +715,8 @@ const faqJsonLd = {
     const filterPriceMax = el<HTMLInputElement>('filter-price-max');
     const filterHeightMin = el<HTMLInputElement>('filter-height-min');
     const filterHeightMax = el<HTMLInputElement>('filter-height-max');
+    const filterCaretMin = el<HTMLInputElement>('filter-caret-min');
+    const filterCaretMax = el<HTMLInputElement>('filter-caret-max');
     const filterWeightMin = el<HTMLInputElement>('filter-weight-min');
     const filterWeightMax = el<HTMLInputElement>('filter-weight-max');
     const filterDamPriority = el<HTMLInputElement>('filter-dam-priority');
@@ -715,7 +725,7 @@ const faqJsonLd = {
     const filterFavoriteOnly = el<HTMLInputElement>('filter-favorite-only');
     const filterResetBtn = el<HTMLButtonElement>('filter-reset');
 
-    const textInputs = [filterName, filterBms, filterPriceMin, filterPriceMax, filterHeightMin, filterHeightMax, filterWeightMin, filterWeightMax];
+    const textInputs = [filterName, filterBms, filterPriceMin, filterPriceMax, filterHeightMin, filterHeightMax, filterCaretMin, filterCaretMax, filterWeightMin, filterWeightMax];
     const selects = [filterSire, filterStable, filterSex];
     const toggles = [filterDamPriority, filterExcludeSurgery, filterHideSkip, filterFavoriteOnly];
 
@@ -741,6 +751,8 @@ const faqJsonLd = {
       filter.maxPrice = numberValue(filterPriceMax);
       filter.minHeight = numberValue(filterHeightMin);
       filter.maxHeight = numberValue(filterHeightMax);
+      filter.minCaretGirth = numberValue(filterCaretMin);
+      filter.maxCaretGirth = numberValue(filterCaretMax);
       filter.minWeight = numberValue(filterWeightMin);
       filter.maxWeight = numberValue(filterWeightMax);
       if (filterDamPriority.checked) filter.damPriorityOnly = true;

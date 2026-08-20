@@ -37,6 +37,7 @@ const horses: Horse[] = [
     birthDate: '2024-05-02',
     pricePerShare: 20,
     height: 158,
+    caretGirth: 20.5,
     weight: 447,
     damPriority: true,
     surgery: '',
@@ -51,6 +52,7 @@ const horses: Horse[] = [
     birthDate: '2024-01-05',
     pricePerShare: 40,
     height: 162,
+    caretGirth: 21.5,
     weight: 486,
     damPriority: false,
     surgery: '',
@@ -65,6 +67,7 @@ const horses: Horse[] = [
     birthDate: '2024-03-20',
     pricePerShare: 15,
     height: 154,
+    caretGirth: 19.0,
     weight: 400,
     damPriority: true,
     surgery: '左飛節OCD除去手術 (2025/5/19)',
@@ -152,6 +155,20 @@ test('filterHorses: 体高の範囲で絞り込む', () => {
   assert.deepEqual(
     filterHorses(horses, { minHeight: 156, maxHeight: 160 }).map((h) => h.id),
     ['2'],
+  );
+});
+
+test('filterHorses: 管囲の範囲で絞り込む', () => {
+  assert.deepEqual(
+    filterHorses(horses, { minCaretGirth: 20, maxCaretGirth: 21 }).map((h) => h.id),
+    ['2'],
+  );
+});
+
+test('filterHorses: 管囲は0.1cm刻みの小数でも境界値を含む', () => {
+  assert.deepEqual(
+    filterHorses(horses, { minCaretGirth: 20.5 }).map((h) => h.id),
+    ['2', '1'],
   );
 });
 
