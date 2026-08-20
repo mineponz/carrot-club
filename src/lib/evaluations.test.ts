@@ -5,6 +5,7 @@ import {
   saveEvaluations,
   getEvaluation,
   updateEvaluation,
+  ratingsByHorseId,
   DEFAULT_EVALUATION,
   STORAGE_KEY,
   storageKeyForYear,
@@ -99,4 +100,33 @@ test('updateEvaluation: 他の馬の評価に影響しない', () => {
   const updated = updateEvaluation(map, '2025-002', { rating: 'B' });
   assert.deepEqual(updated['2025-001'], map['2025-001']);
   assert.deepEqual(updated['2025-002'], { ...DEFAULT_EVALUATION, rating: 'B' });
+});
+
+// --- ratingsByHorseId（一覧の評価フィルタに渡す対応表） ---
+
+test('ratingsByHorseId: 馬IDとA〜Eの印だけの対応表になる', () => {
+  const map: EvaluationMap = {
+    '1': { rating: 'A', favorite: true, skip: false, memo: '良さそう' },
+    '2': { rating: 'C', favorite: false, skip: true, memo: '' },
+  };
+  assert.deepEqual(ratingsByHorseId(map), { '1': 'A', '2': 'C' });
+});
+
+test('ratingsByHorseId: 印が無い馬（★やメモだけ付けた馬）はキーごと落とす', () => {
+  const map: EvaluationMap = {
+    '1': { rating: null, favorite: true, skip: false, memo: 'あとで見る' },
+    '2': { rating: 'B', favorite: false, skip: false, memo: '' },
+  };
+  assert.deepEqual(ratingsByHorseId(map), { '2': 'B' });
+});
+
+test('ratingsByHorseId: 空のマップからは空の対応表を返す', () => {
+  assert.deepEqual(ratingsByHorseId({}), {});
+});
+
+test('ratingsByHorseId: メモ・お気に入り・消は対応表に含めない', () => {
+  const map: EvaluationMap = {
+    '1': { rating: 'A', favorite: true, skip: true, memo: '個人メモ' },
+  };
+  assert.deepEqual(Object.values(ratingsByHorseId(map)), ['A']);
 });

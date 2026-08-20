@@ -15,8 +15,10 @@
 import BaseLayout from '../../layouts/BaseLayout.astro';
 import { SITE_DESCRIPTION_2025, SITE_TAGLINE_2025, UNOFFICIAL_NOTICE } from '../../consts.ts';
 import { horses2025 } from '../../data/horses2025.ts';
-import { sortHorses, uniqueValues, type SortKey } from '../../lib/horses.ts';
+import { sortHorses, uniqueValues, UNRATED, type SortKey } from '../../lib/horses.ts';
 import { DEFAULT_EVALUATION } from '../../lib/evaluations.ts';
+// A〜Eの並びはAPI側の定義を唯一の出所にする（ここで別の配列を作ると表・集計とずれる）
+import { RATINGS } from '../../lib/evaluation-api.ts';
 import { COLUMNS, horseRowHtml } from '../../lib/horse-row.ts';
 
 // 個別ページは年度ごとに別ルート（`/2025/horses/{id}/`）。既定はルート年度なので明示的に渡す。
@@ -213,6 +215,29 @@ const faqJsonLd = {
       </span>
     </label>
 
+    <!--
+      自分が付けたA〜Eでの絞り込み。複数選べて、選んだもののどれかが付いていれば残る（OR）。
+      印の色は表の評価セレクトと同じ --rating-*-bg を使う（同じAが別の色に見えると迷う）。
+      1つも選んでいない状態が既定＝全頭表示なので、「未選択なら全頭」を添えて
+      「押していないから絞れていない」ことが分かるようにしている。
+    -->
+    <div class="rating-filters" role="group" aria-labelledby="rating-filters-label">
+      <span class="rating-filters-label" id="rating-filters-label">自分の評価</span>
+      {
+        RATINGS.map((r) => (
+          <label class="checkbox-label rating-option">
+            <input type="checkbox" class="filter-rating" value={r} />
+            <span class="rating-chip" data-rating={r}>{r}</span>
+          </label>
+        ))
+      }
+      <label class="checkbox-label rating-option">
+        <input type="checkbox" class="filter-rating" value={UNRATED} />
+        <span class="rating-chip rating-chip-unrated">未評価</span>
+      </label>
+      <span class="rating-filters-hint">未選択なら全頭</span>
+    </div>
+
     <div class="toggles">
       <label class="checkbox-label">
         <input type="checkbox" id="filter-dam-priority" />
@@ -275,6 +300,7 @@ const faqJsonLd = {
     <li>一口価格・体高・管囲・馬体重を下限〜上限の範囲で絞り込む</li>
     <li>「母優先のみ」「手術・既往ありを除く」で候補を狭める</li>
     <li>各馬にA〜Eの評価・お気に入り（★）・消・メモを付け、「お気に入りのみ」「消を付けた馬を隠す」で見直す</li>
+    <li>自分が付けたA〜Eで絞り込む（A・Bのように複数選べ、まだ印を付けていない「未評価」も選べます）</li>
     <li>「みんな」列で、他の利用者がその馬にどのA〜Eを付けているか（人数の内訳）を見る</li>
     <li>気になった馬はその場で netkeiba の個体ページや X の検索結果を開いて調べる</li>
   </ul>
@@ -289,6 +315,11 @@ const faqJsonLd = {
       （自分だけが高く見ている馬、意見が割れている馬が分かります）。
     </li>
     <li>検討から外した馬は「消」にチェックを入れ、「消を付けた馬を隠す」で視界から外します。</li>
+    <li>
+      ひと通り印を付けたら、絞り込みの <strong>「自分の評価」</strong> でA・Bだけにチェックを入れて
+      上位だけを見比べます（複数選べます）。「未評価」を選べば、まだ印を付けていない馬の
+      取りこぼしも確認できます。
+    </li>
     <li>最後に「お気に入りのみ」にチェックを入れると、残った候補だけを見比べられます。</li>
   </ol>
   <p class="note">
@@ -418,6 +449,49 @@ const faqJsonLd = {
       border-top: 1px solid var(--border);
       padding-top: 0.9rem;
     }
+
+    /* 入力欄の行とチェックボックスの行の区切りは .toggles と同じ扱いにして、
+       「条件の種類が変わった」ことを罫線1本だけで示す（枠や背景は重ねない）。 */
+    .rating-filters {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 0.5rem 0.9rem;
+      width: 100%;
+      border-top: 1px solid var(--border);
+      padding-top: 0.9rem;
+    }
+    .rating-filters-label { color: var(--muted); }
+    .rating-filters-hint {
+      color: var(--muted);
+      font-size: 0.8125rem;
+      margin-left: auto;
+    }
+    /* チェックボックスと印は一体で押したいので、他のトグルより間隔を詰める */
+    .rating-option { gap: 0.3rem !important; }
+    .rating-chip {
+      display: inline-block;
+      min-width: 1.6rem;
+      padding: 0.1rem 0.4rem;
+      border: 1px solid transparent; /* 未評価だけ枠線を出すので、幅を揃えるために全員に持たせる */
+      border-radius: 4px;
+      text-align: center;
+      font-weight: 600;
+      font-size: 0.8125rem;
+      line-height: 1.4;
+    }
+    /* 色は表の評価セレクト（BaseLayout の --rating-*）と同じものを使う */
+    .rating-chip[data-rating='A'] { background: var(--rating-a-bg); color: var(--rating-a-fg); }
+    .rating-chip[data-rating='B'] { background: var(--rating-b-bg); color: var(--rating-b-fg); }
+    .rating-chip[data-rating='C'] { background: var(--rating-c-bg); color: var(--rating-c-fg); }
+    .rating-chip[data-rating='D'] { background: var(--rating-d-bg); color: var(--rating-d-fg); }
+    .rating-chip[data-rating='E'] { background: var(--rating-e-bg); color: var(--rating-e-fg); }
+    /* 未評価は「印が無い」状態なので色を持たせない。表の未評価セレクトと同じ地の見た目にする。 */
+    .rating-chip-unrated {
+      border-color: var(--border);
+      color: var(--muted);
+      font-weight: 400;
+    }
     .checkbox-label {
       flex-direction: row !important;
       align-items: center;
@@ -476,6 +550,11 @@ const faqJsonLd = {
       /* 幅の狭い画面では .filters label が max-width: 11rem のまま伸びず、
          右半分が空いた状態で1列ずつ折り返してしまう。各項目を横幅いっぱいにする。 */
       .filters label { flex: 1 1 100%; min-width: 0; }
+      /* ただし評価の印は中身が1文字なので、横幅いっぱいにすると6行を占有してしまう。
+         ここだけは内容幅のまま横に並べる。 */
+      .filters .rating-filters label { flex: 0 0 auto; }
+      /* 印を折り返した行に「未選択なら全頭」が取り残されないよう、右寄せをやめる */
+      .rating-filters-hint { margin-left: 0; flex-basis: 100%; }
       .filters input[type='text'],
       .filters input[type='number'],
       .filters select {
@@ -694,12 +773,14 @@ const faqJsonLd = {
       type SortKey,
       type SortDirection,
       type HorseFilter,
+      type RatingFilterValue,
     } from '../../lib/horses.ts';
     import {
       loadEvaluations,
       saveEvaluations,
       getEvaluation,
       updateEvaluation,
+      ratingsByHorseId,
       storageKeyForYear,
       type Evaluation,
       type EvaluationMap,
@@ -737,10 +818,13 @@ const faqJsonLd = {
     const filterHideSkip = el<HTMLInputElement>('filter-hide-skip');
     const filterFavoriteOnly = el<HTMLInputElement>('filter-favorite-only');
     const filterResetBtn = el<HTMLButtonElement>('filter-reset');
+    // A〜E＋未評価。個別にidを振らず、値（value）をそのままフィルタ条件に使う
+    const ratingCheckboxes = Array.from(document.querySelectorAll<HTMLInputElement>('.filter-rating'));
 
     const textInputs = [filterName, filterBms, filterPriceMin, filterPriceMax, filterHeightMin, filterHeightMax, filterCaretMin, filterCaretMax, filterWeightMin, filterWeightMax];
     const selects = [filterSire, filterStable, filterSex];
-    const toggles = [filterDamPriority, filterExcludeSurgery, filterHideSkip, filterFavoriteOnly];
+    // 評価チェックボックスもここに混ぜる。listener登録と「条件をクリア」の対象が同じで済む。
+    const toggles = [filterDamPriority, filterExcludeSurgery, filterHideSkip, filterFavoriteOnly, ...ratingCheckboxes];
 
     let sortKey: SortKey = 'id';
     let sortDirection: SortDirection = 'asc';
@@ -776,7 +860,18 @@ const faqJsonLd = {
       filter.maxWeight = numberValue(filterWeightMax);
       if (filterDamPriority.checked) filter.damPriorityOnly = true;
       if (filterExcludeSurgery.checked) filter.excludeSurgery = true;
+      // 自分の評価は端末ごとの状態なので、Horse ではなく「馬ID→印」の対応表として渡す。
+      // 1つも選んでいないときは条件自体を積まない（＝全頭表示のまま）。
+      const ratings = selectedRatings();
+      if (ratings.length > 0) {
+        filter.ratings = ratings;
+        filter.ratingByHorseId = ratingsByHorseId(evaluations);
+      }
       return filter;
+    }
+
+    function selectedRatings(): RatingFilterValue[] {
+      return ratingCheckboxes.filter((c) => c.checked).map((c) => c.value as RatingFilterValue);
     }
 
     /**
@@ -873,6 +968,9 @@ const faqJsonLd = {
         persistEvaluation(horseId, { rating });
         // 集計へ送るのは A〜E だけ。★・消・メモは送らない（送信経路そのものが無い）
         void submitRating(RECRUIT_YEAR, horseId, rating);
+        // 評価で絞り込んでいる最中に印を変えると、その馬が条件から外れる（入る）ので描き直す。
+        // 消・★のトグルと同じ扱い。
+        if (selectedRatings().length > 0) render();
       } else if (field === 'skip') {
         const checked = (target as HTMLInputElement).checked;
         persistEvaluation(horseId, { skip: checked });
