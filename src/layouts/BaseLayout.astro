@@ -57,10 +57,9 @@ const canonical = new URL(Astro.url.pathname, SITE_URL).href;
 // クラブの利用許可が下りるまでは noindex（src/consts.ts の ALLOW_INDEXING で切り替える）
 const robotsContent = ALLOW_INDEXING ? 'index,follow,max-image-preview:large' : 'noindex,follow';
 
-// OGP画像は public/og.png（1254x1254の正方形）を絶対URLで参照する。
-// 正方形なので twitter:card は summary（小さい正方形サムネ）にしている。
-// summary_large_image のままだとXが上下を切り、見出しと注意書きが欠ける。
-const OG_IMAGE_SIZE = 1254;
+// OGP画像は public/og.png（1200x630）を絶対URLで参照する。
+// 中身は本人のデザイン画像を scripts/generate-og-wide.mjs で横長に組み直したもの。
+// サイズを変えたら下の og:image:width / height も直すこと。
 const ogImage = new URL('/og.png', SITE_URL).href;
 const ogImageAlt = `${DOCUMENT_TITLE}｜${tagline}`;
 
@@ -131,11 +130,11 @@ const webAppJsonLd = {
     <meta property="og:description" content={description} />
     <meta property="og:url" content={canonical} />
     <meta property="og:image" content={ogImage} />
-    <meta property="og:image:width" content={String(OG_IMAGE_SIZE)} />
-    <meta property="og:image:height" content={String(OG_IMAGE_SIZE)} />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
     <meta property="og:image:alt" content={ogImageAlt} />
 
-    <meta name="twitter:card" content="summary" />
+    <meta name="twitter:card" content="summary_large_image" />
     <meta name="twitter:title" content={fullTitle} />
     <meta name="twitter:description" content={description} />
     <meta name="twitter:image" content={ogImage} />
