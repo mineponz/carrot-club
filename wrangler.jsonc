@@ -26,7 +26,7 @@
       // ↓ `npx wrangler d1 create carrot-club-evaluations` が出力するIDに差し替える。
       //   `wrangler dev` のローカル実行は .wrangler/state のSQLiteを使うのでこの値を見ないが、
       //   本番デプロイ前には必ず実IDを入れること（未設定のままだと deploy が失敗する）。
-      "database_id": "REPLACE_WITH_D1_DATABASE_ID",
+      "database_id": "a13fec15-7b56-40b4-9df7-9414d88e98dc",
       "migrations_dir": "./migrations"
     }
   ],
