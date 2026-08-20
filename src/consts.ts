@@ -57,3 +57,9 @@ export const UNOFFICIAL_NOTICE =
  */
 export const CLUB_PERMISSION_NOTICE =
   '本サイトに掲載する写真・文章の一部は、キャロットクラブより許可をもらって転載しています。';
+
+/**
+ * 問い合わせ先のGoogleフォーム。全ページのフッターからリンクする。
+ * 回答はGoogle側に届くので、このサイト自身は何も受け取らない（送信先が外部である点に注意）。
+ */
+export const CONTACT_FORM_URL = 'https://forms.gle/3r55coJm62YbYZkF7';

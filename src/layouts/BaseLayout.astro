@@ -6,6 +6,7 @@ import {
   SITE_DESCRIPTION,
   UNOFFICIAL_NOTICE,
   CLUB_PERMISSION_NOTICE,
+  CONTACT_FORM_URL,
   DOCUMENT_TITLE,
   ALLOW_INDEXING,
 } from '../consts';
@@ -194,6 +195,13 @@ const webAppJsonLd = {
         送信されません。
       </p>
       <p class="permission">{CLUB_PERMISSION_NOTICE}</p>
+      <p class="contact">
+        ご意見・不具合の報告は
+        <a href={CONTACT_FORM_URL} target="_blank" rel="noopener noreferrer">
+          お問い合わせフォーム（Googleフォーム）
+        </a>
+        へどうぞ。
+      </p>
       <p class="meta">
         <a href={homeHref}>馬一覧へ戻る</a>
       </p>
@@ -420,6 +428,7 @@ const webAppJsonLd = {
       .site-footer p { margin: 0 0 0.5rem; }
       .site-footer .unofficial { color: var(--text); font-weight: 600; }
       .site-footer .meta { margin: 0; }
+      .site-footer .contact a { color: inherit; }
 
       /* 忍者AdMaxはPC/SPで別の広告枠コードが発行されるため、画面幅で出し分ける。
          どちらもページ最下部（フッター内）に置く。 */
