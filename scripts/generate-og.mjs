@@ -25,6 +25,9 @@
  * 任意の場所の playwright を使う場合:
  *   NODE_PATH=/path/to/node_modules node scripts/generate-og.mjs
  *
+ * ブラウザ本体だけ既に手元にある場合（playwright のダウンロードを使わない）:
+ *   CHROMIUM_EXECUTABLE_PATH=/path/to/chrome node scripts/generate-og.mjs
+ *
  * 生成した `public/og.png` はコミットする（ビルド成果物ではなく静的アセットの一部）。
  * 併せて BaseLayout.astro の og:image / twitter:image と twitter:card=summary_large_image を確認すること。
  */
@@ -117,7 +120,12 @@ async function main() {
   console.log(`[og] 元HTML: ${htmlPath}`);
   let browser;
   try {
-    browser = await chromium.launch();
+    // ブラウザ本体を playwright に取得させず、環境に入っている chrome / chromium を
+    // 使いたい場合は CHROMIUM_EXECUTABLE_PATH でその実行ファイルを指定する
+    // （例: CHROMIUM_EXECUTABLE_PATH=/opt/pw-browsers/chromium node scripts/generate-og.mjs）。
+    const executablePath = process.env.CHROMIUM_EXECUTABLE_PATH;
+    if (executablePath) console.log(`[og] chromium 実行ファイル: ${executablePath}`);
+    browser = await chromium.launch(executablePath ? { executablePath } : {});
   } catch (error) {
     console.error(`[og] chromium の起動に失敗しました: ${error.message}`);
     console.error('[og] ブラウザ本体が未取得の可能性があります。`npx playwright install chromium` を実行してください。');
