@@ -37,6 +37,21 @@ interface Props {
    * トップページ（`/`）は本人の指示で広告を止めているので `false` を渡す。
    */
   showAds?: boolean;
+  /**
+   * 本文（`main`）を画面幅いっぱいに広げるか。既定は既存どおり `max-width: 64rem` で中央寄せ。
+   * 一覧ページ（`/`・`/2025/`）だけ `true` にして、横に長い表を余白で潰さないようにする。
+   * ヘッダー・パンくず・フッターは全ページ共通で中央寄せのまま（本人確認済み）。
+   * 文章まで全幅にすると1行が長くなりすぎるので、`main.is-wide` の中でも段落・見出しには
+   * 別途読みやすい上限を掛けている（下の `.is-wide` のスタイル）。
+   */
+  wide?: boolean;
+  /**
+   * ヘッダーに非公式・転載許可の注記を出すか。既定は出す（全ページ従来どおり）。
+   * 分析記事のような読み物ページは、本文の前に注記2つが割り込むと読み始めが遅くなるため
+   * `false` を渡してヘッダーでは省略する。フッターには元々同じ注記が出ているので、
+   * 非表示にしても表示自体が消えるわけではない（下の方に移るだけ）。
+   */
+  showHeaderNotices?: boolean;
 }
 
 const {
@@ -47,6 +62,8 @@ const {
   breadcrumbLabel,
   homeHref = '/',
   showAds = true,
+  wide = false,
+  showHeaderNotices = true,
 } = Astro.props;
 
 // トップは「サイト名｜内容」、下層は「ページ名 | サイト名」。
@@ -171,8 +188,12 @@ const webAppJsonLd = {
         <a href="/" class="wordmark">{SITE_TITLE}</a>
       </p>
       <p class="tagline">{tagline}</p>
-      <p class="header-permission">{CLUB_PERMISSION_NOTICE}</p>
-      <p class="header-notice">{UNOFFICIAL_NOTICE}</p>
+      {showHeaderNotices && (
+        <>
+          <p class="header-permission">{CLUB_PERMISSION_NOTICE}</p>
+          <p class="header-notice">{UNOFFICIAL_NOTICE}</p>
+        </>
+      )}
     </header>
 
     {crumbs.length > 1 && (
@@ -191,7 +212,7 @@ const webAppJsonLd = {
       </nav>
     )}
 
-    <main id="main">
+    <main id="main" class={wide ? 'is-wide' : undefined}>
       <slot />
     </main>
 
@@ -329,6 +350,25 @@ const webAppJsonLd = {
         padding-inline: 1.25rem;
       }
 
+      /* 一覧ページ（`wide`）だけ本文を画面幅いっぱいに使う。表が約2000px あり、
+         64rem（1024px）に押し込むと横スクロールばかりになるため。
+         ただし全部を全幅にすると説明文の1行が画面幅ぶん伸びて読めなくなるので、
+         直下の文章ブロックには従来と同じ 64rem を掛け直す（表・フォーム・広告は全幅）。 */
+      main.is-wide {
+        max-width: none;
+      }
+      main.is-wide > h1,
+      main.is-wide > h2,
+      main.is-wide > h3,
+      main.is-wide > p,
+      main.is-wide > ul,
+      main.is-wide > ol,
+      main.is-wide > dl,
+      main.is-wide > .faq-item,
+      main.is-wide > .measure-list {
+        max-width: 64rem;
+      }
+
       .site-header {
         padding-top: 2.5rem;
         padding-bottom: 1.25rem;
@@ -451,7 +491,9 @@ const webAppJsonLd = {
       .site-footer .contact a { color: inherit; }
 
       /* 忍者AdMaxはPC/SPで別の広告枠コードが発行されるため、画面幅で出し分ける。
-         どちらもページ最下部（フッター内）に置く。 */
+         フッター（この直上の `showAds`）のほか、一覧ページの絞り込みフォーム直下でも
+         同じクラスを使い回す。枠コードは設置場所ごとに別物なので、クラスは共通・
+         script の src は設置場所ごとに使い分けること。 */
       .ad-slot { margin-top: 1rem; }
       .ad-slot-pc { display: none; }
       @media (min-width: 48rem) {
