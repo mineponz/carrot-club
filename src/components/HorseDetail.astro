@@ -100,8 +100,7 @@ const facts: { term: string; value: string }[] = [
     入力した内容はこの端末のブラウザ内（localStorage）に保存され、一覧ページと共有されます。
     あわせて、端末を移っても引き継げるように匿名の同期IDに紐づけて控えを保存します
     （<a href={listHref}>一覧ページ</a>の「評価を別の端末に引き継ぐ」から扱えます）。
-    ほかの会員に見えるのは下の「他の会員の評価」に出るA〜Eの件数だけで、
-    メモ・お気に入り・消は公開されません。
+    ほかの会員に公開されることはありません。
   </p>
   <div class="eval-panel" id="eval-panel" data-horse-id={horse.id} data-recruit-year={recruitYear}>
     <label class="eval-item">
@@ -126,13 +125,6 @@ const facts: { term: string; value: string }[] = [
       <input type="text" class="memo-input" id="detail-memo" placeholder="メモ" maxlength={MAX_MEMO_LENGTH} />
     </label>
   </div>
-
-  <h2>他の会員の評価</h2>
-  <p class="note">
-    このツールを使っている人が{horse.name}に付けたA〜Eの内訳です。誰が付けたかは記録していません。
-  </p>
-  {/* 中身はクライアント側で集計APIから差し替える。JSが無い・取得に失敗した場合はこの文言のまま */}
-  <div id="peer-eval-panel"><p class="peer-none">他の会員の評価を読み込んでいます…</p></div>
 
   <p class="back-link bottom"><a href={listHref}>← {recruitYear}年募集馬の一覧へ戻る</a></p>
 </article>
@@ -250,8 +242,7 @@ const facts: { term: string; value: string }[] = [
     type Evaluation,
     type EvaluationMap,
   } from '../lib/evaluations.ts';
-  import { fetchPeerSummary, queueEvaluationSync } from '../lib/evaluation-client.ts';
-  import { peerBreakdownHtml } from '../lib/peer-eval.ts';
+  import { queueEvaluationSync } from '../lib/evaluation-client.ts';
 
   // 年度・馬IDはビルド時にしか分からないので data 属性経由で受け取る
   const panel = document.getElementById('eval-panel') as HTMLElement;
@@ -295,11 +286,4 @@ const facts: { term: string; value: string }[] = [
   skip.addEventListener('change', () => persist({ skip: skip.checked }));
   // メモは blur を待たず入力のたびに保存する（一覧側と同じ理由: 離脱で失われないように）
   memo.addEventListener('input', () => persist({ memo: memo.value }));
-
-  // 他の会員の評価。集計APIは年度単位なので、返ってきたマップからこの馬のぶんだけ取り出す。
-  // 取得できなくても上のUIには影響しない（この欄が「まだありません」になるだけ）。
-  const peerPanel = document.getElementById('peer-eval-panel') as HTMLElement;
-  void fetchPeerSummary(recruitYear).then((summary) => {
-    peerPanel.innerHTML = peerBreakdownHtml(summary[horseId] ?? null);
-  });
 </script>

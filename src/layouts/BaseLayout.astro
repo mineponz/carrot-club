@@ -202,8 +202,6 @@ const webAppJsonLd = {
         引き継げるように、メモ・お気に入り・消を含む内容を<strong>匿名の同期ID</strong>
         （会員番号や氏名とは結び付きません）に紐づけて保存しますが、
         <strong>これはあなたの同期IDからしか読み出せず、ほかの会員には公開されません。</strong>
-        ほかの会員に見えるのは、全体の傾向（「みんな」列）として集計した
-        <strong>A〜Eの件数だけ</strong>です。
       </p>
       <p class="permission">{CLUB_PERMISSION_NOTICE}</p>
       <p class="contact">
@@ -482,89 +480,6 @@ const webAppJsonLd = {
       #eval-panel .rating-select:not([data-rating='']) {
         font-weight: 700;
         border-color: currentColor;
-      }
-
-      /* 他会員の評価分布（src/lib/peer-eval.ts が生成するマークアップ）。
-         一覧の「みんな」列は innerHTML で描き直されるためスコープ付きスタイルが効かない。
-         個別ページの「他の会員の評価」欄とも見た目を揃えたいので、両方ここに置く。
-         強調は「淡い塗り」だけに寄せ、枠線・影は足さない（自分の評価セルと同じ扱い）。 */
-      /* 棒と人数は一体で読むものなので、間隔は狭く取る（余白でグルーピングを示す） */
-      .peer-eval {
-        display: inline-flex;
-        align-items: center;
-        gap: 0.25rem;
-      }
-      .peer-bar {
-        display: inline-flex;
-        width: 3.5rem;
-        height: 0.5rem;
-        border-radius: 999px;
-        overflow: hidden;
-        background: var(--border);
-        flex: none;
-      }
-      .peer-seg { display: block; }
-      .peer-seg[data-rating='A'] { background: var(--rating-a-bar); }
-      .peer-seg[data-rating='B'] { background: var(--rating-b-bar); }
-      .peer-seg[data-rating='C'] { background: var(--rating-c-bar); }
-      .peer-seg[data-rating='D'] { background: var(--rating-d-bar); }
-      .peer-seg[data-rating='E'] { background: var(--rating-e-bar); }
-      .peer-total {
-        color: var(--muted);
-        font-size: 0.75rem;
-        font-variant-numeric: tabular-nums;
-      }
-      /* 「まだ0票」「読み込み中」は情報が無い状態なので、色を薄くするのではなく
-         背景に近い色まで後退させて、票がある行だけが目に入るようにする */
-      .peer-empty,
-      .peer-loading { color: var(--border); }
-
-      /* 個別ページ用のA〜E内訳 */
-      .peer-breakdown {
-        display: grid;
-        gap: 0.25rem;
-        max-width: 24rem;
-        margin-top: 0.5rem;
-      }
-      .peer-row {
-        display: grid;
-        grid-template-columns: 1.5rem 1fr 3.5rem;
-        align-items: center;
-        gap: 0.5rem;
-      }
-      .peer-key {
-        text-align: center;
-        font-weight: 700;
-        font-size: 0.8125rem;
-        border-radius: 4px;
-      }
-      .peer-key[data-rating='A'] { background: var(--rating-a-bg); color: var(--rating-a-fg); }
-      .peer-key[data-rating='B'] { background: var(--rating-b-bg); color: var(--rating-b-fg); }
-      .peer-key[data-rating='C'] { background: var(--rating-c-bg); color: var(--rating-c-fg); }
-      .peer-key[data-rating='D'] { background: var(--rating-d-bg); color: var(--rating-d-fg); }
-      .peer-key[data-rating='E'] { background: var(--rating-e-bg); color: var(--rating-e-fg); }
-      .peer-track {
-        height: 0.5rem;
-        border-radius: 999px;
-        overflow: hidden;
-        background: var(--border);
-      }
-      .peer-fill { display: block; height: 100%; }
-      .peer-fill[data-rating='A'] { background: var(--rating-a-bar); }
-      .peer-fill[data-rating='B'] { background: var(--rating-b-bar); }
-      .peer-fill[data-rating='C'] { background: var(--rating-c-bar); }
-      .peer-fill[data-rating='D'] { background: var(--rating-d-bar); }
-      .peer-fill[data-rating='E'] { background: var(--rating-e-bar); }
-      .peer-count {
-        text-align: right;
-        font-size: 0.8125rem;
-        color: var(--muted);
-        font-variant-numeric: tabular-nums;
-      }
-      .peer-total-note,
-      .peer-none {
-        color: var(--muted);
-        font-size: 0.8125rem;
       }
 
       /* 棒グラフは aria-hidden なので、同じ内容をテキストでも置いている（読み上げ用） */

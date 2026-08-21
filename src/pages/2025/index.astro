@@ -100,11 +100,7 @@ const measurements = [
 const faqs = [
   {
     q: '入力した評価やメモはどこに保存されますか？',
-    a: '評価（A〜E）・お気に入り・消・メモは、お使いの端末のブラウザ内（localStorage）に保存されます。あわせて、端末を移っても引き継げるように、端末ごとにランダムに作られる匿名の同期ID（会員番号や氏名とは結び付きません）に紐づけてサーバーにも控えを保存します。控えは同じ同期IDからしか読み出せず、ほかの会員には公開されません。ほかの会員に見えるのは「みんな」列に出るA〜Eの件数だけで、メモ・お気に入り・消は含まれません。別の端末に引き継ぐ手順はページ下部の「評価を別の端末に引き継ぐ」をご覧ください。',
-  },
-  {
-    q: '「みんな」列は何ですか？',
-    a: 'このツールを使っている人がその馬に付けたA〜Eの印を集計したものです。棒の色がA〜Eの内訳、右の数字が評価した人数を表します。誰がどの評価を付けたかは記録していません（端末ごとの匿名IDで、同じ人が同じ馬に二重に入らないようにしているだけです）。まだ誰も評価していない馬は「−」と表示されます。',
+    a: '評価（A〜E）・お気に入り・消・メモは、お使いの端末のブラウザ内（localStorage）に保存されます。あわせて、端末を移っても引き継げるように、端末ごとにランダムに作られる匿名の同期ID（会員番号や氏名とは結び付きません）に紐づけてサーバーにも控えを保存します。控えは同じ同期IDからしか読み出せず、ほかの会員には公開されません。別の端末に引き継ぐ手順はページ下部の「評価を別の端末に引き継ぐ」をご覧ください。',
   },
   {
     q: 'このサイトはキャロットクラブの公式サイトですか？',
@@ -142,8 +138,7 @@ const faqJsonLd = {
     キャロットクラブ2025年募集馬{total}頭を、血統・測尺・一口価格・厩舎で並べ替え、絞り込みできる
     非公式の選定支援ツールです。評価・お気に入り・消・メモはこの端末のブラウザ内（localStorage）に
     保存され、再読み込みしても残ります（<a href="#sync-panel">同期IDで別の端末に引き継げます</a>）。
-    A〜Eの印だけは匿名で集計し、「みんな」列に他の利用者の評価の分かれ方として表示します
-    （メモ・お気に入り・消はほかの会員には公開されません）。
+    入力した内容がほかの会員に公開されることはありません。
   </p>
   <!-- 非公式である旨は BaseLayout のヘッダーで全ページに常時表示しているため、ここには重ねない -->
   <p class="year-switch">
@@ -306,7 +301,6 @@ const faqJsonLd = {
     <li>「母優先のみ」「手術・既往ありを除く」で候補を狭める</li>
     <li>各馬にA〜Eの評価・お気に入り（★）・消・メモを付け、「お気に入りのみ」「消を付けた馬を隠す」で見直す</li>
     <li>自分が付けたA〜Eで絞り込む（A・Bのように複数選べ、まだ印を付けていない「未評価」も選べます）</li>
-    <li>「みんな」列で、他の利用者がその馬にどのA〜Eを付けているか（人数の内訳）を見る</li>
     <li>気になった馬はその場で netkeiba の個体ページや X の検索結果を開いて調べる</li>
   </ul>
 
@@ -315,10 +309,6 @@ const faqJsonLd = {
     <li>まず「一口 (万円)」で出せる予算に絞り、頭数を減らします。</li>
     <li>父・母父・厩舎など、自分が重視する条件で並べ替えて上から眺めます。</li>
     <li>気になった馬の <strong>評価欄（馬名のすぐ右）</strong> でA〜Eを選ぶか、★を押します。</li>
-    <li>
-      その右の <strong>「みんな」列</strong> で、他の利用者の印の分かれ方を見比べます
-      （自分だけが高く見ている馬、意見が割れている馬が分かります）。
-    </li>
     <li>検討から外した馬は「消」にチェックを入れ、「消を付けた馬を隠す」で視界から外します。</li>
     <li>
       ひと通り印を付けたら、絞り込みの <strong>「自分の評価」</strong> でA・Bだけにチェックを入れて
@@ -793,8 +783,7 @@ const faqJsonLd = {
     // 行のマークアップはビルド時と共有する。ここで別に組み立てると二重管理になり、
     // 初期HTML（＝クローラーが見る内容）と描き直した後の表がずれる。
     import { COLUMNS, horseRowHtml } from '../../lib/horse-row.ts';
-    import { fetchPeerSummary, queueEvaluationSync } from '../../lib/evaluation-client.ts';
-    import type { EvaluationSummary, RatingCounts } from '../../lib/evaluation-api.ts';
+    import { queueEvaluationSync } from '../../lib/evaluation-client.ts';
     import { EVALUATIONS_RESTORED_EVENT } from '../../lib/sync.ts';
 
     // frontmatter の定数はクライアント側から参照できないので同じ値をここにも置く
@@ -839,12 +828,6 @@ const faqJsonLd = {
     const storageKey = storageKeyForYear(2025);
     let evaluations: EvaluationMap = loadEvaluations(window.localStorage, storageKey);
 
-    /**
-     * 他会員の評価分布。`null` = まだAPIから取れていない（表には「…」を出す）。
-     * 集計は年度ごとに分かれているので、この過去年度ページは2025年ぶんだけを取る。
-     */
-    let peerSummary: EvaluationSummary | null = null;
-
     function numberValue(input: HTMLInputElement): number | undefined {
       return input.value === '' ? undefined : Number(input.value);
     }
@@ -880,16 +863,6 @@ const faqJsonLd = {
       return ratingCheckboxes.filter((c) => c.checked).map((c) => c.value as RatingFilterValue);
     }
 
-    /**
-     * 「みんな」列に渡す値。未取得は `undefined`（「…」）、取得済みだが1票も無い馬は
-     * `null`（「−」）と区別する。同じ表示にすると、通信に失敗しているのか本当に0票なのかが
-     * 利用者に伝わらない。
-     */
-    function peerCountsFor(horseId: string): RatingCounts | null | undefined {
-      if (!peerSummary) return undefined;
-      return peerSummary[horseId] ?? null;
-    }
-
     function render() {
       let list = filterHorses(horses2025, currentFilter());
       // 評価はユーザーごとの状態なので、客観データのフィルタとは分けてここで適用する
@@ -905,9 +878,7 @@ const faqJsonLd = {
         list.length === 0
           ? `<tr><td colspan="${COLUMNS.length}">条件に一致する馬がいません。</td></tr>`
           : list
-              .map((h) =>
-                horseRowHtml(h, getEvaluation(evaluations, h.id), DETAIL_BASE_PATH, peerCountsFor(h.id)),
-              )
+              .map((h) => horseRowHtml(h, getEvaluation(evaluations, h.id), DETAIL_BASE_PATH))
               .join('');
       resultCount.textContent = `${list.length} / ${horses2025.length} 頭`;
 
@@ -1009,12 +980,5 @@ const faqJsonLd = {
 
     // 初期HTMLは未評価の状態なので、保存済みの評価を反映するために一度描き直す。
     render();
-
-    // 他会員の集計は非同期に載せる。表の描画を待たせないよう await せず、
-    // 届いたところでもう一度描き直す（届かなくても表はそのまま使える）。
-    void fetchPeerSummary(RECRUIT_YEAR).then((summary) => {
-      peerSummary = summary;
-      render();
-    });
   </script>
 </BaseLayout>
