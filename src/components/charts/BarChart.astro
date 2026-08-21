@@ -1,0 +1,136 @@
+---
+/**
+ * 縦棒（カラム）チャート。1系列の量の比較（体高階級ごとの平均賞金、等）専用。
+ * dataviz playbook準拠: 棒は角丸4px・上限24px幅、値はキャップ上に直接ラベル、
+ * ホバー/フォーカスで詳細ツールチップ（本文の共有スクリプトが `.viz-hit[data-tip]` を拾う）。
+ */
+interface Bar {
+  label: string;
+  value: number;
+  displayValue: string;
+  n?: number;
+}
+
+interface Props {
+  title: string;
+  bars: Bar[];
+  /** ツールチップの値の行ラベル（例: "平均中央獲得賞金" "頭数"） */
+  valueLabel: string;
+  height?: number;
+}
+
+const { title, bars, valueLabel, height = 260 } = Astro.props;
+
+const width = 640;
+const marginTop = 24;
+const marginBottom = 40;
+const marginLeft = 8;
+const marginRight = 8;
+const plotWidth = width - marginLeft - marginRight;
+const plotHeight = height - marginTop - marginBottom;
+
+const maxValue = Math.max(1, ...bars.map((b) => b.value));
+const niceMax = Math.ceil(maxValue / 10) * 10 || 1;
+
+const barGap = 10;
+const barWidth = Math.min(56, plotWidth / bars.length - barGap);
+const step = plotWidth / bars.length;
+
+function yFor(value: number) {
+  return marginTop + plotHeight * (1 - value / niceMax);
+}
+
+const gridLines = [0, 0.25, 0.5, 0.75, 1].map((t) => ({
+  y: marginTop + plotHeight * (1 - t),
+  value: Math.round(niceMax * t),
+}));
+---
+
+<div class="viz-root">
+  <p class="viz-title">{title}</p>
+  <svg viewBox={`0 0 ${width} ${height}`} role="img" aria-label={title} class="viz-svg">
+    {gridLines.map((g) => (
+      <line x1={marginLeft} x2={width - marginRight} y1={g.y} y2={g.y} class="viz-grid" />
+    ))}
+    {bars.map((bar, i) => {
+      const cx = marginLeft + step * i + step / 2;
+      const x = cx - barWidth / 2;
+      const y = yFor(bar.value);
+      const barHeight = marginTop + plotHeight - y;
+      const rows: [string, string][] = [[valueLabel, bar.displayValue]];
+      if (bar.n !== undefined) rows.push(['頭数', `${bar.n}頭`]);
+      const tip = JSON.stringify({ title: bar.label, rows });
+      return (
+        <g>
+          <rect
+            class="viz-hit viz-bar"
+            x={x}
+            y={y}
+            width={barWidth}
+            height={Math.max(0, barHeight)}
+            rx="4"
+            ry="4"
+            tabindex="0"
+            data-tip={tip}
+          />
+          <text x={cx} y={y - 8} class="viz-bar-label" text-anchor="middle">
+            {bar.displayValue}
+          </text>
+          <text x={cx} y={height - marginBottom + 18} class="viz-axis-label" text-anchor="middle">
+            {bar.label}
+          </text>
+        </g>
+      );
+    })}
+    <line
+      x1={marginLeft}
+      x2={width - marginRight}
+      y1={marginTop + plotHeight}
+      y2={marginTop + plotHeight}
+      class="viz-baseline"
+    />
+  </svg>
+  <p class="visually-hidden">
+    {title}: {bars.map((b) => `${b.label} ${valueLabel} ${b.displayValue}${b.n !== undefined ? `（${b.n}頭）` : ''}`).join('、 ')}
+  </p>
+</div>
+
+<style>
+  .viz-root {
+    --series-1: #2a78d6;
+    --series-1-dark: #3987e5;
+    position: relative;
+    margin: 1.25rem 0;
+  }
+  @media (prefers-color-scheme: dark) {
+    .viz-root { --series-1: var(--series-1-dark); }
+  }
+  .viz-title {
+    margin: 0 0 0.5rem;
+    font-weight: 600;
+    font-size: 0.9375rem;
+    color: var(--text);
+  }
+  .viz-svg { width: 100%; height: auto; display: block; overflow: visible; }
+  .viz-grid { stroke: var(--border); stroke-width: 1; }
+  .viz-baseline { stroke: var(--muted); stroke-width: 1; }
+  .viz-bar {
+    fill: var(--series-1);
+    cursor: pointer;
+    transition: opacity 0.1s ease;
+  }
+  .viz-bar:hover,
+  .viz-bar:focus-visible {
+    opacity: 0.75;
+    outline: none;
+  }
+  .viz-bar-label {
+    font-size: 12px;
+    font-weight: 600;
+    fill: var(--text);
+  }
+  .viz-axis-label {
+    font-size: 11px;
+    fill: var(--muted);
+  }
+</style>

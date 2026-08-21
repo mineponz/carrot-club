@@ -1,0 +1,55 @@
+---
+interface Tile {
+  label: string;
+  value: string;
+  note?: string;
+}
+interface Props {
+  tiles: Tile[];
+}
+const { tiles } = Astro.props;
+---
+
+<ul class="stat-tiles">
+  {tiles.map((t) => (
+    <li>
+      <p class="stat-value">{t.value}</p>
+      <p class="stat-label">{t.label}</p>
+      {t.note && <p class="stat-note">{t.note}</p>}
+    </li>
+  ))}
+</ul>
+
+<style>
+  .stat-tiles {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(9.5rem, 1fr));
+    gap: 0.75rem;
+    list-style: none;
+    margin: 1.25rem 0;
+    padding: 0;
+  }
+  .stat-tiles li {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 0.85rem 1rem;
+  }
+  .stat-value {
+    margin: 0;
+    font-size: 1.5rem;
+    font-weight: 700;
+    letter-spacing: -0.01em;
+    color: var(--text);
+  }
+  .stat-label {
+    margin: 0.15rem 0 0;
+    font-size: 0.8125rem;
+    color: var(--muted);
+  }
+  .stat-note {
+    margin: 0.3rem 0 0;
+    font-size: 0.75rem;
+    color: var(--muted);
+  }
+</style>

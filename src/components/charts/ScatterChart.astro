@@ -1,0 +1,198 @@
+---
+/**
+ * 二軸散布図。系列（性別など）は最大2〜3件を想定
+ * （dataviz playbookの「all-pairsは3系列まで」制約に合わせている）。
+ * 各点にツールチップ用の透明な当たり判定（半径12px、視覚上の点は半径4px）を重ねる。
+ */
+interface Point {
+  x: number;
+  y: number;
+  seriesKey: string;
+  tipTitle: string;
+  tipRows: [string, string][];
+}
+
+interface Series {
+  key: string;
+  label: string;
+  colorVar: string; // CSS変数名。例: '--series-1'
+}
+
+interface Props {
+  title: string;
+  points: Point[];
+  series: Series[];
+  xLabel: string;
+  yLabel: string;
+  xDomain: [number, number];
+  yDomain: [number, number];
+  xTicks: number[];
+  yTicks: number[];
+  formatX: (v: number) => string;
+  formatY: (v: number) => string;
+  height?: number;
+}
+
+const {
+  title,
+  points,
+  series,
+  xLabel,
+  yLabel,
+  xDomain,
+  yDomain,
+  xTicks,
+  yTicks,
+  formatX,
+  formatY,
+  height = 380,
+} = Astro.props;
+
+const width = 640;
+const marginTop = 16;
+const marginBottom = 44;
+const marginLeft = 56;
+const marginRight = 16;
+const plotWidth = width - marginLeft - marginRight;
+const plotHeight = height - marginTop - marginBottom;
+
+function xPx(v: number) {
+  return marginLeft + ((v - xDomain[0]) / (xDomain[1] - xDomain[0])) * plotWidth;
+}
+function yPx(v: number) {
+  return marginTop + (1 - (v - yDomain[0]) / (yDomain[1] - yDomain[0])) * plotHeight;
+}
+
+const seriesByKey = new Map(series.map((s) => [s.key, s]));
+---
+
+<div class="viz-root">
+  <div class="viz-header">
+    <p class="viz-title">{title}</p>
+    {series.length > 1 && (
+      <ul class="viz-legend">
+        {series.map((s) => (
+          <li>
+            <span class="viz-swatch" style={`background: var(${s.colorVar})`}></span>
+            {s.label}
+          </li>
+        ))}
+      </ul>
+    )}
+  </div>
+  <svg viewBox={`0 0 ${width} ${height}`} role="img" aria-label={title} class="viz-svg">
+    {yTicks.map((t) => (
+      <g>
+        <line x1={marginLeft} x2={width - marginRight} y1={yPx(t)} y2={yPx(t)} class="viz-grid" />
+        <text x={marginLeft - 8} y={yPx(t)} class="viz-tick viz-tick-y" text-anchor="end" dominant-baseline="middle">
+          {formatY(t)}
+        </text>
+      </g>
+    ))}
+    {xTicks.map((t) => (
+      <text x={xPx(t)} y={height - marginBottom + 20} class="viz-tick" text-anchor="middle">
+        {formatX(t)}
+      </text>
+    ))}
+    <line
+      x1={marginLeft}
+      x2={marginLeft}
+      y1={marginTop}
+      y2={marginTop + plotHeight}
+      class="viz-baseline"
+    />
+    <line
+      x1={marginLeft}
+      x2={width - marginRight}
+      y1={marginTop + plotHeight}
+      y2={marginTop + plotHeight}
+      class="viz-baseline"
+    />
+    <text
+      x={marginLeft}
+      y={marginTop - 4}
+      class="viz-axis-title"
+    >
+      {yLabel}
+    </text>
+    <text x={width - marginRight} y={height - 6} class="viz-axis-title" text-anchor="end">
+      {xLabel}
+    </text>
+    {points.map((p) => {
+      const s = seriesByKey.get(p.seriesKey);
+      const cx = xPx(p.x);
+      const cy = yPx(p.y);
+      const tip = JSON.stringify({ title: p.tipTitle, rows: p.tipRows });
+      return (
+        <g>
+          <circle cx={cx} cy={cy} r="4" class="viz-dot" style={`fill: var(${s?.colorVar ?? '--series-1'})`} />
+          <circle
+            cx={cx}
+            cy={cy}
+            r="12"
+            class="viz-hit"
+            tabindex="0"
+            data-tip={tip}
+          />
+        </g>
+      );
+    })}
+  </svg>
+</div>
+
+<style>
+  .viz-root {
+    --series-1: #2a78d6;
+    --series-1-dark: #3987e5;
+    --series-2: #eb6834;
+    --series-2-dark: #d95926;
+    position: relative;
+    margin: 1.25rem 0;
+  }
+  @media (prefers-color-scheme: dark) {
+    .viz-root {
+      --series-1: var(--series-1-dark);
+      --series-2: var(--series-2-dark);
+    }
+  }
+  .viz-header {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 0.5rem 1rem;
+    margin-bottom: 0.5rem;
+  }
+  .viz-title { margin: 0; font-weight: 600; font-size: 0.9375rem; color: var(--text); }
+  .viz-legend {
+    display: flex;
+    gap: 1rem;
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    font-size: 0.8125rem;
+    color: var(--muted);
+  }
+  .viz-legend li { display: flex; align-items: center; gap: 0.35rem; }
+  .viz-swatch { width: 10px; height: 10px; border-radius: 50%; display: inline-block; }
+  .viz-svg { width: 100%; height: auto; display: block; overflow: visible; }
+  .viz-grid { stroke: var(--border); stroke-width: 1; }
+  .viz-baseline { stroke: var(--muted); stroke-width: 1; }
+  .viz-tick { font-size: 11px; fill: var(--muted); }
+  .viz-tick-y { }
+  .viz-axis-title { font-size: 11px; fill: var(--muted); }
+  .viz-dot {
+    fill-opacity: 0.6;
+    stroke: var(--surface, var(--bg));
+    stroke-width: 1.5;
+    pointer-events: none;
+  }
+  .viz-hit {
+    fill: transparent;
+    cursor: pointer;
+  }
+  .viz-hit:focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 1px;
+  }
+</style>

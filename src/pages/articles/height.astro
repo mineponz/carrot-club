@@ -1,0 +1,450 @@
+---
+/**
+ * 分析記事「体高と成績の関係」。過去5年（2021〜2025年募集）470頭の募集時データと
+ * 現在の競走成績（`analysis/data/`）をクロス集計して見せる、募集馬一覧とは別系統のコンテンツページ。
+ * 広告は記事ページ専用のタグ（本人指定 / vault: 20260821-article-ad-embed-snippets）を使う。
+ *
+ * 2026-08-22の本人フィードバックで大きく書き直した:
+ * - データ取得元（外部サービス名）は本文に出さない
+ * - 賞金は中央+地方の合計で見る（分けると片方だけ稼ぐ馬の実力を見誤る）
+ * - 馬名は募集時の仮の名前でなく競走馬登録後の実名を出す（`displayName`）
+ * - 実際の重賞勝ち馬を「代表馬」として紹介する
+ * - 2026年募集馬が体高分布のどこに当てはまるかをアコーディオンで見せる
+ */
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import BarChart from '../../components/charts/BarChart.astro';
+import ScatterChart from '../../components/charts/ScatterChart.astro';
+import ChartTooltip from '../../components/charts/ChartTooltip.astro';
+import StatTiles from '../../components/charts/StatTiles.astro';
+import { loadRecruitsWithResults, racedOnly } from '../../lib/analysis-data.ts';
+import { histogram, pearsonCorrelation, bucketAverage, formatManYen } from '../../lib/chart-math.ts';
+import { horses2026 } from '../../data/horses2026.ts';
+
+const all = loadRecruitsWithResults();
+const raced = racedOnly(all);
+const unraced = all.length - raced.length;
+
+// ---- 体高階級（複数箇所で使い回す） ----
+const HEIGHT_BUCKETS: [string, number, number][] = [
+  ['〜149cm', -Infinity, 149],
+  ['150〜153cm', 150, 153],
+  ['154〜157cm', 154, 157],
+  ['158〜161cm', 158, 161],
+  ['162cm〜', 162, Infinity],
+];
+function bucketLabel(height: number): string {
+  for (const [label, lo, hi] of HEIGHT_BUCKETS) {
+    if (height >= lo && height <= hi) return label;
+  }
+  return '?';
+}
+const bucketOrder = HEIGHT_BUCKETS.map(([label]) => label);
+function orderBuckets<T extends { bucket: string }>(rows: T[]): T[] {
+  return bucketOrder.map((label) => rows.find((r) => r.bucket === label)).filter((r): r is T => !!r);
+}
+
+// ---- 体高の分布（全470頭） ----
+const heights = all.map((h) => h.height).filter((v): v is number => v !== null);
+const heightBins = histogram(heights, 3, 141, 168).map((b) => ({
+  label: `${b.binStart}〜${b.binEnd}`,
+  value: b.count,
+  displayValue: `${b.count}頭`,
+}));
+
+// ---- 散布図の表示上限 ----
+// 獲得賞金合計は少数の稼ぎ頭に大きく引っ張られる分布（下の代表馬紹介を参照）。
+// 全部を1つの散布図に収めると大半の点がグラフ下端に潰れて見えなくなるため、
+// 表示は1億円未満に絞り、それを超える馬は代表馬の一覧で個別に紹介する。
+const SCATTER_Y_MAX = 10000;
+
+// ---- 体高 × 獲得賞金合計（出走済みのみ） ----
+const racedWithHeight = raced.filter((h) => h.height !== null);
+const heightPrizeR = pearsonCorrelation(
+  racedWithHeight.map((h) => h.height as number),
+  racedWithHeight.map((h) => h.totalPrizeManYen)
+);
+const heightScatterAll = racedWithHeight.length;
+const heightScatterPoints = racedWithHeight
+  .filter((h) => h.totalPrizeManYen < SCATTER_Y_MAX)
+  .map((h) => ({
+    x: h.height as number,
+    y: h.totalPrizeManYen,
+    seriesKey: h.sex === '牝' ? 'female' : 'male',
+    tipTitle: h.displayName,
+    tipRows: [
+      ['体高', `${h.height}cm`],
+      ['獲得賞金合計', `${formatManYen(h.totalPrizeManYen)}万円`],
+      ['通算成績', `${h.starts}戦${h.wins}勝`],
+    ] as [string, string][],
+  }));
+const heightScatterOmitted = heightScatterAll - heightScatterPoints.length;
+
+// ---- 体高階級別の平均賞金・平均勝ち数 ----
+const prizeByHeightBucket = bucketAverage(
+  racedWithHeight,
+  (h) => bucketLabel(h.height as number),
+  (h) => h.totalPrizeManYen
+);
+const winsByHeightBucket = bucketAverage(
+  racedWithHeight,
+  (h) => bucketLabel(h.height as number),
+  (h) => h.wins ?? 0
+);
+const prizeBars = orderBuckets(prizeByHeightBucket).map((r) => ({
+  label: r.bucket,
+  value: r.avg,
+  displayValue: `${formatManYen(r.avg)}万円`,
+  n: r.n,
+}));
+const winBars = orderBuckets(winsByHeightBucket).map((r) => ({
+  label: r.bucket,
+  value: r.avg,
+  displayValue: `${r.avg.toFixed(2)}勝`,
+  n: r.n,
+}));
+
+// ---- 参考: 一口価格 × 獲得賞金合計 ----
+const racedWithPrice = raced.filter((h) => h.pricePerShare !== null);
+const pricePrizeR = pearsonCorrelation(
+  racedWithPrice.map((h) => h.pricePerShare as number),
+  racedWithPrice.map((h) => h.totalPrizeManYen)
+);
+const priceScatterAll = racedWithPrice.length;
+const priceScatterPoints = racedWithPrice
+  .filter((h) => h.totalPrizeManYen < SCATTER_Y_MAX)
+  .map((h) => ({
+    x: h.pricePerShare as number,
+    y: h.totalPrizeManYen,
+    seriesKey: h.sex === '牝' ? 'female' : 'male',
+    tipTitle: h.displayName,
+    tipRows: [
+      ['一口価格', `${h.pricePerShare}万円`],
+      ['獲得賞金合計', `${formatManYen(h.totalPrizeManYen)}万円`],
+      ['通算成績', `${h.starts}戦${h.wins}勝`],
+    ] as [string, string][],
+  }));
+const priceScatterOmitted = priceScatterAll - priceScatterPoints.length;
+
+const sexSeries = [
+  { key: 'male', label: '牡', colorVar: '--series-1' },
+  { key: 'female', label: '牝', colorVar: '--series-2' },
+];
+
+// ---- 代表馬（重賞勝ち馬） ----
+const gradeWinners = all
+  .filter((h) => h.gradeWins.length > 0)
+  .sort((a, b) => b.totalPrizeManYen - a.totalPrizeManYen);
+const gradeWinnerHeights = gradeWinners.map((h) => h.height as number);
+const gradeHeightMin = Math.min(...gradeWinnerHeights);
+const gradeHeightMax = Math.max(...gradeWinnerHeights);
+const gradeWinnersIn154to157 = gradeWinners.filter(
+  (h) => (h.height ?? 0) >= 154 && (h.height ?? 0) <= 157
+).length;
+
+// ---- 2026年募集馬が体高分布のどこに当てはまるか ----
+const buckets2026 = HEIGHT_BUCKETS.map(([label]) => ({
+  label,
+  horses: horses2026
+    .filter((h) => bucketLabel(h.height) === label)
+    .sort((a, b) => a.height - b.height),
+}));
+
+const yearCounts = [2021, 2022, 2023, 2024, 2025]
+  .map((y) => `${y}年${all.filter((h) => h.recruitYear === y).length}頭`)
+  .join('・');
+
+const description =
+  '【非公式】キャロットクラブ過去5年470頭の募集時データと現在の競走成績を独自集計。体高・一口価格と獲得賞金・重賞勝ち馬の関係を散布図で見る分析記事。';
+---
+
+<BaseLayout
+  title="体高と成績の関係を470頭のデータで見る"
+  description={description}
+  breadcrumb={[{ label: '分析記事', href: '/articles/' }, { label: '体高と成績の関係', href: '/articles/height/' }]}
+  showHeaderNotices={false}
+>
+  <article>
+    <h1>体高と成績の関係を、過去5年470頭のデータで見てみた</h1>
+
+    <p>
+      キャロットクラブの募集馬選びで「体高が大きい方が良さそうだ」と私は何となく思っていたんだけど、
+      実際どうなんだろうと思って調べてみた。過去5年（2021〜2025年募集、{yearCounts}）の募集時データ
+      を自分のスプレッドシートから取り込み、現在の獲得賞金・通算成績を取得して突き合わせた、
+      独自集計の結果。
+    </p>
+
+    <StatTiles
+      tiles={[
+        { label: '対象頭数', value: `${all.length}頭` },
+        { label: '出走済み', value: `${raced.length}頭` },
+        { label: '未出走', value: `${unraced}頭`, note: '主に2024・2025年募集組' },
+        {
+          label: '体高 × 獲得賞金合計',
+          value: heightPrizeR !== null ? `r=${heightPrizeR.toFixed(3)}` : '—',
+          note: '弱い正の相関',
+        },
+        {
+          label: '一口価格 × 獲得賞金合計',
+          value: pricePrizeR !== null ? `r=${pricePrizeR.toFixed(3)}` : '—',
+          note: 'ほぼ無相関（参考）',
+        },
+      ]}
+    />
+
+    <div class="ad-slot ad-slot-sp">
+      <!-- admax -->
+      <script is:inline src="https://adm.shinobi.jp/s/f81bbb016a82d6366a0e2f70051b1a0c"></script>
+      <!-- admax -->
+    </div>
+
+    <h2>体高の分布</h2>
+    <p>
+      まず母集団を見ておくと、470頭の体高は143.5〜165cmに収まっていて、平均154.2cm・中央値154cm。
+      3cm刻みでヒストグラムにするとこんな感じ。
+    </p>
+    <BarChart title="体高の分布（全470頭・3cm刻み）" bars={heightBins} valueLabel="頭数" />
+
+    <h2>体高 × 獲得賞金合計</h2>
+    <p>
+      出走済みの{raced.length}頭で、体高と獲得賞金合計（中央+地方、万円）を散布図にしてみた。
+      点にカーソルを合わせる（スマホはタップ）と馬名と成績が出る。相関係数は
+      r={heightPrizeR?.toFixed(3)} で、「体高が大きいほど稼ぐ」と言い切れるほど強くはない、
+      かなり弱い正の相関にとどまった。
+      {heightScatterOmitted > 0 && (
+        <>獲得賞金合計が1億円を超える{heightScatterOmitted}頭はグラフの外に出るため省略した
+        （後述の代表馬紹介を参照）。</>
+      )}
+    </p>
+    <ScatterChart
+      title={`体高 × 獲得賞金合計（出走済み・1億円未満${heightScatterPoints.length}頭）`}
+      points={heightScatterPoints}
+      series={sexSeries}
+      xLabel="体高(cm)"
+      yLabel="獲得賞金合計(万円)"
+      xDomain={[141, 168]}
+      yDomain={[0, SCATTER_Y_MAX]}
+      xTicks={[145, 150, 155, 160, 165]}
+      yTicks={[0, 2500, 5000, 7500, 10000]}
+      formatX={(v) => `${v}`}
+      formatY={(v) => (v === 0 ? '0' : `${v / 1000}k`)}
+    />
+
+    <h2>体高階級別に見ると</h2>
+    <p>
+      5階級に分けて平均を取ると傾向がもう少しはっきりする。154cm以上の階級がおおむね平均賞金・
+      平均勝ち数ともに高めで、149cm以下は両方とも低い。ただし162cm以上はサンプルが
+      {winBars.find((b) => b.label === '162cm〜')?.n ?? 0}頭しかいないので、この階級だけは参考程度に見てほしい。
+    </p>
+    <BarChart title="体高階級別 平均獲得賞金合計" bars={prizeBars} valueLabel="平均獲得賞金合計" />
+    <BarChart title="体高階級別 平均勝ち数" bars={winBars} valueLabel="平均勝ち数" />
+
+    <div class="ad-pair">
+      <div class="ad-slot ad-slot-sp">
+        <!-- admax -->
+        <script is:inline src="https://adm.shinobi.jp/s/b4b7d55c89d5fc92c564979491a16ad1"></script>
+        <!-- admax -->
+      </div>
+      <div class="ad-slot ad-slot-pc">
+        <!-- admax -->
+        <script is:inline src="https://adm.shinobi.jp/s/f0efb5bd6ae3e164bb584a4dbb846f48"></script>
+        <!-- admax -->
+      </div>
+      <div class="ad-slot ad-slot-pc">
+        <!-- admax -->
+        <script is:inline src="https://adm.shinobi.jp/s/0a525f6469ec1f40642b4550e53d39cc"></script>
+        <!-- admax -->
+      </div>
+    </div>
+
+    <h2>実際にどんな馬がいたか</h2>
+    <p>
+      相関係数だけだと実感が湧かないので、この470頭の中で実際に重賞を勝った馬を全部並べておく。
+      名前は競走馬登録後の実名（募集時の仮の名前とは別に付けられる）。
+    </p>
+    <div class="table-scroll">
+      <table class="grade-winners">
+        <thead>
+          <tr>
+            <th>馬名</th>
+            <th>募集年</th>
+            <th>体高</th>
+            <th>一口価格</th>
+            <th>主な勝鞍</th>
+            <th>通算成績</th>
+            <th>獲得賞金合計</th>
+          </tr>
+        </thead>
+        <tbody>
+          {gradeWinners.map((h) => (
+            <tr>
+              <td>{h.displayName}</td>
+              <td>{h.recruitYear}年</td>
+              <td>{h.height}cm</td>
+              <td>{h.pricePerShare}万円</td>
+              <td>{h.gradeWins.join('、')}</td>
+              <td>{h.starts}戦{h.wins}勝</td>
+              <td>{formatManYen(h.totalPrizeManYen)}万円</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+    <p class="table-note">
+      {gradeWinners.length}頭が重賞（中央G1〜G3・Jpn1〜3、地方重賞含む）を勝っている。体高で言うと
+      {gradeWinnersIn154to157}頭が154〜157cm階級で、この階級が数でも実績でも層が厚い。
+      ただし実際の重賞勝ち馬は{gradeHeightMin}〜{gradeHeightMax}cmの範囲に収まっていて、
+      体高の分布全体（143.5〜165cm）で見るとむしろ真ん中寄りに集中している。とはいえ
+      重賞勝ち馬は{gradeWinners.length}頭とサンプルが小さいので、両端の体高から重賞馬が
+      出ていないと断言できるほどではない。
+    </p>
+
+    <h2>参考: 一口価格との比較</h2>
+    <p>
+      「じゃあ高い馬を選べばいいのでは」と思う人もいるはずなので、一口価格と獲得賞金合計の関係も
+      同じ形式で並べておく。相関係数は r={pricePrizeR?.toFixed(3)} でほぼゼロ。体高よりもさらに
+      予測力が無かった。
+      {priceScatterOmitted > 0 && <>（1億円超えの{priceScatterOmitted}頭はここでも省略）</>}
+      価格帯で見ても平均賞金はほとんど横並びで、一口価格は「その年の人気・血統への期待値」で
+      あって「将来の稼ぎ」を予測する指標ではなさそう、というのが今回の実感。
+    </p>
+    <ScatterChart
+      title={`一口価格 × 獲得賞金合計（出走済み・価格データあり・1億円未満${priceScatterPoints.length}頭）`}
+      points={priceScatterPoints}
+      series={sexSeries}
+      xLabel="一口価格(万円)"
+      yLabel="獲得賞金合計(万円)"
+      xDomain={[0, 42]}
+      yDomain={[0, SCATTER_Y_MAX]}
+      xTicks={[0, 10, 20, 30, 40]}
+      yTicks={[0, 2500, 5000, 7500, 10000]}
+      formatX={(v) => `${v}`}
+      formatY={(v) => (v === 0 ? '0' : `${v / 1000}k`)}
+    />
+
+    <h2>2026年募集馬はどこに当てはまる？</h2>
+    <p>
+      せっかくなので、今の2026年募集{horses2026.length}頭の体高が、この階級分けのどこに入るかも
+      並べておく（下の各行をタップすると開く。馬名は個別ページへのリンク）。血統・価格・厩舎
+      など他の条件でも並べ替え・絞り込みしたい場合は<a href="/">出資馬検討ツール</a>もどうぞ。
+    </p>
+    {buckets2026.map((b) => (
+      <details class="bucket-accordion">
+        <summary>{b.label}（{b.horses.length}頭）</summary>
+        <ul>
+          {b.horses.map((h) => (
+            <li>
+              <a href={`/horses/${h.id}/`}>{h.name}</a>
+              <span class="bucket-meta">{h.height}cm・{h.sex}・{h.sire}</span>
+            </li>
+          ))}
+        </ul>
+      </details>
+    ))}
+
+    <h2>まとめ</h2>
+    <ul class="conclusion">
+      <li>体高と獲得賞金合計には弱い正の相関（r={heightPrizeR?.toFixed(3)}）があったが、
+        「体高が大きいほど稼ぐ」と言い切れるほどではない。</li>
+      <li>一口価格と獲得賞金合計はほぼ無相関（r={pricePrizeR?.toFixed(3)}）。価格は将来の稼ぎを
+        予測しない。</li>
+      <li>実際の重賞勝ち馬は154〜157cm階級が最も厚く、体高でいうと{gradeHeightMin}〜
+        {gradeHeightMax}cmに収まっていた（母集団全体143.5〜165cmの中では真ん中寄り）。
+        サンプル{gradeWinners.length}頭とまだ小さいので、体高だけで足切りする根拠と言えるほどでは
+        ない。</li>
+      <li>体高・価格よりも、血統・厩舎・個体そのものの見立てのほうが結局は効きそう、という
+        当たり前の結論に落ち着いた。</li>
+    </ul>
+
+    <h2>データについて</h2>
+    <p>
+      募集時データは自分が5年分ためてきたスプレッドシートが元。競走成績は現時点
+      （2026年8月時点）のスナップショットで、今後レースを重ねるたびに変わっていく。
+      2024・2025年募集組はまだ大半が未出走〜デビュー間もないため、今回の集計は出走済みの
+      {raced.length}頭（主に2021〜2023年募集組）が中心になっている点は割り引いて見てほしい。
+      獲得賞金は中央（JRA）・地方（NAR）の合計で、海外レースで得た賞金は含まれていない。
+      相関係数はあくまで線形の関係の強さの目安で、これだけで「体高が原因で稼ぐ」と言えるわけ
+      ではない（良い血統・良い厩舎の馬がたまたま大きく育つ、といった別の要因が絡んでいる
+      可能性もある）。出資判断の材料というより、あくまで趣味の分析として楽しんでもらえたら。
+    </p>
+
+    <p>
+      <a href="/">募集馬一覧へ戻る</a> ／ <a href="/articles/">分析記事一覧へ</a>
+    </p>
+  </article>
+
+  <ChartTooltip />
+</BaseLayout>
+
+<style>
+  article :global(h2) {
+    margin-top: 2.5rem;
+  }
+  .table-scroll {
+    overflow-x: auto;
+    margin: 1rem 0;
+  }
+  table.grade-winners {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.875rem;
+    white-space: nowrap;
+  }
+  table.grade-winners th,
+  table.grade-winners td {
+    padding: 0.4rem 0.6rem;
+    border-bottom: 1px solid var(--border);
+    text-align: left;
+  }
+  table.grade-winners th {
+    color: var(--muted);
+    font-weight: 600;
+  }
+  .table-note {
+    font-size: 0.8125rem;
+    color: var(--muted);
+  }
+  .ad-pair {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1rem;
+    align-items: flex-start;
+  }
+  .ad-pair .ad-slot {
+    margin-top: 0;
+    flex: 1;
+    min-width: 160px;
+  }
+  .bucket-accordion {
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 0.5rem 0.85rem;
+    margin: 0.5rem 0;
+  }
+  .bucket-accordion summary {
+    cursor: pointer;
+    font-weight: 600;
+    padding: 0.25rem 0;
+  }
+  .bucket-accordion ul {
+    list-style: none;
+    margin: 0.5rem 0 0.25rem;
+    padding: 0;
+  }
+  .bucket-accordion li {
+    padding: 0.25rem 0;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    align-items: baseline;
+  }
+  .bucket-meta {
+    font-size: 0.8125rem;
+    color: var(--muted);
+  }
+  .conclusion {
+    padding-left: 1.25rem;
+  }
+  .conclusion li + li {
+    margin-top: 0.5rem;
+  }
+</style>

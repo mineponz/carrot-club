@@ -1,0 +1,140 @@
+---
+/**
+ * 全チャート共通のホバー/フォーカス・ツールチップ。ページに1つだけ置く。
+ * `.viz-hit[data-tip]`（BarChart / ScatterChart が出す当たり判定要素）を委譲イベントで拾う。
+ * data-tip の中身は信頼しない外部由来データ（馬名など）を含みうるため textContent で挿入する。
+ */
+---
+
+<div id="viz-tooltip" class="viz-tooltip" role="tooltip" hidden></div>
+
+<style is:global>
+  .viz-tooltip {
+    position: fixed;
+    z-index: 20;
+    pointer-events: none;
+    background: var(--surface);
+    color: var(--text);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 0.5rem 0.65rem;
+    font-size: 0.8125rem;
+    line-height: 1.5;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
+    max-width: 220px;
+  }
+  .viz-tooltip[hidden] { display: none; }
+  .viz-tooltip .tip-title { font-weight: 700; margin: 0 0 0.25rem; }
+  .viz-tooltip .tip-row { display: flex; justify-content: space-between; gap: 0.75rem; }
+  .viz-tooltip .tip-row + .tip-row { margin-top: 0.1rem; }
+  .viz-tooltip .tip-value { font-weight: 600; }
+
+  .viz-hit[data-tip].is-active + .viz-dot,
+  .viz-hit[data-tip].is-active {
+    filter: brightness(1.1);
+  }
+</style>
+
+<script>
+  interface TipData {
+    title: string;
+    rows: [string, string][];
+  }
+
+  const tooltip = document.getElementById('viz-tooltip');
+  if (tooltip) {
+    let activeHit: Element | null = null;
+
+    function render(data: TipData) {
+      if (!tooltip) return;
+      tooltip.replaceChildren();
+      const titleEl = document.createElement('p');
+      titleEl.className = 'tip-title';
+      titleEl.textContent = data.title;
+      tooltip.appendChild(titleEl);
+      for (const [label, value] of data.rows) {
+        const row = document.createElement('div');
+        row.className = 'tip-row';
+        const labelEl = document.createElement('span');
+        labelEl.textContent = label;
+        const valueEl = document.createElement('span');
+        valueEl.className = 'tip-value';
+        valueEl.textContent = value;
+        row.append(labelEl, valueEl);
+        tooltip.appendChild(row);
+      }
+    }
+
+    function position(clientX: number, clientY: number) {
+      if (!tooltip) return;
+      const pad = 12;
+      const rect = tooltip.getBoundingClientRect();
+      let left = clientX + pad;
+      let top = clientY + pad;
+      if (left + rect.width > window.innerWidth - 8) left = clientX - rect.width - pad;
+      if (top + rect.height > window.innerHeight - 8) top = clientY - rect.height - pad;
+      tooltip.style.left = `${Math.max(8, left)}px`;
+      tooltip.style.top = `${Math.max(8, top)}px`;
+    }
+
+    function show(hit: Element, clientX: number, clientY: number) {
+      const raw = hit.getAttribute('data-tip');
+      if (!raw || !tooltip) return;
+      let data: TipData;
+      try {
+        data = JSON.parse(raw);
+      } catch {
+        return;
+      }
+      render(data);
+      tooltip.hidden = false;
+      position(clientX, clientY);
+      activeHit?.classList.remove('is-active');
+      activeHit = hit;
+      hit.classList.add('is-active');
+      const prevDot = hit.previousElementSibling;
+      if (prevDot?.classList.contains('viz-dot')) {
+        (prevDot as SVGCircleElement).setAttribute('r', '6');
+      }
+    }
+
+    function hide() {
+      if (!tooltip) return;
+      tooltip.hidden = true;
+      if (activeHit) {
+        activeHit.classList.remove('is-active');
+        const prevDot = activeHit.previousElementSibling;
+        if (prevDot?.classList.contains('viz-dot')) {
+          (prevDot as SVGCircleElement).setAttribute('r', '4');
+        }
+      }
+      activeHit = null;
+    }
+
+    document.addEventListener('pointermove', (e) => {
+      const target = (e.target as Element)?.closest?.('.viz-hit[data-tip]');
+      if (target) show(target, e.clientX, e.clientY);
+      else hide();
+    });
+    document.addEventListener('pointerleave', hide, true);
+
+    document.addEventListener(
+      'focusin',
+      (e) => {
+        const target = (e.target as Element)?.closest?.('.viz-hit[data-tip]');
+        if (!target) return;
+        const rect = target.getBoundingClientRect();
+        show(target, rect.left + rect.width / 2, rect.top);
+      },
+      true
+    );
+    document.addEventListener(
+      'focusout',
+      (e) => {
+        const target = (e.target as Element)?.closest?.('.viz-hit[data-tip]');
+        if (target) hide();
+      },
+      true
+    );
+  }
+</script>

@@ -1,7 +1,10 @@
 /**
- * 2026年募集馬の客観データ（94頭）。
+ * 2026年募集馬の客観データ（93頭）。
  *
- * このファイルは `scripts/fetch-2026-data.mjs` が生成する。手で編集しない。
+ * このファイルは本来 `scripts/fetch-2026-data.mjs` が生成するが、No.56
+ * 「マルシュロレーヌの25」は募集取り消しになったため2026-08-22に手で削除した
+ * （本人からのチャット報告）。再生成すると元CSVにまだ載っていた場合は復活するので、
+ * 次回スクリプトを再実行する際はクラブ公式リストの最新版（取り消し反映済みのもの）を使うこと。
  * 元CSV（クラブ公式・Shift-JIS）はリポジトリにコミットしていない。
  * netkeibaUrl / damUrl / damAge / sibling は netkeiba から自動取得した値。
  * surgery は今年の情報源が無いため全件空文字。
@@ -1164,27 +1167,6 @@ export const horses2026: Horse[] = [
     "damPriority": false,
     "surgery": "",
     "xSearchUrl": "https://x.com/search?q=ウィンターパワー&src=typed_query"
-  },
-  {
-    "id": "56",
-    "name": "マルシュロレーヌの25",
-    "sex": "牡",
-    "netkeibaUrl": "https://db.netkeiba.com/horse/2025107315/",
-    "damUrl": "https://db.netkeiba.com/horse/2016104426/",
-    "sire": "キズナ",
-    "broodmareSire": "オルフェーヴル",
-    "damAge": 9,
-    "birthDate": "2025-05-06",
-    "stable": "矢作芳人",
-    "pricePerShare": 30,
-    "height": 158,
-    "chestGirth": 172,
-    "caretGirth": 20.7,
-    "weight": 430,
-    "sibling": "マルシュボヌール",
-    "damPriority": true,
-    "surgery": "",
-    "xSearchUrl": "https://x.com/search?q=マルシュロレーヌ&src=typed_query"
   },
   {
     "id": "57",

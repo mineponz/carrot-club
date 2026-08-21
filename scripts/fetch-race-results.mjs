@@ -76,20 +76,53 @@ function normalizeToDesktopUrl(url) {
 }
 
 function toYen10k(raw) {
-  // "1,930万円" → 1930 / "0万円" → 0 / "-" → null
+  // "1,930万円" → 1930 / "0万円" → 0 / "6億5,897万円" → 65897 / "-" → null
+  // 1億円以上は netkeiba が「X億Y,YYY万円」表記に切り替える（当初 "([\d,]+)万円" 単体の
+  // 正規表現だとこの形式にマッチせず、ダービー馬級の高額賞金馬が軒並みnull扱いになるバグが
+  // あった。2026-08-22、本人から「タスティエーラ(6億稼いでいるはず)が反映されていない」との
+  // 指摘で発覚）。
   const trimmed = raw.trim();
   if (trimmed === '-' || trimmed === '') return null;
-  const m = trimmed.match(/^([\d,]+)万円$/);
+  const m = trimmed.match(/^(?:(\d+)億)?([\d,]*)万円$/);
   if (!m) return null;
-  return Number(m[1].replace(/,/g, ''));
+  const oku = m[1] ? Number(m[1]) : 0;
+  const man = m[2] ? Number(m[2].replace(/,/g, '')) : 0;
+  return oku * 10000 + man;
 }
+
+/** 主な勝鞍セルには表示分に加えてHTMLコメントで隠れた追加の勝鞍が入ることがある
+ *  （例: タスティエーラは日本ダービー(G1)が表示・クイーンエリザベス2世C(G1)がコメント内）。
+ *  コメントの内外を問わず <a href="/race/...">のtitleを全部拾う。 */
+function extractMainWins(cellHtml) {
+  const wins = [];
+  const re = /<a href="\/race\/[^"]*"\s+title="([^"]+)"/g;
+  let m;
+  while ((m = re.exec(cellHtml))) {
+    wins.push(m[1]);
+  }
+  return wins;
+}
+
+const GRADE_RE = /\((G1|G2|G3|Jpn1|Jpn2|Jpn3)\)/;
+
+/**
+ * netkeibaの「主な勝鞍」欄は地方（NAR）限定の重賞だと格付け表記「(Jpn2)」等が付かないことがある
+ * （例: 京浜盃はJpn2格だがnetkeibaの表示は「京浜盃」のみで括弧書きが無い）。本人が地方重賞と
+ * 確認したレース名はここに追記する（2026-08-22・ロックターミガンの京浜盃で発覚）。
+ */
+const KNOWN_UNGRADED_NAR_STAKES = new Set(['京浜盃']);
 
 function parseHorsePage(html, url) {
   const chuoM = html.match(/獲得賞金\s*\(中央\)<\/th>\s*<td>\s*([^<]+?)\s*<\/td>/);
   const chihoM = html.match(/獲得賞金\s*\(地方\)<\/th>\s*<td>\s*([^<]+?)\s*<\/td>/);
+  // 通算成績の[ ]内は [1着-2着-3着-着外] の順（1着は勝ち数と同じ値になるはずの検算用）。
   const recordM = html.match(
     /通算成績<\/th>\s*<td>(\d+)戦(\d+)勝\s*\[<a[^>]*>(\d+)-(\d+)-(\d+)-(\d+)<\/a>\]/
   );
+  const nameM = html.match(/<h1[^>]*>\s*([^<]+?)\s*<\/h1>/);
+  const mainWinM = html.match(/主な勝鞍<\/th>\s*<td>([\s\S]*?)<\/td>/);
+  const mainWins = mainWinM ? extractMainWins(mainWinM[1]) : [];
+  const gradeWins = mainWins.filter((w) => GRADE_RE.test(w) || KNOWN_UNGRADED_NAR_STAKES.has(w));
 
   if (!chuoM && !chihoM && !recordM) {
     return { ok: false, url };
@@ -98,13 +131,16 @@ function parseHorsePage(html, url) {
   return {
     ok: true,
     url,
+    name: nameM ? nameM[1] : null,
     chuoPrizeManYen: chuoM ? toYen10k(chuoM[1]) : null,
     chihoPrizeManYen: chihoM ? toYen10k(chihoM[1]) : null,
     starts: recordM ? Number(recordM[1]) : null,
     wins: recordM ? Number(recordM[2]) : null,
-    seconds: recordM ? Number(recordM[3]) : null,
-    thirds: recordM ? Number(recordM[4]) : null,
-    others: recordM ? Number(recordM[5]) : null,
+    seconds: recordM ? Number(recordM[4]) : null,
+    thirds: recordM ? Number(recordM[5]) : null,
+    others: recordM ? Number(recordM[6]) : null,
+    mainWins,
+    gradeWins,
   };
 }
 
@@ -160,9 +196,12 @@ async function main() {
 
   const unraced = results.filter((r) => r.starts === 0).length;
   const raced = results.filter((r) => r.starts > 0).length;
+  const gradeWinners = results.filter((r) => r.gradeWins.length > 0).length;
+  const overOku = results.filter((r) => (r.chuoPrizeManYen ?? 0) >= 10000).length;
   console.log(`\n合計 ${results.length}/${targets.length}頭 を ${outPath} に書き出しました`);
   console.log(`  パース失敗: ${failCount}件 / キャッシュヒット: ${cacheHits}件`);
   console.log(`  出走済み: ${raced}頭 / 未出走(0戦): ${unraced}頭`);
+  console.log(`  重賞(G1〜G3/Jpn1〜3)勝ち馬: ${gradeWinners}頭 / 中央獲得賞金1億円以上: ${overOku}頭`);
 }
 
 main().catch((err) => {
