@@ -17,7 +17,13 @@ import ScatterChart from '../../components/charts/ScatterChart.astro';
 import ChartTooltip from '../../components/charts/ChartTooltip.astro';
 import StatTiles from '../../components/charts/StatTiles.astro';
 import { loadRecruitsWithResults, racedOnly } from '../../lib/analysis-data.ts';
-import { histogram, pearsonCorrelation, bucketAverage, formatManYen } from '../../lib/chart-math.ts';
+import {
+  histogram,
+  pearsonCorrelation,
+  bucketAverage,
+  countByBucket,
+  formatManYen,
+} from '../../lib/chart-math.ts';
 import { horses2026 } from '../../data/horses2026.ts';
 
 const all = loadRecruitsWithResults();
@@ -25,16 +31,19 @@ const raced = racedOnly(all);
 const unraced = all.length - raced.length;
 
 // ---- 体高階級（複数箇所で使い回す） ----
+// 上限は「その値未満」で持つ。体高は0.5cm刻みで入っているため、上限を149・153…と
+// 整数の以下で書くと 149.5 / 153.5 / 157.5 / 161.5cm の馬（470頭中39頭）がどの階級にも
+// 入らず、階級別の集計から黙って抜け落ちる。ラベルも実際に入る範囲（.5まで）で書く。
 const HEIGHT_BUCKETS: [string, number, number][] = [
-  ['〜149cm', -Infinity, 149],
-  ['150〜153cm', 150, 153],
-  ['154〜157cm', 154, 157],
-  ['158〜161cm', 158, 161],
+  ['〜149.5cm', -Infinity, 150],
+  ['150〜153.5cm', 150, 154],
+  ['154〜157.5cm', 154, 158],
+  ['158〜161.5cm', 158, 162],
   ['162cm〜', 162, Infinity],
 ];
 function bucketLabel(height: number): string {
-  for (const [label, lo, hi] of HEIGHT_BUCKETS) {
-    if (height >= lo && height <= hi) return label;
+  for (const [label, lo, hiExclusive] of HEIGHT_BUCKETS) {
+    if (height >= lo && height < hiExclusive) return label;
   }
   return '?';
 }
@@ -90,11 +99,25 @@ const winsByHeightBucket = bucketAverage(
   (h) => bucketLabel(h.height as number),
   (h) => h.wins ?? 0
 );
+// 階級ごとの「母集団の頭数」と「重賞勝ち馬の頭数」。棒の高さ（平均賞金）の母数は出走済みだけ
+// なので、`n`（＝出走済み頭数）とは別物として軸の下に併記する。
+// 重賞馬の絞り込み条件は下の「代表馬」節の `gradeWinners` と同じ（あちらは賞金順に並べたいので
+// 別に持つ）。ここで `gradeWinners` を参照すると宣言前の参照になるため `all` から数え直す。
+const allByHeightBucket = countByBucket(
+  all.filter((h) => h.height !== null),
+  (h) => bucketLabel(h.height as number)
+);
+const gradeWinnersByHeightBucket = countByBucket(
+  all.filter((h) => h.height !== null && h.gradeWins.length > 0),
+  (h) => bucketLabel(h.height as number)
+);
+
 const prizeBars = orderBuckets(prizeByHeightBucket).map((r) => ({
   label: r.bucket,
   value: r.avg,
   displayValue: `${formatManYen(r.avg)}万円`,
   n: r.n,
+  note: `全${allByHeightBucket.get(r.bucket) ?? 0}頭・重賞${gradeWinnersByHeightBucket.get(r.bucket) ?? 0}頭`,
 }));
 const winBars = orderBuckets(winsByHeightBucket).map((r) => ({
   label: r.bucket,
@@ -137,9 +160,8 @@ const gradeWinners = all
 const gradeWinnerHeights = gradeWinners.map((h) => h.height as number);
 const gradeHeightMin = Math.min(...gradeWinnerHeights);
 const gradeHeightMax = Math.max(...gradeWinnerHeights);
-const gradeWinnersIn154to157 = gradeWinners.filter(
-  (h) => (h.height ?? 0) >= 154 && (h.height ?? 0) <= 157
-).length;
+// グラフの階級と食い違わないよう、階級の数え上げ（gradeWinnersByHeightBucket）から取る
+const gradeWinnersInMidBucket = gradeWinnersByHeightBucket.get('154〜157.5cm') ?? 0;
 
 // ---- 2026年募集馬が体高分布のどこに当てはまるか ----
 const buckets2026 = HEIGHT_BUCKETS.map(([label]) => ({
@@ -234,10 +256,22 @@ const description =
     <h2>体高階級別に見ると</h2>
     <p>
       5階級に分けて平均を取ると傾向がもう少しはっきりする。154cm以上の階級がおおむね平均賞金・
-      平均勝ち数ともに高めで、149cm以下は両方とも低い。ただし162cm以上はサンプルが
+      平均勝ち数ともに高めで、149.5cm以下は両方とも低い。ただし162cm以上はサンプルが
       {winBars.find((b) => b.label === '162cm〜')?.n ?? 0}頭しかいないので、この階級だけは参考程度に見てほしい。
     </p>
-    <BarChart title="体高階級別 平均獲得賞金合計" bars={prizeBars} valueLabel="平均獲得賞金合計" />
+    <p>
+      1つ目のグラフは軸の下に、その階級の母集団（体高が分かっている469頭ベース）の頭数と、そのうち重賞を
+      勝った馬の頭数を併記した。棒の高さ（平均獲得賞金合計）の母数はこのうち出走済みの馬だけ
+      なので、頭数は棒にカーソルを合わせる（スマホはタップ）と両方出る。階級の分け方は
+      2つ目のグラフも同じなので、頭数の併記は1つ目にまとめてある。
+    </p>
+    <BarChart
+      title="体高階級別 平均獲得賞金合計"
+      bars={prizeBars}
+      valueLabel="平均獲得賞金合計"
+      nLabel="平均の母数（出走済み）"
+      noteLabel="階級全体"
+    />
     <BarChart title="体高階級別 平均勝ち数" bars={winBars} valueLabel="平均勝ち数" />
 
     <div class="ad-pair">
@@ -292,7 +326,7 @@ const description =
     </div>
     <p class="table-note">
       {gradeWinners.length}頭が重賞（中央G1〜G3・Jpn1〜3、地方重賞含む）を勝っている。体高で言うと
-      {gradeWinnersIn154to157}頭が154〜157cm階級で、この階級が数でも実績でも層が厚い。
+      {gradeWinnersInMidBucket}頭が154〜157.5cm階級で、この階級が数でも実績でも層が厚い。
       ただし実際の重賞勝ち馬は{gradeHeightMin}〜{gradeHeightMax}cmの範囲に収まっていて、
       体高の分布全体（143.5〜165cm）で見るとむしろ真ん中寄りに集中している。とはいえ
       重賞勝ち馬は{gradeWinners.length}頭とサンプルが小さいので、両端の体高から重賞馬が
@@ -348,7 +382,7 @@ const description =
         「体高が大きいほど稼ぐ」と言い切れるほどではない。</li>
       <li>一口価格と獲得賞金合計はほぼ無相関（r={pricePrizeR?.toFixed(3)}）。価格は将来の稼ぎを
         予測しない。</li>
-      <li>実際の重賞勝ち馬は154〜157cm階級が最も厚く、体高でいうと{gradeHeightMin}〜
+      <li>実際の重賞勝ち馬は154〜157.5cm階級が最も厚く、体高でいうと{gradeHeightMin}〜
         {gradeHeightMax}cmに収まっていた（母集団全体143.5〜165cmの中では真ん中寄り）。
         サンプル{gradeWinners.length}頭とまだ小さいので、体高だけで足切りする根拠と言えるほどでは
         ない。</li>

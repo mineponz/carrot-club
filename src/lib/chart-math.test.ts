@@ -1,6 +1,13 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { linearScale, histogram, pearsonCorrelation, bucketAverage, formatManYen } from './chart-math.ts';
+import {
+  linearScale,
+  histogram,
+  pearsonCorrelation,
+  bucketAverage,
+  countByBucket,
+  formatManYen,
+} from './chart-math.ts';
 
 test('linearScale maps domain endpoints to range endpoints', () => {
   const scale = linearScale([0, 10], [100, 200]);
@@ -29,6 +36,17 @@ test('pearsonCorrelation is 1 for perfectly correlated data', () => {
 
 test('pearsonCorrelation is null when a series has zero variance', () => {
   assert.equal(pearsonCorrelation([1, 1, 1], [1, 2, 3]), null);
+});
+
+test('countByBucket counts items per key and omits keys with no items', () => {
+  const counts = countByBucket(
+    [{ k: 'a' }, { k: 'a' }, { k: 'b' }],
+    (item) => item.k
+  );
+  assert.equal(counts.get('a'), 2);
+  assert.equal(counts.get('b'), 1);
+  // 0件の階級はキー自体が無い。呼び出し側は `?? 0` で受けること
+  assert.equal(counts.get('c'), undefined);
 });
 
 test('bucketAverage groups and averages by key', () => {

@@ -9,6 +9,11 @@ interface Bar {
   value: number;
   displayValue: string;
   n?: number;
+  /**
+   * 軸ラベルの下に小さく出す補足（例: "全92頭・重賞2頭"）。
+   * 平均の母数（`n`）と母集団の頭数が違う時に、取り違えないよう併記する用。
+   */
+  note?: string;
 }
 
 interface Props {
@@ -16,14 +21,20 @@ interface Props {
   bars: Bar[];
   /** ツールチップの値の行ラベル（例: "平均中央獲得賞金" "頭数"） */
   valueLabel: string;
+  /** ツールチップで `n` に付ける行ラベル。平均の母数が母集団と違うグラフでは言い換える */
+  nLabel?: string;
+  /** `note` を出すグラフで、ツールチップに付ける行ラベル */
+  noteLabel?: string;
   height?: number;
 }
 
-const { title, bars, valueLabel, height = 260 } = Astro.props;
+const { title, bars, valueLabel, nLabel = '頭数', noteLabel = '内訳', height = 260 } = Astro.props;
 
 const width = 640;
 const marginTop = 24;
-const marginBottom = 40;
+// note を出す時は軸ラベルの下にもう1行入るぶん下余白を広げる
+const hasNotes = bars.some((b) => b.note);
+const marginBottom = hasNotes ? 56 : 40;
 const marginLeft = 8;
 const marginRight = 8;
 const plotWidth = width - marginLeft - marginRight;
@@ -58,7 +69,8 @@ const gridLines = [0, 0.25, 0.5, 0.75, 1].map((t) => ({
       const y = yFor(bar.value);
       const barHeight = marginTop + plotHeight - y;
       const rows: [string, string][] = [[valueLabel, bar.displayValue]];
-      if (bar.n !== undefined) rows.push(['頭数', `${bar.n}頭`]);
+      if (bar.n !== undefined) rows.push([nLabel, `${bar.n}頭`]);
+      if (bar.note) rows.push([noteLabel, bar.note]);
       const tip = JSON.stringify({ title: bar.label, rows });
       return (
         <g>
@@ -79,6 +91,11 @@ const gridLines = [0, 0.25, 0.5, 0.75, 1].map((t) => ({
           <text x={cx} y={height - marginBottom + 18} class="viz-axis-label" text-anchor="middle">
             {bar.label}
           </text>
+          {bar.note && (
+            <text x={cx} y={height - marginBottom + 33} class="viz-axis-note" text-anchor="middle">
+              {bar.note}
+            </text>
+          )}
         </g>
       );
     })}
@@ -91,7 +108,14 @@ const gridLines = [0, 0.25, 0.5, 0.75, 1].map((t) => ({
     />
   </svg>
   <p class="visually-hidden">
-    {title}: {bars.map((b) => `${b.label} ${valueLabel} ${b.displayValue}${b.n !== undefined ? `（${b.n}頭）` : ''}`).join('、 ')}
+    {title}: {bars
+      .map(
+        (b) =>
+          `${b.label} ${valueLabel} ${b.displayValue}` +
+          (b.n !== undefined ? `（${nLabel}${b.n}頭）` : '') +
+          (b.note ? `（${b.note}）` : '')
+      )
+      .join('、 ')}
   </p>
 </div>
 
@@ -131,6 +155,11 @@ const gridLines = [0, 0.25, 0.5, 0.75, 1].map((t) => ({
   }
   .viz-axis-label {
     font-size: 11px;
+    fill: var(--muted);
+  }
+  /* 軸ラベルの補足。スマホでは階級が5つ並ぶと窮屈なので軸ラベルより一段小さくする */
+  .viz-axis-note {
+    font-size: 9.5px;
     fill: var(--muted);
   }
 </style>

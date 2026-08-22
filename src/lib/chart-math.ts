@@ -71,6 +71,22 @@ export function bucketAverage<T>(
   }));
 }
 
+/**
+ * キーごとの件数を数える。`bucketAverage` と同じ分け方のまま「その階級に何頭いたか」を
+ * 出す用（平均の母数と母集団の頭数が違う時に、両方をグラフへ併記するため）。
+ */
+export function countByBucket<T>(
+  items: readonly T[],
+  bucketOf: (item: T) => string
+): Map<string, number> {
+  const counts = new Map<string, number>();
+  for (const item of items) {
+    const key = bucketOf(item);
+    counts.set(key, (counts.get(key) ?? 0) + 1);
+  }
+  return counts;
+}
+
 /** 万円単位の数値を "1,930" のようにカンマ区切りにする。 */
 export function formatManYen(value: number): string {
   return Math.round(value).toLocaleString('ja-JP');
