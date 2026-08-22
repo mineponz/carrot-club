@@ -18,6 +18,11 @@ export interface Recruit {
   name: string;
   sex: string | null;
   netkeibaUrl: string | null;
+  /**
+   * 母馬のnetkeiba個体ページ。スプレッドシートに母の列があるのは2024・2025年募集ぶんだけで、
+   * 2021〜2023年募集は null。同じ母の産駒（兄弟）を突き合わせるのに使う。
+   */
+  damUrl: string | null;
   sire: string | null;
   broodmareSire: string | null;
   pricePerShare: number | null;
@@ -54,6 +59,9 @@ export interface RecruitWithResult extends Omit<Recruit, 'name'>, Omit<RaceResul
   /** 中央獲得賞金＋地方獲得賞金の合計（万円）。どちらもnullなら0扱い。 */
   totalPrizeManYen: number;
 }
+
+/** 成績（賞金・勝ち数）を取得した時点。「いつ時点の成績か」を画面に出すのに使う。 */
+export const RACE_RESULTS_FETCHED_AT: string = raceResultsJson.fetchedAt;
 
 let cache: RecruitWithResult[] | null = null;
 

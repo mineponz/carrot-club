@@ -92,6 +92,13 @@ vault: `1-projects/carrot-club/tasks/20260818-import-2026-data.md`。
   （既定 `/horses/`、2025年版は `/2025/horses/`）。**ビルド時とクライアント側の両方**に同じ値を
   渡すこと（片方だけだと再描画後にリンク先が年度をまたぐ）。
 - `trailingSlash: 'always'` なので内部リンクは末尾スラッシュ必須（`horseDetailHref()` が付ける）。
+- 「キャロットにいる兄姉」欄（`src/lib/sibling-recruits.ts`）は、その馬と**同じ母の産駒で過去に
+  キャロットが募集した馬**の募集時測尺と通算成績・獲得賞金を出す。突き合わせ元は分析用の
+  `analysis/data/`（2021〜2025年募集）で、`analysis-data.ts` 経由でビルド時にだけ読む。
+  照合は「母のnetkeiba個体ページIDが一致」（確実だが母のURLがあるのは2024・2025年募集のみ）と
+  「`Horse.sibling` の実名が過去募集馬の実名と一致」（それ以前の年度を拾う）の2通り。
+  `findSiblingRecruits()` は配列を引数で受け取る純粋関数にしてある（JSONの読み込みを含めると
+  `node --test` で動かせなくなるため）。
 
 ## 会員の評価の集計（Phase2 / D1 + Worker）
 

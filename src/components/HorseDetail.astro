@@ -13,6 +13,15 @@ import type { Horse } from '../lib/horses.ts';
 import { damNameOf, formatBirthDateLong, type RecruitYear } from '../lib/horse-meta.ts';
 // メモ欄の上限はサーバー側の検証と同じ値（一覧の horse-row.ts と揃える）
 import { MAX_MEMO_LENGTH } from '../lib/evaluation-api.ts';
+import { loadRecruitsWithResults, RACE_RESULTS_FETCHED_AT } from '../lib/analysis-data.ts';
+import {
+  findSiblingRecruits,
+  formatResultsAsOf,
+  formatSiblingMeasurements,
+  formatSiblingRecord,
+  siblingDetailHref,
+} from '../lib/sibling-recruits.ts';
+import { formatManYen } from '../lib/chart-math.ts';
 
 interface Props {
   horse: Horse;
@@ -23,6 +32,14 @@ interface Props {
 
 const { horse, recruitYear, listHref } = Astro.props;
 const dam = damNameOf(horse);
+
+/**
+ * 同じ母の産駒で、過去にキャロットで募集された馬（＝クラブ内の兄姉）。
+ * 兄姉が同じクラブにいれば、募集時の測尺とその後の成績を同じ物差しで見比べられる。
+ * 突き合わせ元は分析用の `analysis/data/`（2021〜2025年募集）で、ビルド時にだけ読む。
+ */
+const siblingRecruits = findSiblingRecruits(horse, recruitYear, loadRecruitsWithResults());
+const resultsAsOf = formatResultsAsOf(RACE_RESULTS_FETCHED_AT);
 
 /** 定義リストに出す項目。値が無いものは出さない（空欄の行を並べても情報にならない）。 */
 const facts: { term: string; value: string }[] = [
@@ -72,6 +89,55 @@ const facts: { term: string; value: string }[] = [
         {horse.surgery.split('\n').map((line) => (
           <p>{line}</p>
         ))}
+      </section>
+    )
+  }
+
+  {
+    siblingRecruits.length > 0 && (
+      <section class="sibling-recruits">
+        <h2>キャロットにいる兄姉</h2>
+        <p class="note">
+          同じ母の産駒で、過去にキャロットクラブで募集された馬です。募集時の測尺と、
+          {resultsAsOf ? `${resultsAsOf}時点` : '取得時点'}の通算成績・獲得賞金（中央+地方）を出しています。
+          突き合わせているのは2021〜2025年募集ぶんなので、それ以前に募集された兄姉は出ません。
+        </p>
+        <ul class="sibling-list">
+          {siblingRecruits.map((sibling) => {
+            const href = siblingDetailHref(sibling);
+            const record = formatSiblingRecord(sibling);
+            const measurements = formatSiblingMeasurements(sibling);
+            return (
+              <li class="sibling">
+                <p class="sibling-name">
+                  {href ? <a href={href}>{sibling.name}</a> : sibling.name}
+                  <span class="sibling-year">{sibling.recruitYear}年募集 No.{sibling.no}</span>
+                </p>
+                <dl class="sibling-facts">
+                  <div class="measurements">
+                    <dt>募集時の測尺</dt>
+                    <dd>{measurements || '—'}</dd>
+                  </div>
+                  <div>
+                    <dt>通算成績</dt>
+                    <dd>{record ?? '—'}</dd>
+                  </div>
+                  <div>
+                    <dt>獲得賞金</dt>
+                    <dd>{sibling.totalPrizeManYen == null ? '—' : `${formatManYen(sibling.totalPrizeManYen)}万円`}</dd>
+                  </div>
+                </dl>
+                {sibling.netkeibaUrl && (
+                  <p class="sibling-link">
+                    <a href={sibling.netkeibaUrl} target="_blank" rel="noopener">
+                      netkeibaで{sibling.name}を見る
+                    </a>
+                  </p>
+                )}
+              </li>
+            );
+          })}
+        </ul>
       </section>
     )
   }
@@ -170,6 +236,57 @@ const facts: { term: string; value: string }[] = [
   .surgery-note p {
     margin: 0 0 0.25rem;
     color: var(--danger);
+  }
+
+  .sibling-recruits .note {
+    margin-bottom: 0.75rem;
+  }
+  .sibling-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: grid;
+    gap: 0.75rem;
+  }
+  .sibling {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 0.85rem 1rem;
+  }
+  .sibling-name {
+    margin: 0 0 0.5rem;
+    font-weight: 700;
+  }
+  .sibling-year {
+    margin-left: 0.5rem;
+    color: var(--muted);
+    font-size: 0.8125rem;
+    font-weight: 400;
+  }
+  /* 測尺・成績・賞金は fact-list と同じ見え方に揃える（1画面に2つ並ぶため） */
+  .sibling-facts {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(11rem, 1fr));
+    gap: 0.5rem 1rem;
+    margin: 0;
+  }
+  /* 測尺は4項目つなげた1行なので、途中で折り返さないよう横幅いっぱいを使う */
+  .sibling-facts .measurements {
+    grid-column: 1 / -1;
+  }
+  .sibling-facts dt {
+    color: var(--muted);
+    font-size: 0.8125rem;
+  }
+  .sibling-facts dd {
+    margin: 0.1rem 0 0;
+    font-size: 1rem;
+    font-weight: 600;
+  }
+  .sibling-link {
+    margin: 0.6rem 0 0;
+    font-size: 0.8125rem;
   }
 
   .external-links {
