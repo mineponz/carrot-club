@@ -112,6 +112,30 @@ const gradeWinnersByHeightBucket = countByBucket(
   (h) => bucketLabel(h.height as number)
 );
 
+// 「158cm以上／未満」で切った重賞馬の出方。平均賞金の棒だけ見ていると分からない差なので
+// 本文で使う。母数は階級全体（未出走も含む全頭）で揃える ―― 出走済みだけに絞ると、
+// まだデビューしていない2024・2025年募集組の多い階級ほど率が高く出てしまう。
+/** 階級の「母数に対する重賞馬の割合(%)」。本文とグラフで同じ数から出す */
+function gradeRateFor(bucket: string): number {
+  const total = allByHeightBucket.get(bucket) ?? 0;
+  return total ? (100 * (gradeWinnersByHeightBucket.get(bucket) ?? 0)) / total : 0;
+}
+
+const TALL_CUT = 158;
+const withHeight = all.filter((h) => h.height !== null);
+function gradeShare(items: typeof withHeight) {
+  const n = items.length;
+  const g = items.filter((h) => h.gradeWins.length > 0).length;
+  return { n, g, pct: n ? (100 * g) / n : 0 };
+}
+const tall = gradeShare(withHeight.filter((h) => (h.height as number) >= TALL_CUT));
+const short = gradeShare(withHeight.filter((h) => (h.height as number) < TALL_CUT));
+// 2021〜2023年募集だけに絞っても同じ傾向が出るか（デビュー時期の偏りで見かけ上そう見えて
+// いるだけではないか）の確認。本文でこの数字にも触れる。
+const olderOnly = withHeight.filter((h) => h.recruitYear <= 2023);
+const tallOlder = gradeShare(olderOnly.filter((h) => (h.height as number) >= TALL_CUT));
+const shortOlder = gradeShare(olderOnly.filter((h) => (h.height as number) < TALL_CUT));
+
 const prizeBars = orderBuckets(prizeByHeightBucket).map((r) => ({
   label: r.bucket,
   value: r.avg,
@@ -325,12 +349,24 @@ const description =
       </table>
     </div>
     <p class="table-note">
-      {gradeWinners.length}頭が重賞（中央G1〜G3・Jpn1〜3、地方重賞含む）を勝っている。体高で言うと
-      {gradeWinnersInMidBucket}頭が154〜157.5cm階級で、この階級が数でも実績でも層が厚い。
-      ただし実際の重賞勝ち馬は{gradeHeightMin}〜{gradeHeightMax}cmの範囲に収まっていて、
-      体高の分布全体（143.5〜165cm）で見るとむしろ真ん中寄りに集中している。とはいえ
-      重賞勝ち馬は{gradeWinners.length}頭とサンプルが小さいので、両端の体高から重賞馬が
-      出ていないと断言できるほどではない。
+      {gradeWinners.length}頭が重賞（中央G1〜G3・Jpn1〜3、地方重賞含む）を勝っている。頭数だけ見ると
+      {gradeWinnersInMidBucket}頭の154〜157.5cm階級が最多だが、それはこの階級の母数が
+      {allByHeightBucket.get('154〜157.5cm')}頭と一番多いからで、母数に対する割合で見ると景色が変わる。
+      158〜161.5cm階級は{allByHeightBucket.get('158〜161.5cm')}頭中{gradeWinnersByHeightBucket.get('158〜161.5cm')}頭
+      （{(gradeRateFor('158〜161.5cm')).toFixed(1)}%）で、154〜157.5cm階級の
+      {(gradeRateFor('154〜157.5cm')).toFixed(1)}%の3倍以上ある。158cm以上でまとめると
+      {tall.n}頭中{tall.g}頭（{tall.pct.toFixed(1)}%）、158cm未満は{short.n}頭中{short.g}頭
+      （{short.pct.toFixed(1)}%）だった。
+    </p>
+    <p class="table-note">
+      デビューの時期が偏っているだけではないかと思って、レースを重ねている2021〜2023年募集に
+      絞っても見てみたが、158cm以上{tallOlder.pct.toFixed(1)}%・158cm未満{shortOlder.pct.toFixed(1)}%で
+      傾向は変わらなかった。一口価格の平均もこの階級だけ高いわけではない（むしろ全体平均より安い）
+      ので、「高い馬が集まっているから」でも説明できない。
+      ただし重賞勝ち馬は全部で{gradeWinners.length}頭しかいない。5つの階級を見比べて一番良かった
+      ものを取り上げている以上、たまたま偏った可能性は残るし、体高そのものが原因とも言えない
+      （大きく育つ馬は血統・育成環境も違う）。実際の重賞勝ち馬は{gradeHeightMin}〜{gradeHeightMax}cmに
+      収まっていて、両端の体高から重賞馬が出ないと断言できるほどのデータでもない。
     </p>
 
     <h2>参考: 一口価格との比較</h2>
@@ -382,12 +418,16 @@ const description =
         「体高が大きいほど稼ぐ」と言い切れるほどではない。</li>
       <li>一口価格と獲得賞金合計はほぼ無相関（r={pricePrizeR?.toFixed(3)}）。価格は将来の稼ぎを
         予測しない。</li>
-      <li>実際の重賞勝ち馬は154〜157.5cm階級が最も厚く、体高でいうと{gradeHeightMin}〜
-        {gradeHeightMax}cmに収まっていた（母集団全体143.5〜165cmの中では真ん中寄り）。
-        サンプル{gradeWinners.length}頭とまだ小さいので、体高だけで足切りする根拠と言えるほどでは
-        ない。</li>
-      <li>体高・価格よりも、血統・厩舎・個体そのものの見立てのほうが結局は効きそう、という
-        当たり前の結論に落ち着いた。</li>
+      <li>ただし「重賞を勝てるか」で見ると話が変わる。158cm以上は{tall.n}頭中{tall.g}頭
+        （{tall.pct.toFixed(1)}%）が重賞を勝っているのに対し、158cm未満は{short.n}頭中{short.g}頭
+        （{short.pct.toFixed(1)}%）。平均賞金の差より、こちらの差のほうがはっきりしている。
+        大物を狙うなら158cm以上を厚めに見る、というのは今回のデータからは言えそう。</li>
+      <li>とはいえ重賞勝ち馬は{gradeWinners.length}頭しかなく、5階級を見比べて一番良かった階級を
+        取り上げている以上、偏りの可能性は残る。実際の重賞勝ち馬も{gradeHeightMin}〜
+        {gradeHeightMax}cmの範囲（母集団全体143.5〜165cm）に散らばっていて、体高で足切りする
+        根拠と言えるほどではない。</li>
+      <li>結局のところ体高は「大物が出やすい層」の目印どまりで、そこから先は血統・厩舎・個体
+        そのものの見立て、という当たり前の結論に落ち着いた。価格に至っては見ても仕方がない。</li>
     </ul>
 
     {/*
