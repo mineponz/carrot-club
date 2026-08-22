@@ -201,6 +201,23 @@ const yearCounts = [2021, 2022, 2023, 2024, 2025]
   .map((y) => `${y}年${all.filter((h) => h.recruitYear === y).length}頭`)
   .join('・');
 
+/**
+ * 忍者AdMaxの枠コード。この記事はセクションの切れ目ごとに1枠ずつ置く。
+ *
+ * 枠は設置場所ごとに発行するのが本来だが、この記事では**同じコードを複数の場所で使い回す**
+ * （本人の判断 / 2026-08-22）。レポートは枠単位でしか割れないので、どのセクションの広告が
+ * 効いたかまでは分からなくなる ―― 「記事から取れているか」が分かれば十分、という整理。
+ *
+ * RECT はスマホ用の300x250。縦に大きいので置きすぎると読み進みを塞ぐ。本文が一区切りつく
+ * 「重賞馬の表の後」と「まとめの後」の2か所だけに使い、他は横長で流す。
+ * PC幅にはこの300x250のコードが無いので、同じ位置には横長を出す。
+ */
+const AD_SP_WIDE_A = 'f81bbb016a82d6366a0e2f70051b1a0c';
+const AD_SP_WIDE_B = 'b4b7d55c89d5fc92c564979491a16ad1';
+const AD_SP_RECT = '24e3e1a24f40d88ee1a0ca315c54a7b9';
+const AD_PC_WIDE_A = 'f0efb5bd6ae3e164bb584a4dbb846f48';
+const AD_PC_WIDE_B = '0a525f6469ec1f40642b4550e53d39cc';
+
 const description =
   '【非公式】キャロットクラブ過去5年470頭の募集時データと現在の競走成績を独自集計。体高・一口価格と獲得賞金・重賞勝ち馬の関係を散布図で見る分析記事。';
 ---
@@ -241,11 +258,7 @@ const description =
       ]}
     />
 
-    <div class="ad-slot ad-slot-sp">
-      <!-- admax -->
-      <script is:inline src="https://adm.shinobi.jp/s/f81bbb016a82d6366a0e2f70051b1a0c"></script>
-      <!-- admax -->
-    </div>
+    <AdSlot sp={AD_SP_WIDE_A} pc={AD_PC_WIDE_A} />
 
     <h2>体高の分布</h2>
     <p>
@@ -253,6 +266,8 @@ const description =
       3cm刻みでヒストグラムにするとこんな感じ。
     </p>
     <BarChart title="体高の分布（全470頭・3cm刻み）" bars={heightBins} valueLabel="頭数" />
+
+    <AdSlot sp={AD_SP_WIDE_B} pc={AD_PC_WIDE_B} />
 
     <h2>体高 × 獲得賞金合計</h2>
     <p>
@@ -279,6 +294,8 @@ const description =
       formatY={(v) => (v === 0 ? '0' : `${v / 1000}k`)}
     />
 
+    <AdSlot sp={AD_SP_WIDE_A} pc={AD_PC_WIDE_A} />
+
     <h2>体高階級別に見ると</h2>
     <p>
       5階級に分けて平均を取ると傾向がもう少しはっきりする。<strong>154cm以上の階級</strong>がおおむね平均賞金・
@@ -300,13 +317,7 @@ const description =
     />
     <BarChart title="体高階級別 平均勝ち数" bars={winBars} valueLabel="平均勝ち数" />
 
-    {/*
-      広告はセクションの切れ目に1枠ずつ置く（同じ場所に3枠並べない）。枠コードは設置場所ごとに
-      発行されたものを使い、同じコードを別の場所で使い回さない（src/components/AdSlot.astro）。
-      いま持っているコードはSP3・PC2なので、SPは「導入後・この位置・まとめ後」、
-      PCは「この位置・重賞馬の表の後」に置いている。
-    */}
-    <AdSlot sp="b4b7d55c89d5fc92c564979491a16ad1" pc="f0efb5bd6ae3e164bb584a4dbb846f48" />
+    <AdSlot sp={AD_SP_WIDE_B} pc={AD_PC_WIDE_B} />
 
     <h2>実際にどんな馬がいたか</h2>
     <p>
@@ -384,10 +395,8 @@ const description =
       散らばっていて、両端の体高から重賞馬が出ないと言えるほどでもない。
     </p>
 
-    <div class="ad-slot ad-slot-pc">
-      <!-- admax -->
-      <script is:inline src="https://adm.shinobi.jp/s/0a525f6469ec1f40642b4550e53d39cc"></script>
-      <!-- admax -->
+    <div class="ad-rect">
+      <AdSlot sp={AD_SP_RECT} pc={AD_PC_WIDE_A} />
     </div>
 
     <h2>参考: 一口価格との比較</h2>
@@ -413,6 +422,8 @@ const description =
       formatY={(v) => (v === 0 ? '0' : `${v / 1000}k`)}
     />
 
+    <AdSlot sp={AD_SP_WIDE_A} pc={AD_PC_WIDE_B} />
+
     <h2>2026年募集馬はどこに当てはまる？</h2>
     <p>
       せっかくなので、今の2026年募集{horses2026.length}頭の体高が、この階級分けのどこに入るかも
@@ -433,6 +444,8 @@ const description =
       </details>
     ))}
 
+    <AdSlot sp={AD_SP_WIDE_B} pc={AD_PC_WIDE_A} />
+
     <h2>まとめ</h2>
     <ul class="conclusion">
       <li>体高と獲得賞金合計には弱い正の相関（r={heightPrizeR?.toFixed(3)}）があったが、
@@ -452,16 +465,11 @@ const description =
     </ul>
 
     {/*
-      読み終わりの枠。この記事だけに置く少し大きめの枠で、**SP用のコード**なので
-      `ad-slot-sp` を付けてスマホ幅だけに出す（PC幅では枠ごと出ない）。同じ位置にPCでも
-      出したくなったら、PC用のコードを別に発行して `ad-slot-pc` の枠を隣に足すこと
-      ―― 別の場所のコードを流用しない（src/components/AdSlot.astro のコメントと同じ方針）。
-      本文を隠して広告を見せる形（リワード）は忍者AdMaxでは視聴完了を判定できないので取らない。
+      読み終わりの枠。本文を隠して広告を見せる形（リワード）は忍者AdMaxでは視聴完了を
+      判定できないので取らない。
     */}
-    <div class="ad-slot ad-slot-sp ad-slot-end">
-      <!-- admax -->
-      <script is:inline src="https://adm.shinobi.jp/s/24e3e1a24f40d88ee1a0ca315c54a7b9"></script>
-      <!-- admax -->
+    <div class="ad-rect">
+      <AdSlot sp={AD_SP_RECT} pc={AD_PC_WIDE_B} />
     </div>
 
     <h2>データについて</h2>
@@ -532,17 +540,12 @@ const description =
   .finding li + li {
     margin-top: 0.35rem;
   }
-  /* 読み終わりの枠。少し大きめの枠なので中央に置き、前後の見出しと間隔を空ける。
-     `display` は `.ad-slot-sp` の出し分け（BaseLayout の is:global）を潰さないよう、
-     スマホ幅で表示される時だけ flex にする（PC幅は BaseLayout 側の `display: none` が勝つ）。 */
-  .ad-slot-end {
+  /* 300x250を置く枠。中央寄せは**包む側**でやる ―― `.ad-slot` 自体に display を書くと
+     BaseLayout の `.ad-slot-pc { display: none }` より強くなり、出し分けが壊れる。 */
+  .ad-rect {
+    display: flex;
+    justify-content: center;
     margin: 1.75rem 0 0.5rem;
-  }
-  @media (max-width: 47.99rem) {
-    .ad-slot-end {
-      display: flex;
-      justify-content: center;
-    }
   }
   .bucket-accordion {
     border: 1px solid var(--border);
