@@ -34,7 +34,9 @@ interface Props {
   homeHref?: string;
   /**
    * フッターの広告枠を出すか。既定は出す。
-   * トップページ（`/`）は本人の指示で広告を止めているので `false` を渡す。
+   * トップページ（`/`）は本人の指示でフッターの枠を出さないので `false` を渡す。
+   * 代わりに本文の説明セクションの区切りへ `AdSlot`（`src/components/AdSlot.astro`）を
+   * 散らして置いている。
    */
   showAds?: boolean;
   /**
@@ -365,7 +367,8 @@ const webAppJsonLd = {
       main.is-wide > ol,
       main.is-wide > dl,
       main.is-wide > .faq-item,
-      main.is-wide > .measure-list {
+      main.is-wide > .measure-list,
+      main.is-wide > .ad-slot {
         max-width: 64rem;
       }
 
@@ -491,9 +494,9 @@ const webAppJsonLd = {
       .site-footer .contact a { color: inherit; }
 
       /* 忍者AdMaxはPC/SPで別の広告枠コードが発行されるため、画面幅で出し分ける。
-         フッター（この直上の `showAds`）のほか、一覧ページの絞り込みフォーム直下でも
-         同じクラスを使い回す。枠コードは設置場所ごとに別物なので、クラスは共通・
-         script の src は設置場所ごとに使い分けること。 */
+         フッター（この直上の `showAds`）のほか、一覧ページの本文中の枠
+         （`src/components/AdSlot.astro`）でも同じクラスを使い回す。枠コードは設置場所ごとに
+         別物なので、クラスは共通・script の src は設置場所ごとに使い分けること。 */
       .ad-slot { margin-top: 1rem; }
       .ad-slot-pc { display: none; }
       @media (min-width: 48rem) {

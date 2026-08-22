@@ -1,0 +1,30 @@
+---
+/**
+ * 忍者AdMaxの広告枠。
+ *
+ * PC/SPで別の枠コードが発行されるため、同じ場所に2つ置いて `.ad-slot-sp` / `.ad-slot-pc`
+ * （BaseLayout の is:global CSS）で画面幅により出し分ける。枠コードは**設置場所ごとに**
+ * 発行されたものを props で渡すこと（別の場所のコードを流用しない）。
+ */
+interface Props {
+  /** スマホ用の枠コード（`https://adm.shinobi.jp/s/` に続く部分） */
+  sp: string;
+  /** PC用の枠コード */
+  pc: string;
+}
+
+const { sp, pc } = Astro.props;
+const spSrc = `https://adm.shinobi.jp/s/${sp}`;
+const pcSrc = `https://adm.shinobi.jp/s/${pc}`;
+---
+
+<div class="ad-slot ad-slot-sp">
+  <!-- admax -->
+  <script is:inline src={spSrc}></script>
+  <!-- admax -->
+</div>
+<div class="ad-slot ad-slot-pc">
+  <!-- admax -->
+  <script is:inline src={pcSrc}></script>
+  <!-- admax -->
+</div>

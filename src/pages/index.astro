@@ -9,6 +9,7 @@
  */
 import BaseLayout from '../layouts/BaseLayout.astro';
 import SyncPanel from '../components/SyncPanel.astro';
+import AdSlot from '../components/AdSlot.astro';
 import { SITE_DESCRIPTION, UNOFFICIAL_NOTICE } from '../consts.ts';
 import { horses2026 } from '../data/horses2026.ts';
 import { sortHorses, uniqueValues, UNRATED, type SortKey } from '../lib/horses.ts';
@@ -32,6 +33,14 @@ const initialRowsHtml = sortHorses(horses2026, 'id', 'asc')
   .join('\n');
 
 const total = horses2026.length;
+
+// 広告枠（忍者AdMax）の枠コード。PC/SPで別コードなので `AdSlot` に両方渡す。
+// 以前は絞り込みフォームの直下（表の真上）に1か所だけ置いていたが、本人の指示で
+// トップページはフッターの枠（BaseLayout の `showAds`）を出さない代わりに、
+// 表より下の説明セクションの区切りに散らして置いている（下の <AdSlot /> の位置）。
+// フッターの枠とも記事ページ（`/articles/height`）の枠とも別コードなので混同しないこと。
+const AD_SLOT_SP = 'dfe9af84d9224f830432d2f925ac402d';
+const AD_SLOT_PC = 'b2b04d2af29b3c00936214b62e84900a';
 
 // 以下の数値はすべて src/data/horses2026.ts を集計した実測値。
 const damPriorityCount = horses2026.filter((h) => h.damPriority).length;
@@ -268,22 +277,6 @@ const faqJsonLd = {
     </div>
   </details>
 
-  <!--
-    絞り込みフォームの直下（表の上）の広告枠。忍者AdMaxはPC/SPで枠コードが別なので
-    2つ置いて `.ad-slot-sp` / `.ad-slot-pc`（BaseLayout の is:global CSS）で出し分ける。
-    フッターの枠（BaseLayout の `showAds`）とも記事用の枠とも別コードなので混同しないこと。
-  -->
-  <div class="ad-slot ad-slot-sp">
-    <!-- admax -->
-    <script is:inline src="https://adm.shinobi.jp/s/dfe9af84d9224f830432d2f925ac402d"></script>
-    <!-- admax -->
-  </div>
-  <div class="ad-slot ad-slot-pc">
-    <!-- admax -->
-    <script is:inline src="https://adm.shinobi.jp/s/b2b04d2af29b3c00936214b62e84900a"></script>
-    <!-- admax -->
-  </div>
-
   <p id="result-count" class="result-count">{total} / {total} 頭</p>
   <p class="scroll-hint">
     表は横スクロールで全{columns.length}列が見られます（父・母父・測尺・厩舎・netkeibaリンクなど）。
@@ -350,6 +343,8 @@ const faqJsonLd = {
     クリアされません。
   </p>
 
+  <AdSlot sp={AD_SLOT_SP} pc={AD_SLOT_PC} />
+
   <h2>測尺（体高・胸囲・管囲・馬体重）の見方</h2>
   <p>
     測尺は募集時点で計測された馬体のサイズです。単体の数値だけでは判断しづらいので、
@@ -383,6 +378,8 @@ const faqJsonLd = {
     フィルタの「母優先のみ」で該当馬だけに絞り込めます。
   </p>
 
+  <AdSlot sp={AD_SLOT_SP} pc={AD_SLOT_PC} />
+
   <h2>掲載しているデータ</h2>
   <p>
     2026年募集馬の確定リストに載っている客観情報だけを収録しています（{total}頭・
@@ -415,6 +412,8 @@ const faqJsonLd = {
       ))
     }
   </div>
+
+  <AdSlot sp={AD_SLOT_SP} pc={AD_SLOT_PC} />
 
   <script type="application/ld+json" set:html={JSON.stringify(faqJsonLd)} is:inline />
 
