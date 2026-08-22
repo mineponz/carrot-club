@@ -274,6 +274,8 @@ const faqJsonLd = {
           お気に入りのみ
         </label>
         <button type="button" id="filter-reset">条件をクリア</button>
+        {/* 条件が次に開いたときも残ることを書いておく。黙って残ると「頭数が合わない」と見える */}
+        <p class="filter-persist-note">絞り込みと並び順はこの端末に保存され、次に開いたときも残ります。</p>
       </div>
     </div>
   </details>
@@ -581,6 +583,14 @@ const faqJsonLd = {
       margin-left: auto;
     }
     #filter-reset:hover { border-color: var(--accent); color: var(--accent); }
+    /* 「条件をクリア」の下に回り込ませる（ボタンは margin-left:auto で右端） */
+    .filter-persist-note {
+      flex-basis: 100%;
+      margin: 0.25rem 0 0;
+      text-align: right;
+      font-size: 0.75rem;
+      color: var(--muted);
+    }
 
     /* 横スクロール用に overflow-x を持たせている時点で、この要素はスクロールコンテナに
        なっている。つまり中の thead の `position: sticky; top: 0` はページではなく
@@ -865,6 +875,13 @@ const faqJsonLd = {
     import { COLUMNS, horseRowHtml } from '../lib/horse-row.ts';
     import { queueEvaluationSync } from '../lib/evaluation-client.ts';
     import { EVALUATIONS_RESTORED_EVENT } from '../lib/sync.ts';
+    import {
+      countActiveFilters,
+      filterStorageKeyForYear,
+      loadFilterState,
+      saveFilterState,
+      type FilterState,
+    } from '../lib/filter-state.ts';
 
     const tbody = document.getElementById('horse-tbody') as HTMLTableSectionElement;
     const resultCount = document.getElementById('result-count') as HTMLElement;
@@ -911,6 +928,46 @@ const faqJsonLd = {
 
     const RECRUIT_YEAR = 2026;
 
+    // 「自分の評価」のチェックボックスは value（A〜E / none）で見分けるのでidを持たない。
+    // 条件の保存はidを鍵にするので、idを持つチェックだけ分けておく。
+    const namedToggles = toggles.filter((t) => !t.classList.contains('filter-rating'));
+    const filterDetails = document.querySelector('.filter-details') as HTMLDetailsElement;
+    // 絞り込み条件の保存キーも評価と同じく年度ごとに分ける（父の選択肢も頭数も年で違うため、
+    // 共有すると別の年の条件が復元されて頭数が合わなくなる）。
+    const filterStorageKey = filterStorageKeyForYear(RECRUIT_YEAR);
+
+    /** 今の入力内容を保存用の形にまとめる。 */
+    function currentFilterState(): FilterState {
+      const values: Record<string, string> = {};
+      for (const input of [...textInputs, ...selects]) {
+        if (input.value.trim() !== '') values[input.id] = input.value;
+      }
+      const toggleState: Record<string, boolean> = {};
+      for (const toggle of namedToggles) {
+        if (toggle.checked) toggleState[toggle.id] = true;
+      }
+      return {
+        values,
+        toggles: toggleState,
+        ratings: selectedRatings(),
+        sortKey,
+        sortDirection,
+      };
+    }
+
+    /**
+     * 保存しておいた条件を入力欄に戻す。
+     * 知らないidや、その年に無くなった父・厩舎の値は入らない（`value` に無い値は空になる）ので、
+     * 古い保存データが残っていても条件が化けたまま残ることはない。
+     */
+    function applyFilterState(state: FilterState) {
+      for (const input of [...textInputs, ...selects]) input.value = state.values[input.id] ?? '';
+      for (const toggle of namedToggles) toggle.checked = state.toggles[toggle.id] === true;
+      for (const checkbox of ratingCheckboxes) checkbox.checked = state.ratings.includes(checkbox.value);
+      sortKey = state.sortKey;
+      sortDirection = state.sortDirection;
+    }
+
     function numberValue(input: HTMLInputElement): number | undefined {
       return input.value === '' ? undefined : Number(input.value);
     }
@@ -951,11 +1008,8 @@ const faqJsonLd = {
      * 絞り込みを畳んだまま条件が効いていると、頭数が減った理由が画面から読み取れないため。
      * 0件のときは何も出さない（既定＝全頭表示に余計な装飾を足さない）。
      */
-    function updateActiveFilterCount() {
-      const count =
-        textInputs.filter((i) => i.value.trim() !== '').length +
-        selects.filter((s) => s.value !== '').length +
-        toggles.filter((t) => t.checked).length;
+    function updateActiveFilterCount(state: FilterState) {
+      const count = countActiveFilters(state);
       filterActiveCount.hidden = count === 0;
       filterActiveCount.textContent = count === 0 ? '' : `${count}件の条件`;
     }
@@ -978,7 +1032,12 @@ const faqJsonLd = {
               .map((h) => horseRowHtml(h, getEvaluation(evaluations, h.id)))
               .join('');
       resultCount.textContent = `${list.length} / ${horses2026.length} 頭`;
-      updateActiveFilterCount();
+
+      // 次に開いたときも同じ条件で見られるように、条件と並び順をこの端末に覚えさせる。
+      // 保存先は localStorage だけで、サーバーには送らない（filter-state.ts のコメント参照）。
+      const state = currentFilterState();
+      updateActiveFilterCount(state);
+      saveFilterState(window.localStorage, filterStorageKey, state);
 
       for (const btn of sortButtons) {
         const active = btn.dataset.sortKey === sortKey;
@@ -1075,6 +1134,13 @@ const faqJsonLd = {
       evaluations = loadEvaluations(window.localStorage, storageKey);
       render();
     });
+
+    // 前回の絞り込み・並び順を戻してから描く（毎回入れ直さなくて済むように）。
+    // 条件が入っているときは絞り込みを開いた状態にする。畳んだままだと、頭数が減っている
+    // 理由が「前回の条件が残っているから」だと画面から読み取れないため。
+    const restoredState = loadFilterState(window.localStorage, filterStorageKey);
+    applyFilterState(restoredState);
+    if (countActiveFilters(restoredState) > 0) filterDetails.open = true;
 
     // 初期HTMLは未評価の状態なので、保存済みの評価を反映するために一度描き直す。
     render();
