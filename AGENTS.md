@@ -155,6 +155,12 @@ vault: `1-projects/carrot-club/tasks/20260818-import-2026-data.md`。
 - Node の型ストリップは TypeScript の**パラメータプロパティ**（`constructor(readonly x: T)`）に
   非対応。`ERR_UNSUPPORTED_TYPESCRIPT_SYNTAX` になるのでフィールドを明示的に宣言する。
 - JSON-LD は `<script type="application/ld+json" set:html={...} />` と書く。
+- OGP画像は既定が `public/og-v2.png`（全ページ共通）。`BaseLayout` に `ogImage` /
+  `ogImageAlt` を渡すとページ単位で差し替えられる。分析記事（`/articles/*`）は記事名が
+  カードに出ないと何の記事か分からないので専用画像を持つ
+  （生成: `node scripts/generate-og-article.mjs <スラッグ>`。1200x630・要playwright）。
+  **作り替えたらファイル名の `-v1` を上げること**（SNSは画像URL単位でキャッシュする）。
+  記事の相関係数のように成績更新で変わる数字は画像に焼き込まない（カードだけ古い値で残る）。
 - `SITE_URL`（`src/consts.ts`）は canonical と sitemap.xml に直結する。本番URLと一致させる。
 - Cloudflareの新フローでは `wrangler.jsonc` が必須（`assets.directory` で出力先指定）。
   `not_found_handling` は `"single-page-application"` にしない（全URL 200になり重複コンテンツ扱い）。

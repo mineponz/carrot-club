@@ -48,6 +48,15 @@ interface Props {
    */
   wide?: boolean;
   /**
+   * OGP画像のパス（サイト直下からの絶対パス。例: `/og-article-height-v1.png`）。
+   * 既定はサイト共通の `/og-v2.png`。記事ページのようにカードで内容を見分けたいページだけ
+   * 専用画像を渡す（生成は `scripts/generate-og-article.mjs`）。
+   * 渡す画像は1200x630で作ること（下の og:image:width / height は固定値）。
+   */
+  ogImage?: string;
+  /** OGP画像の代替テキスト。`ogImage` を渡すときは中身に合わせて必ず一緒に渡す。 */
+  ogImageAlt?: string;
+  /**
    * ヘッダーに非公式・転載許可の注記を出すか。既定は出す（全ページ従来どおり）。
    * 分析記事のような読み物ページは、本文の前に注記2つが割り込むと読み始めが遅くなるため
    * `false` を渡してヘッダーでは省略する。フッターには元々同じ注記が出ているので、
@@ -66,6 +75,8 @@ const {
   showAds = true,
   wide = false,
   showHeaderNotices = true,
+  ogImage: ogImagePath = '/og-v2.png',
+  ogImageAlt: ogImageAltProp,
 } = Astro.props;
 
 // トップは「サイト名｜内容」、下層は「ページ名 | サイト名」。
@@ -76,15 +87,16 @@ const canonical = new URL(Astro.url.pathname, SITE_URL).href;
 // クラブの利用許可が下りるまでは noindex（src/consts.ts の ALLOW_INDEXING で切り替える）
 const robotsContent = ALLOW_INDEXING ? 'index,follow,max-image-preview:large' : 'noindex,follow';
 
-// OGP画像は public/og-v2.png（1200x630）を絶対URLで参照する。
+// OGP画像は既定で public/og-v2.png（1200x630）を絶対URLで参照する。
+// ページ側から `ogImage` を渡すと差し替えられる（記事ページはこちら）。
 // 中身は本人のデザイン画像を scripts/generate-og-wide.mjs で横長に組み直したもの。
 // サイズを変えたら下の og:image:width / height も直すこと。
 //
 // **画像を作り替えたらファイル名も必ず変える**（og-v2 → og-v3 …）。X やSNSは画像URL単位で
 // キャッシュするため、同じURLのまま中身だけ差し替えても古いカードが出続ける。
 // ページURLに ?1 を付けても画像URLは変わらないので効かない。
-const ogImage = new URL('/og-v2.png', SITE_URL).href;
-const ogImageAlt = `${DOCUMENT_TITLE}｜${tagline}`;
+const ogImage = new URL(ogImagePath, SITE_URL).href;
+const ogImageAlt = ogImageAltProp ?? `${DOCUMENT_TITLE}｜${tagline}`;
 
 // パンくずの構造化データ。トップ → 中間 → 現在ページ
 const crumbs = [
