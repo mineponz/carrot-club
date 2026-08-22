@@ -134,22 +134,19 @@ const faqJsonLd = {
 
 <BaseLayout description={SITE_DESCRIPTION} showAds={false} wide>
   <h1>2026年募集馬 一覧（{total}頭）</h1>
+  <!--
+    冒頭は「何のページか」だけに絞る（本人の指示）。保存先・公開範囲の説明はフッターとFAQに
+    同じ内容があるので、ここでは繰り返さず `#sync-panel` へのリンクだけ残す。
+    非公式である旨は BaseLayout のヘッダーで全ページに常時表示しているため、ここには重ねない。
+  -->
   <p class="lead">
-    キャロットクラブ2026年募集馬{total}頭を、血統・測尺・一口価格・厩舎で並べ替え、絞り込みできる
-    非公式の選定支援ツールです。評価・お気に入り・消・メモはこの端末のブラウザ内（localStorage）に
-    保存され、再読み込みしても残ります（<a href="#sync-panel">同期IDで別の端末に引き継げます</a>）。
-    入力した内容がほかの会員に公開されることはありません。
-  </p>
-  <!-- 非公式である旨は BaseLayout のヘッダーで全ページに常時表示しているため、ここには重ねない -->
-  <p class="year-switch">
-    昨年の募集馬を見たい場合は <a href="/2025/">2025年募集馬の一覧はこちら</a>
-    （評価は年ごとに別々に保存されます）。
+    キャロットクラブ2026年募集馬{total}頭を、血統・測尺・一口価格・厩舎で並べ替え・絞り込みできる
+    非公式の選定支援ツールです。評価・お気に入り・消・メモはこの端末に保存され、
+    <a href="#sync-panel">別の端末に引き継げます</a>。
   </p>
   <p class="year-switch">
-    過去5年470頭のデータで体高・一口価格と成績の関係を調べた<a href="/articles/">分析記事</a>も
-    書いています。
+    <a href="/2025/">2025年募集馬の一覧</a> ／ <a href="/articles/">分析記事（体高・一口価格と成績）</a>
   </p>
-
 
   <!--
     絞り込みは既定で畳んでおく（本人の指示）。表を先に見せたいのと、SPでは開いた状態の
@@ -162,6 +159,7 @@ const faqJsonLd = {
     <summary>
       絞り込み
       <span class="filter-active-count" id="filter-active-count" hidden></span>
+      <span class="filter-summary-hint">価格・父・厩舎・自分の評価など</span>
     </summary>
     <div class="filters">
       <label>
@@ -278,12 +276,6 @@ const faqJsonLd = {
   </details>
 
   <p id="result-count" class="result-count">{total} / {total} 頭</p>
-  <p class="scroll-hint">
-    表は横スクロールで全{columns.length}列が見られます（父・母父・測尺・厩舎・netkeibaリンクなど）。
-    画面が広いときは <strong>No・馬名・評価</strong> の3列が左端に残るので、スクロールしても
-    どの馬に評価を入れているか分かります。
-  </p>
-
   <div class="table-wrap">
     <table id="horse-table">
       <caption class="visually-hidden">
@@ -432,23 +424,46 @@ const faqJsonLd = {
     }
 
     /* 枠線・背景は <details> 側に持たせ、開閉しても外形が変わらない1つの箱に見せる。
-       .filters（中身）は枠を持たず、閉じているときは箱＝見出し行だけになる。 */
+       .filters（中身）は枠を持たず、閉じているときは箱＝見出し行だけになる。
+       畳んである＝見落とされやすいので、枠線と見出し行だけアクセント色にして目立たせ、
+       下側の余白は詰めて表とひと続きに見せる（本人の指示）。 */
     .filter-details {
       background: var(--surface);
-      border: 1px solid var(--border);
+      border: 1px solid var(--accent);
       border-radius: 8px;
-      margin-block: 1.25rem 0.75rem;
+      margin-block: 1rem 0.4rem;
       font-size: 0.875rem;
     }
     .filter-details > summary {
       cursor: pointer;
-      padding: 0.7rem 1rem;
-      font-weight: 600;
+      padding: 0.75rem 1rem;
+      font-size: 1rem;
+      font-weight: 700;
+      color: var(--accent);
+      background: var(--accent-weak);
+      border-radius: 7px;
       /* 三角マーカーを内側に置く（既定の list-item 表示だと箱の外にはみ出す） */
       list-style-position: inside;
     }
-    .filter-details > summary:hover { color: var(--accent); }
-    .filter-details[open] > summary { border-bottom: 1px solid var(--border); }
+    /* 開いている間は下の入力欄と地続きに見せるため、角丸は上側だけ残す */
+    .filter-details[open] > summary {
+      border-radius: 7px 7px 0 0;
+      border-bottom: 1px solid var(--accent);
+    }
+    /* タップ後もホバー状態が残る端末があるので、ホバーできる環境だけ色を反転させる */
+    @media (hover: hover) {
+      .filter-details > summary:hover { background: var(--accent); color: var(--surface); }
+    }
+    /* 閉じているときに何ができるかを一言だけ添える（本文の説明は置かない） */
+    .filter-summary-hint {
+      margin-left: 0.4rem;
+      color: var(--muted);
+      font-size: 0.8125rem;
+      font-weight: 400;
+    }
+    @media (hover: hover) {
+      .filter-details > summary:hover .filter-summary-hint { color: inherit; }
+    }
     /* 畳んだまま条件が効いていることに気づけるよう、件数を見出しに出す */
     .filter-active-count {
       margin-left: 0.5rem;
@@ -582,19 +597,12 @@ const faqJsonLd = {
       background: var(--surface);
     }
 
+    /* 絞り込みの箱と表の間に挟まる唯一の行なので、上下の余白は詰めて表を近づける */
     .result-count {
       color: var(--muted);
       font-size: 0.8125rem;
-      margin: 0 0 0.25rem;
+      margin: 0 0 0.35rem;
     }
-
-    /* 表幅が画面に収まらないことに気づかず、評価欄（右方向）を見落とす人がいたため明示する */
-    .scroll-hint {
-      color: var(--muted);
-      font-size: 0.8125rem;
-      margin: 0 0 0.5rem;
-    }
-    .scroll-hint strong { color: var(--text); }
 
     .measure-list { margin: 0.75rem 0 0; }
     .measure-item {
