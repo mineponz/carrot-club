@@ -141,7 +141,8 @@ const prizeBars = orderBuckets(prizeByHeightBucket).map((r) => ({
   value: r.avg,
   displayValue: `${formatManYen(r.avg)}万円`,
   n: r.n,
-  note: `全${allByHeightBucket.get(r.bucket) ?? 0}頭・重賞${gradeWinnersByHeightBucket.get(r.bucket) ?? 0}頭`,
+  // 「重賞n頭」だと勝利数と読めてしまうので「重賞馬n頭」と書く（数えているのは馬の数）
+  note: `全${allByHeightBucket.get(r.bucket) ?? 0}頭・重賞馬${gradeWinnersByHeightBucket.get(r.bucket) ?? 0}頭`,
 }));
 const winBars = orderBuckets(winsByHeightBucket).map((r) => ({
   label: r.bucket,
@@ -349,7 +350,8 @@ const description =
       </table>
     </div>
     <p class="table-note">
-      {gradeWinners.length}頭が重賞（中央G1〜G3・Jpn1〜3、地方重賞含む）を勝っている。頭数だけ見ると
+      {gradeWinners.length}頭が重賞（中央G1〜G3・Jpn1〜3、地方重賞含む）を勝っている。以下「重賞馬」と書くのは
+      この「重賞を1勝以上している馬」の頭数で、重賞の勝利数ではない。頭数だけ見ると
       {gradeWinnersInMidBucket}頭の154〜157.5cm階級が最多だが、それはこの階級の母数が
       {allByHeightBucket.get('154〜157.5cm')}頭と一番多いからで、母数に対する割合で見ると景色が変わる。
       158〜161.5cm階級は{allByHeightBucket.get('158〜161.5cm')}頭中{gradeWinnersByHeightBucket.get('158〜161.5cm')}頭
