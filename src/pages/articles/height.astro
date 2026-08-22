@@ -356,6 +356,19 @@ const description =
         当たり前の結論に落ち着いた。</li>
     </ul>
 
+    {/*
+      読み終わりの枠。この記事だけに置く少し大きめの枠で、**SP用のコード**なので
+      `ad-slot-sp` を付けてスマホ幅だけに出す（PC幅では枠ごと出ない）。同じ位置にPCでも
+      出したくなったら、PC用のコードを別に発行して `ad-slot-pc` の枠を隣に足すこと
+      ―― 別の場所のコードを流用しない（src/components/AdSlot.astro のコメントと同じ方針）。
+      本文を隠して広告を見せる形（リワード）は忍者AdMaxでは視聴完了を判定できないので取らない。
+    */}
+    <div class="ad-slot ad-slot-sp ad-slot-end">
+      <!-- admax -->
+      <script is:inline src="https://adm.shinobi.jp/s/24e3e1a24f40d88ee1a0ca315c54a7b9"></script>
+      <!-- admax -->
+    </div>
+
     <h2>データについて</h2>
     <p>
       募集時データは自分が5年分ためてきたスプレッドシートが元。競走成績は現時点
@@ -403,6 +416,18 @@ const description =
   .table-note {
     font-size: 0.8125rem;
     color: var(--muted);
+  }
+  /* 読み終わりの枠。少し大きめの枠なので中央に置き、前後の見出しと間隔を空ける。
+     `display` は `.ad-slot-sp` の出し分け（BaseLayout の is:global）を潰さないよう、
+     スマホ幅で表示される時だけ flex にする（PC幅は BaseLayout 側の `display: none` が勝つ）。 */
+  .ad-slot-end {
+    margin: 1.75rem 0 0.5rem;
+  }
+  @media (max-width: 47.99rem) {
+    .ad-slot-end {
+      display: flex;
+      justify-content: center;
+    }
   }
   .ad-pair {
     display: flex;
