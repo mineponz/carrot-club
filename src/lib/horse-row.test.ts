@@ -1,6 +1,14 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { COLUMNS, escapeHtml, formatBirthDate, horseDetailHref, horseRowHtml } from './horse-row.ts';
+import {
+  COLUMNS,
+  escapeHtml,
+  formatBirthDate,
+  horseDetailHref,
+  horseRowHtml,
+  pedigreeLine,
+  stableSexLine,
+} from './horse-row.ts';
 import { DEFAULT_EVALUATION } from './evaluations.ts';
 import type { Horse } from './horses.ts';
 
@@ -68,7 +76,27 @@ test('horseDetailHref: 末尾スラッシュ付きのURLを作る（trailingSlas
 
 test('horseRowHtml: 馬名セルは個別ページへのリンクになる（同一タブ遷移なので target は付けない）', () => {
   const html = horseRowHtml(horse, DEFAULT_EVALUATION);
-  assert.match(html, /<td class="horse-name"><a href="\/horses\/7\/">フィリアプーラの2024<\/a><\/td>/);
+  const cell = html.match(/<td class="horse-name">[^]*?<\/td>/)![0];
+  assert.match(cell, /<a href="\/horses\/7\/">フィリアプーラの2024<\/a>/);
+  assert.ok(!cell.includes('target='));
+});
+
+test('horseRowHtml: 馬名セルにSP用の No.・父（母父）・厩舎・性を重ねて持たせる', () => {
+  const html = horseRowHtml(horse, DEFAULT_EVALUATION);
+  const cell = html.match(/<td class="horse-name">[^]*?<\/td>/)![0];
+  assert.match(cell, /<span class="sp-no">7\.<\/span>/);
+  assert.match(cell, /<span class="sp-line">エピファネイア（ハービンジャー）<\/span>/);
+  assert.match(cell, /<span class="sp-line">木村哲也・牡<\/span>/);
+});
+
+test('pedigreeLine: 母父が無ければ括弧ごと出さない', () => {
+  assert.equal(pedigreeLine(horse), 'エピファネイア（ハービンジャー）');
+  assert.equal(pedigreeLine({ ...horse, broodmareSire: '' }), 'エピファネイア');
+});
+
+test('stableSexLine: 厩舎が無ければ性だけにする', () => {
+  assert.equal(stableSexLine(horse), '木村哲也・牡');
+  assert.equal(stableSexLine({ ...horse, stable: '' }), '牡');
 });
 
 test('horseRowHtml: 過去年度は個別ページの接頭辞を差し替えられる', () => {

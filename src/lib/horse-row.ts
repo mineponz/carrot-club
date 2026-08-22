@@ -8,6 +8,9 @@
  * 二重管理になるため、唯一の定義をここに置く。
  *
  * 列の並びは COLUMNS と一致させること（見出しと中身がずれる）。
+ * 馬名セルには、狭い画面用に No.・父（母父）・厩舎・性を重ねて持たせている
+ * （`.sp-no` / `.sp-line`。広い画面ではCSSで隠す）。SPではこの4列を隠して馬名セルに
+ * まとめることで、横スクロールしても馬の素性が左端に残る。
  * 評価欄を馬名のすぐ隣に置いているのは、表が画面幅に収まらず、右端に置くと
  * 横スクロールしない限り評価できることに気づけないため。
  */
@@ -81,6 +84,22 @@ export function horseDetailHref(horseId: string, detailBasePath = DEFAULT_DETAIL
   return `${detailBasePath}${encodeURIComponent(horseId)}/`;
 }
 
+/**
+ * 狭い画面（SP）で馬名セルの2行目に出す「父（母父）」。
+ *
+ * SPでは父・母父・性・厩舎の列を隠し、代わりに左端に固定される馬名セルへまとめる。
+ * 横スクロールしても馬の素性（血統・厩舎・性）が消えないようにするため。
+ * 母父が空の年度・馬では括弧ごと出さない（「（）」だけが残ると壊れて見える）。
+ */
+export function pedigreeLine(horse: Horse): string {
+  return horse.broodmareSire ? `${horse.sire}（${horse.broodmareSire}）` : horse.sire;
+}
+
+/** 同じく馬名セルの3行目「厩舎・性」。厩舎が空なら性だけにする。 */
+export function stableSexLine(horse: Horse): string {
+  return horse.stable ? `${horse.stable}・${horse.sex}` : horse.sex;
+}
+
 export function horseRowHtml(
   horse: Horse,
   evaluation: Evaluation,
@@ -104,7 +123,7 @@ export function horseRowHtml(
 
   return `<tr data-horse-id="${escapeHtml(horse.id)}" data-skip="${evaluation.skip}">
   <td class="num">${escapeHtml(horse.id)}</td>
-  <td class="horse-name"><a href="${detailHref}">${name}</a></td>
+  <td class="horse-name"><span class="sp-no">${escapeHtml(horse.id)}.</span><a href="${detailHref}">${name}</a><span class="sp-line">${escapeHtml(pedigreeLine(horse))}</span><span class="sp-line">${escapeHtml(stableSexLine(horse))}</span></td>
   <td>
     <div class="eval-cell">
       <select class="rating-select" data-field="rating" data-rating="${evaluation.rating ?? ''}" aria-label="${name}の評価">${ratingOptions}</select>
