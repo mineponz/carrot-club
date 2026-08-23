@@ -280,25 +280,6 @@ const faqJsonLd = {
     </div>
   </details>
 
-  <!--
-    SPでは父・母父・性・厩舎の列を隠して馬名セルにまとめる（下の is:global スタイル）。
-    隠した列は見出しの並べ替えボタンごと消えるので、その代わりになる並び替えをここに出す。
-    広い画面では見出しのボタンで並べ替えられるので非表示にする。
-  -->
-  <div class="sp-sort">
-    <label class="sp-sort-label">
-      並び替え
-      <select id="sp-sort-key">
-        {
-          COLUMNS.filter((c) => 'sortKey' in c).map((c) => (
-            <option value={(c as { sortKey: string }).sortKey}>{c.label}</option>
-          ))
-        }
-      </select>
-    </label>
-    <button type="button" id="sp-sort-dir" data-direction="asc">昇順</button>
-  </div>
-
   <p id="result-count" class="result-count">{total} / {total} 頭</p>
   <div class="table-wrap">
     <table id="horse-table">
@@ -629,43 +610,6 @@ const faqJsonLd = {
       background: var(--surface);
     }
 
-    /* SP専用。広い画面は見出しの並べ替えボタンがあるので出さない */
-    .sp-sort { display: none; }
-    @media (max-width: 40rem) {
-      .sp-sort {
-        display: flex;
-        align-items: center;
-        gap: 0.5rem;
-        margin-bottom: 0.4rem;
-        font-size: 0.8125rem;
-      }
-      .sp-sort-label {
-        display: flex;
-        align-items: center;
-        gap: 0.35rem;
-        color: var(--muted);
-      }
-      #sp-sort-key {
-        font: inherit;
-        font-size: 0.8125rem;
-        padding: 0.3rem 0.4rem;
-        border: 1px solid var(--border);
-        border-radius: 4px;
-        background: var(--bg);
-        color: var(--text);
-      }
-      #sp-sort-dir {
-        font: inherit;
-        font-size: 0.8125rem;
-        padding: 0.3rem 0.6rem;
-        border: 1px solid var(--border);
-        border-radius: 4px;
-        background: transparent;
-        color: var(--text);
-        cursor: pointer;
-      }
-    }
-
     /* 絞り込みの箱と表の間に挟まる唯一の行なので、上下の余白は詰めて表を近づける */
     .result-count {
       color: var(--muted);
@@ -928,7 +872,8 @@ const faqJsonLd = {
         text-overflow: ellipsis;
       }
       /* 馬名セルにまとめた列（No・父・母父・性・厩舎）は隠す。
-         並べ替えはこれらの見出しごと消えるので `.sp-sort` で代替する。 */
+         並べ替えは見出しのボタンだけで行うので、隠した5列はSPでは並べ替えられなくなる
+         （本人了承済み・2026-08-23。SP専用の並び替えバーは元のUIに戻すため取りやめた）。 */
       #horse-table th:nth-child(1),
       #horse-table td:nth-child(1),
       #horse-table th:nth-child(5),
@@ -1003,9 +948,6 @@ const faqJsonLd = {
     const filterHideSkip = el<HTMLInputElement>('filter-hide-skip');
     const filterFavoriteOnly = el<HTMLInputElement>('filter-favorite-only');
     const filterResetBtn = el<HTMLButtonElement>('filter-reset');
-    // SP用の並び替え（見出しの並べ替えボタンと同じ状態を触る）
-    const spSortKey = el<HTMLSelectElement>('sp-sort-key');
-    const spSortDir = el<HTMLButtonElement>('sp-sort-dir');
     // 絞り込みは既定で畳んでいるので、効いている条件の数を見出し（summary）に出す
     const filterActiveCount = el<HTMLElement>('filter-active-count');
     // A〜E＋未評価。個別にidを振らず、値（value）をそのままフィルタ条件に使う
@@ -1138,11 +1080,6 @@ const faqJsonLd = {
       updateActiveFilterCount(state);
       saveFilterState(window.localStorage, filterStorageKey, state);
 
-      // 見出しのボタンで並べ替えたときもSPの選択に反映する（同じ状態を2か所で見せている）
-      spSortKey.value = sortKey;
-      spSortDir.dataset.direction = sortDirection;
-      spSortDir.textContent = sortDirection === 'asc' ? '昇順' : '降順';
-
       for (const btn of sortButtons) {
         const active = btn.dataset.sortKey === sortKey;
         btn.setAttribute('data-active', String(active));
@@ -1174,15 +1111,6 @@ const faqJsonLd = {
         render();
       });
     }
-
-    spSortKey.addEventListener('change', () => {
-      sortKey = spSortKey.value as SortKey;
-      render();
-    });
-    spSortDir.addEventListener('click', () => {
-      sortDirection = sortDirection === 'asc' ? 'desc' : 'asc';
-      render();
-    });
 
     for (const input of textInputs) input.addEventListener('input', render);
     for (const select of selects) select.addEventListener('change', render);
