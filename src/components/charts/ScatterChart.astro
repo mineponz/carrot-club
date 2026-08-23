@@ -146,6 +146,10 @@ const seriesByKey = new Map(series.map((s) => [s.key, s]));
     --series-1-dark: #3987e5;
     --series-2: #eb6834;
     --series-2-dark: #d95926;
+    /* 3系列目は「データが無い」用の灰色。牡・牝と並ぶ第3の分類には見せたくないので、
+       他の2色より彩度を落としてある。 */
+    --series-3: #7b8494;
+    --series-3-dark: #939cab;
     position: relative;
     margin: 1.25rem 0;
   }
@@ -153,6 +157,7 @@ const seriesByKey = new Map(series.map((s) => [s.key, s]));
     .viz-root {
       --series-1: var(--series-1-dark);
       --series-2: var(--series-2-dark);
+      --series-3: var(--series-3-dark);
     }
   }
   .viz-header {
