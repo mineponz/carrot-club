@@ -16,7 +16,7 @@
  * 2026-08-22〜23、2017〜2020年募集分（348頭・クラブ公式サイトの過去の測尺一覧から取込）を追加。
  * この4年分は当初 父・母父・一口価格が空だったが、2026-08-23に個体ページから補ったので
  * （`scripts/enrich-legacy-pedigree-price.mjs`）、「この年度は価格データが無い」と本文に
- * 決め打ちで書かないこと。欠測の頭数は`withoutPrice`/`racedWithoutPrice`から動的に出す。
+ * 決め打ちで書かないこと。欠測の頭数は`racedWithoutPrice`等から動的に出す。
  * 対象頭数・体高分布・相関係数・重賞馬まわりの数字はrecruits.json/race-results.jsonから動的に
  * 計算しているため、この4年分を足しただけで数値は自動的に更新される（vault:
  * 20260822-import-2017-2020-legacy-data）。
@@ -111,20 +111,31 @@ const heightPrizeR = pearsonCorrelation(
   racedWithHeight.map((h) => h.totalPrizeManYen)
 );
 const heightScatterAll = racedWithHeight.length;
-const heightScatterPoints = racedWithHeight
-  .filter((h) => h.totalPrizeManYen < SCATTER_Y_MAX)
-  .map((h) => ({
-    x: h.height as number,
-    y: h.totalPrizeManYen,
-    seriesKey: sexSeriesKey(h.sex),
-    tipTitle: h.displayName,
-    tipRows: [
-      ['体高', `${h.height}cm`],
-      ['獲得賞金合計', `${formatManYen(h.totalPrizeManYen)}万円`],
-      ['通算成績', `${h.starts}戦${h.wins}勝`],
-    ] as [string, string][],
-  }));
+const toHeightPoint = (h: (typeof racedWithHeight)[number]) => ({
+  x: h.height as number,
+  y: h.totalPrizeManYen,
+  seriesKey: sexSeriesKey(h.sex),
+  tipTitle: h.displayName,
+  tipRows: [
+    ['体高', `${h.height}cm`],
+    ['獲得賞金合計', `${formatManYen(h.totalPrizeManYen)}万円`],
+    ['通算成績', `${h.starts}戦${h.wins}勝`],
+  ] as [string, string][],
+});
+const heightScatterPoints = racedWithHeight.filter((h) => h.totalPrizeManYen < SCATTER_Y_MAX).map(toHeightPoint);
 const heightScatterOmitted = heightScatterAll - heightScatterPoints.length;
+// 1億円超えも含めた全頭版。メインのグラフは見やすさ優先で1億円未満に絞っているが、
+// 「重賞馬（1億円超え）込みでも見たい」という本人希望を受け、アコーディオンに畳んで別出しする
+// （本人指摘: 全部を1つの軸に収めると稼ぎ頭に引っ張られて母集団の点がグラフ下端に潰れて
+// 見えにくくなるため、混ぜずに別グラフにする方針にした）。
+const heightScatterFullPoints = racedWithHeight.map(toHeightPoint);
+const heightScatterFullMax = Math.max(...heightScatterFullPoints.map((p) => p.y));
+// 縦軸の上限を2億円刻みで切り上げる（77,663万円→80,000万円=8億円、のように）。
+// 実データの最高額に合わせて動的に決めているので、稼ぎ頭が更新されても直し忘れない。
+const heightScatterFullDomainMax = Math.ceil(heightScatterFullMax / 20000) * 20000;
+const heightScatterFullTicks = [0, 1, 2, 3, 4].map(
+  (i) => (heightScatterFullDomainMax / 4) * i
+);
 
 // ---- 体高階級別の平均賞金・平均勝ち数 ----
 const prizeByHeightBucket = bucketAverage(
@@ -196,29 +207,29 @@ const winBars = orderBuckets(winsByHeightBucket).map((r) => ({
 // 消えている、募集中止になった馬など）なので、頭数だけを数えて本文・注記から動的に出す。
 const racedWithPrice = raced.filter((h) => h.pricePerShare !== null);
 const racedWithoutPrice = raced.length - racedWithPrice.length;
-const withoutPrice = all.filter((h) => h.pricePerShare === null);
-// 性別・父・母父が欠けているのは、netkeibaの個体ページを特定できなかった同じ馬たち。
-// 別々に数えて並べても読み手には同じ話なので、1つの頭数にまとめて出す。
-const withoutProfile = all.filter((h) => h.sex === null || h.sire === null).length;
 const pricePrizeR = pearsonCorrelation(
   racedWithPrice.map((h) => h.pricePerShare as number),
   racedWithPrice.map((h) => h.totalPrizeManYen)
 );
 const priceScatterAll = racedWithPrice.length;
-const priceScatterPoints = racedWithPrice
-  .filter((h) => h.totalPrizeManYen < SCATTER_Y_MAX)
-  .map((h) => ({
-    x: h.pricePerShare as number,
-    y: h.totalPrizeManYen,
-    seriesKey: sexSeriesKey(h.sex),
-    tipTitle: h.displayName,
-    tipRows: [
-      ['一口価格', `${h.pricePerShare}万円`],
-      ['獲得賞金合計', `${formatManYen(h.totalPrizeManYen)}万円`],
-      ['通算成績', `${h.starts}戦${h.wins}勝`],
-    ] as [string, string][],
-  }));
+const toPricePoint = (h: (typeof racedWithPrice)[number]) => ({
+  x: h.pricePerShare as number,
+  y: h.totalPrizeManYen,
+  seriesKey: sexSeriesKey(h.sex),
+  tipTitle: h.displayName,
+  tipRows: [
+    ['一口価格', `${h.pricePerShare}万円`],
+    ['獲得賞金合計', `${formatManYen(h.totalPrizeManYen)}万円`],
+    ['通算成績', `${h.starts}戦${h.wins}勝`],
+  ] as [string, string][],
+});
+const priceScatterPoints = racedWithPrice.filter((h) => h.totalPrizeManYen < SCATTER_Y_MAX).map(toPricePoint);
 const priceScatterOmitted = priceScatterAll - priceScatterPoints.length;
+// 体高チャートと同じ理由で、1億円超え込みの全頭版は別グラフにする。
+const priceScatterFullPoints = racedWithPrice.map(toPricePoint);
+const priceScatterFullMax = Math.max(...priceScatterFullPoints.map((p) => p.y));
+const priceScatterFullDomainMax = Math.ceil(priceScatterFullMax / 20000) * 20000;
+const priceScatterFullTicks = [0, 1, 2, 3, 4].map((i) => (priceScatterFullDomainMax / 4) * i);
 
 /**
  * 散布図に実際に出ている点のうち、性別が分からないもの。全頭ベース（`sex === null`の頭数）で
@@ -341,8 +352,8 @@ const description = `【非公式】キャロットクラブ${yearRangeLabel}${a
       r={heightPrizeR?.toFixed(3)} で、「体高が大きいほど稼ぐ」と言い切れるほど強くはない、
       かなり弱い正の相関にとどまった。
       {heightScatterOmitted > 0 && (
-        <>獲得賞金合計が1億円を超える{heightScatterOmitted}頭はグラフの外に出るため省略した
-        （後述の代表馬紹介を参照）。</>
+        <>獲得賞金合計が1億円を超える{heightScatterOmitted}頭はこのグラフでは省略した
+        （後述の代表馬紹介、または下の「1億円超えも含めて見る」を参照）。</>
       )}
       {unknownSexPoints > 0 && (
         <>点の色は性別で分けている。性別が取れていない{unknownSexPoints}頭は牡に混ぜず
@@ -363,6 +374,28 @@ const description = `【非公式】キャロットクラブ${yearRangeLabel}${a
       formatX={(v) => `${v}`}
       formatY={(v) => (v === 0 ? '0' : `${v / 1000}k`)}
     />
+    {heightScatterOmitted > 0 && (
+      <details class="bucket-accordion">
+        <summary>1億円超えも含めて見る（出走済み全{heightScatterAll}頭）</summary>
+        <p class="table-note">
+          稼ぎ頭を混ぜると軸が伸びて母集団の点がグラフ下端に潰れて見えにくくなるため、
+          上のグラフとは分けている。縦軸のスケールが違う点に注意。
+        </p>
+        <ScatterChart
+          title={`体高 × 獲得賞金合計（出走済み全${heightScatterAll}頭・1億円超え含む）`}
+          points={heightScatterFullPoints}
+          series={sexSeries}
+          xLabel="体高(cm)"
+          yLabel="獲得賞金合計(万円)"
+          xDomain={[141, 168]}
+          yDomain={[0, heightScatterFullDomainMax]}
+          xTicks={[145, 150, 155, 160, 165]}
+          yTicks={heightScatterFullTicks}
+          formatX={(v) => `${v}`}
+          formatY={(v) => (v === 0 ? '0' : `${v / 10000}億`)}
+        />
+      </details>
+    )}
 
     <AdSlot sp={AD_SP_WIDE_A} pc={AD_PC_WIDE_A} />
 
@@ -460,7 +493,8 @@ const description = `【非公式】キャロットクラブ${yearRangeLabel}${a
       同じ形式で並べておく。対象は出走済み{raced.length}頭のうち一口価格が分かっている
       {racedWithPrice.length}頭{racedWithoutPrice > 0 && <>（残り{racedWithoutPrice}頭は募集当時の価格を確認できず除外）</>}。
       相関係数は r={pricePrizeR?.toFixed(3)} でほぼゼロ。体高よりもさらに予測力が無かった。
-      {priceScatterOmitted > 0 && <>（1億円超えの{priceScatterOmitted}頭はここでも省略）</>}
+      {priceScatterOmitted > 0 && <>（1億円超えの{priceScatterOmitted}頭はこのグラフでは省略。
+      下の「1億円超えも含めて見る」参照）</>}
       価格帯で見ても平均賞金はほとんど横並びで、一口価格は「その年の人気・血統への期待値」で
       あって「将来の稼ぎ」を予測する指標ではなさそう、というのが今回の実感。
     </p>
@@ -477,6 +511,28 @@ const description = `【非公式】キャロットクラブ${yearRangeLabel}${a
       formatX={(v) => `${v}`}
       formatY={(v) => (v === 0 ? '0' : `${v / 1000}k`)}
     />
+    {priceScatterOmitted > 0 && (
+      <details class="bucket-accordion">
+        <summary>1億円超えも含めて見る（価格データあり全{priceScatterAll}頭）</summary>
+        <p class="table-note">
+          稼ぎ頭を混ぜると軸が伸びて母集団の点がグラフ下端に潰れて見えにくくなるため、
+          上のグラフとは分けている。縦軸のスケールが違う点に注意。
+        </p>
+        <ScatterChart
+          title={`一口価格 × 獲得賞金合計（価格データあり全${priceScatterAll}頭・1億円超え含む）`}
+          points={priceScatterFullPoints}
+          series={sexSeries}
+          xLabel="一口価格(万円)"
+          yLabel="獲得賞金合計(万円)"
+          xDomain={[0, 42]}
+          yDomain={[0, priceScatterFullDomainMax]}
+          xTicks={[0, 10, 20, 30, 40]}
+          yTicks={priceScatterFullTicks}
+          formatX={(v) => `${v}`}
+          formatY={(v) => (v === 0 ? '0' : `${v / 10000}億`)}
+        />
+      </details>
+    )}
 
     <AdSlot sp={AD_SP_WIDE_A} pc={AD_PC_WIDE_B} />
 
@@ -531,10 +587,6 @@ const description = `【非公式】キャロットクラブ${yearRangeLabel}${a
     <h2>データについて</h2>
     <p>
       募集時データはクラブが募集時に公表した測尺・血統・一口価格が元。
-      いま埋まっていないのは、募集当時の価格を確認できなかった{withoutPrice.length}頭ぶんの
-      一口価格{withoutProfile > 0 && (
-        <>と、個体ページを特定できなかった{withoutProfile}頭ぶんの性別・父・母父</>
-      )}で、価格の集計はその{withoutPrice.length}頭を除いて出している。
       競走成績は{resultsAsOf}時点のスナップショットで、今後レースを重ねるたびに変わっていく。
       2024・2025年募集組はまだ大半が未出走〜デビュー間もないため、今回の集計は出走済みの
       {raced.length}頭（主に2023年以前の募集組）が中心になっている点は割り引いて見てほしい。
