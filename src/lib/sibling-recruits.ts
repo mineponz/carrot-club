@@ -10,13 +10,21 @@
  * データの読み込み（JSON import）は `analysis-data.ts` に任せ、この関数は渡された配列だけを見る
  * 純粋関数にしている（`node --test` で検証できるようにするため）。
  *
- * 突き合わせは2通り。どちらか一方でも当たれば兄姉として扱う。
+ * 突き合わせは3通り。どれか1つでも当たれば兄姉として扱う。
  * 1. **母のnetkeiba個体ページID**が一致（＝同じ母の産駒）。確実な方法。年によって母のURLが
  *    無いこともある（2021〜2023年は元スプレッドシートに母の列が無い。2017〜2020年は
  *    クラブ公式サイトの測尺一覧に母の列自体が無いためnetkeiba検索で別途特定しており、
  *    345/348頭は埋まっているが3頭は未特定=null）。
- * 2. **`Horse.sibling`（代表的な兄姉の実名）が過去募集馬の実名と一致**。1でカバーできない
- *    年（母のURLが無い馬）を拾える。競走馬名は登録上ユニークなので同名の別馬は入らない。
+ * 2. **母馬名が一致**。1でカバーできない2021〜2023年募集（281頭）を拾うための道。母の列が
+ *    無い年でも募集名が「<母馬名>の<生年>」なので母馬名だけは復元でき、繁殖牝馬名は
+ *    重複しないよう登録される（同名の外国産には「Ⅱ」が付く）ので実質一意に当たる。
+ *    ただし**両方に母のURLがあってそれが違う場合は名前が同じでも兄姉にしない**
+ *    ―― URLで別の母だと分かっているものを名前で拾い直さないため。
+ * 3. **`Horse.sibling`（代表的な兄姉の実名）が過去募集馬の実名と一致**。1・2で母を特定できない
+ *    馬でも代表兄姉1頭だけは拾える。競走馬名は登録上ユニークなので同名の別馬は入らない。
+ *
+ * 2を足す前は、2021〜2023年募集の兄姉が `Horse.sibling` に載っている1頭を除いて全部抜けていた
+ * （例: No.72サンブルエミューズの25にラヴェル（2021年募集）が出てこない・2026-08-23の指摘）。
  *
  * 「兄姉」なので対象は募集年がその馬より前の馬に限る（同年・後年の馬は同じ母から生まれえない）。
  *
@@ -27,6 +35,7 @@
  * 345/348頭で埋めた（残り3頭はnetkeiba個体ページ自体を特定できていない馬）。
  */
 import type { RecruitWithResult } from './analysis-data.ts';
+import { damNameFromRecruitName } from './horse-meta.ts';
 
 export interface SiblingRecruit {
   recruitYear: number;
@@ -46,8 +55,11 @@ export interface SiblingRecruit {
   wins: number | null;
   /** 中央+地方の獲得賞金合計（万円）。成績が取れていなければ null */
   totalPrizeManYen: number | null;
-  /** どちらの手がかりで兄姉と判定したか（母一致が確実。名前一致は代表兄姉のみ） */
-  matchedBy: 'dam' | 'name';
+  /**
+   * どの手がかりで兄姉と判定したか。`dam`（母のURL一致）が一番確実で、`damName`（母馬名一致）が次点、
+   * `name` は `Horse.sibling` に載っている代表兄姉1頭のみ。
+   */
+  matchedBy: 'dam' | 'damName' | 'name';
 }
 
 /**
@@ -140,7 +152,7 @@ export function netkeibaHorseId(url: string | null | undefined): string | null {
   return m ? m[1] : null;
 }
 
-function toSibling(recruit: RecruitWithResult, matchedBy: 'dam' | 'name'): SiblingRecruit {
+function toSibling(recruit: RecruitWithResult, matchedBy: SiblingRecruit['matchedBy']): SiblingRecruit {
   return {
     recruitYear: recruit.recruitYear,
     no: recruit.no,
@@ -158,8 +170,10 @@ function toSibling(recruit: RecruitWithResult, matchedBy: 'dam' | 'name'): Sibli
   };
 }
 
-/** 兄姉の手がかり。`Horse` そのものではなく必要な2列だけ受け取る。 */
+/** 兄姉の手がかり。`Horse` そのものではなく必要な3列だけ受け取る。 */
 export interface SiblingLookupKey {
+  /** 募集馬名（「<母馬名>の<生年>」）。母馬名を復元するのに使う。 */
+  name: string;
   /** その馬の母のnetkeiba個体ページURL（無い年度は空文字） */
   damUrl: string;
   /** 代表的な兄姉の実名（無ければ空文字） */
@@ -168,7 +182,7 @@ export interface SiblingLookupKey {
 
 /**
  * 過去募集馬のうち、その馬の兄姉にあたるものを募集年の新しい順に返す。
- * 同じ馬が母一致と名前一致の両方で当たった場合は母一致（確実なほう）を残す。
+ * 1頭につき当たった手がかりは1つだけ記録し、確実な順（母のURL → 母馬名 → 代表兄姉の実名）に採る。
  */
 export function findSiblingRecruits(
   horse: SiblingLookupKey,
@@ -176,20 +190,28 @@ export function findSiblingRecruits(
   pool: readonly RecruitWithResult[]
 ): SiblingRecruit[] {
   const damId = netkeibaHorseId(horse.damUrl);
+  const damName = damNameFromRecruitName(horse.name);
   const siblingName = horse.sibling.trim();
   const found = new Map<string, SiblingRecruit>();
 
+  /** その過去募集馬を兄姉と言える手がかりを、確実な順に1つだけ返す。 */
+  const matchClue = (recruit: RecruitWithResult): SiblingRecruit['matchedBy'] | null => {
+    const recruitDamId = netkeibaHorseId(recruit.damUrl);
+    if (damId != null && recruitDamId != null) {
+      // 両方に母のURLがあるならそれが答え。違うなら別の母なので、母馬名では拾い直さない。
+      if (recruitDamId === damId) return 'dam';
+    } else if (damName != null && recruit.damName === damName) {
+      return 'damName';
+    }
+    if (siblingName !== '' && recruit.realName === siblingName) return 'name';
+    return null;
+  };
+
   for (const recruit of pool) {
     if (recruit.recruitYear >= recruitYear) continue;
-    const key = `${recruit.recruitYear}-${recruit.no}`;
-    const sameDam = damId != null && netkeibaHorseId(recruit.damUrl) === damId;
-    if (sameDam) {
-      found.set(key, toSibling(recruit, 'dam'));
-      continue;
-    }
-    if (siblingName !== '' && recruit.realName === siblingName && !found.has(key)) {
-      found.set(key, toSibling(recruit, 'name'));
-    }
+    const matchedBy = matchClue(recruit);
+    if (matchedBy == null) continue;
+    found.set(`${recruit.recruitYear}-${recruit.no}`, toSibling(recruit, matchedBy));
   }
 
   return [...found.values()].sort(

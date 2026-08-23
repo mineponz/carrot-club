@@ -10,6 +10,7 @@
  */
 import recruitsJson from '../../analysis/data/recruits.json';
 import raceResultsJson from '../../analysis/data/race-results.json';
+import { damNameFromRecruitName, normalizeDamName } from './horse-meta.ts';
 
 export interface Recruit {
   recruitYear: number;
@@ -20,9 +21,14 @@ export interface Recruit {
   netkeibaUrl: string | null;
   /**
    * 母馬のnetkeiba個体ページ。スプレッドシートに母の列があるのは2024・2025年募集ぶんだけで、
-   * 2021〜2023年募集は null。同じ母の産駒（兄弟）を突き合わせるのに使う。
+   * 2021〜2023年募集は null（2017〜2020年募集ぶんは後からnetkeiba検索で埋めた）。
+   * 同じ母の産駒（兄弟）を突き合わせるのに使う。
    */
   damUrl: string | null;
+  /** 母馬名。2017〜2020年募集の取込元にだけある列（他の年度は無し）。 */
+  damName?: string | null;
+  /** 母馬名。2022年募集の取込元にだけある列（他の年度は無し）。 */
+  dam?: string | null;
   sire: string | null;
   broodmareSire: string | null;
   pricePerShare: number | null;
@@ -49,9 +55,18 @@ export interface RaceResult {
   gradeWins: string[];
 }
 
-export interface RecruitWithResult extends Omit<Recruit, 'name'>, Omit<RaceResult, 'netkeibaUrl' | 'name'> {
+export interface RecruitWithResult
+  extends Omit<Recruit, 'name' | 'damName' | 'dam'>,
+    Omit<RaceResult, 'netkeibaUrl' | 'name'> {
   /** 募集時の仮の名前。 */
   recruitName: string;
+  /**
+   * 母馬名（正規化済み。分からなければ null）。取込元の列が年度でばらばら
+   * （2017〜2020は`damName`、2022は`dam`、それ以外は募集名「<母馬名>の<生年>」）なので
+   * ここで1本に揃える。母のnetkeiba個体ページが無い2021〜2023年募集の兄姉を
+   * 突き合わせるのに使う（`sibling-recruits.ts`）。
+   */
+  damName: string | null;
   /** 競走馬登録後の実名（無ければ null。募集直後でまだ未登録の場合など）。 */
   realName: string | null;
   /** 表示用の名前。実名があればそちらを優先する。 */
@@ -80,6 +95,11 @@ export function loadRecruitsWithResults(): RecruitWithResult[] {
     return {
       ...h,
       recruitName: h.name,
+      damName: h.damName
+        ? normalizeDamName(h.damName)
+        : h.dam
+          ? normalizeDamName(h.dam)
+          : damNameFromRecruitName(h.name),
       realName: r?.name ?? null,
       displayName: r?.name ?? h.name,
       chuoPrizeManYen: chuo,

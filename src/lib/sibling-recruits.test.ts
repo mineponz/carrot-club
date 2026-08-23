@@ -18,6 +18,7 @@ function recruit(over: Partial<RecruitWithResult>): RecruitWithResult {
     recruitYear: 2025,
     no: '1',
     recruitName: 'テストメアの2024',
+    damName: 'テストメア',
     realName: 'テストホース',
     displayName: 'テストホース',
     sex: '牡',
@@ -65,7 +66,7 @@ test('findSiblingRecruits: 母が同じ過去の募集馬を兄姉として返�
     recruit({ recruitYear: 2025, no: '45', displayName: '別の母の馬', damUrl: 'https://db.sp.netkeiba.com/horse/2010109999/' }),
   ];
   const found = findSiblingRecruits(
-    { damUrl: 'https://db.netkeiba.com/horse/2010100001/', sibling: '' },
+    { name: 'テストメアの25', damUrl: 'https://db.netkeiba.com/horse/2010100001/', sibling: '' },
     2026,
     pool
   );
@@ -77,19 +78,63 @@ test('findSiblingRecruits: 母が同じ過去の募集馬を兄姉として返�
 
 test('findSiblingRecruits: 母のURLが無い年度でも、代表兄姉の実名で拾える', () => {
   const pool = [
-    recruit({ recruitYear: 2022, no: '15', displayName: 'リュケイオン', realName: 'リュケイオン', damUrl: null }),
+    recruit({ recruitYear: 2022, no: '15', displayName: 'リュケイオン', realName: 'リュケイオン', damUrl: null, damName: '別のメア' }),
   ];
-  const found = findSiblingRecruits({ damUrl: '', sibling: 'リュケイオン' }, 2026, pool);
+  const found = findSiblingRecruits({ name: 'テストメアの25', damUrl: '', sibling: 'リュケイオン' }, 2026, pool);
   assert.deepEqual(
     found.map((s) => [s.recruitYear, s.name, s.matchedBy]),
     [[2022, 'リュケイオン', 'name']]
   );
 });
 
+test('findSiblingRecruits: 母のURLが無い年度（2021〜2023年募集）でも母馬名で拾える', () => {
+  // 実例: No.72サンブルエミューズの25 に対する2021年募集No.65（ラヴェル）。
+  // 母の列が無いので `damUrl` は null、`Horse.sibling` に載っているのは別の1頭だけ。
+  const pool = [
+    recruit({ recruitYear: 2021, no: '65', displayName: 'ラヴェル', realName: 'ラヴェル', damUrl: null }),
+  ];
+  const found = findSiblingRecruits(
+    { name: 'テストメアの25', damUrl: 'https://db.netkeiba.com/horse/2010100001/', sibling: '別の兄姉' },
+    2026,
+    pool
+  );
+  assert.deepEqual(
+    found.map((s) => [s.name, s.matchedBy]),
+    [['ラヴェル', 'damName']]
+  );
+});
+
+test('findSiblingRecruits: 母のURLが両方にあって違うなら、母馬名が同じでも兄姉にしない', () => {
+  const pool = [
+    recruit({ no: '45', displayName: '別の母の馬', damUrl: 'https://db.sp.netkeiba.com/horse/2010109999/' }),
+  ];
+  const found = findSiblingRecruits(
+    { name: 'テストメアの25', damUrl: 'https://db.netkeiba.com/horse/2010100001/', sibling: '' },
+    2026,
+    pool
+  );
+  assert.deepEqual(found, []);
+});
+
+test('findSiblingRecruits: 「Ⅱ」の有無は別の繁殖牝馬として扱う（半角II表記とは同じ母）', () => {
+  const pool = [
+    recruit({ recruitYear: 2022, no: '39', displayName: '外国産の母の馬', damUrl: null, damName: 'アンフィトリテII' }),
+    recruit({ recruitYear: 2023, no: '41', displayName: '内国産の母の馬', damUrl: null, damName: 'アンフィトリテ' }),
+  ];
+  assert.deepEqual(
+    findSiblingRecruits({ name: 'アンフィトリテの25', damUrl: '', sibling: '' }, 2026, pool).map((s) => s.name),
+    ['内国産の母の馬']
+  );
+  assert.deepEqual(
+    findSiblingRecruits({ name: 'アンフィトリテⅡの25', damUrl: '', sibling: '' }, 2026, pool).map((s) => s.name),
+    ['外国産の母の馬']
+  );
+});
+
 test('findSiblingRecruits: 母一致と名前一致が重なっても1頭にまとめ、母一致を残す', () => {
   const pool = [recruit({ recruitYear: 2025, no: '44', displayName: 'グルドロッティン', realName: 'グルドロッティン' })];
   const found = findSiblingRecruits(
-    { damUrl: 'https://db.netkeiba.com/horse/2010100001/', sibling: 'グルドロッティン' },
+    { name: 'テストメアの25', damUrl: 'https://db.netkeiba.com/horse/2010100001/', sibling: 'グルドロッティン' },
     2026,
     pool
   );
@@ -102,7 +147,7 @@ test('findSiblingRecruits: 同年・後年の馬は兄姉にならない', () =>
     recruit({ recruitYear: 2025, no: '10' }),
     recruit({ recruitYear: 2024, no: '10' }),
   ];
-  const found = findSiblingRecruits({ damUrl: 'https://db.netkeiba.com/horse/2010100001/', sibling: '' }, 2025, pool);
+  const found = findSiblingRecruits({ name: 'テストメアの25', damUrl: 'https://db.netkeiba.com/horse/2010100001/', sibling: '' }, 2025, pool);
   assert.deepEqual(
     found.map((s) => s.recruitYear),
     [2024]
@@ -114,7 +159,7 @@ test('findSiblingRecruits: 募集年の新しい順に並ぶ', () => {
     recruit({ recruitYear: 2024, no: '63' }),
     recruit({ recruitYear: 2025, no: '4' }),
   ];
-  const found = findSiblingRecruits({ damUrl: 'https://db.netkeiba.com/horse/2010100001/', sibling: '' }, 2026, pool);
+  const found = findSiblingRecruits({ name: 'テストメアの25', damUrl: 'https://db.netkeiba.com/horse/2010100001/', sibling: '' }, 2026, pool);
   assert.deepEqual(
     found.map((s) => [s.recruitYear, s.no]),
     [
@@ -125,13 +170,20 @@ test('findSiblingRecruits: 募集年の新しい順に並ぶ', () => {
 });
 
 test('findSiblingRecruits: 手がかりが無ければ空（全頭が兄姉になったりしない）', () => {
-  const pool = [recruit({ damUrl: null, realName: 'テストホース' })];
-  assert.deepEqual(findSiblingRecruits({ damUrl: '', sibling: '' }, 2026, pool), []);
+  const pool = [recruit({ damUrl: null, damName: '別のメア', realName: 'テストホース' })];
+  assert.deepEqual(findSiblingRecruits({ name: 'テストメアの25', damUrl: '', sibling: '' }, 2026, pool), []);
+});
+
+test('findSiblingRecruits: 過去募集馬の母馬名が分からなければ名前一致だけで判定する', () => {
+  // 2017〜2020年募集の `name` は競走馬の実名なので、母馬名は復元できず null になる。
+  // ここを「実名＝母馬名」と扱うと、同名の繁殖牝馬の産駒を兄姉として並べてしまう。
+  const pool = [recruit({ recruitYear: 2019, no: '5', damUrl: null, damName: null, realName: 'テストメア' })];
+  assert.deepEqual(findSiblingRecruits({ name: 'テストメアの25', damUrl: '', sibling: '' }, 2026, pool), []);
 });
 
 test('formatSiblingRecord: 出走数と勝ち数。未出走と成績なしを区別する', () => {
   const base = findSiblingRecruits(
-    { damUrl: 'https://db.netkeiba.com/horse/2010100001/', sibling: '' },
+    { name: 'テストメアの25', damUrl: 'https://db.netkeiba.com/horse/2010100001/', sibling: '' },
     2026,
     [recruit({ starts: 12, wins: 2 })]
   )[0];
@@ -142,13 +194,13 @@ test('formatSiblingRecord: 出走数と勝ち数。未出走と成績なしを�
 
 test('findSiblingRecruits: 成績が取れていない馬は賞金も null にする（0万円と混ざらない）', () => {
   const pool = [recruit({ starts: null, wins: null, totalPrizeManYen: 0 })];
-  const found = findSiblingRecruits({ damUrl: 'https://db.netkeiba.com/horse/2010100001/', sibling: '' }, 2026, pool);
+  const found = findSiblingRecruits({ name: 'テストメアの25', damUrl: 'https://db.netkeiba.com/horse/2010100001/', sibling: '' }, 2026, pool);
   assert.equal(found[0].totalPrizeManYen, null);
 });
 
 test('formatSiblingMeasurements: 欠けている測尺は飛ばす', () => {
   const sibling = findSiblingRecruits(
-    { damUrl: 'https://db.netkeiba.com/horse/2010100001/', sibling: '' },
+    { name: 'テストメアの25', damUrl: 'https://db.netkeiba.com/horse/2010100001/', sibling: '' },
     2026,
     [recruit({})]
   )[0];
@@ -161,7 +213,7 @@ test('formatSiblingMeasurements: 欠けている測尺は飛ばす', () => {
 
 test('siblingDetailHref: 個別ページがある年度だけリンクする（末尾スラッシュ必須）', () => {
   const sibling = findSiblingRecruits(
-    { damUrl: 'https://db.netkeiba.com/horse/2010100001/', sibling: '' },
+    { name: 'テストメアの25', damUrl: 'https://db.netkeiba.com/horse/2010100001/', sibling: '' },
     2026,
     [recruit({ recruitYear: 2025, no: '44' })]
   )[0];
@@ -191,7 +243,7 @@ function self(over: Partial<Parameters<typeof buildMeasurementRows>[0]> = {}) {
 
 test('buildMeasurementRows: その馬自身が1行目に来る（兄姉と同じ列で測尺を見比べるため）', () => {
   const siblings = findSiblingRecruits(
-    { damUrl: 'https://db.netkeiba.com/horse/2010100001/', sibling: '' },
+    { name: 'テストメアの25', damUrl: 'https://db.netkeiba.com/horse/2010100001/', sibling: '' },
     2026,
     [recruit({ recruitYear: 2025, no: '44', displayName: 'グルドロッティン', starts: 12, wins: 2 })]
   );
@@ -222,7 +274,7 @@ test('buildMeasurementRows: 自身はまだ走っていないので成績・賞�
 
 test('buildMeasurementRows: 父を各行に持つ（同じ母の産駒なので違いは父に出る）', () => {
   const siblings = findSiblingRecruits(
-    { damUrl: 'https://db.netkeiba.com/horse/2010100001/', sibling: '' },
+    { name: 'テストメアの25', damUrl: 'https://db.netkeiba.com/horse/2010100001/', sibling: '' },
     2026,
     [recruit({ recruitYear: 2025, no: '44', sire: 'キタサンブラック' })]
   );

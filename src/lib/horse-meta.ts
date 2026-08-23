@@ -8,12 +8,35 @@
 import type { Horse } from './horses.ts';
 
 /**
- * 募集馬名から母馬名を取り出す。
- * クラブの命名は「<母馬名>の<生年>」（2026年募集は「〜の25」、2025年募集は「〜の2024」）で、
- * 外国産馬には「外）」が頭に付く。`Horse` に母馬名の列が無いのでここから復元している。
+ * 母馬名を突き合わせるための正規化。
+ * 外国産の繁殖牝馬に付く「Ⅱ」は、年度によって全角ローマ数字（`アンフィトリテⅡの21` の募集名）と
+ * 半角2文字（2022年募集の母名列 `アンフィトリテII`）が混在するので NFKC で寄せる。
+ * **数字の後ろを削るような加工はしない** ―― 「アンフィトリテ」と「アンフィトリテⅡ」は別の繁殖牝馬で、
+ * ここを潰すと別の母の産駒を兄姉として並べてしまう。
+ */
+export function normalizeDamName(name: string): string {
+  return name.normalize('NFKC').trim();
+}
+
+/**
+ * 募集馬名「<母馬名>の<生年>」から母馬名を取り出す。形式に合わなければ null。
+ * （2026年募集は「〜の25」、2025年募集は「〜の2024」。外国産馬には「外）」が頭に付く）
+ *
+ * null を返す口があるのは、`sibling-recruits.ts` が**過去の募集馬**にもこれを掛けるため。
+ * 2017〜2020年募集ぶんは `name` が競走馬の実名（例: `ナミュール`）なので、後ろを削る作りだと
+ * 実名がそのまま母馬名として返ってしまい、同名の繁殖牝馬と誤って結び付く。
+ */
+export function damNameFromRecruitName(name: string): string | null {
+  const m = name.match(/^(?:外）)?(.+)の\d{2,4}$/);
+  return m ? normalizeDamName(m[1]) : null;
+}
+
+/**
+ * 募集馬名から母馬名を取り出す。`Horse` に母馬名の列が無いのでここから復元している。
+ * 表示用なので、命名が想定と違っても文言が空にならないよう「外）」だけ落として返す。
  */
 export function damNameOf(horse: Horse): string {
-  return horse.name.replace(/^外）/, '').replace(/の\d{2,4}$/, '');
+  return damNameFromRecruitName(horse.name) ?? horse.name.replace(/^外）/, '');
 }
 
 /** 「2026年募集」のように表示する年（`horses2026` の 2026）。 */

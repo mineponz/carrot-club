@@ -1,6 +1,13 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { damNameOf, formatBirthDateLong, horseDetailDescription, horseDetailTitle } from './horse-meta.ts';
+import {
+  damNameFromRecruitName,
+  damNameOf,
+  formatBirthDateLong,
+  horseDetailDescription,
+  horseDetailTitle,
+  normalizeDamName,
+} from './horse-meta.ts';
 import type { Horse } from './horses.ts';
 
 const horse: Horse = {
@@ -35,6 +42,23 @@ test('damNameOf: 2025年募集の「〜の2024」表記にも対応する', () =
 
 test('damNameOf: 外国産馬の「外）」接頭辞を落とす', () => {
   assert.equal(damNameOf({ ...horse, name: '外）ビディデュークの25' }), 'ビディデューク');
+});
+
+test('damNameFromRecruitName: 「<母馬名>の<生年>」でなければ null（実名を母馬名にしない）', () => {
+  assert.equal(damNameFromRecruitName('サンブルエミューズの25'), 'サンブルエミューズ');
+  assert.equal(damNameFromRecruitName('アンフィトリテの2024'), 'アンフィトリテ');
+  assert.equal(damNameFromRecruitName('外）ビディデュークの25'), 'ビディデューク');
+  assert.equal(damNameFromRecruitName('ナミュール'), null);
+});
+
+test('normalizeDamName: 全角ローマ数字と半角表記を揃える（Ⅱ自体は残す）', () => {
+  assert.equal(normalizeDamName('アンフィトリテⅡ'), 'アンフィトリテII');
+  assert.equal(normalizeDamName('アンフィトリテII'), 'アンフィトリテII');
+  assert.notEqual(normalizeDamName('アンフィトリテⅡ'), normalizeDamName('アンフィトリテ'));
+});
+
+test('damNameFromRecruitName: 母馬名の「Ⅱ」は正規化して返す（年度で表記が揺れるため）', () => {
+  assert.equal(damNameFromRecruitName('アンフィトリテⅡの21'), 'アンフィトリテII');
 });
 
 test('formatBirthDateLong: ISO日付を読み下し表記にする', () => {
