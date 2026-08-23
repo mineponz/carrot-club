@@ -17,6 +17,7 @@ import { DEFAULT_EVALUATION } from '../lib/evaluations.ts';
 // A〜Eの並びはAPI側の定義を唯一の出所にする（ここで別の配列を作ると表・集計とずれる）
 import { RATINGS } from '../lib/evaluation-api.ts';
 import { COLUMNS, horseRowHtml } from '../lib/horse-row.ts';
+import { analysisArticles } from '../data/articles.ts';
 
 // フィルタの選択肢はビルド時に確定できるのでサーバー側で作る
 const sires = uniqueValues(horses2026, 'sire');
@@ -147,8 +148,18 @@ const faqJsonLd = {
     非公式の選定支援ツールです。評価などはこの端末に保存され、
     <a href="#sync-panel">別の端末に引き継げます</a>。
   </p>
+  <div class="analysis-promo">
+    <p class="analysis-promo-eyebrow">データ分析記事</p>
+    <ul class="analysis-promo-list">
+      {analysisArticles.map((a) => (
+        <li><a href={a.href}>{a.title}</a></li>
+      ))}
+    </ul>
+    <a class="analysis-promo-more" href="/articles/">記事一覧へ</a>
+  </div>
+
   <p class="year-switch">
-    <a href="/2025/">2025年募集馬の一覧</a> ／ <a href="/articles/">分析記事（体高・一口価格と成績）</a>
+    <a href="/2025/">2025年募集馬の一覧</a>
   </p>
 
   <!--
@@ -438,6 +449,45 @@ const faqJsonLd = {
     .note { color: var(--muted); font-size: 0.875rem; }
     /* 年度切り替えの導線。本文より弱く、でも見落とさない程度に */
     .year-switch { margin: 0 0 0.5rem; font-size: 0.875rem; color: var(--muted); }
+
+    /*
+      データ分析記事への導線。以前は.year-switchに埋もれた小さいテキストリンク1本
+      だったが、本人指摘（2026-08-23）で「体高の記事だけじゃなくなったのに埋もれている」
+      「もう少し目立たせて」とのことでカード状に独立させた。記事タイトルは
+      `src/data/articles.ts`から動的に出す（ここに個別のタイトルをハードコードすると
+      記事を足すたびに直し忘れる）。
+    */
+    .analysis-promo {
+      margin: 0 0 0.75rem;
+      padding: 0.85rem 1.1rem;
+      border: 1px solid var(--border);
+      border-left: 3px solid var(--accent);
+      border-radius: 0 8px 8px 0;
+      background: var(--accent-weak);
+    }
+    .analysis-promo-eyebrow {
+      margin: 0 0 0.4rem;
+      font-size: 0.75rem;
+      font-weight: 700;
+      color: var(--accent);
+    }
+    .analysis-promo-list {
+      margin: 0;
+      padding: 0;
+      list-style: none;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.3rem 1.25rem;
+    }
+    .analysis-promo-list a {
+      font-weight: 600;
+    }
+    .analysis-promo-more {
+      display: inline-block;
+      margin-top: 0.5rem;
+      font-size: 0.8125rem;
+      color: var(--muted);
+    }
 
     .unofficial {
       margin: 0 0 0.5rem;

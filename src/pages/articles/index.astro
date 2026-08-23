@@ -6,25 +6,11 @@
  */
 import BaseLayout from '../../layouts/BaseLayout.astro';
 import { loadRecruitsWithResults } from '../../lib/analysis-data.ts';
+import { analysisArticles } from '../../data/articles.ts';
 
 const all = loadRecruitsWithResults();
 const years = [...new Set(all.map((h) => h.recruitYear))].sort((a, b) => a - b);
 const yearRangeLabel = `${years[0]}〜${years[years.length - 1]}年`;
-
-const articles = [
-  {
-    href: '/articles/dam-age/',
-    title: '母馬の年齢と成績の関係',
-    description:
-      '「高齢の母馬は不利」という俗説を、母齢と獲得賞金の相関係数・階級別グラフで検証。結果はほぼ無相関だった。',
-  },
-  {
-    href: '/articles/height/',
-    title: '体高と成績の関係',
-    description:
-      '募集時の体高と、その後の中央・地方獲得賞金の関係を散布図・階級別グラフで見る。ダービー馬タスティエーラなど実際の代表馬も紹介。',
-  },
-];
 
 const description = `【非公式】${yearRangeLabel}のキャロットクラブ募集馬データを使った分析記事の一覧。`;
 ---
@@ -33,17 +19,17 @@ const description = `【非公式】${yearRangeLabel}のキャロットクラブ
   <h1>分析記事</h1>
   <p>
     {yearRangeLabel}募集の募集時データと、その後の競走成績を突き合わせた独自集計をもとに、
-    体高・一口価格といった募集時の情報が後の成績とどう関係するかを見ていく読み物コンテンツです。
+    体高・母齢といった募集時の情報が後の成績とどう関係するかを見ていく読み物コンテンツです。
   </p>
   <ul class="article-list">
-    {articles.map((a) => (
+    {analysisArticles.map((a) => (
       <li>
         <a href={a.href}>{a.title}</a>
         <p>{a.description}</p>
       </li>
     ))}
   </ul>
-  <p class="more-note">今後、一口価格や父系統など別の切り口でも記事を追加していく予定です。</p>
+  <p class="more-note">今後、父系統など別の切り口でも記事を追加していく予定です。</p>
 </BaseLayout>
 
 <style>
