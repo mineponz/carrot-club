@@ -19,6 +19,10 @@
  *    年（母のURLが無い馬）を拾える。競走馬名は登録上ユニークなので同名の別馬は入らない。
  *
  * 「兄姉」なので対象は募集年がその馬より前の馬に限る（同年・後年の馬は同じ母から生まれえない）。
+ *
+ * 個別ページではこの兄姉に**その馬自身**を加えた1つの表にする（`buildMeasurementRows()`）。
+ * 兄姉の数字だけ並べても大小の判断に上の定義リストとの往復が要るため。父を列に持つのは、
+ * 同じ母の産駒同士の違いが父に出るから（2020年以前の募集馬は元データに父が無く null）。
  */
 import type { RecruitWithResult } from './analysis-data.ts';
 
@@ -29,6 +33,8 @@ export interface SiblingRecruit {
   /** 表示名（競走馬登録後の実名。未登録なら募集時の名前） */
   name: string;
   netkeibaUrl: string | null;
+  /** 父（同じ母の産駒なので、兄姉との違いはここに出る）。取れていない年度・馬は null */
+  sire: string | null;
   /** 募集時の測尺。取れていない年度・馬は null */
   height: number | null;
   chestGirth: number | null;
@@ -40,6 +46,90 @@ export interface SiblingRecruit {
   totalPrizeManYen: number | null;
   /** どちらの手がかりで兄姉と判定したか（母一致が確実。名前一致は代表兄姉のみ） */
   matchedBy: 'dam' | 'name';
+}
+
+/**
+ * 測尺の比較表に並べる1行。兄姉だけでなく**その馬自身**も同じ形にして先頭に置く。
+ * 兄姉の数字だけ並べても「この馬はそれと比べて大きいのか小さいのか」を別の場所（上の定義リスト）と
+ * 見比べないと分からないため、同じ表・同じ列に入れて目で追えるようにしている。
+ */
+export interface MeasurementRow {
+  recruitYear: number;
+  no: string;
+  name: string;
+  netkeibaUrl: string | null;
+  sire: string | null;
+  height: number | null;
+  chestGirth: number | null;
+  caretGirth: number | null;
+  weight: number | null;
+  starts: number | null;
+  wins: number | null;
+  totalPrizeManYen: number | null;
+  /** その馬自身の行か（兄姉の行と区別して強調し、賞金の比較対象からも外す） */
+  isSelf: boolean;
+}
+
+/** 自分の行を作るのに要る値だけ。`Horse` 全体は受け取らない（個人の評価を持ち込まないため）。 */
+export interface SelfMeasurement {
+  /** クラブの募集番号 */
+  id: string;
+  netkeibaUrl: string;
+  sire: string;
+  height: number;
+  chestGirth: number;
+  caretGirth: number;
+  weight: number;
+}
+
+/**
+ * 表のなかでその馬自身の行に出す名前。募集名は「〇〇の25」のように母名ぶんだけ長く、
+ * 馬名の列が兄姉の実名より横に伸びてしまうので、自身は短い固定語にする（本人希望・2026-08-23）。
+ * どの馬のページかは見出し（h1）と本文で分かるため、ここに募集名を再掲する必要はない。
+ */
+export const SELF_ROW_NAME = '本馬';
+
+/**
+ * その馬自身を先頭に、兄姉（募集年の新しい順）を続けた比較表の行を作る。
+ * 自身はまだ走っていないので成績・賞金は持たせない（null＝表では「—」）。
+ */
+export function buildMeasurementRows(
+  self: SelfMeasurement,
+  recruitYear: number,
+  siblings: readonly SiblingRecruit[]
+): MeasurementRow[] {
+  return [
+    {
+      recruitYear,
+      no: self.id,
+      name: SELF_ROW_NAME,
+      netkeibaUrl: self.netkeibaUrl || null,
+      sire: self.sire,
+      height: self.height,
+      chestGirth: self.chestGirth,
+      caretGirth: self.caretGirth,
+      weight: self.weight,
+      starts: null,
+      wins: null,
+      totalPrizeManYen: null,
+      isSelf: true,
+    },
+    ...siblings.map((sibling) => ({
+      recruitYear: sibling.recruitYear,
+      no: sibling.no,
+      name: sibling.name,
+      netkeibaUrl: sibling.netkeibaUrl,
+      sire: sibling.sire,
+      height: sibling.height,
+      chestGirth: sibling.chestGirth,
+      caretGirth: sibling.caretGirth,
+      weight: sibling.weight,
+      starts: sibling.starts,
+      wins: sibling.wins,
+      totalPrizeManYen: sibling.totalPrizeManYen,
+      isSelf: false,
+    })),
+  ];
 }
 
 /** netkeibaの個体ページURLから馬ID部分を取り出す。外国産の繁殖牝馬は `000a01294d` のような英数字。 */
@@ -54,6 +144,7 @@ function toSibling(recruit: RecruitWithResult, matchedBy: 'dam' | 'name'): Sibli
     no: recruit.no,
     name: recruit.displayName,
     netkeibaUrl: recruit.netkeibaUrl,
+    sire: recruit.sire,
     height: recruit.height,
     chestGirth: recruit.chestGirth,
     caretGirth: recruit.caretGirth,
@@ -104,15 +195,21 @@ export function findSiblingRecruits(
   );
 }
 
-/** 「12戦2勝」。未出走は「未出走」、成績が取れていなければ null（行に出さない）。 */
-export function formatSiblingRecord(sibling: SiblingRecruit): string | null {
+/**
+ * 「12戦2勝」。未出走は「未出走」、成績が取れていなければ null（行に出さない）。
+ * 兄姉の行（`SiblingRecruit`）とその馬自身も含む表の行（`MeasurementRow`）の両方から呼ぶので、
+ * 見る列だけを引数の型にしている。
+ */
+export function formatSiblingRecord(sibling: Pick<SiblingRecruit, 'starts' | 'wins'>): string | null {
   if (sibling.starts == null || sibling.wins == null) return null;
   if (sibling.starts === 0) return '未出走';
   return `${sibling.starts}戦${sibling.wins}勝`;
 }
 
 /** 募集時の測尺を「体高155cm / 胸囲178cm / 管囲20.5cm / 馬体重460kg」の形にする。 */
-export function formatSiblingMeasurements(sibling: SiblingRecruit): string {
+export function formatSiblingMeasurements(
+  sibling: Pick<SiblingRecruit, 'height' | 'chestGirth' | 'caretGirth' | 'weight'>
+): string {
   const parts = [
     sibling.height == null ? null : `体高${sibling.height}cm`,
     sibling.chestGirth == null ? null : `胸囲${sibling.chestGirth}cm`,
@@ -127,7 +224,7 @@ export function formatSiblingMeasurements(sibling: SiblingRecruit): string {
  * 個別ページを持つのは2025・2026年募集ぶんだけ（2024年以前は分析用データにしか無い）。
  * `trailingSlash: 'always'` なので末尾スラッシュを必ず付ける。
  */
-export function siblingDetailHref(sibling: SiblingRecruit): string | null {
+export function siblingDetailHref(sibling: Pick<SiblingRecruit, 'recruitYear' | 'no'>): string | null {
   if (sibling.recruitYear === 2026) return `/horses/${sibling.no}/`;
   if (sibling.recruitYear === 2025) return `/2025/horses/${sibling.no}/`;
   return null;
