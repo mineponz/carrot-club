@@ -188,16 +188,6 @@ const webAppJsonLd = {
       gtag('config', 'G-HV39111Z5T');
     </script>
 
-    <!-- Google AdSense サイト確認/Auto ads用タグ。実際の広告表示は審査通過後
-         （審査中は忍者AdMax=AdSlot.astroを引き続き表示。審査後にAdMaxを削除する予定） -->
-    <script
-      async
-      src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-7478797109606594"
-      crossorigin="anonymous"
-      is:inline
-    ></script>
-    <meta name="google-adsense-account" content="ca-pub-7478797109606594">
-
     <script type="application/ld+json" set:html={JSON.stringify(webSiteJsonLd)} is:inline />
     <script type="application/ld+json" set:html={JSON.stringify(webAppJsonLd)} is:inline />
     <script type="application/ld+json" set:html={JSON.stringify(breadcrumbJsonLd)} is:inline />
