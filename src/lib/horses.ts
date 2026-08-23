@@ -100,6 +100,13 @@ export function sortHorses(horses: Horse[], key: SortKey, direction: SortDirecti
 export const UNRATED = 'none';
 export type RatingFilterValue = Rating | typeof UNRATED;
 
+/**
+ * 母優先での絞り込みの選択肢。UIの `<select>` の `value` にそのまま載せる
+ * （「すべて」は値を持たない＝未指定にすることで、他の絞り込みと同じく
+ * 「未選択なら条件に数えない」扱いにできる）。
+ */
+export type DamPriorityFilter = 'has' | 'none';
+
 export interface HorseFilter {
   /** 馬名の部分一致 */
   name?: string;
@@ -120,8 +127,13 @@ export interface HorseFilter {
   maxCaretGirth?: number;
   minWeight?: number;
   maxWeight?: number;
-  /** trueなら母優先の対象馬だけに絞る */
-  damPriorityOnly?: boolean;
+  /**
+   * 母優先での絞り込み。`'has'` は対象馬だけ、`'none'` は対象外の馬だけを残す。
+   * **未指定（＝UIの「すべて」）は絞り込まない**。以前は「母優先のみ」のON/OFFだけだったが、
+   * 「母優先が付いていない馬を見たい」（優先枠に取られない馬を探す）という使い方があるため
+   * 3値にした（2026-08-23）。
+   */
+  damPriority?: DamPriorityFilter;
   /** trueなら手術・既往歴の記載がある馬を除外する */
   excludeSurgery?: boolean;
   /**
@@ -160,7 +172,8 @@ export function filterHorses(horses: Horse[], filter: HorseFilter): Horse[] {
     if (filter.maxCaretGirth !== undefined && h.caretGirth > filter.maxCaretGirth) return false;
     if (filter.minWeight !== undefined && h.weight < filter.minWeight) return false;
     if (filter.maxWeight !== undefined && h.weight > filter.maxWeight) return false;
-    if (filter.damPriorityOnly && !h.damPriority) return false;
+    if (filter.damPriority === 'has' && !h.damPriority) return false;
+    if (filter.damPriority === 'none' && h.damPriority) return false;
     if (filter.excludeSurgery && h.surgery !== '') return false;
     if (filter.ratings && filter.ratings.length > 0) {
       const rating = filter.ratingByHorseId?.[h.id] ?? null;

@@ -172,11 +172,22 @@ test('filterHorses: 管囲は0.1cm刻みの小数でも境界値を含む', () =
   );
 });
 
-test('filterHorses: 母優先のみに絞り込む', () => {
+test('filterHorses: 母優先「あり」に絞り込む', () => {
   assert.deepEqual(
-    filterHorses(horses, { damPriorityOnly: true }).map((h) => h.id),
+    filterHorses(horses, { damPriority: 'has' }).map((h) => h.id),
     ['2', '10'],
   );
+});
+
+test('filterHorses: 母優先「なし」に絞り込む', () => {
+  assert.deepEqual(
+    filterHorses(horses, { damPriority: 'none' }).map((h) => h.id),
+    ['1'],
+  );
+});
+
+test('filterHorses: 母優先が未指定なら絞り込まない（UIの「すべて」）', () => {
+  assert.equal(filterHorses(horses, { damPriority: undefined }).length, horses.length);
 });
 
 test('filterHorses: 手術・既往歴のある馬を除外する', () => {

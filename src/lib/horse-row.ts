@@ -39,7 +39,7 @@ export const COLUMNS = [
   { label: '父', sortKey: 'sire' },
   { label: '母父', sortKey: 'broodmareSire' },
   { label: '性', sortKey: 'sex' },
-  { label: '一口', sortKey: 'pricePerShare', align: 'num' },
+  { label: '一口(万)', sortKey: 'pricePerShare', align: 'num' },
   { label: '体高', sortKey: 'height', align: 'num' },
   { label: '胸囲', sortKey: 'chestGirth', align: 'num' },
   { label: '管囲', sortKey: 'caretGirth', align: 'num' },
@@ -50,7 +50,9 @@ export const COLUMNS = [
   { label: '兄弟' },
   { label: '母優' },
   { label: '手術・既往' },
-  { label: 'メモ' },
+  // メモ列は既定で隠す（`show-memo` が付いたときだけ出す）。見出しと中身の両方に同じ
+  // クラスを付けたいので、列定義側に持たせてページのthとhorseRowHtmlのtdで共有する。
+  { label: 'メモ', cls: 'memo-col' },
   { label: 'X検索' },
   { label: '母' },
 ] as const;
@@ -95,9 +97,32 @@ export function pedigreeLine(horse: Horse): string {
   return horse.broodmareSire ? `${horse.sire}（${horse.broodmareSire}）` : horse.sire;
 }
 
+/**
+ * 一覧の厩舎セル用の短い表記。
+ *
+ * 地方馬は「門別・田中淳司厩舎or大井・渡邉和雄厩舎（外厩）」のようにクラブ側の記載が長く、
+ * 表では1セルで2行ぶんの幅を食って他の列を押し出していた。一覧で知りたいのは
+ * 「どこの馬か」なので、トラック名（`・`より前）だけを残して「門別or大井」にする。
+ * 調教師名まで見たい人向けには個別ページで元の記載をそのまま出している（そちらは変えない）。
+ *
+ * JRAの厩舎は調教師名だけ（`・` を含まない）なので、その場合は何もせず返す。
+ * 年度によって `or` の前後に空白が入る（2025年募集は「 or 」、2026年募集は「or」）ので
+ * 空白ごと区切りとして扱う。
+ */
+export function shortStableLabel(stable: string): string {
+  if (!stable.includes('・')) return stable;
+  return stable
+    .split(/\s*or\s*/)
+    .map((part) => part.split('・')[0].trim())
+    .join('or');
+}
+
 /** 同じく馬名セルの3行目「厩舎・性」。厩舎が空なら性だけにする。 */
 export function stableSexLine(horse: Horse): string {
-  return horse.stable ? `${horse.stable}・${horse.sex}` : horse.sex;
+  // SPでは厩舎列を隠してこの行に寄せているので、表の厩舎セルと同じ短い表記を使う
+  // （長い地方馬表記のままだと馬名セルの幅で切れて「門別・田中淳…」しか読めない）。
+  const stable = shortStableLabel(horse.stable);
+  return stable ? `${stable}・${horse.sex}` : horse.sex;
 }
 
 export function horseRowHtml(
@@ -112,8 +137,11 @@ export function horseRowHtml(
     })
     .join('');
 
-  // 手術欄は複数行になりうるが、表のセルでは1行に畳んで表示する
+  // 手術欄は複数行になりうる。表では有無だけを◯で示し、中身は title（ホバー）と
+  // 個別ページに預ける。以前はここに全文を出していたが、1行に畳んでも長すぎて
+  // 表の右側が押し出されていた（本人の指示・2026-08-23）。
   const surgeryText = horse.surgery.replace(/\n/g, ' / ');
+  const memo = escapeHtml(evaluation.memo);
   const name = escapeHtml(horse.name);
   const detailHref = escapeHtml(horseDetailHref(horse.id, detailBasePath));
   // 母のnetkeibaページは年度によっては未取得（空文字）。その場合はリンクを出さない。
@@ -129,6 +157,13 @@ export function horseRowHtml(
       <select class="rating-select" data-field="rating" data-rating="${evaluation.rating ?? ''}" aria-label="${name}の評価">${ratingOptions}</select>
       <button type="button" class="favorite-btn" data-field="favorite" aria-pressed="${evaluation.favorite}" aria-label="${name}をお気に入りにする" title="お気に入り">★</button>
       <label class="skip-label"><input type="checkbox" class="skip-checkbox" data-field="skip" ${evaluation.skip ? 'checked' : ''} aria-label="${name}を消にする" /> 消</label>
+      <!--
+        メモの有無を示す印。メモ列は既定で隠しているので、入っているかどうかだけは
+        ここで分かるようにする。評価欄は左端の固定列なので、SPでも横スクロールしても見える。
+        中身はホバー（title）で覗ける。空のときもCSSで見えなくするだけで要素は残し、
+        評価欄の幅が馬ごとに変わらないようにしている。
+      -->
+      <span class="memo-flag" data-has-memo="${evaluation.memo !== ''}" title="${memo ? `メモ: ${memo}` : ''}" aria-label="${name}のメモあり" role="img">📝</span>
     </div>
   </td>
   <td class="links"><a href="${escapeHtml(horse.netkeibaUrl)}" target="_blank" rel="noopener">netkeiba</a></td>
@@ -142,11 +177,11 @@ export function horseRowHtml(
   <td class="num">${horse.weight}</td>
   <td class="num">${horse.damAge}</td>
   <td>${formatBirthDate(horse.birthDate)}</td>
-  <td>${escapeHtml(horse.stable)}</td>
+  <td title="${escapeHtml(horse.stable)}">${escapeHtml(shortStableLabel(horse.stable))}</td>
   <td class="sibling" title="${escapeHtml(horse.sibling)}">${escapeHtml(horse.sibling)}</td>
   <td class="dam-priority">${horse.damPriority ? '◯' : ''}</td>
-  <td class="surgery" title="${escapeHtml(surgeryText)}">${escapeHtml(surgeryText)}</td>
-  <td><input type="text" class="memo-input" data-field="memo" value="${escapeHtml(evaluation.memo)}" placeholder="メモ" aria-label="${name}のメモ" maxlength="${MAX_MEMO_LENGTH}" /></td>
+  <td class="surgery" title="${escapeHtml(surgeryText)}">${horse.surgery === '' ? '' : '◯'}</td>
+  <td class="memo-col"><input type="text" class="memo-input" data-field="memo" value="${memo}" placeholder="メモ" aria-label="${name}のメモ" maxlength="${MAX_MEMO_LENGTH}" /></td>
   <td class="links"><a href="${escapeHtml(horse.xSearchUrl)}" target="_blank" rel="noopener">X</a></td>
   <td class="links">${damLink}</td>
 </tr>`;
