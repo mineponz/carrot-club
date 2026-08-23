@@ -64,7 +64,9 @@ const ARTICLES = {
     headline: ['体高と成績の関係を', '<em>470頭</em>のデータで見る'],
     // 見出しの470頭は recruits.json の件数で置き換える（下の buildHeadline）
     countPlaceholder: '470頭',
+    // 「2021〜2025年」はheightChart()が実データから出す年範囲で置き換える（下のyearRangePlaceholder）
     lead: 'キャロットクラブ 2021〜2025年募集の募集時データ × 現在の競走成績',
+    yearRangePlaceholder: '2021〜2025年',
     chips: ['体高 × 獲得賞金の散布図', '体高階級別の平均', '重賞勝ち馬を全掲載'],
   },
 };
@@ -174,7 +176,11 @@ function heightChart() {
   const bars = bins
     .map((b) => `<div class="bar" style="height:${Math.max(4, Math.round((b.count / max) * 96))}px"></div>`)
     .join('');
-  return { total: recruits.length, html: `<div class="mini-chart">${bars}</div>` };
+  // 年範囲もrecruits.jsonの実データから出す（ハードコードすると年が増えるたびにここも直し忘れる。
+  // 2026-08-23、「2021〜2025年募集」の決め打ちが2017〜2020年分の追加で古くなっていた反省から）。
+  const years = [...new Set(recruits.map((r) => r.recruitYear))].sort((a, b) => a - b);
+  const yearRangeLabel = years.length > 0 ? `${years[0]}〜${years[years.length - 1]}年` : '';
+  return { total: recruits.length, yearRangeLabel, html: `<div class="mini-chart">${bars}</div>` };
 }
 
 function cardHtml({ fonts, source, chart }) {
@@ -264,6 +270,9 @@ async function main() {
     article.headline = article.headline.map((line) =>
       line.replace(article.countPlaceholder, `${chart.total}頭`)
     );
+  }
+  if (article.yearRangePlaceholder) {
+    article.lead = article.lead.replace(article.yearRangePlaceholder, chart.yearRangeLabel);
   }
 
   const outPath = join(repoRoot, 'public', article.out);
