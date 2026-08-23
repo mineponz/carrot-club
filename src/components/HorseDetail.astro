@@ -64,8 +64,9 @@ const topSiblingKey =
  * 成績・賞金は空で、`topSiblingKey`（賞金最多）の判定にも入らない。
  */
 const measurementRows = buildMeasurementRows(horse, recruitYear, siblingRecruits);
-// 2020年以前の募集馬は分析用データに父が入っていない（クラブ公式の測尺一覧に父の列が無い年度）。
-// 「—」だけ出ていると取りこぼしに見えるので、そういう兄姉がいるときだけ理由を注記する。
+// ごく一部（2017〜2020年募集分のうちnetkeiba個体ページを特定できなかった3頭）は父が
+// 取れていない。「—」だけ出ていると取りこぼしに見えるので、そういう兄姉がいるときだけ
+// 理由を注記する（2026-08-23、netkeibaの血統表ページから追加取得して345/348頭は埋めた）。
 const hasUnknownSire = measurementRows.some((row) => !row.sire);
 
 /** 定義リストに出す項目。値が無いものは出さない（空欄の行を並べても情報にならない）。 */
