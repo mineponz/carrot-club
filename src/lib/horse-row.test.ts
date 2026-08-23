@@ -7,6 +7,7 @@ import {
   horseDetailHref,
   horseRowHtml,
   pedigreeLine,
+  shortStableLabel,
   stableSexLine,
 } from './horse-row.ts';
 import { DEFAULT_EVALUATION } from './evaluations.ts';
@@ -99,6 +100,13 @@ test('stableSexLine: 厩舎が無ければ性だけにする', () => {
   assert.equal(stableSexLine({ ...horse, stable: '' }), '牡');
 });
 
+test('stableSexLine: SP用の行も厩舎は短い表記にする（馬名セルの幅で切れないように）', () => {
+  assert.equal(
+    stableSexLine({ ...horse, stable: '門別・田中淳司厩舎or大井・渡邉和雄厩舎（外厩）' }),
+    '門別or大井・牡',
+  );
+});
+
 test('horseRowHtml: 過去年度は個別ページの接頭辞を差し替えられる', () => {
   assert.match(horseRowHtml(horse, DEFAULT_EVALUATION, '/2025/horses/'), /href="\/2025\/horses\/7\/"/);
 });
@@ -116,6 +124,20 @@ test('horseRowHtml: セル数が COLUMNS の列数と一致する（見出しと
   assert.equal(cells.length, COLUMNS.length);
 });
 
+test('COLUMNS: 一口価格の見出しには単位を付ける（万円と分かるように）', () => {
+  const labels: readonly string[] = COLUMNS.map((c) => c.label);
+  assert.ok(labels.includes('一口(万)'));
+  // 単位なしの「一口」が残っていない＝見出しを差し替え忘れていない
+  assert.ok(!labels.includes('一口'));
+});
+
+test('COLUMNS: メモ列だけ出し入れ用のクラスを持つ', () => {
+  const withClass = COLUMNS.filter((c): c is typeof c & { cls: string } => 'cls' in c);
+  assert.equal(withClass.length, 1);
+  assert.equal(withClass[0].label, 'メモ');
+  assert.equal(withClass[0].cls, 'memo-col');
+});
+
 test('COLUMNS: netkeibaは血統より左、X検索と母は右端、左3列は No・馬名・評価', () => {
   const labels = COLUMNS.map((c) => c.label);
   assert.ok(labels.indexOf('netkeiba') < labels.indexOf('父'));
@@ -129,10 +151,46 @@ test('horseRowHtml: 母優先の馬には◯を出す', () => {
   assert.match(horseRowHtml({ ...horse, damPriority: false }, DEFAULT_EVALUATION), /class="dam-priority"><\/td>/);
 });
 
-test('horseRowHtml: 手術欄の改行は1行に畳む', () => {
+test('horseRowHtml: 手術・既往は有無を◯で出すだけにする（全文は title と個別ページ）', () => {
   const html = horseRowHtml({ ...horse, surgery: '手術A (2024/1/1)\n手術B (2025/1/8)' }, DEFAULT_EVALUATION);
-  assert.match(html, /手術A \(2024\/1\/1\) \/ 手術B \(2025\/1\/8\)/);
-  assert.ok(!html.includes('手術A (2024/1/1)\n'));
+  const cell = html.match(/<td class="surgery"[^]*?<\/td>/)![0];
+  // 改行は1行に畳んだうえで title（ホバー）にだけ残す
+  assert.match(cell, /title="手術A \(2024\/1\/1\) \/ 手術B \(2025\/1\/8\)"/);
+  assert.match(cell, />◯<\/td>/);
+  assert.ok(!cell.includes('手術A (2024/1/1)\n'));
+});
+
+test('horseRowHtml: 手術・既往の記載が無ければ◯を出さない', () => {
+  assert.match(horseRowHtml(horse, DEFAULT_EVALUATION), /<td class="surgery" title=""><\/td>/);
+});
+
+test('shortStableLabel: 地方馬の長い表記はトラック名だけにする', () => {
+  assert.equal(shortStableLabel('門別・田中淳司厩舎or大井・渡邉和雄厩舎（外厩）'), '門別or大井');
+  // 2025年募集は or の前後に空白が入る書き方だった
+  assert.equal(shortStableLabel('門別・田中淳司厩舎 or 川崎・内田勝義厩舎（外厩）'), '門別or川崎');
+});
+
+test('shortStableLabel: JRAの調教師名（・を含まない）はそのまま返す', () => {
+  assert.equal(shortStableLabel('木村哲也'), '木村哲也');
+  assert.equal(shortStableLabel(''), '');
+});
+
+test('horseRowHtml: 厩舎セルは短い表記にして、元の記載は title に残す', () => {
+  const stable = '門別・田中淳司厩舎or大井・渡邉和雄厩舎（外厩）';
+  const html = horseRowHtml({ ...horse, stable }, DEFAULT_EVALUATION);
+  assert.match(html, /<td title="門別・田中淳司厩舎or大井・渡邉和雄厩舎（外厩）">門別or大井<\/td>/);
+});
+
+test('horseRowHtml: メモの有無を評価欄の印（data-has-memo）で示す', () => {
+  const evalCell = (memo: string) =>
+    horseRowHtml(horse, { ...DEFAULT_EVALUATION, memo }).match(/<div class="eval-cell">[^]*?<\/div>/)![0];
+  assert.match(evalCell('本命'), /class="memo-flag" data-has-memo="true"/);
+  assert.match(evalCell('本命'), /title="メモ: 本命"/);
+  assert.match(evalCell(''), /class="memo-flag" data-has-memo="false"/);
+});
+
+test('horseRowHtml: メモのセルには memo-col を付ける（列ごと出し入れするため）', () => {
+  assert.match(horseRowHtml(horse, DEFAULT_EVALUATION), /<td class="memo-col"><input type="text" class="memo-input"/);
 });
 
 test('horseRowHtml: 保存済みの評価を反映する', () => {

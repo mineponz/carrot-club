@@ -367,21 +367,20 @@ const webAppJsonLd = {
       /* 一覧ページ（`wide`）だけ本文を画面幅いっぱいに使う。表が約2000px あり、
          64rem（1024px）に押し込むと横スクロールばかりになるため。
          ただし全部を全幅にすると説明文の1行が画面幅ぶん伸びて読めなくなるので、
-         直下の文章ブロックには従来と同じ 64rem を掛け直す（表・フォーム・広告は全幅）。 */
+         **全幅にするのは表だけ**にして、他の直下要素には従来と同じ 64rem を掛け直す。
+
+         以前はここを「64remを掛ける要素」のホワイトリスト（h1/p/ul/.faq-item…）で
+         書いていたが、絞り込みフォーム・同期パネル・FAQを包む div のように
+         リストに無い要素が全幅のまま残っていた（2026-08-23に不具合として発覚）。
+         要素が増えるたびに書き足す方式は漏れるので、除外リスト方式に反転させている。 */
       main.is-wide {
         max-width: none;
       }
-      main.is-wide > h1,
-      main.is-wide > h2,
-      main.is-wide > h3,
-      main.is-wide > p,
-      main.is-wide > ul,
-      main.is-wide > ol,
-      main.is-wide > dl,
-      main.is-wide > .faq-item,
-      main.is-wide > .measure-list,
-      main.is-wide > .ad-slot {
+      main.is-wide > * {
         max-width: 64rem;
+      }
+      main.is-wide > .table-wrap {
+        max-width: none;
       }
 
       .site-header {

@@ -234,7 +234,9 @@ const facts: { term: string; value: string }[] = [
     </label>
     <label class="eval-item memo">
       メモ
-      <input type="text" class="memo-input" id="detail-memo" placeholder="メモ" maxlength={MAX_MEMO_LENGTH} />
+      {/* 改行して書きたい（本人の指示・2026-08-23）ので1行のinputではなくtextareaにする。
+          保存先・上限は一覧のメモ欄と同じ（改行ぶんも maxlength に含まれる）。 */}
+      <textarea class="memo-input" id="detail-memo" rows="3" placeholder="メモ" maxlength={MAX_MEMO_LENGTH}></textarea>
     </label>
   </div>
 
@@ -382,6 +384,8 @@ const facts: { term: string; value: string }[] = [
   }
   .eval-panel .memo-input {
     width: 100%;
+    /* 横に伸ばされるとパネルの他の項目が押し出されるので、伸ばせるのは縦だけにする */
+    resize: vertical;
   }
   .eval-panel .favorite-btn {
     font: inherit;
@@ -420,7 +424,8 @@ const facts: { term: string; value: string }[] = [
   const rating = document.getElementById('detail-rating') as HTMLSelectElement;
   const favorite = document.getElementById('detail-favorite') as HTMLButtonElement;
   const skip = document.getElementById('detail-skip') as HTMLInputElement;
-  const memo = document.getElementById('detail-memo') as HTMLInputElement;
+  // メモは改行できるよう textarea（value の読み書きは input と同じ）
+  const memo = document.getElementById('detail-memo') as HTMLTextAreaElement;
 
   let evaluations: EvaluationMap = loadEvaluations(window.localStorage, storageKey);
 
