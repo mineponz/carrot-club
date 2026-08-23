@@ -14,6 +14,9 @@
  * - 2026年募集馬が体高分布のどこに当てはまるかをアコーディオンで見せる
  *
  * 2026-08-22〜23、2017〜2020年募集分（348頭・クラブ公式サイトの過去の測尺一覧から取込）を追加。
+ * この4年分は当初 父・母父・一口価格が空だったが、2026-08-23に個体ページから補ったので
+ * （`scripts/enrich-legacy-pedigree-price.mjs`）、「この年度は価格データが無い」と本文に
+ * 決め打ちで書かないこと。欠測の頭数は`withoutPrice`/`racedWithoutPrice`から動的に出す。
  * 対象頭数・体高分布・相関係数・重賞馬まわりの数字はrecruits.json/race-results.jsonから動的に
  * 計算しているため、この4年分を足しただけで数値は自動的に更新される（vault:
  * 20260822-import-2017-2020-legacy-data）。
@@ -166,7 +169,14 @@ const winBars = orderBuckets(winsByHeightBucket).map((r) => ({
 }));
 
 // ---- 参考: 一口価格 × 獲得賞金合計 ----
+// 2026-08-23にnetkeibaの個体ページから2017〜2020年募集分の一口価格を追加取得したため、
+// 「この年度は価格が無い」という決め打ちはもう使えない（`scripts/enrich-legacy-pedigree-price.mjs`）。
+// 残っている欠測は年度ではなく馬ごとの事情（引退後に馬主が個人名義へ変わって募集情報の欄が
+// 消えている、募集中止になった馬など）なので、頭数だけを数えて本文・注記から動的に出す。
 const racedWithPrice = raced.filter((h) => h.pricePerShare !== null);
+const racedWithoutPrice = raced.length - racedWithPrice.length;
+const withoutPrice = all.filter((h) => h.pricePerShare === null);
+const withoutSire = all.filter((h) => h.sire === null).length;
 const pricePrizeR = pearsonCorrelation(
   racedWithPrice.map((h) => h.pricePerShare as number),
   racedWithPrice.map((h) => h.totalPrizeManYen)
@@ -196,6 +206,7 @@ const sexSeries = [
 const gradeWinners = all
   .filter((h) => h.gradeWins.length > 0)
   .sort((a, b) => b.totalPrizeManYen - a.totalPrizeManYen);
+const gradeWinnersWithoutPrice = gradeWinners.filter((h) => h.pricePerShare === null).length;
 const gradeWinnerHeights = gradeWinners.map((h) => h.height as number);
 const gradeHeightMin = Math.min(...gradeWinnerHeights);
 const gradeHeightMax = Math.max(...gradeWinnerHeights);
@@ -368,8 +379,10 @@ const description = `【非公式】キャロットクラブ${yearRangeLabel}${a
     <p class="table-note">
       この{gradeWinners.length}頭が、{all.length}頭のうち重賞（中央G1〜G3・Jpn1〜3、地方重賞含む）を勝った馬。
       以下で「重賞馬」と書くのは<strong>この「重賞を1勝以上している馬」の頭数</strong>で、
-      重賞の勝利数ではない。一口価格が「—」の馬は2017〜2020年募集分（クラブ公式サイトの
-      測尺一覧のみが元で価格データが無い）。
+      重賞の勝利数ではない。
+      {gradeWinnersWithoutPrice > 0 && (
+        <>一口価格が「—」の{gradeWinnersWithoutPrice}頭は、募集当時の価格を確認できなかった馬。</>
+      )}
     </p>
     <p>
       頭数だけ見ると<strong>154〜157.5cm階級が{gradeWinnersInMidBucket}頭で最多</strong>だが、これは
@@ -417,8 +430,9 @@ const description = `【非公式】キャロットクラブ${yearRangeLabel}${a
     <h2>参考: 一口価格との比較</h2>
     <p>
       「じゃあ高い馬を選べばいいのでは」と思う人もいるはずなので、一口価格と獲得賞金合計の関係も
-      同じ形式で並べておく。相関係数は r={pricePrizeR?.toFixed(3)} でほぼゼロ。体高よりもさらに
-      予測力が無かった。
+      同じ形式で並べておく。対象は出走済み{raced.length}頭のうち一口価格が分かっている
+      {racedWithPrice.length}頭{racedWithoutPrice > 0 && <>（残り{racedWithoutPrice}頭は募集当時の価格を確認できず除外）</>}。
+      相関係数は r={pricePrizeR?.toFixed(3)} でほぼゼロ。体高よりもさらに予測力が無かった。
       {priceScatterOmitted > 0 && <>（1億円超えの{priceScatterOmitted}頭はここでも省略）</>}
       価格帯で見ても平均賞金はほとんど横並びで、一口価格は「その年の人気・血統への期待値」で
       あって「将来の稼ぎ」を予測する指標ではなさそう、というのが今回の実感。
@@ -490,8 +504,13 @@ const description = `【非公式】キャロットクラブ${yearRangeLabel}${a
     <h2>データについて</h2>
     <p>
       募集時データは2021〜2025年分は自分が毎年ためてきたスプレッドシートが元、2017〜2020年分は
-      クラブ公式サイトに残っていた過去の測尺一覧ページから追加で取り込んだ（血統・一口価格・
-      性別のデータが無いのはこの4年分のため）。競走成績は現時点
+      クラブ公式サイトに残っていた過去の測尺一覧ページから追加で取り込んだ。この4年分は測尺一覧に
+      父・母父・一口価格・性別の記載が無かったが、父・母父と一口価格はその後に馬ごとの個体ページから
+      補ってある。いま埋まっていないのは<strong>性別</strong>と、募集当時の価格を確認できなかった
+      {withoutPrice.length}頭ぶんの一口価格{withoutSire > 0 && (
+        <>、個体ページを特定できなかった{withoutSire}頭ぶんの父・母父</>
+      )}で、価格の集計はその{withoutPrice.length}頭を除いて出している。
+      競走成績は現時点
       （2026年8月時点）のスナップショットで、今後レースを重ねるたびに変わっていく。
       2024・2025年募集組はまだ大半が未出走〜デビュー間もないため、今回の集計は出走済みの
       {raced.length}頭（主に2023年以前の募集組）が中心になっている点は割り引いて見てほしい。
