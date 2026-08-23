@@ -1,0 +1,366 @@
+---
+/**
+ * 分析記事「母馬の年齢と成績の関係」。2017〜2025年募集の全頭（`analysis/data/recruits.json`）に
+ * 追加した母齢（damAge = 募集年 - 母の生年。取得方法は`scripts/fetch-dam-age.mjs`）と
+ * 現在の競走成績（`analysis/data/race-results.json`）をクロス集計する。
+ * 体高記事（`height.astro`）と同じデータ基盤・同じ書き方（動的計算・実名紹介・広告配置）を踏襲。
+ *
+ * この記事の結論は height.astro と対照的で「ほぼ無相関だった」という一次結果
+ * （vault: 20260823-dam-age-backfill-and-correlation）。断定的に「関係ない」と言い切らず、
+ * 体高記事と同様に相関係数の限界（線形関係しか見ていない・因果ではない）に触れる。
+ *
+ * 母齢の未取得3頭（netkeibaページ自体が特定できていない馬）は`damAge === null`で
+ * 集計から自然に除外される（`analysis-data.ts`側でnull許容の型にしてある）。
+ */
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import BarChart from '../../components/charts/BarChart.astro';
+import ScatterChart from '../../components/charts/ScatterChart.astro';
+import ChartTooltip from '../../components/charts/ChartTooltip.astro';
+import StatTiles from '../../components/charts/StatTiles.astro';
+import AdSlot from '../../components/AdSlot.astro';
+import GradeWinnerTable from '../../components/GradeWinnerTable.astro';
+import { loadRecruitsWithResults, racedOnly, RACE_RESULTS_FETCHED_AT } from '../../lib/analysis-data.ts';
+import { formatResultsAsOf } from '../../lib/sibling-recruits.ts';
+import { histogram, pearsonCorrelation, bucketAverage, countByBucket, formatManYen } from '../../lib/chart-math.ts';
+
+const allRecruits = loadRecruitsWithResults();
+const resultsAsOf = formatResultsAsOf(RACE_RESULTS_FETCHED_AT);
+
+// 母齢が取れていない馬（netkeibaページ自体を特定できなかった3頭）は集計対象から外す。
+const all = allRecruits.filter((h) => h.damAge !== null);
+const noDamAge = allRecruits.length - all.length;
+const raced = racedOnly(all);
+const unraced = all.length - raced.length;
+
+// ---- 母齢の階級（バックフィル時の一次集計と同じ区切り） ----
+const AGE_BUCKETS: [string, number, number][] = [
+  ['〜8歳', -Infinity, 9],
+  ['9〜11歳', 9, 12],
+  ['12〜14歳', 12, 15],
+  ['15歳〜', 15, Infinity],
+];
+function bucketLabel(age: number): string {
+  for (const [label, lo, hiExclusive] of AGE_BUCKETS) {
+    if (age >= lo && age < hiExclusive) return label;
+  }
+  return '?';
+}
+const bucketOrder = AGE_BUCKETS.map(([label]) => label);
+function orderBuckets<T extends { bucket: string }>(rows: T[]): T[] {
+  return bucketOrder.map((label) => rows.find((r) => r.bucket === label)).filter((r): r is T => !!r);
+}
+
+// ---- 母齢の分布 ----
+const ages = all.map((h) => h.damAge as number);
+const ageMin = Math.min(...ages);
+const ageMax = Math.max(...ages);
+const ageBins = histogram(ages, 2, 4, 24).map((b) => ({
+  label: `${b.binStart}〜${b.binEnd}`,
+  value: b.count,
+  displayValue: `${b.count}頭`,
+}));
+
+const SCATTER_Y_MAX = 10000;
+
+function sexSeriesKey(sex: string | null): string {
+  if (sex === '牝') return 'female';
+  if (sex === '牡' || sex === 'セン') return 'male';
+  return 'unknown';
+}
+
+// ---- 母齢 × 獲得賞金合計（出走済みのみ） ----
+const ageR = pearsonCorrelation(
+  raced.map((h) => h.damAge as number),
+  raced.map((h) => h.totalPrizeManYen)
+);
+const ageScatterAll = raced.length;
+const ageScatterPoints = raced
+  .filter((h) => h.totalPrizeManYen < SCATTER_Y_MAX)
+  .map((h) => ({
+    x: h.damAge as number,
+    y: h.totalPrizeManYen,
+    seriesKey: sexSeriesKey(h.sex),
+    tipTitle: h.displayName,
+    tipRows: [
+      ['母齢', `${h.damAge}歳`],
+      ['獲得賞金合計', `${formatManYen(h.totalPrizeManYen)}万円`],
+      ['通算成績', `${h.starts}戦${h.wins}勝`],
+    ] as [string, string][],
+  }));
+const ageScatterOmitted = ageScatterAll - ageScatterPoints.length;
+const unknownSexPoints = ageScatterPoints.filter((p) => p.seriesKey === 'unknown').length;
+const sexSeries = [
+  { key: 'male', label: '牡', colorVar: '--series-1' },
+  { key: 'female', label: '牝', colorVar: '--series-2' },
+  ...(unknownSexPoints > 0 ? [{ key: 'unknown', label: '性別不明', colorVar: '--series-3' }] : []),
+];
+
+// ---- 母齢階級別の平均賞金・平均勝ち数（出走済みが母数） ----
+const prizeByAgeBucket = bucketAverage(raced, (h) => bucketLabel(h.damAge as number), (h) => h.totalPrizeManYen);
+const winsByAgeBucket = bucketAverage(raced, (h) => bucketLabel(h.damAge as number), (h) => h.wins ?? 0);
+// 棒の下に添える「階級全体の頭数・重賞馬の頭数」は母集団全体（全頭）ベース。
+const allByAgeBucket = countByBucket(all, (h) => bucketLabel(h.damAge as number));
+const gradeWinnersByAgeBucket = countByBucket(
+  all.filter((h) => h.gradeWins.length > 0),
+  (h) => bucketLabel(h.damAge as number)
+);
+
+const prizeBars = orderBuckets(prizeByAgeBucket).map((r) => ({
+  label: r.bucket,
+  value: r.avg,
+  displayValue: `${formatManYen(r.avg)}万円`,
+  n: r.n,
+  note: `全${allByAgeBucket.get(r.bucket) ?? 0}頭・重賞馬${gradeWinnersByAgeBucket.get(r.bucket) ?? 0}頭`,
+}));
+const winBars = orderBuckets(winsByAgeBucket).map((r) => ({
+  label: r.bucket,
+  value: r.avg,
+  displayValue: `${r.avg.toFixed(2)}勝`,
+  n: r.n,
+}));
+
+// ---- 成績が確定しやすい古い世代（2017〜2021年募集）だけで再集計 ----
+// 直近の募集組は未出走が多く、「若い母の産駒ほど成績が良く見える」ような見かけ上の偏りが
+// 出ないか確認する（体高記事と同じ確認の仕方）。
+const olderOnly = all.filter((h) => h.recruitYear <= 2021);
+const olderRaced = racedOnly(olderOnly);
+const ageROlder = pearsonCorrelation(
+  olderRaced.map((h) => h.damAge as number),
+  olderRaced.map((h) => h.totalPrizeManYen)
+);
+
+// ---- 代表馬（重賞勝ち馬） ----
+const gradeWinners = all.filter((h) => h.gradeWins.length > 0).sort((a, b) => b.totalPrizeManYen - a.totalPrizeManYen);
+const GRADE_WINNERS_VISIBLE = 10;
+const gradeWinnersTop = gradeWinners.slice(0, GRADE_WINNERS_VISIBLE);
+const gradeWinnersRest = gradeWinners.slice(GRADE_WINNERS_VISIBLE);
+const gradeWinnerAges = gradeWinners.map((h) => h.damAge as number);
+const gradeAgeMin = Math.min(...gradeWinnerAges);
+const gradeAgeMax = Math.max(...gradeWinnerAges);
+
+const RECRUIT_YEARS = [2017, 2018, 2019, 2020, 2021, 2022, 2023, 2024, 2025];
+const yearCounts = RECRUIT_YEARS.map((y) => `${y}年${all.filter((h) => h.recruitYear === y).length}頭`).join('・');
+const yearRangeLabel = `${RECRUIT_YEARS[0]}〜${RECRUIT_YEARS[RECRUIT_YEARS.length - 1]}年`;
+
+// 広告コードは体高記事と同じもの（本人の判断で使い回し。vault: 20260821-article-ad-embed-snippets）
+const AD_SP_WIDE_A = 'f81bbb016a82d6366a0e2f70051b1a0c';
+const AD_SP_WIDE_B = 'b4b7d55c89d5fc92c564979491a16ad1';
+const AD_SP_RECT = '24e3e1a24f40d88ee1a0ca315c54a7b9';
+const AD_PC_WIDE_A = 'f0efb5bd6ae3e164bb584a4dbb846f48';
+const AD_PC_WIDE_B = '0a525f6469ec1f40642b4550e53d39cc';
+
+const description = `【非公式】キャロットクラブ${yearRangeLabel}${all.length}頭の募集時データと現在の競走成績を独自集計。母馬の年齢（母齢）と獲得賞金・重賞勝ち馬の関係を散布図で見る分析記事。`;
+---
+
+<BaseLayout
+  title={`母馬の年齢と成績の関係を${all.length}頭のデータで見る`}
+  description={description}
+  breadcrumb={[{ label: '分析記事', href: '/articles/' }, { label: '母馬の年齢と成績の関係', href: '/articles/dam-age/' }]}
+  showHeaderNotices={false}
+>
+  <article>
+    <h1>母馬の年齢と成績の関係を、{yearRangeLabel}{all.length}頭のデータで見てみた</h1>
+
+    <p>
+      「高齢の母馬より、脂の乗った若い母馬の産駒の方が良いのでは」というのは一口馬主界隈で
+      たまに聞く話で、私も募集馬を選ぶときに何となく母の年齢を気にしていた。
+      <a href="/articles/height/">前回の体高の記事</a>に続いて、今度はこの「母齢」を実際のデータで
+      確かめてみた。{yearRangeLabel}募集（{yearCounts}）に、{resultsAsOf}時点の獲得賞金・通算成績を
+      突き合わせた独自集計。
+    </p>
+
+    <StatTiles
+      tiles={[
+        { label: '対象頭数', value: `${all.length}頭`, note: noDamAge > 0 ? `母齢不明${noDamAge}頭は除外` : undefined },
+        { label: '出走済み', value: `${raced.length}頭` },
+        { label: '未出走', value: `${unraced}頭`, note: '大半が直近の募集組' },
+        {
+          label: '母齢 × 獲得賞金合計',
+          value: ageR !== null ? `r=${ageR.toFixed(3)}` : '—',
+          note: 'ほぼ無相関',
+        },
+        { label: '母齢の範囲', value: `${ageMin}〜${ageMax}歳` },
+      ]}
+    />
+
+    <AdSlot sp={AD_SP_WIDE_A} pc={AD_PC_WIDE_A} />
+
+    <h2>母齢の分布</h2>
+    <p>
+      まず母集団を見ておくと、{all.length}頭の母齢は{ageMin}〜{ageMax}歳に広く分布していて、
+      特定の年齢に偏っているわけではなかった。2歳刻みでヒストグラムにするとこんな感じ。
+    </p>
+    <BarChart title={`母齢の分布（全${all.length}頭・2歳刻み）`} bars={ageBins} valueLabel="頭数" />
+
+    <AdSlot sp={AD_SP_WIDE_B} pc={AD_PC_WIDE_B} />
+
+    <h2>母齢 × 獲得賞金合計</h2>
+    <p>
+      出走済みの{raced.length}頭で、母齢と獲得賞金合計（中央+地方、万円）を散布図にしてみた。
+      相関係数は r={ageR?.toFixed(3)}。体高（前回の記事でr=0.2台）はおろか、
+      「ほぼ無相関」と言っていた一口価格よりもさらにゼロに近い数字で、率直に言って
+      <strong>母齢から成績はまったく読めなかった</strong>。
+      {ageScatterOmitted > 0 && (
+        <>獲得賞金合計が1億円を超える{ageScatterOmitted}頭はグラフの外に出るため省略した
+        （後述の代表馬紹介を参照）。</>
+      )}
+    </p>
+    <ScatterChart
+      title={`母齢 × 獲得賞金合計（出走済み・1億円未満${ageScatterPoints.length}頭）`}
+      points={ageScatterPoints}
+      series={sexSeries}
+      xLabel="母齢(歳)"
+      yLabel="獲得賞金合計(万円)"
+      xDomain={[ageMin - 1, ageMax + 1]}
+      yDomain={[0, SCATTER_Y_MAX]}
+      xTicks={[5, 10, 15, 20]}
+      yTicks={[0, 2500, 5000, 7500, 10000]}
+      formatX={(v) => `${v}`}
+      formatY={(v) => (v === 0 ? '0' : `${v / 1000}k`)}
+    />
+
+    <AdSlot sp={AD_SP_WIDE_A} pc={AD_PC_WIDE_A} />
+
+    <h2>母齢階級別に見ると</h2>
+    <p>
+      4階級に分けて平均を取っても、はっきりした傾向は出なかった。棒の高さがバラついては
+      いるけれど、年齢が上がるにつれて右肩上がり／右肩下がりになるような単調な並びには
+      なっていない。
+    </p>
+    <BarChart
+      title="母齢階級別 平均獲得賞金合計"
+      bars={prizeBars}
+      valueLabel="平均獲得賞金合計"
+      nLabel="平均の母数（出走済み）"
+      noteLabel="階級全体"
+    />
+    <BarChart title="母齢階級別 平均勝ち数" bars={winBars} valueLabel="平均勝ち数" />
+
+    <AdSlot sp={AD_SP_WIDE_B} pc={AD_PC_WIDE_B} />
+
+    <h2>実際にどんな馬がいたか</h2>
+    <p>
+      この{all.length}頭の中で実際に重賞を勝った{gradeWinners.length}頭を獲得賞金の多い順に
+      並べておく。母齢の列を見てもらうと分かる通り、{gradeAgeMin}〜{gradeAgeMax}歳までほぼ
+      全域にわたって重賞馬が出ている。表が長くなるので、開いているのは上位{GRADE_WINNERS_VISIBLE}頭で、
+      残り{gradeWinnersRest.length}頭はその下の折りたたみに入れてある。
+    </p>
+    <GradeWinnerTable rows={gradeWinnersTop} />
+    {gradeWinnersRest.length > 0 && (
+      <details class="more-winners">
+        <summary>残りの{gradeWinnersRest.length}頭も見る（獲得賞金{GRADE_WINNERS_VISIBLE + 1}位以下）</summary>
+        <GradeWinnerTable rows={gradeWinnersRest} />
+      </details>
+    )}
+    <p class="table-note">
+      折りたたみを開いた{gradeWinners.length}頭が、{all.length}頭のうち重賞（中央G1〜G3・Jpn1〜3、
+      地方重賞含む）を勝った馬のすべて。
+    </p>
+
+    <div class="finding">
+      <p class="finding-lead">デビュー時期の偏りではないか？</p>
+      <p>
+        直近の募集組（2022〜2025年）は未出走が多く、それだけで「若い母の方が成績が良く見える」
+        ような見かけ上の偏りが出ないか気になったので、レースを重ねている
+        2017〜2021年募集（{olderOnly.length}頭）だけに絞って相関係数を出し直した。
+        結果は r={ageROlder?.toFixed(3)}。絞り込む前（r={ageR?.toFixed(3)}）とほぼ変わらず、
+        デビュー時期の偏りで説明できる差ではなかった。
+      </p>
+    </div>
+
+    <div class="ad-rect">
+      <AdSlot sp={AD_SP_RECT} pc={AD_PC_WIDE_A} />
+    </div>
+
+    <h2>まとめ</h2>
+    <ul class="conclusion">
+      <li>母齢と獲得賞金合計の相関係数はr={ageR?.toFixed(3)}で、体高（弱い正の相関があった）とも
+        一口価格（ほぼ無相関だった）とも違い、<strong>ほぼゼロ</strong>だった。</li>
+      <li>階級別に見ても、重賞馬の顔ぶれを見ても、母齢が上がるほど・下がるほど成績が良い／悪い
+        という傾向は見つからなかった。実際の重賞馬も{gradeAgeMin}〜{gradeAgeMax}歳の母から
+        まんべんなく出ている。</li>
+      <li>直近募集組の未出走が多いことによる見かけ上の偏りも、古い世代だけに絞った再集計
+        （r={ageROlder?.toFixed(3)}）で否定できた。</li>
+      <li>「高齢母は不利」「若い母の方がいい」という話は、少なくとも今回のデータからは
+        裏付けられなかった。ただし相関係数は線形の関係しか見ておらず、極端に高齢（20歳超）の
+        母だけを取り出すとまた違うかもしれない ―― サンプル数が{ages.filter((a) => a >= 20).length}頭
+        しかなく、今回はそこまで踏み込めていない。</li>
+      <li>個人的には「母の年齢を気にして選んでいた時間は、他の条件を見る時間に回した方が
+        よかったかも」というのが正直な感想。</li>
+    </ul>
+
+    <div class="ad-rect">
+      <AdSlot sp={AD_SP_RECT} pc={AD_PC_WIDE_B} />
+    </div>
+
+    <h2>データについて</h2>
+    <p>
+      母齢は「募集年 - 母馬の生年」で算出した年齢で、実際の出産時の年齢（誕生日ベース）とは
+      1歳前後ずれることがある。{noDamAge > 0 && (
+        <>母馬自身のnetkeibaページを特定できなかった{noDamAge}頭は集計から除外している。</>
+      )}
+      競走成績は{resultsAsOf}時点のスナップショットで、今後レースを重ねるたびに変わっていく。
+      直近の募集組はまだ大半が未出走〜デビュー間もないため、今回の集計は出走済みの
+      {raced.length}頭が中心になっている点は割り引いて見てほしい。獲得賞金は中央（JRA）・
+      地方（NAR）の合計で、海外レースで得た賞金は含まれていない。
+      相関係数はあくまで線形の関係の強さの目安で、これだけで「母齢が成績に影響しない」と
+      断言できるわけではない。出資判断の材料というより、あくまで趣味の分析として楽しんで
+      もらえたら。
+    </p>
+
+    <p>
+      <a href="/">募集馬一覧へ戻る</a> ／ <a href="/articles/">分析記事一覧へ</a>
+    </p>
+  </article>
+
+  <ChartTooltip />
+</BaseLayout>
+
+<style>
+  article :global(h2) {
+    margin-top: 2.5rem;
+  }
+  .table-note {
+    font-size: 0.8125rem;
+    color: var(--muted);
+  }
+  .finding {
+    margin: 1.25rem 0;
+    padding: 0.9rem 1.1rem;
+    background: var(--accent-weak);
+    border-left: 3px solid var(--accent);
+    border-radius: 0 6px 6px 0;
+  }
+  .finding-lead {
+    margin: 0 0 0.5rem;
+    font-weight: 700;
+  }
+  .finding p:last-child {
+    margin-bottom: 0;
+  }
+  .ad-rect {
+    display: flex;
+    justify-content: center;
+    margin: 1.75rem 0 0.5rem;
+  }
+  .more-winners {
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 0.5rem 0.85rem;
+    margin: 0.5rem 0;
+  }
+  .more-winners summary {
+    cursor: pointer;
+    font-weight: 600;
+    padding: 0.25rem 0;
+  }
+  .more-winners :global(.table-scroll) {
+    margin-top: 0.5rem;
+  }
+  .conclusion {
+    padding-left: 1.25rem;
+  }
+  .conclusion li + li {
+    margin-top: 0.5rem;
+  }
+</style>

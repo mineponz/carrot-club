@@ -24,6 +24,7 @@ const { rows } = Astro.props;
         <th>馬名</th>
         <th>募集年</th>
         <th>体高</th>
+        <th>母齢</th>
         <th>一口価格</th>
         <th>主な勝鞍</th>
         <th>通算成績</th>
@@ -37,6 +38,7 @@ const { rows } = Astro.props;
             <td>{h.displayName}</td>
             <td>{h.recruitYear}年</td>
             <td>{h.height}cm</td>
+            <td>{h.damAge !== null ? `${h.damAge}歳` : '—'}</td>
             <td>{h.pricePerShare !== null ? `${h.pricePerShare}万円` : '—'}</td>
             <td>{h.gradeWins.join('、')}</td>
             <td>

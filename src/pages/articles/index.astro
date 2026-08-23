@@ -10,8 +10,16 @@ import { loadRecruitsWithResults } from '../../lib/analysis-data.ts';
 const all = loadRecruitsWithResults();
 const years = [...new Set(all.map((h) => h.recruitYear))].sort((a, b) => a - b);
 const yearRangeLabel = `${years[0]}〜${years[years.length - 1]}年`;
+// dam-age記事は母齢不明の3頭を集計から除外しているため、all.length（818）とは頭数が異なる。
+const withDamAge = all.filter((h) => h.damAge !== null).length;
 
 const articles = [
+  {
+    href: '/articles/dam-age/',
+    title: `母馬の年齢と成績の関係を、${withDamAge}頭のデータで見てみた`,
+    description:
+      '「高齢の母馬は不利」という俗説を、母齢と獲得賞金の相関係数・階級別グラフで検証。結果はほぼ無相関だった。',
+  },
   {
     href: '/articles/height/',
     title: `体高と成績の関係を、${all.length}頭のデータで見てみた`,

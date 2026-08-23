@@ -441,7 +441,7 @@ const description = `【非公式】キャロットクラブ${yearRangeLabel}${a
       以下で「重賞馬」と書くのは<strong>この「重賞を1勝以上している馬」の頭数</strong>で、
       重賞の勝利数ではない。
       {gradeWinnersWithoutPrice > 0 && (
-        <>一口価格が「—」の{gradeWinnersWithoutPrice}頭は、募集当時の価格を確認できなかった馬。</>
+        <>一口価格が「—」の{gradeWinnersWithoutPrice}頭は、現在の馬主がクラブ名義でなくなっており価格を確認できない馬。</>
       )}
     </p>
     <p>
@@ -491,7 +491,7 @@ const description = `【非公式】キャロットクラブ${yearRangeLabel}${a
     <p>
       「じゃあ高い馬を選べばいいのでは」と思う人もいるはずなので、一口価格と獲得賞金合計の関係も
       同じ形式で並べておく。対象は出走済み{raced.length}頭のうち一口価格が分かっている
-      {racedWithPrice.length}頭{racedWithoutPrice > 0 && <>（残り{racedWithoutPrice}頭は募集当時の価格を確認できず除外）</>}。
+      {racedWithPrice.length}頭{racedWithoutPrice > 0 && <>（残り{racedWithoutPrice}頭は現在の馬主がクラブ名義でなくなっており、netkeiba側の記載欄自体が無いため除外）</>}。
       相関係数は r={pricePrizeR?.toFixed(3)} でほぼゼロ。体高よりもさらに予測力が無かった。
       {priceScatterOmitted > 0 && <>（1億円超えの{priceScatterOmitted}頭はこのグラフでは省略。
       下の「1億円超えも含めて見る」参照）</>}
