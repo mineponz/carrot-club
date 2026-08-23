@@ -6,8 +6,21 @@ import {
   pearsonCorrelation,
   bucketAverage,
   countByBucket,
+  mean,
+  median,
   formatManYen,
 } from './chart-math.ts';
+
+test('mean averages values', () => {
+  assert.equal(mean([1, 2, 3]), 2);
+  assert.equal(mean([]), 0);
+});
+
+test('median picks middle value / averages the middle two', () => {
+  assert.equal(median([1, 3, 2]), 2);
+  assert.equal(median([1, 2, 3, 4]), 2.5);
+  assert.equal(median([]), 0);
+});
 
 test('linearScale maps domain endpoints to range endpoints', () => {
   const scale = linearScale([0, 10], [100, 200]);

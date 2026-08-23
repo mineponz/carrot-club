@@ -87,6 +87,20 @@ export function countByBucket<T>(
   return counts;
 }
 
+/** 算術平均。空配列は0（呼び出し側で長さ0を別チェックする想定）。 */
+export function mean(values: readonly number[]): number {
+  if (values.length === 0) return 0;
+  return values.reduce((a, b) => a + b, 0) / values.length;
+}
+
+/** 中央値。偶数個は中央2件の平均。 */
+export function median(values: readonly number[]): number {
+  if (values.length === 0) return 0;
+  const sorted = [...values].sort((a, b) => a - b);
+  const mid = Math.floor(sorted.length / 2);
+  return sorted.length % 2 === 0 ? (sorted[mid - 1] + sorted[mid]) / 2 : sorted[mid];
+}
+
 /** 万円単位の数値を "1,930" のようにカンマ区切りにする。 */
 export function formatManYen(value: number): string {
   return Math.round(value).toLocaleString('ja-JP');

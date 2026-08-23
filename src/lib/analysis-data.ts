@@ -1,5 +1,5 @@
 /**
- * `analysis/data/recruits.json`（過去5年470頭の募集時データ）と
+ * `analysis/data/recruits.json`（2017〜2025年募集の全頭の募集時データ）と
  * `analysis/data/race-results.json`（現在の競走成績）をnetkeibaUrlで結合する。
  * 分析記事ページ（`src/pages/articles/*`）から使う。
  *
@@ -65,7 +65,7 @@ export const RACE_RESULTS_FETCHED_AT: string = raceResultsJson.fetchedAt;
 
 let cache: RecruitWithResult[] | null = null;
 
-/** 470頭ぶんを結合して返す（成績が取れていない馬は成績側の値がすべてnull）。 */
+/** 全頭ぶんを結合して返す（成績が取れていない馬は成績側の値がすべてnull）。 */
 export function loadRecruitsWithResults(): RecruitWithResult[] {
   if (cache) return cache;
 

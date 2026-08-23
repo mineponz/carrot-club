@@ -1,26 +1,32 @@
 ---
 /**
- * 分析記事の一覧ページ。過去5年470頭のデータ（analysis/data/）を使った読み物コンテンツの
- * ハブ。記事を増やしたらここにも追加する。
+ * 分析記事の一覧ページ。2017〜2025年募集の全頭データ（analysis/data/）を使った読み物コンテンツの
+ * ハブ。記事を増やしたらここにも追加する。頭数・年範囲はheight.astroと同じrecruits.jsonから
+ * 動的に出す（ハードコードすると年ごとにデータが増えるたびにここも直し忘れる）。
  */
 import BaseLayout from '../../layouts/BaseLayout.astro';
+import { loadRecruitsWithResults } from '../../lib/analysis-data.ts';
+
+const all = loadRecruitsWithResults();
+const years = [...new Set(all.map((h) => h.recruitYear))].sort((a, b) => a - b);
+const yearRangeLabel = `${years[0]}〜${years[years.length - 1]}年`;
 
 const articles = [
   {
     href: '/articles/height/',
-    title: '体高と成績の関係を、過去5年470頭のデータで見てみた',
+    title: `体高と成績の関係を、${all.length}頭のデータで見てみた`,
     description:
       '募集時の体高と、その後の中央・地方獲得賞金の関係を散布図・階級別グラフで見る。ダービー馬タスティエーラなど実際の代表馬も紹介。',
   },
 ];
 
-const description = '【非公式】過去5年のキャロットクラブ募集馬データを使った分析記事の一覧。';
+const description = `【非公式】${yearRangeLabel}のキャロットクラブ募集馬データを使った分析記事の一覧。`;
 ---
 
 <BaseLayout title="分析記事" description={description}>
   <h1>分析記事</h1>
   <p>
-    過去5年（2021〜2025年募集）の募集時データと、その後の競走成績を突き合わせた独自集計をもとに、
+    {yearRangeLabel}募集の募集時データと、その後の競走成績を突き合わせた独自集計をもとに、
     体高・一口価格といった募集時の情報が後の成績とどう関係するかを見ていく読み物コンテンツです。
   </p>
   <ul class="article-list">

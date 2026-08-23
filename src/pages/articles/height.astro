@@ -1,7 +1,9 @@
 ---
 /**
- * 分析記事「体高と成績の関係」。過去5年（2021〜2025年募集）470頭の募集時データと
- * 現在の競走成績（`analysis/data/`）をクロス集計して見せる、募集馬一覧とは別系統のコンテンツページ。
+ * 分析記事「体高と成績の関係」。2017〜2025年募集の全頭（`analysis/data/recruits.json`。
+ * 2021〜2025年は自分のスプレッドシート、2017〜2020年はクラブ公式サイトの過去の測尺一覧から
+ * 追加取込）の募集時データと現在の競走成績（`analysis/data/race-results.json`）をクロス集計して
+ * 見せる、募集馬一覧とは別系統のコンテンツページ。
  * 広告は記事ページ専用のタグ（本人指定 / vault: 20260821-article-ad-embed-snippets）を使う。
  *
  * 2026-08-22の本人フィードバックで大きく書き直した:
@@ -10,6 +12,11 @@
  * - 馬名は募集時の仮の名前でなく競走馬登録後の実名を出す（`displayName`）
  * - 実際の重賞勝ち馬を「代表馬」として紹介する
  * - 2026年募集馬が体高分布のどこに当てはまるかをアコーディオンで見せる
+ *
+ * 2026-08-22〜23、2017〜2020年募集分（348頭・クラブ公式サイトの過去の測尺一覧から取込）を追加。
+ * 対象頭数・体高分布・相関係数・重賞馬まわりの数字はrecruits.json/race-results.jsonから動的に
+ * 計算しているため、この4年分を足しただけで数値は自動的に更新される（vault:
+ * 20260822-import-2017-2020-legacy-data）。
  */
 import BaseLayout from '../../layouts/BaseLayout.astro';
 import BarChart from '../../components/charts/BarChart.astro';
@@ -23,6 +30,8 @@ import {
   pearsonCorrelation,
   bucketAverage,
   countByBucket,
+  mean,
+  median,
   formatManYen,
 } from '../../lib/chart-math.ts';
 import { horses2026 } from '../../data/horses2026.ts';
@@ -53,8 +62,12 @@ function orderBuckets<T extends { bucket: string }>(rows: T[]): T[] {
   return bucketOrder.map((label) => rows.find((r) => r.bucket === label)).filter((r): r is T => !!r);
 }
 
-// ---- 体高の分布（全470頭） ----
+// ---- 体高の分布 ----
 const heights = all.map((h) => h.height).filter((v): v is number => v !== null);
+const heightMin = Math.min(...heights);
+const heightMax = Math.max(...heights);
+const heightMean = mean(heights);
+const heightMedian = median(heights);
 const heightBins = histogram(heights, 3, 141, 168).map((b) => ({
   label: `${b.binStart}〜${b.binEnd}`,
   value: b.count,
@@ -131,7 +144,7 @@ function gradeShare(items: typeof withHeight) {
 }
 const tall = gradeShare(withHeight.filter((h) => (h.height as number) >= TALL_CUT));
 const short = gradeShare(withHeight.filter((h) => (h.height as number) < TALL_CUT));
-// 2021〜2023年募集だけに絞っても同じ傾向が出るか（デビュー時期の偏りで見かけ上そう見えて
+// 2023年以前の募集だけに絞っても同じ傾向が出るか（デビュー時期の偏りで見かけ上そう見えて
 // いるだけではないか）の確認。本文でこの数字にも触れる。
 const olderOnly = withHeight.filter((h) => h.recruitYear <= 2023);
 const tallOlder = gradeShare(olderOnly.filter((h) => (h.height as number) >= TALL_CUT));
@@ -197,9 +210,11 @@ const buckets2026 = HEIGHT_BUCKETS.map(([label]) => ({
     .sort((a, b) => a.height - b.height),
 }));
 
-const yearCounts = [2021, 2022, 2023, 2024, 2025]
-  .map((y) => `${y}年${all.filter((h) => h.recruitYear === y).length}頭`)
-  .join('・');
+const RECRUIT_YEARS = [2017, 2018, 2019, 2020, 2021, 2022, 2023, 2024, 2025];
+const yearCounts = RECRUIT_YEARS.map((y) => `${y}年${all.filter((h) => h.recruitYear === y).length}頭`).join(
+  '・'
+);
+const yearRangeLabel = `${RECRUIT_YEARS[0]}〜${RECRUIT_YEARS[RECRUIT_YEARS.length - 1]}年`;
 
 /**
  * 忍者AdMaxの枠コード。この記事はセクションの切れ目ごとに1枠ずつ置く。
@@ -218,33 +233,32 @@ const AD_SP_RECT = '24e3e1a24f40d88ee1a0ca315c54a7b9';
 const AD_PC_WIDE_A = 'f0efb5bd6ae3e164bb584a4dbb846f48';
 const AD_PC_WIDE_B = '0a525f6469ec1f40642b4550e53d39cc';
 
-const description =
-  '【非公式】キャロットクラブ過去5年470頭の募集時データと現在の競走成績を独自集計。体高・一口価格と獲得賞金・重賞勝ち馬の関係を散布図で見る分析記事。';
+const description = `【非公式】キャロットクラブ${yearRangeLabel}${all.length}頭の募集時データと現在の競走成績を独自集計。体高・一口価格と獲得賞金・重賞勝ち馬の関係を散布図で見る分析記事。`;
 ---
 
 <BaseLayout
-  title="体高と成績の関係を470頭のデータで見る"
+  title={`体高と成績の関係を${all.length}頭のデータで見る`}
   description={description}
   breadcrumb={[{ label: '分析記事', href: '/articles/' }, { label: '体高と成績の関係', href: '/articles/height/' }]}
   showHeaderNotices={false}
   ogImage="/og-article-height-v1.png"
-  ogImageAlt="分析記事「体高と成績の関係を470頭のデータで見る」のカード画像（【非公式】キャロットクラブ出資馬検討ツール）"
+  ogImageAlt={`分析記事「体高と成績の関係を${all.length}頭のデータで見る」のカード画像（【非公式】キャロットクラブ出資馬検討ツール）`}
 >
   <article>
-    <h1>体高と成績の関係を、過去5年470頭のデータで見てみた</h1>
+    <h1>体高と成績の関係を、{yearRangeLabel}{all.length}頭のデータで見てみた</h1>
 
     <p>
       キャロットクラブの募集馬選びで「体高が大きい方が良さそうだ」と私は何となく思っていたんだけど、
-      実際どうなんだろうと思って調べてみた。過去5年（2021〜2025年募集、{yearCounts}）の募集時データ
-      を自分のスプレッドシートから取り込み、現在の獲得賞金・通算成績を取得して突き合わせた、
-      独自集計の結果。
+      実際どうなんだろうと思って調べてみた。{yearRangeLabel}募集（{yearCounts}）の募集時データを、
+      自分のスプレッドシート（2021〜2025年分）とクラブ公式サイトの過去の測尺一覧（2017〜2020年分）
+      から取り込み、現在の獲得賞金・通算成績を取得して突き合わせた、独自集計の結果。
     </p>
 
     <StatTiles
       tiles={[
         { label: '対象頭数', value: `${all.length}頭` },
         { label: '出走済み', value: `${raced.length}頭` },
-        { label: '未出走', value: `${unraced}頭`, note: '主に2024・2025年募集組' },
+        { label: '未出走', value: `${unraced}頭`, note: '大半が直近の2025年募集組' },
         {
           label: '体高 × 獲得賞金合計',
           value: heightPrizeR !== null ? `r=${heightPrizeR.toFixed(3)}` : '—',
@@ -262,10 +276,10 @@ const description =
 
     <h2>体高の分布</h2>
     <p>
-      まず母集団を見ておくと、470頭の体高は143.5〜165cmに収まっていて、平均154.2cm・中央値154cm。
-      3cm刻みでヒストグラムにするとこんな感じ。
+      まず母集団を見ておくと、{all.length}頭の体高は{heightMin}〜{heightMax}cmに収まっていて、
+      平均{heightMean.toFixed(1)}cm・中央値{heightMedian}cm。3cm刻みでヒストグラムにするとこんな感じ。
     </p>
-    <BarChart title="体高の分布（全470頭・3cm刻み）" bars={heightBins} valueLabel="頭数" />
+    <BarChart title={`体高の分布（全${all.length}頭・3cm刻み）`} bars={heightBins} valueLabel="頭数" />
 
     <AdSlot sp={AD_SP_WIDE_B} pc={AD_PC_WIDE_B} />
 
@@ -321,7 +335,7 @@ const description =
 
     <h2>実際にどんな馬がいたか</h2>
     <p>
-      相関係数だけだと実感が湧かないので、この470頭の中で実際に重賞を勝った馬を全部並べておく。
+      相関係数だけだと実感が湧かないので、この{all.length}頭の中で実際に重賞を勝った馬を全部並べておく。
     </p>
     <div class="table-scroll">
       <table class="grade-winners">
@@ -342,7 +356,7 @@ const description =
               <td>{h.displayName}</td>
               <td>{h.recruitYear}年</td>
               <td>{h.height}cm</td>
-              <td>{h.pricePerShare}万円</td>
+              <td>{h.pricePerShare !== null ? `${h.pricePerShare}万円` : '—'}</td>
               <td>{h.gradeWins.join('、')}</td>
               <td>{h.starts}戦{h.wins}勝</td>
               <td>{formatManYen(h.totalPrizeManYen)}万円</td>
@@ -352,9 +366,10 @@ const description =
       </table>
     </div>
     <p class="table-note">
-      この{gradeWinners.length}頭が、470頭のうち重賞（中央G1〜G3・Jpn1〜3、地方重賞含む）を勝った馬。
+      この{gradeWinners.length}頭が、{all.length}頭のうち重賞（中央G1〜G3・Jpn1〜3、地方重賞含む）を勝った馬。
       以下で「重賞馬」と書くのは<strong>この「重賞を1勝以上している馬」の頭数</strong>で、
-      重賞の勝利数ではない。
+      重賞の勝利数ではない。一口価格が「—」の馬は2017〜2020年募集分（クラブ公式サイトの
+      測尺一覧のみが元で価格データが無い）。
     </p>
     <p>
       頭数だけ見ると<strong>154〜157.5cm階級が{gradeWinnersInMidBucket}頭で最多</strong>だが、これは
@@ -383,7 +398,7 @@ const description =
 
     <p class="table-note">
       <strong>デビュー時期の偏りではないか？</strong>
-      レースを重ねている2021〜2023年募集だけに絞っても、158cm以上{tallOlder.pct.toFixed(1)}%・
+      レースを重ねている2023年以前の募集だけに絞っても、158cm以上{tallOlder.pct.toFixed(1)}%・
       158cm未満{shortOlder.pct.toFixed(1)}%で傾向は変わらなかった。一口価格の平均もこの階級だけ
       高いわけではない（むしろ全体平均より安い）ので、「高い馬が集まっているから」でも説明できない。
     </p>
@@ -458,7 +473,7 @@ const description =
         <strong>大物を狙うなら158cm以上を厚めに見る</strong>、というのは今回のデータからは言えそう。</li>
       <li>とはいえ重賞勝ち馬は{gradeWinners.length}頭しかなく、5階級を見比べて一番良かった階級を
         取り上げている以上、偏りの可能性は残る。実際の重賞勝ち馬も{gradeHeightMin}〜
-        {gradeHeightMax}cmの範囲（母集団全体143.5〜165cm）に散らばっていて、体高で足切りする
+        {gradeHeightMax}cmの範囲（母集団全体{heightMin}〜{heightMax}cm）に散らばっていて、体高で足切りする
         根拠と言えるほどではない。</li>
       <li>結局のところ体高は「大物が出やすい層」の目印どまりで、そこから先は血統・厩舎・個体
         そのものの見立て、という当たり前の結論に落ち着いた。価格に至っては見ても仕方がない。</li>
@@ -474,12 +489,14 @@ const description =
 
     <h2>データについて</h2>
     <p>
-      募集時データは自分が5年分ためてきたスプレッドシートが元。競走成績は現時点
+      募集時データは2021〜2025年分は自分が毎年ためてきたスプレッドシートが元、2017〜2020年分は
+      クラブ公式サイトに残っていた過去の測尺一覧ページから追加で取り込んだ（血統・一口価格・
+      性別のデータが無いのはこの4年分のため）。競走成績は現時点
       （2026年8月時点）のスナップショットで、今後レースを重ねるたびに変わっていく。
       2024・2025年募集組はまだ大半が未出走〜デビュー間もないため、今回の集計は出走済みの
-      {raced.length}頭（主に2021〜2023年募集組）が中心になっている点は割り引いて見てほしい。
+      {raced.length}頭（主に2023年以前の募集組）が中心になっている点は割り引いて見てほしい。
       獲得賞金は中央（JRA）・地方（NAR）の合計で、海外レースで得た賞金は含まれていない。
-      <strong>同じ年の追加募集馬は今回の470頭に含めていない。</strong>追加募集は通常の募集と
+      <strong>同じ年の追加募集馬は今回の{all.length}頭に含めていない。</strong>追加募集は通常の募集と
       測尺を測るタイミングが違い、体高をそのまま横に並べる前提が崩れるため、どの年も
       通常募集ぶんだけを対象にしている。
       相関係数はあくまで線形の関係の強さの目安で、これだけで「体高が原因で稼ぐ」と言えるわけ

@@ -1,5 +1,5 @@
 /**
- * `analysis/data/recruits.json`（過去5年470頭の募集時データ）の各馬について、
+ * `analysis/data/recruits.json`（2017〜2025年募集の全頭の募集時データ）の各馬について、
  * netkeiba個体ページから現在の中央/地方獲得賞金・通算成績を取得し、
  * `analysis/data/race-results.json` に書き出すスクリプト。
  *
@@ -160,8 +160,15 @@ async function main() {
   let failCount = 0;
   let cacheHits = 0;
 
+  let noUrlCount = 0;
   for (let i = 0; i < targets.length; i++) {
     const horse = targets[i];
+    if (!horse.netkeibaUrl) {
+      // 2017〜2020年募集ぶん（legacySource）はnetkeiba個体ページを自動特定できなかった馬が
+      // 少数いる（母馬名検索が空振り等）。成績を取りようがないのでスキップする。
+      noUrlCount++;
+      continue;
+    }
     const url = normalizeToDesktopUrl(horse.netkeibaUrl);
     process.stdout.write(`\r[${i + 1}/${targets.length}] ${horse.recruitYear}年No.${horse.no} ${horse.name}`.padEnd(80));
 
@@ -199,7 +206,7 @@ async function main() {
   const gradeWinners = results.filter((r) => r.gradeWins.length > 0).length;
   const overOku = results.filter((r) => (r.chuoPrizeManYen ?? 0) >= 10000).length;
   console.log(`\n合計 ${results.length}/${targets.length}頭 を ${outPath} に書き出しました`);
-  console.log(`  パース失敗: ${failCount}件 / キャッシュヒット: ${cacheHits}件`);
+  console.log(`  パース失敗: ${failCount}件 / netkeibaUrl無しでスキップ: ${noUrlCount}件 / キャッシュヒット: ${cacheHits}件`);
   console.log(`  出走済み: ${raced}頭 / 未出走(0戦): ${unraced}頭`);
   console.log(`  重賞(G1〜G3/Jpn1〜3)勝ち馬: ${gradeWinners}頭 / 中央獲得賞金1億円以上: ${overOku}頭`);
 }
