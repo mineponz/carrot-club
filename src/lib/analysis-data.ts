@@ -31,6 +31,8 @@ export interface Recruit {
   dam?: string | null;
   sire: string | null;
   broodmareSire: string | null;
+  /** 母齢（募集年 - 母の生年）。血統表ページから取得できなかった場合はnull。 */
+  damAge: number | null;
   pricePerShare: number | null;
   height: number | null;
   chestGirth: number | null;

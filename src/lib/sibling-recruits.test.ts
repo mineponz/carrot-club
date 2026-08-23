@@ -26,6 +26,7 @@ function recruit(over: Partial<RecruitWithResult>): RecruitWithResult {
     damUrl: 'https://db.sp.netkeiba.com/horse/2010100001/',
     sire: 'キタサンブラック',
     broodmareSire: 'ディープインパクト',
+    damAge: 10,
     pricePerShare: 20,
     height: 155,
     chestGirth: 178,
