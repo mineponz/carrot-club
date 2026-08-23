@@ -162,4 +162,17 @@ const gridLines = [0, 0.25, 0.5, 0.75, 1].map((t) => ({
     font-size: 9.5px;
     fill: var(--muted);
   }
+  /*
+   * 読み上げ用テキストを画面上は隠す。BaseLayout.astro等にも同名クラスがあるが、Astroの
+   * scoped CSSはファイルをまたいで効かないため、ここに定義が無いと下の<p>がそのまま
+   * 素のテキストで表示されてしまう（2026-08-23、体高階級別グラフで発覚。本人指摘）。
+   */
+  .visually-hidden {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+  }
 </style>
