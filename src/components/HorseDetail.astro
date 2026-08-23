@@ -17,7 +17,6 @@ import { loadRecruitsWithResults, RACE_RESULTS_FETCHED_AT } from '../lib/analysi
 import {
   findSiblingRecruits,
   formatResultsAsOf,
-  formatSiblingMeasurements,
   formatSiblingRecord,
   siblingDetailHref,
 } from '../lib/sibling-recruits.ts';
@@ -46,6 +45,18 @@ const poolYears = [...new Set(recruitPool.map((r) => r.recruitYear))].sort((a, b
 const poolYearRangeLabel =
   poolYears.length > 0 ? `${poolYears[0]}〜${poolYears[poolYears.length - 1]}年` : '';
 const resultsAsOf = formatResultsAsOf(RACE_RESULTS_FETCHED_AT);
+// 兄姉の中で一番稼いでいる馬だけ太字にする（本人希望・2026-08-23）。獲得賞金が取れていない
+// 馬しかいない場合は誰も強調しない（0円と未取得を混同しないよう、nullは比較から除く）。
+// No.は年をまたぐと重複しうるので、キーは「募集年-No.」の組で持つ。
+const siblingKey = (s: { recruitYear: number; no: string }) => `${s.recruitYear}-${s.no}`;
+const topSiblingPrize = Math.max(
+  -1,
+  ...siblingRecruits.map((s) => s.totalPrizeManYen).filter((v): v is number => v != null)
+);
+const topSiblingKey =
+  topSiblingPrize >= 0
+    ? siblingKey(siblingRecruits.find((s) => s.totalPrizeManYen === topSiblingPrize)!)
+    : undefined;
 
 /** 定義リストに出す項目。値が無いものは出さない（空欄の行を並べても情報にならない）。 */
 const facts: { term: string; value: string }[] = [
@@ -108,42 +119,52 @@ const facts: { term: string; value: string }[] = [
           {resultsAsOf ? `${resultsAsOf}時点` : '取得時点'}の通算成績・獲得賞金（中央+地方）を出しています。
           突き合わせているのは{poolYearRangeLabel}募集ぶんなので、それ以前に募集された兄姉は出ません。
         </p>
-        <ul class="sibling-list">
-          {siblingRecruits.map((sibling) => {
-            const href = siblingDetailHref(sibling);
-            const record = formatSiblingRecord(sibling);
-            const measurements = formatSiblingMeasurements(sibling);
-            return (
-              <li class="sibling">
-                <p class="sibling-name">
-                  {href ? <a href={href}>{sibling.name}</a> : sibling.name}
-                  <span class="sibling-year">{sibling.recruitYear}年募集 No.{sibling.no}</span>
-                </p>
-                <dl class="sibling-facts">
-                  <div class="measurements">
-                    <dt>募集時の測尺</dt>
-                    <dd>{measurements || '—'}</dd>
-                  </div>
-                  <div>
-                    <dt>通算成績</dt>
-                    <dd>{record ?? '—'}</dd>
-                  </div>
-                  <div>
-                    <dt>獲得賞金</dt>
-                    <dd>{sibling.totalPrizeManYen == null ? '—' : `${formatManYen(sibling.totalPrizeManYen)}万円`}</dd>
-                  </div>
-                </dl>
-                {sibling.netkeibaUrl && (
-                  <p class="sibling-link">
-                    <a href={sibling.netkeibaUrl} target="_blank" rel="noopener">
-                      netkeibaで{sibling.name}を見る
-                    </a>
-                  </p>
-                )}
-              </li>
-            );
-          })}
-        </ul>
+        <div class="table-scroll">
+          <table class="sibling-table">
+            <thead>
+              <tr>
+                <th>馬名</th>
+                <th>募集年</th>
+                <th>体高</th>
+                <th>胸囲</th>
+                <th>管囲</th>
+                <th>馬体重</th>
+                <th>通算成績</th>
+                <th>獲得賞金</th>
+              </tr>
+            </thead>
+            <tbody>
+              {siblingRecruits.map((sibling) => {
+                const href = siblingDetailHref(sibling);
+                const record = formatSiblingRecord(sibling);
+                const isTop = siblingKey(sibling) === topSiblingKey;
+                return (
+                  <tr class={isTop ? 'top-earner' : undefined}>
+                    <td>
+                      {href ? (
+                        <a href={href}>{sibling.name}</a>
+                      ) : sibling.netkeibaUrl ? (
+                        <a href={sibling.netkeibaUrl} target="_blank" rel="noopener">
+                          {sibling.name}
+                        </a>
+                      ) : (
+                        sibling.name
+                      )}
+                    </td>
+                    <td>{sibling.recruitYear}年 No.{sibling.no}</td>
+                    <td>{sibling.height == null ? '—' : `${sibling.height}cm`}</td>
+                    <td>{sibling.chestGirth == null ? '—' : `${sibling.chestGirth}cm`}</td>
+                    <td>{sibling.caretGirth == null ? '—' : `${sibling.caretGirth}cm`}</td>
+                    <td>{sibling.weight == null ? '—' : `${sibling.weight}kg`}</td>
+                    <td>{record ?? '—'}</td>
+                    <td>{sibling.totalPrizeManYen == null ? '—' : `${formatManYen(sibling.totalPrizeManYen)}万円`}</td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
+        {topSiblingKey && <p class="table-note">太字は兄姉の中で獲得賞金が最も多い馬。</p>}
       </section>
     )
   }
@@ -247,52 +268,36 @@ const facts: { term: string; value: string }[] = [
   .sibling-recruits .note {
     margin-bottom: 0.75rem;
   }
-  .sibling-list {
-    list-style: none;
-    margin: 0;
-    padding: 0;
-    display: grid;
-    gap: 0.75rem;
+  /* どの兄姉がどんな測尺で走っているか一覧で見比べたい、という本人希望で表形式にした
+     （2026-08-23、カード形式から変更）。横に長いので狭い画面ではスクロールさせる。 */
+  .table-scroll {
+    overflow-x: auto;
+    margin: 0.5rem 0;
   }
-  .sibling {
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: 8px;
-    padding: 0.85rem 1rem;
+  table.sibling-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.875rem;
+    white-space: nowrap;
   }
-  .sibling-name {
-    margin: 0 0 0.5rem;
-    font-weight: 700;
+  table.sibling-table th,
+  table.sibling-table td {
+    padding: 0.4rem 0.6rem;
+    border-bottom: 1px solid var(--border);
+    text-align: left;
   }
-  .sibling-year {
-    margin-left: 0.5rem;
+  table.sibling-table th {
     color: var(--muted);
-    font-size: 0.8125rem;
-    font-weight: 400;
-  }
-  /* 測尺・成績・賞金は fact-list と同じ見え方に揃える（1画面に2つ並ぶため） */
-  .sibling-facts {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(11rem, 1fr));
-    gap: 0.5rem 1rem;
-    margin: 0;
-  }
-  /* 測尺は4項目つなげた1行なので、途中で折り返さないよう横幅いっぱいを使う */
-  .sibling-facts .measurements {
-    grid-column: 1 / -1;
-  }
-  .sibling-facts dt {
-    color: var(--muted);
-    font-size: 0.8125rem;
-  }
-  .sibling-facts dd {
-    margin: 0.1rem 0 0;
-    font-size: 1rem;
     font-weight: 600;
   }
-  .sibling-link {
-    margin: 0.6rem 0 0;
+  /* 兄姉の中で獲得賞金が最も多い1頭だけ強調する（本人希望） */
+  table.sibling-table tr.top-earner td {
+    font-weight: 700;
+  }
+  .table-note {
+    margin: 0.4rem 0 0;
     font-size: 0.8125rem;
+    color: var(--muted);
   }
 
   .external-links {
