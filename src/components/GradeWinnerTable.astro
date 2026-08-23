@@ -1,0 +1,74 @@
+---
+/**
+ * 分析記事の「重賞を勝った馬」の表。
+ *
+ * 2017〜2020年募集分を足して対象が818頭になり、重賞馬も44頭まで増えたため、記事側では
+ * 上位ぶんだけ出して残りを折りたたむ（表がスマホで画面数ぶんの長さになっていた・2026-08-23）。
+ * その2つは同じ形の表なので、行の作りはここに1つだけ置く ―― 呼び出し側に2回書くと、
+ * 列を足したときに片方だけ直して表がずれる。
+ */
+import type { RecruitWithResult } from '../lib/analysis-data.ts';
+import { formatManYen } from '../lib/chart-math.ts';
+
+interface Props {
+  rows: RecruitWithResult[];
+}
+
+const { rows } = Astro.props;
+---
+
+<div class="table-scroll">
+  <table class="grade-winners">
+    <thead>
+      <tr>
+        <th>馬名</th>
+        <th>募集年</th>
+        <th>体高</th>
+        <th>一口価格</th>
+        <th>主な勝鞍</th>
+        <th>通算成績</th>
+        <th>獲得賞金合計</th>
+      </tr>
+    </thead>
+    <tbody>
+      {
+        rows.map((h) => (
+          <tr>
+            <td>{h.displayName}</td>
+            <td>{h.recruitYear}年</td>
+            <td>{h.height}cm</td>
+            <td>{h.pricePerShare !== null ? `${h.pricePerShare}万円` : '—'}</td>
+            <td>{h.gradeWins.join('、')}</td>
+            <td>
+              {h.starts}戦{h.wins}勝
+            </td>
+            <td>{formatManYen(h.totalPrizeManYen)}万円</td>
+          </tr>
+        ))
+      }
+    </tbody>
+  </table>
+</div>
+
+<style>
+  .table-scroll {
+    overflow-x: auto;
+    margin: 1rem 0;
+  }
+  table.grade-winners {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.875rem;
+    white-space: nowrap;
+  }
+  table.grade-winners th,
+  table.grade-winners td {
+    padding: 0.4rem 0.6rem;
+    border-bottom: 1px solid var(--border);
+    text-align: left;
+  }
+  table.grade-winners th {
+    color: var(--muted);
+    font-weight: 600;
+  }
+</style>

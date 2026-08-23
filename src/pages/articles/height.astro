@@ -27,6 +27,7 @@ import ScatterChart from '../../components/charts/ScatterChart.astro';
 import ChartTooltip from '../../components/charts/ChartTooltip.astro';
 import StatTiles from '../../components/charts/StatTiles.astro';
 import AdSlot from '../../components/AdSlot.astro';
+import GradeWinnerTable from '../../components/GradeWinnerTable.astro';
 import { loadRecruitsWithResults, racedOnly } from '../../lib/analysis-data.ts';
 import {
   histogram,
@@ -224,6 +225,14 @@ const gradeWinners = all
   .filter((h) => h.gradeWins.length > 0)
   .sort((a, b) => b.totalPrizeManYen - a.totalPrizeManYen);
 const gradeWinnersWithoutPrice = gradeWinners.filter((h) => h.pricePerShare === null).length;
+/**
+ * 重賞馬の表は獲得賞金の多い順。2017〜2020年募集分を足して44頭まで増え、スマホだと表だけで
+ * 画面数ぶんの長さになったため、上位ぶんだけ開いた状態にして残りは折りたたむ（2026-08-23）。
+ * 「全部載っている」ことは変えない ―― 抜粋にすると、載っていない馬がいるのか判断できない。
+ */
+const GRADE_WINNERS_VISIBLE = 10;
+const gradeWinnersTop = gradeWinners.slice(0, GRADE_WINNERS_VISIBLE);
+const gradeWinnersRest = gradeWinners.slice(GRADE_WINNERS_VISIBLE);
 const gradeWinnerHeights = gradeWinners.map((h) => h.height as number);
 const gradeHeightMin = Math.min(...gradeWinnerHeights);
 const gradeHeightMax = Math.max(...gradeWinnerHeights);
@@ -350,7 +359,7 @@ const description = `【非公式】キャロットクラブ${yearRangeLabel}${a
       {winBars.find((b) => b.label === '162cm〜')?.n ?? 0}頭しかいないので、この階級だけは参考程度に見てほしい。
     </p>
     <p>
-      1つ目のグラフは軸の下に、その階級の母集団（体高が分かっている469頭ベース）の頭数と、そのうち重賞を
+      1つ目のグラフは軸の下に、その階級の母集団（体高が分かっている{withHeight.length}頭ベース）の頭数と、そのうち重賞を
       勝った馬の頭数を併記した。棒の高さ（平均獲得賞金合計）の母数はこのうち出走済みの馬だけ
       なので、頭数は棒にカーソルを合わせる（スマホはタップ）と両方出る。階級の分け方は
       2つ目のグラフも同じなので、頭数の併記は1つ目にまとめてある。
@@ -368,38 +377,20 @@ const description = `【非公式】キャロットクラブ${yearRangeLabel}${a
 
     <h2>実際にどんな馬がいたか</h2>
     <p>
-      相関係数だけだと実感が湧かないので、この{all.length}頭の中で実際に重賞を勝った馬を全部並べておく。
+      相関係数だけだと実感が湧かないので、この{all.length}頭の中で実際に重賞を勝った
+      {gradeWinners.length}頭を獲得賞金の多い順に並べておく。表が長くなるので、開いているのは
+      上位{GRADE_WINNERS_VISIBLE}頭で、残り{gradeWinnersRest.length}頭はその下の折りたたみに入れてある。
     </p>
-    <div class="table-scroll">
-      <table class="grade-winners">
-        <thead>
-          <tr>
-            <th>馬名</th>
-            <th>募集年</th>
-            <th>体高</th>
-            <th>一口価格</th>
-            <th>主な勝鞍</th>
-            <th>通算成績</th>
-            <th>獲得賞金合計</th>
-          </tr>
-        </thead>
-        <tbody>
-          {gradeWinners.map((h) => (
-            <tr>
-              <td>{h.displayName}</td>
-              <td>{h.recruitYear}年</td>
-              <td>{h.height}cm</td>
-              <td>{h.pricePerShare !== null ? `${h.pricePerShare}万円` : '—'}</td>
-              <td>{h.gradeWins.join('、')}</td>
-              <td>{h.starts}戦{h.wins}勝</td>
-              <td>{formatManYen(h.totalPrizeManYen)}万円</td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
-    </div>
+    <GradeWinnerTable rows={gradeWinnersTop} />
+    {gradeWinnersRest.length > 0 && (
+      <details class="more-winners">
+        <summary>残りの{gradeWinnersRest.length}頭も見る（獲得賞金{GRADE_WINNERS_VISIBLE + 1}位以下）</summary>
+        <GradeWinnerTable rows={gradeWinnersRest} />
+      </details>
+    )}
     <p class="table-note">
-      この{gradeWinners.length}頭が、{all.length}頭のうち重賞（中央G1〜G3・Jpn1〜3、地方重賞含む）を勝った馬。
+      折りたたみを開いた{gradeWinners.length}頭が、{all.length}頭のうち重賞（中央G1〜G3・Jpn1〜3、地方重賞含む）を
+      勝った馬のすべて。
       以下で「重賞馬」と書くのは<strong>この「重賞を1勝以上している馬」の頭数</strong>で、
       重賞の勝利数ではない。
       {gradeWinnersWithoutPrice > 0 && (
@@ -560,26 +551,6 @@ const description = `【非公式】キャロットクラブ${yearRangeLabel}${a
   article :global(h2) {
     margin-top: 2.5rem;
   }
-  .table-scroll {
-    overflow-x: auto;
-    margin: 1rem 0;
-  }
-  table.grade-winners {
-    width: 100%;
-    border-collapse: collapse;
-    font-size: 0.875rem;
-    white-space: nowrap;
-  }
-  table.grade-winners th,
-  table.grade-winners td {
-    padding: 0.4rem 0.6rem;
-    border-bottom: 1px solid var(--border);
-    text-align: left;
-  }
-  table.grade-winners th {
-    color: var(--muted);
-    font-weight: 600;
-  }
   .table-note {
     font-size: 0.8125rem;
     color: var(--muted);
@@ -611,16 +582,22 @@ const description = `【非公式】キャロットクラブ${yearRangeLabel}${a
     justify-content: center;
     margin: 1.75rem 0 0.5rem;
   }
+  .more-winners,
   .bucket-accordion {
     border: 1px solid var(--border);
     border-radius: 8px;
     padding: 0.5rem 0.85rem;
     margin: 0.5rem 0;
   }
+  .more-winners summary,
   .bucket-accordion summary {
     cursor: pointer;
     font-weight: 600;
     padding: 0.25rem 0;
+  }
+  /* 折りたたみの中の表は、閉じているときの高さに引きずられないよう上の余白だけ詰める */
+  .more-winners :global(.table-scroll) {
+    margin-top: 0.5rem;
   }
   .bucket-accordion ul {
     list-style: none;
