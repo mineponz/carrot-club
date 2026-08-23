@@ -28,7 +28,8 @@ import ChartTooltip from '../../components/charts/ChartTooltip.astro';
 import StatTiles from '../../components/charts/StatTiles.astro';
 import AdSlot from '../../components/AdSlot.astro';
 import GradeWinnerTable from '../../components/GradeWinnerTable.astro';
-import { loadRecruitsWithResults, racedOnly } from '../../lib/analysis-data.ts';
+import { loadRecruitsWithResults, racedOnly, RACE_RESULTS_FETCHED_AT } from '../../lib/analysis-data.ts';
+import { formatResultsAsOf } from '../../lib/sibling-recruits.ts';
 import {
   histogram,
   pearsonCorrelation,
@@ -41,6 +42,10 @@ import {
 import { horses2026 } from '../../data/horses2026.ts';
 
 const all = loadRecruitsWithResults();
+// 賞金・成績は取った時点でしか正しくないので、記事のどこでも同じ「いつ時点か」を出す。
+// 決め打ちで書くと成績を取り直したときに古い日付だけ残る（実際に「2026年8月時点」と
+// 直書きしていた・2026-08-23）。
+const resultsAsOf = formatResultsAsOf(RACE_RESULTS_FETCHED_AT);
 const raced = racedOnly(all);
 const unraced = all.length - raced.length;
 
@@ -296,9 +301,8 @@ const description = `【非公式】キャロットクラブ${yearRangeLabel}${a
 
     <p>
       キャロットクラブの募集馬選びで「体高が大きい方が良さそうだ」と私は何となく思っていたんだけど、
-      実際どうなんだろうと思って調べてみた。{yearRangeLabel}募集（{yearCounts}）の募集時データを、
-      自分のスプレッドシート（2021〜2025年分）とクラブ公式サイトの過去の測尺一覧（2017〜2020年分）
-      から取り込み、現在の獲得賞金・通算成績を取得して突き合わせた、独自集計の結果。
+      実際どうなんだろうと思って調べてみた。{yearRangeLabel}募集（{yearCounts}）の募集時データに、
+      {resultsAsOf}時点の獲得賞金・通算成績を突き合わせた独自集計の結果。
     </p>
 
     <StatTiles
@@ -531,8 +535,7 @@ const description = `【非公式】キャロットクラブ${yearRangeLabel}${a
       一口価格{withoutProfile > 0 && (
         <>と、個体ページを特定できなかった{withoutProfile}頭ぶんの性別・父・母父</>
       )}で、価格の集計はその{withoutPrice.length}頭を除いて出している。
-      競走成績は現時点
-      （2026年8月時点）のスナップショットで、今後レースを重ねるたびに変わっていく。
+      競走成績は{resultsAsOf}時点のスナップショットで、今後レースを重ねるたびに変わっていく。
       2024・2025年募集組はまだ大半が未出走〜デビュー間もないため、今回の集計は出走済みの
       {raced.length}頭（主に2023年以前の募集組）が中心になっている点は割り引いて見てほしい。
       獲得賞金は中央（JRA）・地方（NAR）の合計で、海外レースで得た賞金は含まれていない。
