@@ -1,7 +1,8 @@
 /**
  * 2017〜2020年募集分（`recruits.json`の`legacySource: true`）は、クラブ公式の測尺一覧ページに
- * 血統・一口価格が載っていなかったため`sire`/`broodmareSire`/`pricePerShare`がnullのままだった。
- * netkeiba側から追加で埋めるスクリプト（本人指定 / 2026-08-23「父の名前や一口の値段を拡充して」）。
+ * 血統・一口価格・性別が載っていなかったため`sire`/`broodmareSire`/`pricePerShare`/`sex`が
+ * nullのままだった。netkeiba側から追加で埋めるスクリプト（本人指定 / 2026-08-23
+ * 「父の名前や一口の値段を拡充して」「牡馬牝馬が入っていない」）。
  *
  * - 父・母父: 個体の血統表ページ（`/horse/ped/<id>/`）の5代血統表から取る。
  *   表は「rowspan=16のb_mlセル＝父」「rowspan=16のb_fmlセル＝母」「そのb_fml直後に来る
@@ -13,10 +14,12 @@
  *   **別のフィールド**で、クラブの一口出資価格そのもの。ただし現在の馬主が個人名義に変わって
  *   いる馬（引退後に繁殖入りして所有者が変わった等）ではこの欄自体が無いことがあり、
  *   その場合はnullのまま（無理に埋めない）。
+ * - 性別: 個体ページの`<p class="txt_01">牡3歳　鹿毛</p>`から牡・牝・セ（去勢＝せん馬）を取る。
+ *   募集時点ではまだ去勢されていないため、セは牡として保存する（本人指示）。
  *
  * 個体ページは`fetch-race-results.mjs`が既にキャッシュ済み（`.cache/netkeiba/`）なので、
- * 一口価格の取得は追加リクエスト無しでキャッシュヒットする想定。血統表ページは今回初めて
- * 取得するので、345頭ぶん新規リクエストが発生する。
+ * 一口価格・性別の取得は追加リクエスト無しでキャッシュヒットする想定。血統表ページは
+ * 初回実行時にのみ新規リクエストが発生する（2回目以降はこちらもキャッシュヒット）。
  *
  * 使い方:
  *   node scripts/enrich-legacy-pedigree-price.mjs
@@ -129,6 +132,20 @@ function parsePricePerShare(html) {
   return Number(m[1].replace(/,/g, ''));
 }
 
+/**
+ * 個体ページの`<p class="txt_01">`から性別を取る（例:「　牡3歳　鹿毛 」「抹消　セ　鹿毛 」）。
+ * 牡・牝・セ（去勢＝せん馬）の3種類。募集時点ではまだ去勢されていないため、
+ * セは牡として扱う（本人指示: 2026-08-23「センになっているのは募集時は牡馬だったので
+ * 牡馬換算でOK」）。
+ */
+function parseSex(html) {
+  const m = html.match(/<p class="txt_01">([\s\S]*?)<\/p>/);
+  if (!m) return null;
+  const token = m[1].match(/牡|牝|セ/)?.[0];
+  if (!token) return null;
+  return token === 'セ' ? '牡' : token;
+}
+
 async function main() {
   const args = parseArgs(process.argv.slice(2));
   const recruitsPath = join(ROOT, 'analysis', 'data', 'recruits.json');
@@ -140,6 +157,7 @@ async function main() {
   let sireFilled = 0;
   let bmsFilled = 0;
   let priceFilled = 0;
+  let sexFilled = 0;
 
   for (let i = 0; i < targets.length; i++) {
     const r = targets[i];
@@ -152,6 +170,11 @@ async function main() {
     if (price !== null) {
       r.pricePerShare = price;
       priceFilled++;
+    }
+    const sex = parseSex(profileHtml);
+    if (sex) {
+      r.sex = sex;
+      sexFilled++;
     }
 
     const { html: pedHtml } = await fetchEucJp(pedUrl, { cache: args.cache });
@@ -169,7 +192,9 @@ async function main() {
 
   writeFileSync(recruitsPath, JSON.stringify(recruits, null, 2) + '\n');
   console.log(`書き出し: ${recruitsPath}`);
-  console.log(`対象 ${targets.length}頭 のうち: 父 ${sireFilled}件 / 母父 ${bmsFilled}件 / 一口価格 ${priceFilled}件 を埋めました`);
+  console.log(
+    `対象 ${targets.length}頭 のうち: 父 ${sireFilled}件 / 母父 ${bmsFilled}件 / 一口価格 ${priceFilled}件 / 性別 ${sexFilled}件 を埋めました`
+  );
 }
 
 main().catch((err) => {
