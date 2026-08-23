@@ -4,9 +4,8 @@
   "$schema": "./node_modules/wrangler/config-schema.json",
   "name": "carrot-club",
   "compatibility_date": "2026-08-10",
-  // 集計API本体（Phase2で追加）。アセットに一致しないURLはここへ来るので、
-  // worker/index.ts の最後で必ず env.ASSETS.fetch() にフォールバックしている
-  // （外すとサイトの全ページが壊れる）。
+  // 集計API本体（Phase2で追加）。worker/index.ts の最後で必ず env.ASSETS.fetch() に
+  // フォールバックしている（外すとサイトの全ページが壊れる）。
   "main": "./worker/index.ts",
   "assets": {
     // Astro のビルド出力先（astro.config.mjs の既定値）
@@ -15,7 +14,11 @@
     "binding": "ASSETS",
     // マッチしないURLでは 404.html を返す。SPAではないので
     // "single-page-application" にしてはいけない（全URLが200になり重複コンテンツ扱いになる）
-    "not_found_handling": "404-page"
+    "not_found_handling": "404-page",
+    // trueにしないと「静的アセットに一致するURL」がWorkerを経由せず直接配信され、
+    // worker/index.ts の旧ドメイン→新ドメイン301リダイレクトが素通りしてしまう
+    // （このサイトはほぼ全ページが静的ファイルなので、falseだと実質リダイレクトが効かない）。
+    "run_worker_first": true
   },
   "d1_databases": [
     {

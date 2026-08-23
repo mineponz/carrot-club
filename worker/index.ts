@@ -5,6 +5,7 @@
  * **新しいサーバーは立てず**、同じWorkerプロジェクトにD1バインディングとこのファイルを足している。
  *
  * ## ルーティング
+ * - 旧ドメイン（`carrot-club.mineponz.workers.dev`）宛のアクセス … 独自ドメインへ301リダイレクト
  * - `POST /api/evaluations`          … 自分の評価を1件upsert（rating・メモ・★・消）
  * - `GET  /api/evaluations/summary`  … `?year=` で年度を指定し、馬IDごとのA〜E件数を返す
  * - `GET  /api/evaluations/mine`     … `?year=` + `X-Anon-Id`。**そのIDの行だけ**を返す
@@ -63,6 +64,11 @@ interface Env {
 }
 
 const LOG_PREFIX = '[eval-api]';
+
+/** Cloudflareの無料サブドメイン（独自ドメイン移行前の本番URL）。既存の被リンク・検索インデックスを引き継ぐため301で転送し続ける */
+const OLD_HOSTNAME = 'carrot-club.mineponz.workers.dev';
+/** 独自ドメイン移行後の正式な本番ホスト名 */
+const NEW_HOSTNAME = 'carrot.mineponz.com';
 
 /**
  * POSTのbodyの上限。メモ（最大2000文字＝UTF-8で最大6KB）が入るので、
@@ -225,7 +231,16 @@ async function handleSummary(request: Request, env: Env): Promise<Response> {
 
 export default {
   async fetch(request: Request, env: Env): Promise<Response> {
-    const { pathname } = new URL(request.url);
+    const url = new URL(request.url);
+
+    // 旧URL（workers.devの無料サブドメイン）は独自ドメインへ301で転送する。
+    // パス・クエリはそのまま引き継ぐ。API/静的アセットどちらの判定より前に置く。
+    if (url.hostname === OLD_HOSTNAME) {
+      url.hostname = NEW_HOSTNAME;
+      return Response.redirect(url.toString(), 301);
+    }
+
+    const { pathname } = url;
 
     if (pathname === EVALUATIONS_API_PATH) {
       if (request.method !== 'POST') return json({ error: 'method not allowed' }, 405);
