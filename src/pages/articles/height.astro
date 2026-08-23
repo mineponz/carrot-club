@@ -85,11 +85,12 @@ const heightBins = histogram(heights, 3, 141, 168).map((b) => ({
 const SCATTER_Y_MAX = 10000;
 
 /**
- * 散布図の点の色分け（性別）。2017〜2020年募集分の取込元（クラブ公式の測尺一覧）に性別の列が
- * 無いため、この4年分は `sex` が null のまま。以前は `sex === '牝' ? 'female' : 'male'` と
- * 書いていて、**性別が分からない馬まで牡として塗っていた**（凡例は牡・牝の2色しか無いのに
- * 牡に348頭ぶん混ざる）。分からないものは「不明」として別の色にする。
- * 性別が埋まれば `unknown` の点は自然に0件になり、凡例からも消える（`sexSeries`）。
+ * 散布図の点の色分け（性別）。以前は `sex === '牝' ? 'female' : 'male'` と書いていて、
+ * 取込元に性別の列が無い2017〜2020年募集分（当時348頭）まで牡として塗っていた。
+ * 分からないものは牡に混ぜず `unknown` として別の色にする。
+ * 2026-08-23に個体ページから性別を補い（`scripts/enrich-legacy-sex.mjs`）、いま `unknown` に
+ * なるのは個体ページを特定できなかった3頭だけ。この3頭は成績も取れていない＝散布図の点に
+ * ならないので、凡例からも「性別不明」は消える（`unknownSexPoints`）。
  */
 function sexSeriesKey(sex: string | null): string {
   if (sex === '牝') return 'female';
@@ -191,7 +192,9 @@ const winBars = orderBuckets(winsByHeightBucket).map((r) => ({
 const racedWithPrice = raced.filter((h) => h.pricePerShare !== null);
 const racedWithoutPrice = raced.length - racedWithPrice.length;
 const withoutPrice = all.filter((h) => h.pricePerShare === null);
-const withoutSire = all.filter((h) => h.sire === null).length;
+// 性別・父・母父が欠けているのは、netkeibaの個体ページを特定できなかった同じ馬たち。
+// 別々に数えて並べても読み手には同じ話なので、1つの頭数にまとめて出す。
+const withoutProfile = all.filter((h) => h.sex === null || h.sire === null).length;
 const pricePrizeR = pearsonCorrelation(
   racedWithPrice.map((h) => h.pricePerShare as number),
   racedWithPrice.map((h) => h.totalPrizeManYen)
@@ -212,12 +215,19 @@ const priceScatterPoints = racedWithPrice
   }));
 const priceScatterOmitted = priceScatterAll - priceScatterPoints.length;
 
-// 性別が取れていない馬。全頭ぶん埋まればこの系列は凡例ごと消える。
-const unknownSex = all.filter((h) => h.sex === null).length;
+/**
+ * 散布図に実際に出ている点のうち、性別が分からないもの。全頭ベース（`sex === null`の頭数）で
+ * 数えると、**そもそも点にならない馬**――成績が取れていない＝出走済みに入らない馬――のせいで
+ * 凡例にだけ「性別不明」が残ってしまう。凡例と注記は、グラフに出ている点だけを見て決める。
+ */
+const unknownSexPoints = [...heightScatterPoints, ...priceScatterPoints].filter(
+  (p) => p.seriesKey === 'unknown'
+).length;
+
 const sexSeries = [
   { key: 'male', label: '牡', colorVar: '--series-1' },
   { key: 'female', label: '牝', colorVar: '--series-2' },
-  ...(unknownSex > 0 ? [{ key: 'unknown', label: '性別不明', colorVar: '--series-3' }] : []),
+  ...(unknownSexPoints > 0 ? [{ key: 'unknown', label: '性別不明', colorVar: '--series-3' }] : []),
 ];
 
 // ---- 代表馬（重賞勝ち馬） ----
@@ -330,9 +340,9 @@ const description = `【非公式】キャロットクラブ${yearRangeLabel}${a
         <>獲得賞金合計が1億円を超える{heightScatterOmitted}頭はグラフの外に出るため省略した
         （後述の代表馬紹介を参照）。</>
       )}
-      {unknownSex > 0 && (
-        <>点の色は性別で分けているが、2017〜2020年募集の{unknownSex}頭は取込元に性別の記載が
-        無いため<strong>「性別不明」の灰色</strong>で出している（牡に混ぜると牡の点が実際より
+      {unknownSexPoints > 0 && (
+        <>点の色は性別で分けている。性別が取れていない{unknownSexPoints}頭は牡に混ぜず
+        <strong>「性別不明」の灰色</strong>で出している（牡に混ぜると牡の点が実際より
         多く見えてしまうため）。</>
       )}
     </p>
@@ -518,13 +528,10 @@ const description = `【非公式】キャロットクラブ${yearRangeLabel}${a
     <p>
       募集時データは2021〜2025年分は自分が毎年ためてきたスプレッドシートが元、2017〜2020年分は
       クラブ公式サイトに残っていた過去の測尺一覧ページから追加で取り込んだ。この4年分は測尺一覧に
-      父・母父・一口価格・性別の記載が無かったが、父・母父と一口価格はその後に馬ごとの個体ページから
-      補ってある。いま埋まっていないのは{unknownSex > 0 && (
-        <>この4年分{unknownSex}頭ぶんの<strong>性別</strong>（散布図では牡に混ぜず「性別不明」として
-        灰色で出している）と、</>
-      )}募集当時の価格を確認できなかった
-      {withoutPrice.length}頭ぶんの一口価格{withoutSire > 0 && (
-        <>、個体ページを特定できなかった{withoutSire}頭ぶんの父・母父</>
+      父・母父・一口価格・性別の記載が無かったが、いずれもその後に馬ごとの個体ページから補ってある。
+      いま埋まっていないのは、募集当時の価格を確認できなかった{withoutPrice.length}頭ぶんの
+      一口価格{withoutProfile > 0 && (
+        <>と、個体ページを特定できなかった{withoutProfile}頭ぶんの性別・父・母父</>
       )}で、価格の集計はその{withoutPrice.length}頭を除いて出している。
       競走成績は現時点
       （2026年8月時点）のスナップショットで、今後レースを重ねるたびに変わっていく。
