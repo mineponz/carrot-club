@@ -7,8 +7,10 @@ import {
   isEmptyFilterState,
   loadFilterState,
   parseFilterState,
+  parseMultiValue,
   saveFilterState,
   serializeFilterState,
+  serializeMultiValue,
   type FilterState,
 } from './filter-state.ts';
 
@@ -119,4 +121,37 @@ test('保存キーが年度ごとに分かれていて、別の年の条件を�
   const store = createStore();
   saveFilterState(store, filterStorageKeyForYear(2026), state({ values: { 'filter-sire': 'イクイノックス' } }));
   assert.deepEqual(loadFilterState(store, filterStorageKeyForYear(2025)), emptyFilterState());
+});
+
+// --- 複数選択（父・性別）の詰め込み ---
+
+test('serializeMultiValue → parseMultiValue で往復できる', () => {
+  const values = ['キズナ', 'Not This Time', 'ドゥラメンテ'];
+  assert.deepEqual(parseMultiValue(serializeMultiValue(values)), values);
+});
+
+test('parseMultiValue: 空・未保存は空配列', () => {
+  assert.deepEqual(parseMultiValue(''), []);
+  assert.deepEqual(parseMultiValue(null), []);
+  assert.deepEqual(parseMultiValue(undefined), []);
+  assert.deepEqual(parseMultiValue(',,'), []);
+});
+
+test('parseMultiValue: 単一値（区切り無し）はそのまま1件として読める', () => {
+  // <select> で1つだけ選んでいたころに保存された値を、複数選択に変えた後も復元できること
+  assert.deepEqual(parseMultiValue('キズナ'), ['キズナ']);
+  assert.deepEqual(parseMultiValue('牡'), ['牡']);
+});
+
+test('parseMultiValue: 前後の空白は落とし、重複は1件にまとめる', () => {
+  assert.deepEqual(parseMultiValue(' キズナ , キズナ ,ハーツクライ'), ['キズナ', 'ハーツクライ']);
+});
+
+test('parseMultiValue: 名前に含まれる空白は残す', () => {
+  assert.deepEqual(parseMultiValue('Not This Time'), ['Not This Time']);
+});
+
+test('countActiveFilters: 複数選んでも1つの絞り込みは1件と数える', () => {
+  const s = state({ values: { 'filter-sire': serializeMultiValue(['キズナ', 'ハーツクライ']) } });
+  assert.equal(countActiveFilters(s), 1);
 });

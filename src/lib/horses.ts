@@ -110,14 +110,32 @@ export type DamPriorityFilter = 'has' | 'none';
 export interface HorseFilter {
   /** 馬名の部分一致 */
   name?: string;
-  /** 父名の部分一致 */
+  /** 父名の部分一致（1頭ぶんの入力欄向け。複数選びたいときは `sires`） */
   sire?: string;
+  /**
+   * 父名の完全一致（複数選択）。並べた父の**いずれか**に当てはまる馬を残す（OR条件）。
+   * 選択肢は `uniqueValues(horses, 'sire')` の値そのものなので、部分一致にはしない
+   * （「キズナ」と「キズナ産駒の別種牡馬」のような取り違えを避ける）。
+   *
+   * **空配列・未指定は「絞り込まない」**（＝全件通す）。`ratings` と同じ約束にしてある。
+   * `sire` と併用した場合は両方満たす馬だけが残る（AND）。
+   */
+  sires?: readonly string[];
   /** 母父名の部分一致 */
   broodmareSire?: string;
   /** 厩舎名の部分一致 */
   stable?: string;
   /** 指定した性別のみ。未指定なら全性別 */
   sex?: Sex;
+  /**
+   * 性別での絞り込み（複数選択）。並べた性別の**いずれか**に当てはまる馬を残す（OR条件）。
+   * 牡と セ をまとめて見たい、という使い方があるので単一の `sex` とは別に持つ。
+   * **空配列・未指定は「絞り込まない」**。`sex` と併用した場合は両方満たす馬だけが残る。
+   */
+  sexes?: readonly Sex[];
+  /** 母齢（出産時点の母の年齢）の下限・上限。若い母の初期産駒／高齢の母、で分けて見るためのもの */
+  minDamAge?: number;
+  maxDamAge?: number;
   minPrice?: number;
   maxPrice?: number;
   minHeight?: number;
@@ -161,9 +179,13 @@ export function filterHorses(horses: Horse[], filter: HorseFilter): Horse[] {
   return horses.filter((h) => {
     if (filter.name && !includesCaseInsensitive(h.name, filter.name)) return false;
     if (filter.sire && !includesCaseInsensitive(h.sire, filter.sire)) return false;
+    if (filter.sires && filter.sires.length > 0 && !filter.sires.includes(h.sire)) return false;
     if (filter.broodmareSire && !includesCaseInsensitive(h.broodmareSire, filter.broodmareSire)) return false;
     if (filter.stable && !includesCaseInsensitive(h.stable, filter.stable)) return false;
     if (filter.sex && h.sex !== filter.sex) return false;
+    if (filter.sexes && filter.sexes.length > 0 && !filter.sexes.includes(h.sex)) return false;
+    if (filter.minDamAge !== undefined && h.damAge < filter.minDamAge) return false;
+    if (filter.maxDamAge !== undefined && h.damAge > filter.maxDamAge) return false;
     if (filter.minPrice !== undefined && h.pricePerShare < filter.minPrice) return false;
     if (filter.maxPrice !== undefined && h.pricePerShare > filter.maxPrice) return false;
     if (filter.minHeight !== undefined && h.height < filter.minHeight) return false;
@@ -188,4 +210,34 @@ export function uniqueValues(horses: Horse[], key: 'sire' | 'broodmareSire' | 's
   return [...new Set(horses.map((h) => h[key]).filter((v) => v !== ''))].sort((a, b) =>
     a.localeCompare(b, 'ja'),
   );
+}
+
+/**
+ * 選択肢ごとの頭数。父を複数選ぶチェックリストに「その父が何頭いるか」を添えるために使う
+ * （37種類も並ぶので、0頭に近い父を選んで一覧が空になる、という迷い方を減らす）。
+ */
+export function valueCounts(
+  horses: Horse[],
+  key: 'sire' | 'broodmareSire' | 'stable',
+): Record<string, number> {
+  const counts: Record<string, number> = {};
+  for (const horse of horses) {
+    const value = horse[key];
+    if (value === '') continue;
+    counts[value] = (counts[value] ?? 0) + 1;
+  }
+  return counts;
+}
+
+/** 性別の並び順。データに出てこない性別のチェックボックスは出さないので、順序だけここで決める。 */
+const SEX_ORDER: readonly Sex[] = ['牡', '牝', 'セ'];
+
+/**
+ * その年に実在する性別だけを、牡→牝→セ の順で返す。
+ * セが1頭もいない年に「セ」のチェックを出すと、押しても0頭になるだけの死んだUIになるため
+ * （手術・既往の絞り込みをデータがある年だけ出しているのと同じ考え方）。
+ */
+export function uniqueSexes(horses: Horse[]): Sex[] {
+  const present = new Set(horses.map((h) => h.sex));
+  return SEX_ORDER.filter((sex) => present.has(sex));
 }

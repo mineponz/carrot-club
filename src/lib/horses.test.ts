@@ -1,6 +1,14 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { sortHorses, filterHorses, uniqueValues, UNRATED, type Horse } from './horses.ts';
+import {
+  sortHorses,
+  filterHorses,
+  uniqueValues,
+  uniqueSexes,
+  valueCounts,
+  UNRATED,
+  type Horse,
+} from './horses.ts';
 
 function makeHorse(overrides: Partial<Horse> & Pick<Horse, 'id'>): Horse {
   return {
@@ -31,6 +39,7 @@ const horses: Horse[] = [
     id: '2',
     name: 'あお号',
     sex: '牡',
+    damAge: 5,
     sire: 'キタサンブラック',
     broodmareSire: 'キングカメハメハ',
     stable: '黒岩陽一',
@@ -46,6 +55,7 @@ const horses: Horse[] = [
     id: '1',
     name: 'いろは号',
     sex: '牝',
+    damAge: 12,
     sire: 'ロードカナロア',
     broodmareSire: 'ディープブリランテ',
     stable: '田中博康',
@@ -61,6 +71,7 @@ const horses: Horse[] = [
     id: '10',
     name: 'うめ号',
     sex: '牝',
+    damAge: 20,
     sire: 'キタサンブラック',
     broodmareSire: 'サンデーサイレンス',
     stable: '木村哲也',
@@ -281,4 +292,80 @@ test('uniqueValues: 重複を除いて昇順に返す', () => {
 test('uniqueValues: 空文字は選択肢に含めない', () => {
   const withEmpty = [...horses, makeHorse({ id: '99', stable: '' })];
   assert.ok(!uniqueValues(withEmpty, 'stable').includes(''));
+});
+
+// --- 複数選択（父・性別）と母齢 ---
+
+test('filterHorses: 父を複数選ぶと、いずれかの父の馬が残る（OR）', () => {
+  assert.deepEqual(
+    filterHorses(horses, { sires: ['キタサンブラック', 'ロードカナロア'] }).map((h) => h.id),
+    ['2', '1', '10'],
+  );
+  assert.deepEqual(
+    filterHorses(horses, { sires: ['ロードカナロア'] }).map((h) => h.id),
+    ['1'],
+  );
+});
+
+test('filterHorses: 父の複数選択は完全一致（部分一致では拾わない）', () => {
+  assert.deepEqual(filterHorses(horses, { sires: ['キタサン'] }), []);
+});
+
+test('filterHorses: 父を1つも選んでいなければ全件返す（後方互換）', () => {
+  assert.equal(filterHorses(horses, { sires: [] }).length, horses.length);
+  assert.equal(filterHorses(horses, {}).length, horses.length);
+});
+
+test('filterHorses: 性別を複数選ぶと、いずれかの性別の馬が残る（OR）', () => {
+  assert.deepEqual(
+    filterHorses(horses, { sexes: ['牝'] }).map((h) => h.id),
+    ['1', '10'],
+  );
+  assert.equal(filterHorses(horses, { sexes: ['牡', '牝'] }).length, horses.length);
+  assert.equal(filterHorses(horses, { sexes: [] }).length, horses.length);
+});
+
+test('filterHorses: 性別と父の複数選択はAND条件', () => {
+  assert.deepEqual(
+    filterHorses(horses, { sexes: ['牝'], sires: ['キタサンブラック'] }).map((h) => h.id),
+    ['10'],
+  );
+});
+
+test('filterHorses: 母齢を下限・上限で絞り込む', () => {
+  assert.deepEqual(
+    filterHorses(horses, { minDamAge: 12 }).map((h) => h.id),
+    ['1', '10'],
+  );
+  assert.deepEqual(
+    filterHorses(horses, { maxDamAge: 12 }).map((h) => h.id),
+    ['2', '1'],
+  );
+  assert.deepEqual(
+    filterHorses(horses, { minDamAge: 12, maxDamAge: 12 }).map((h) => h.id),
+    ['1'],
+  );
+});
+
+test('filterHorses: 母齢は境界値を含む', () => {
+  assert.equal(filterHorses(horses, { minDamAge: 5, maxDamAge: 20 }).length, horses.length);
+  assert.deepEqual(filterHorses(horses, { minDamAge: 21 }), []);
+});
+
+test('valueCounts: 選択肢ごとの頭数を数える', () => {
+  assert.deepEqual(valueCounts(horses, 'sire'), {
+    キタサンブラック: 2,
+    ロードカナロア: 1,
+  });
+});
+
+test('valueCounts: 空文字は数えない', () => {
+  const withEmpty = [...horses, makeHorse({ id: '99', stable: '' })];
+  assert.ok(!('' in valueCounts(withEmpty, 'stable')));
+});
+
+test('uniqueSexes: データにある性別だけを牡→牝→セの順で返す', () => {
+  assert.deepEqual(uniqueSexes(horses), ['牡', '牝']);
+  assert.deepEqual(uniqueSexes([...horses, makeHorse({ id: '98', sex: 'セ' })]), ['牡', '牝', 'セ']);
+  assert.deepEqual(uniqueSexes([]), []);
 });

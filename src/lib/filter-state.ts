@@ -32,6 +32,38 @@ export interface FilterState {
   sortDirection: SortDirection;
 }
 
+/**
+ * 複数選択（父・性別のチェックボックス群）を `values` の1項目に詰めるときの区切り。
+ *
+ * 保存の形を「id → 文字列」のまま変えないための細工。専用の入れ物を足すより、
+ * 「1つの絞り込み＝1つの値」に保っておくほうが `countActiveFilters()` の数え方とも合う
+ * （父を5つ選んでも「条件」は1件）。
+ *
+ * 区切りをカンマにしているのは、種牡馬名に空白は入りうる（"Not This Time"）が
+ * カンマは入らないため。名前にカンマが入るデータが出てきたらここを見直すこと。
+ */
+export const MULTI_VALUE_SEPARATOR = ',';
+
+export function serializeMultiValue(values: readonly string[]): string {
+  return values.join(MULTI_VALUE_SEPARATOR);
+}
+
+/**
+ * 保存済みの文字列を選択値の配列に戻す。空文字・重複は落とす。
+ *
+ * 単一の値（区切り無し）はそのまま1件として読めるので、`<select>` で1つだけ選ぶ形だった
+ * ころに保存された `filter-sire` / `filter-sex` の値も、そのまま復元できる。
+ */
+export function parseMultiValue(raw: string | null | undefined): string[] {
+  if (!raw) return [];
+  const out: string[] = [];
+  for (const part of raw.split(MULTI_VALUE_SEPARATOR)) {
+    const value = part.trim();
+    if (value !== '' && !out.includes(value)) out.push(value);
+  }
+  return out;
+}
+
 export function filterStorageKeyForYear(year: number): string {
   return `carrot-club:filters:${year}`;
 }
