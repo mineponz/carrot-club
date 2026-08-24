@@ -5,7 +5,7 @@
  * Googleに存在しないURLを申告することになるため、変更時は robots.txt も併せて直す。
  * 独自ドメインを設定したらここを差し替える。
  */
-export const SITE_URL = 'https://carrot-club.mineponz.workers.dev';
+export const SITE_URL = 'https://carrot.mineponz.com';
 
 /**
  * 検索エンジンにインデックスさせるか。

@@ -1,11 +1,7 @@
-# クロールは許可する。ただし現在は全ページに noindex を出しているため検索結果には載らない
-# （src/consts.ts の ALLOW_INDEXING = false / クラブの利用許可が下りるまでの措置）。
+# クロールは許可する。src/consts.ts の ALLOW_INDEXING は true（クラブの利用許可済み・2026-08-18）。
 #
 # ここで Disallow にしてはいけない。クロールを止めるとクローラーがページを読めず、
-# noindex に気づけないまま「URLだけ」が検索結果に載ることがある。
-# インデックスさせたくない間こそ、クロールは許可して noindex を読ませる必要がある。
-#
-# 許可が下りたら src/consts.ts の ALLOW_INDEXING を true にする（このファイルは変更不要）。
+# noindex を出す必要が生じた際にそれに気づけないまま「URLだけ」が検索結果に載ることがある。
 User-agent: *
 Allow: /
 
@@ -15,4 +11,4 @@ Allow: /
 
 # 下のURLは src/consts.ts の SITE_URL と必ず一致させる。
 # 独自ドメインへ移すときは consts.ts・astro.config.mjs と同時に直す。
-Sitemap: https://carrot-club.mineponz.workers.dev/sitemap-index.xml
+Sitemap: https://carrot.mineponz.com/sitemap-index.xml
