@@ -39,6 +39,10 @@ import { mkdirSync, readFileSync, writeFileSync, existsSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import { histogram } from '../src/lib/chart-math.ts';
+import { SITE_URL } from '../src/consts.ts';
+
+/** カード右下に出すURL文言。ドメイン移行時に`src/consts.ts`のSITE_URLだけ直せば揃う。 */
+const SITE_HOST = SITE_URL.replace(/^https?:\/\//, '');
 
 const WIDTH = 1200;
 const HEIGHT = 630;
@@ -68,6 +72,24 @@ const ARTICLES = {
     lead: 'キャロットクラブ 2021〜2025年募集の募集時データ × 現在の競走成績',
     yearRangePlaceholder: '2021〜2025年',
     chips: ['体高 × 獲得賞金の散布図', '体高階級別の平均', '重賞勝ち馬を全掲載'],
+    buildChart: heightChart,
+  },
+  'dam-age': {
+    out: 'og-article-dam-age-v1.png',
+    headline: ['母馬の年齢と成績の関係を', '<em>815頭</em>のデータで見る'],
+    countPlaceholder: '815頭',
+    lead: 'キャロットクラブ 2017〜2025年募集の募集時データ × 現在の競走成績',
+    yearRangePlaceholder: '2017〜2025年',
+    chips: ['母齢 × 獲得賞金の散布図', '母齢階級別の平均', '重賞勝ち馬を全掲載'],
+    buildChart: damAgeChart,
+  },
+  'birth-month': {
+    out: 'og-article-birth-month-v1.png',
+    headline: ['誕生月と体格・成績の', '関係を見てみた'],
+    lead: 'キャロットクラブ 2017〜2025年募集の募集時データ × 現在の競走成績',
+    yearRangePlaceholder: '2017〜2025年',
+    chips: ['早生まれ効果の検証', '月別の平均体高', '重賞勝ち馬を紹介'],
+    buildChart: birthMonthChart,
   },
 };
 
@@ -180,7 +202,67 @@ function heightChart() {
   // 2026-08-23、「2021〜2025年募集」の決め打ちが2017〜2020年分の追加で古くなっていた反省から）。
   const years = [...new Set(recruits.map((r) => r.recruitYear))].sort((a, b) => a - b);
   const yearRangeLabel = years.length > 0 ? `${years[0]}〜${years[years.length - 1]}年` : '';
-  return { total: recruits.length, yearRangeLabel, html: `<div class="mini-chart">${bars}</div>` };
+  return {
+    total: recruits.length,
+    yearRangeLabel,
+    html: `<div class="mini-chart">${bars}</div>`,
+    caption: '体高の分布（3cm刻み）',
+  };
+}
+
+/**
+ * バー本数が多い記事（母齢10本・誕生月12本）だと、height.astro用に決め打った
+ * bar幅20px・gap7px（9本前提）のままでは側の250px枠からはみ出す。
+ * バー幅・gapを本数から逆算して側の枠（約220px）に収める共通ヘルパー。
+ */
+function barsHtml(counts) {
+  const n = counts.length;
+  const max = Math.max(...counts);
+  const gap = n > 10 ? 3 : n > 8 ? 5 : 7;
+  const barWidth = Math.max(8, Math.floor((220 - (n - 1) * gap) / n));
+  const bars = counts
+    .map(
+      (c) =>
+        `<div class="bar" style="width:${barWidth}px;height:${Math.max(4, Math.round((c / max) * 96))}px"></div>`
+    )
+    .join('');
+  return `<div class="mini-chart" style="gap:${gap}px">${bars}</div>`;
+}
+
+/** 記事と同じ母齢分布（2歳刻み・4〜24歳）をミニ棒グラフのHTMLにする（dam-age.astroと同じbinning）。 */
+function damAgeChart() {
+  const recruits = JSON.parse(readFileSync(join(repoRoot, 'analysis', 'data', 'recruits.json'), 'utf8'));
+  const withAge = recruits.filter((h) => typeof h.damAge === 'number');
+  const bins = histogram(
+    withAge.map((h) => h.damAge),
+    2,
+    4,
+    24
+  );
+  const years = [...new Set(recruits.map((r) => r.recruitYear))].sort((a, b) => a - b);
+  const yearRangeLabel = years.length > 0 ? `${years[0]}〜${years[years.length - 1]}年` : '';
+  return {
+    total: withAge.length,
+    yearRangeLabel,
+    html: barsHtml(bins.map((b) => b.count)),
+    caption: '母齢の分布（2歳刻み）',
+  };
+}
+
+/** 記事と同じ誕生月分布（1〜12月）をミニ棒グラフのHTMLにする（birth-month.astroと同じ集計）。 */
+function birthMonthChart() {
+  const recruits = JSON.parse(readFileSync(join(repoRoot, 'analysis', 'data', 'recruits.json'), 'utf8'));
+  const withDate = recruits.filter((h) => typeof h.birthDate === 'string');
+  const months = withDate.map((h) => Number(h.birthDate.split('-')[1]));
+  const counts = Array.from({ length: 12 }, (_, i) => i + 1).map((m) => months.filter((v) => v === m).length);
+  const years = [...new Set(recruits.map((r) => r.recruitYear))].sort((a, b) => a - b);
+  const yearRangeLabel = years.length > 0 ? `${years[0]}〜${years[years.length - 1]}年` : '';
+  return {
+    total: withDate.length,
+    yearRangeLabel,
+    html: barsHtml(counts),
+    caption: '誕生月の分布（1〜12月）',
+  };
 }
 
 function cardHtml({ fonts, source, chart }) {
@@ -237,13 +319,13 @@ function cardHtml({ fonts, source, chart }) {
           <div class="lead">${article.lead}</div>
           <div class="chips">${chips}</div>
         </div>
-        <div class="url">carrot-club.mineponz.workers.dev</div>
+        <div class="url">${SITE_HOST}</div>
       </div>
       <div class="side">
         ${partHtml('carrot', source)}
         <div class="mini">
           ${chart.html}
-          <div class="mini-caption">体高の分布（3cm刻み）</div>
+          <div class="mini-caption">${chart.caption}</div>
         </div>
       </div>
     </div>
@@ -264,7 +346,7 @@ async function main() {
     900: await loadFont(900),
   };
 
-  const chart = heightChart();
+  const chart = article.buildChart();
   // 見出しの頭数は実データの件数に置き換える（記事本文と食い違わせない）
   if (article.countPlaceholder) {
     article.headline = article.headline.map((line) =>
