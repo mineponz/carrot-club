@@ -28,7 +28,6 @@ const resultsAsOf = formatResultsAsOf(RACE_RESULTS_FETCHED_AT);
 
 // 母齢が取れていない馬（netkeibaページ自体を特定できなかった3頭）は集計対象から外す。
 const all = allRecruits.filter((h) => h.damAge !== null);
-const noDamAge = allRecruits.length - all.length;
 const raced = racedOnly(all);
 const unraced = all.length - raced.length;
 
@@ -171,7 +170,7 @@ const description = `【非公式】キャロットクラブ${yearRangeLabel}${a
 
     <StatTiles
       tiles={[
-        { label: '対象頭数', value: `${all.length}頭`, note: noDamAge > 0 ? `母齢不明${noDamAge}頭は除外` : undefined },
+        { label: '対象頭数', value: `${all.length}頭` },
         { label: '出走済み', value: `${raced.length}頭` },
         { label: '未出走', value: `${unraced}頭`, note: '大半が直近の募集組' },
         {
