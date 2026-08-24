@@ -81,10 +81,17 @@ const months = all.map((h) => Number((h.birthDate as string).split('-')[1]));
 const monthBins = Array.from({ length: 12 }, (_, i) => i + 1)
   .map((m) => ({ m, count: months.filter((v) => v === m).length }))
   .filter((b) => b.count > 0);
+const gradeWinnersByMonth = new Map<number, number>();
+for (const h of all) {
+  if (h.gradeWins.length === 0) continue;
+  const m = Number((h.birthDate as string).split('-')[1]);
+  gradeWinnersByMonth.set(m, (gradeWinnersByMonth.get(m) ?? 0) + 1);
+}
 const monthBars = monthBins.map((b) => ({
   label: `${b.m}月`,
   value: b.count,
   displayValue: `${b.count}頭`,
+  note: `重賞馬${gradeWinnersByMonth.get(b.m) ?? 0}頭`,
 }));
 
 // ---- 誕生日(通し日数) × 体高・馬体重 の相関（早生まれ効果そのものの確認） ----
@@ -154,6 +161,50 @@ const sizeScoreMedian = median(matureOnly.map(sizeScore));
 const bigCount = matureOnly.filter((h) => sizeScore(h) >= sizeScoreMedian).length;
 const smallCount = matureOnly.length - bigCount;
 
+// 体高と馬体重は連動して大きい/小さいが決まるとは限らない（体高は高いのに馬体重は軽い、
+// 逆に体高は低いのに馬体重は重い、という馬もいる）。「結局どの馬が大きい/小さい判定なのか」を
+// 文章より表で見せた方が伝わるため、4パターン（大×大・小×小・体高高いが馬体重軽い・
+// 体高低いが馬体重重い）の実例を1頭ずつ選んで表にする。
+const heightWeightR = pearsonCorrelation(
+  matureOnly.map((h) => h.height as number),
+  matureOnly.map((h) => h.weight as number)
+);
+function isBig(h: (typeof matureOnly)[number]): boolean {
+  return sizeScore(h) >= sizeScoreMedian;
+}
+const sizeExampleCandidates: { label: string; horse: (typeof matureOnly)[number] | undefined }[] = [
+  {
+    label: '体高も馬体重も大きい',
+    horse: [...matureOnly]
+      .filter((h) => (h.height as number) >= heightMedian + 3 && (h.weight as number) >= weightMedian + 20)
+      .sort((a, b) => sizeScore(b) - sizeScore(a))[0],
+  },
+  {
+    label: '体高も馬体重も小さい',
+    horse: [...matureOnly]
+      .filter((h) => (h.height as number) <= heightMedian - 3 && (h.weight as number) <= weightMedian - 20)
+      .sort((a, b) => sizeScore(a) - sizeScore(b))[0],
+  },
+  {
+    label: '体高は高いが馬体重は軽い',
+    horse: [...matureOnly]
+      .filter((h) => (h.height as number) >= heightMedian + 3 && (h.weight as number) <= weightMedian - 15)
+      .sort((a, b) => Math.abs(sizeScore(a) - sizeScoreMedian) - Math.abs(sizeScore(b) - sizeScoreMedian))[0],
+  },
+  {
+    label: '体高は低いが馬体重は重い',
+    horse: [...matureOnly]
+      .filter((h) => (h.height as number) <= heightMedian - 3 && (h.weight as number) >= weightMedian + 15)
+      .sort((a, b) => Math.abs(sizeScore(a) - sizeScoreMedian) - Math.abs(sizeScore(b) - sizeScoreMedian))[0],
+  },
+];
+const sizeExamples = sizeExampleCandidates
+  .filter((c): c is { label: string; horse: (typeof matureOnly)[number] } => c.horse !== undefined)
+  .map((c) => ({ ...c, big: isBig(c.horse) }));
+const mismatchCount = matureOnly.filter(
+  (h) => (h.height as number) >= heightMedian !== (h.weight as number) >= weightMedian
+).length;
+
 type Quadrant = '早生まれ・大きい' | '早生まれ・小さい' | '遅生まれ・大きい' | '遅生まれ・小さい';
 function quadrantOf(h: (typeof matureOnly)[number]): Quadrant {
   const early = dayOfYear(h.birthDate as string) <= doyMedian;
@@ -194,7 +245,7 @@ const quadrantBars = quadrantStats.map((s) => ({
   value: s.avgPrize,
   displayValue: `${formatManYen(s.avgPrize)}万円`,
   n: s.n,
-  note: `中央値${formatManYen(s.medianPrize)}万円・重賞馬${s.gradeWinners}頭`,
+  note: `中央値${formatManYen(s.medianPrize)}万円・重賞馬率${s.gradeRate.toFixed(1)}%`,
 }));
 
 const earlySmall = quadrantGroups.get('早生まれ・小さい') ?? [];
@@ -316,7 +367,7 @@ const description = `【非公式】キャロットクラブ${yearRangeLabel}${a
       まず誕生月の分布から。{yearRangeLabel}募集は{monthBins[0].m}月〜{monthBins[monthBins.length - 1].m}月に
       集中していて、2〜3月がピーク。
     </p>
-    <BarChart title={`誕生月の分布（全${all.length}頭）`} bars={monthBars} valueLabel="頭数" />
+    <BarChart title={`誕生月の分布（全${all.length}頭）`} bars={monthBars} valueLabel="頭数" noteLabel="重賞馬" />
 
     <p>
       誕生日を「その年の何日目か」という数値に直して体高・馬体重との相関を取ると、
@@ -352,10 +403,43 @@ const description = `【非公式】キャロットクラブ${yearRangeLabel}${a
     <p>
       {yearRangeLabel}募集のうち、まだ大半が未出走の2025年募集を除いた{matureOnly.length}頭を、
       誕生日（通し日数の中央値）と体格の2軸で4グループに分けた。「大きい/小さい」は体高
-      （中央値{heightMedian}cm）・馬体重（中央値{weightMedian}kg）をそれぞれ標準化して平均した
-      「体格スコア」で判定している（体高だけ・馬体重だけで見ても結論の向きは同じだった）。
-      頭数は大きい{bigCount}頭・小さい{smallCount}頭。出走済み{maturedRaced.length}頭での
-      平均総賞金は次の通り。
+      （中央値{heightMedian}cm）・馬体重（中央値{weightMedian}kg）の両方を見て判定している。
+      体高と馬体重の相関はr={heightWeightR?.toFixed(3)}で多くの馬は連動するが、
+      「体高は高いのに馬体重は軽い」ような食い違いも{mismatchCount}頭
+      （全体の{((mismatchCount / matureOnly.length) * 100).toFixed(0)}%）いる。実際にどう
+      判定されるか、4パターンの実例で見てほしい。
+    </p>
+    <div class="table-scroll">
+      <table class="size-examples">
+        <thead>
+          <tr>
+            <th>体型パターン</th>
+            <th>馬名</th>
+            <th>体高</th>
+            <th>馬体重</th>
+            <th>判定</th>
+          </tr>
+        </thead>
+        <tbody>
+          {
+            sizeExamples.map((e) => (
+              <tr>
+                <td>{e.label}</td>
+                <td>{e.horse.displayName}</td>
+                <td>{e.horse.height}cm</td>
+                <td>{e.horse.weight}kg</td>
+                <td class={e.big ? 'judge-big' : 'judge-small'}>{e.big ? '大きい' : '小さい'}</td>
+              </tr>
+            ))
+          }
+        </tbody>
+      </table>
+    </div>
+    <p class="table-note">
+      体高・馬体重どちらも並より大きい/小さい馬は分かりやすいが、片方だけ大きい・軽いような
+      馬は、体高・馬体重を標準化して平均した「体格スコア」でどちらかに寄せて判定している
+      （体高だけ・馬体重だけで見ても結論の向きは同じだった）。頭数は大きい{bigCount}頭・
+      小さい{smallCount}頭。出走済み{maturedRaced.length}頭での平均総賞金は次の通り。
     </p>
     <BarChart
       title="誕生タイミング×体格 4グループの平均総賞金"
@@ -497,6 +581,33 @@ const description = `【非公式】キャロットクラブ${yearRangeLabel}${a
   .table-note {
     font-size: 0.8125rem;
     color: var(--muted);
+  }
+  .table-scroll {
+    overflow-x: auto;
+    margin: 1rem 0;
+  }
+  table.size-examples {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.875rem;
+    white-space: nowrap;
+  }
+  table.size-examples th,
+  table.size-examples td {
+    padding: 0.4rem 0.6rem;
+    border-bottom: 1px solid var(--border);
+    text-align: left;
+  }
+  table.size-examples th {
+    color: var(--muted);
+    font-weight: 600;
+  }
+  table.size-examples .judge-big,
+  table.size-examples .judge-small {
+    font-weight: 700;
+  }
+  table.size-examples .judge-big {
+    color: var(--accent);
   }
   .finding {
     margin: 1.25rem 0;
