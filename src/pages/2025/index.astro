@@ -438,7 +438,10 @@ const faqJsonLd = {
   <style>
     .lead { color: var(--muted); margin-top: 0; }
     /* 年度切り替えの導線。本文より弱く、でも見落とさない程度に */
-    .year-switch { margin: 0 0 0.5rem; font-size: 0.875rem; color: var(--muted); }
+    /* margin(3値)は左右マージンを暗黙に0にし、main.is-wideの子に効かせている
+       margin-inline: autoに詳細度で勝ってしまう（[[20260824-astro-scoped-css-margin-shorthand-beats-global-centering]]）。
+       margin-blockで左右に触れないようにする。 */
+    .year-switch { margin-block: 0 0.5rem; font-size: 0.875rem; color: var(--muted); }
     .note { color: var(--muted); font-size: 0.875rem; }
 
     .unofficial {
@@ -615,7 +618,7 @@ const faqJsonLd = {
       align-items: baseline;
       justify-content: space-between;
       gap: 0.25rem 1rem;
-      margin: 0 0 0.25rem;
+      margin-block: 0 0.25rem;
     }
     .result-count {
       color: var(--muted);
@@ -640,7 +643,7 @@ const faqJsonLd = {
     }
     .scroll-hint strong { color: var(--text); }
 
-    .measure-list { margin: 0.75rem 0 0; }
+    .measure-list { margin-block: 0.75rem 0; }
     .measure-item {
       display: grid;
       grid-template-columns: 5rem 1fr;
