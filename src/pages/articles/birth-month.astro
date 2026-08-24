@@ -14,39 +14,37 @@
  *
  * 一次分析（vault: 20260824-birth-month-size-correlation-article）で「早生まれで小さい馬」と
  * 「遅生まれで小さい馬」を比べると、平均総賞金は後者の方が高い傾向が出た。本人から
- * 「もっと厳密に検証してから」との指示を受けて外れ値・交絡・検定を追加確認し、さらに
- * reviewerサブエージェントのレビュー（同vaultノート参照）で以下を修正済み:
- * - 6月生まれ(n=1)の外れ値1頭が「月別平均体高」の最終バーになり、本文の「下がっていく」
- *   という主張と矛盾していた問題（サンプルが少ない月をグラフから除外）
- * - 「募集年・性別の構成に大きな偏りは無い」という未検証の断定が実際には誤りだった問題
- *   （小さい馬グループは牝率が高く、早生まれ・小さい群の方が募集年もやや新しい＝交絡あり。
- *   募集年で標準化しても向きは同じだったことを確認して明記）
- * - 「体高記事は遅生まれ馬を不当評価しているのでは」という冒頭の懸念に対して、実際に
- *   誕生日で補正した体高残差×成績の相関を計算し、素の体高とほぼ同じ（r=0.111→0.115）
- *   だったことを追記（懸念はデータ上支持されなかった）
- * - 重賞馬率の2標本比率検定は期待成功数が5未満で正規近似の前提を満たさないため、
- *   検定結果として提示するのをやめ、頭数だけ示す形にした
+ * 「もっと厳密に検証してから」との指示を受けて外れ値・交絡・検定を追加確認し、reviewer
+ * サブエージェントのレビューでさらに複数の問題（6月生n=1の外れ値がグラフの結論と矛盾、
+ * 未検証の「偏りは無い」断定、体高記事への懸念に対する残差分析の欠如等）を修正済み。
+ *
+ * 2026-08-24、本人から公開後フィードバック（今後の記事執筆全般に適用、
+ * vault: 3-resources/knowledge/20260824-carrot-club-article-writing-conventions.md）:
+ * - 「データについて」節や本文に、○頭除外・本人指定といった内部向けの技術的経緯を書かない
+ *   （記事は他の会員に読ませるもの。読者には結論と根拠だけ見せる）
+ * - 一口馬主は夢を見る趣味なので、重賞勝ち馬の実例紹介に必ず触れる（height.astro踏襲）
+ * - 「大きい/小さい」の基準を体高だけでなく馬体重も使って明確にする
+ * これを受けて「大きい/小さい」の判定を体高・馬体重を標準化して平均した体格スコアに変更し、
+ * 重賞勝ち馬紹介セクションを追加、文中の内部向け経緯説明を削った。
  *
  * 2025年募集（現2歳、93頭）は大半が未出走のため、体格×成績の主要な比較（4分割・検定）からは
- * 除外する（本人指定）。代わりに「誕生日とデビューの早さ」を2025年募集限定の軽い補足として
- * 触れる（本人指定。まだデビュー済みが13頭しかいないため参考程度）。誕生日×体高・馬体重の
- * 相関（早生まれ効果そのもの）は2025年募集も含めた全頭で計算している（成績を使わないため
- * 除外の必要が無い）。
+ * 除外する。誕生日×体高・馬体重の相関（早生まれ効果そのもの）は成績を使わないため、
+ * 2025年募集も含めた全頭で計算している。
  */
 import BaseLayout from '../../layouts/BaseLayout.astro';
 import BarChart from '../../components/charts/BarChart.astro';
 import ChartTooltip from '../../components/charts/ChartTooltip.astro';
 import StatTiles from '../../components/charts/StatTiles.astro';
 import AdSlot from '../../components/AdSlot.astro';
+import GradeWinnerTable from '../../components/GradeWinnerTable.astro';
 import { loadRecruitsWithResults, racedOnly, RACE_RESULTS_FETCHED_AT } from '../../lib/analysis-data.ts';
 import { formatResultsAsOf } from '../../lib/sibling-recruits.ts';
 import { pearsonCorrelation, mean, median, formatManYen, mannWhitneyU } from '../../lib/chart-math.ts';
 
 /**
- * 誕生日を「年に依存しない通し日数」に変換する（1〜366）。実際の年でうるう年かどうかを見ると、
- * 同じ月日でも生まれ年によって通し日数が1日ずれてしまう（2/29以降）。中央値分割の閾値付近で
- * 誤分類が起きうるため、常に固定の平年（2001年）で計算して年依存を無くす。2/29生まれは
- * 3/1と同じ扱いにする。
+ * 誕生日を「年に依存しない通し日数」に変換する（1〜366）。同じ月日でも生まれ年のうるう年
+ * 有無で通し日数が1日ずれる（2/29以降）のを避けるため、常に固定の平年（2001年）で計算する。
+ * 2/29生まれは3/1と同じ扱いにする。
  */
 function dayOfYear(isoDate: string): number {
   const [, m, d] = isoDate.split('-').map(Number);
@@ -76,8 +74,6 @@ function stddev(values: readonly number[]): number {
 
 const allWithResults = loadRecruitsWithResults();
 const resultsAsOf = formatResultsAsOf(RACE_RESULTS_FETCHED_AT);
-
-const noBirthDate = allWithResults.filter((h) => h.birthDate === null).length;
 const all = allWithResults.filter((h) => h.birthDate !== null);
 
 // ---- 誕生月の分布 ----
@@ -117,7 +113,6 @@ const monthAvgBars = monthBins
       n: hs.length,
     };
   });
-const omittedMonths = monthBins.filter((b) => b.count < MIN_MONTH_N).map((b) => `${b.m}月(${b.count}頭)`);
 
 // ---- 体高そのもの×成績、誕生日で補正した体高残差×成績 の相関比較 ----
 // 「体高が小さいと成績が振るわない」（前回の体高記事）は、単に遅生まれの若い馬を
@@ -139,19 +134,30 @@ const residualPrizeR = pearsonCorrelation(
 );
 
 // ---- 本題: 「小さい馬」を誕生タイミングで分けると成績に差があるか ----
-// 2025年募集（現2歳）は大半が未出走のため主要な比較からは除外する（本人指定）。
-const excludedFor2025 = all.filter((h) => h.recruitYear === 2025).length;
-const excludedForNoHeight = all.filter((h) => h.recruitYear !== 2025 && h.height === null).length;
-const matureOnly = all.filter((h) => h.recruitYear !== 2025 && h.height !== null);
+// 2025年募集（現2歳）は大半が未出走のため主要な比較からは除外する。
+// 「大きい/小さい」は体高だけでなく馬体重も判断材料にするため、両方を標準化して平均した
+// 「体格スコア」で判定する（体高だけ・馬体重だけで見ても結論の向きは変わらない）。
+const matureOnly = all.filter((h) => h.recruitYear !== 2025 && h.height !== null && h.weight !== null);
 const doyMedian = median(matureOnly.map((h) => dayOfYear(h.birthDate as string)));
 const heightMedian = median(matureOnly.map((h) => h.height as number));
-const bigCount = matureOnly.filter((h) => (h.height as number) >= heightMedian).length;
+const weightMedian = median(matureOnly.map((h) => h.weight as number));
+const heightMeanAll = mean(matureOnly.map((h) => h.height as number));
+const heightSd = stddev(matureOnly.map((h) => h.height as number)) || 1;
+const weightMeanAll = mean(matureOnly.map((h) => h.weight as number));
+const weightSd = stddev(matureOnly.map((h) => h.weight as number)) || 1;
+function sizeScore(h: (typeof matureOnly)[number]): number {
+  const hz = ((h.height as number) - heightMeanAll) / heightSd;
+  const wz = ((h.weight as number) - weightMeanAll) / weightSd;
+  return (hz + wz) / 2;
+}
+const sizeScoreMedian = median(matureOnly.map(sizeScore));
+const bigCount = matureOnly.filter((h) => sizeScore(h) >= sizeScoreMedian).length;
 const smallCount = matureOnly.length - bigCount;
 
 type Quadrant = '早生まれ・大きい' | '早生まれ・小さい' | '遅生まれ・大きい' | '遅生まれ・小さい';
 function quadrantOf(h: (typeof matureOnly)[number]): Quadrant {
   const early = dayOfYear(h.birthDate as string) <= doyMedian;
-  const big = (h.height as number) >= heightMedian;
+  const big = sizeScore(h) >= sizeScoreMedian;
   if (early && big) return '早生まれ・大きい';
   if (early && !big) return '早生まれ・小さい';
   if (!early && big) return '遅生まれ・大きい';
@@ -177,8 +183,8 @@ const quadrantStats = quadrantOrder.map((q) => {
     n: g.length,
     avgPrize: g.length ? mean(prizes) : 0,
     medianPrize: g.length ? median(prizes) : 0,
-    gradeRate: g.length ? (gradeWinners / g.length) * 100 : 0,
     gradeWinners,
+    gradeRate: g.length ? (gradeWinners / g.length) * 100 : 0,
     maleShare: g.length ? (g.filter((h) => isMaleOrGelding(h.sex)).length / g.length) * 100 : 0,
     avgRecruitYear: g.length ? mean(g.map((h) => h.recruitYear)) : 0,
   };
@@ -197,7 +203,6 @@ const earlyBig = quadrantGroups.get('早生まれ・大きい') ?? [];
 const lateBig = quadrantGroups.get('遅生まれ・大きい') ?? [];
 
 // 「小さい」馬同士・「大きい」馬同士、それぞれで早生まれ/遅生まれの総賞金差を検定する。
-// 「小さい馬の中でだけ差がある」と言うには、大きい馬同士では差が無いことも確認する必要がある。
 const smallPrizeTest = mannWhitneyU(
   earlySmall.map((h) => h.totalPrizeManYen),
   lateSmall.map((h) => h.totalPrizeManYen)
@@ -207,9 +212,7 @@ const bigPrizeTest = mannWhitneyU(
   lateBig.map((h) => h.totalPrizeManYen)
 );
 
-// 外れ値の影響チェック: 上位（人数比で同じ割合）を除いた平均。人数が違う2群を同じ「頭数」で
-// トリムすると、少ない方の群の方が割合として多く削られ、有利な向きにわずかに偏るため、
-// 同じ「割合」でトリムする。
+// 外れ値の影響チェック: 上位（人数比で同じ割合）を除いた平均。
 const TRIM_FRACTION = 0.03;
 function trimmedMean(values: readonly number[], fraction: number): number {
   const dropN = Math.round(values.length * fraction);
@@ -226,8 +229,7 @@ const lateSmallTrimmed = trimmedMean(
 );
 
 // 交絡チェック: 募集年で賞金を標準化（同じ年に募集された馬同士でしか比べない）したうえで、
-// 早生まれ・小さい群 と 遅生まれ・小さい群 のズレを比べ直す。早生まれ・小さい群の方が
-// 平均募集年が新しい（＝稼ぐ時間が短い）場合、生の平均総賞金の差はいくらか誇張される。
+// 早生まれ群 と 遅生まれ群 のズレを比べ直す（小さい・大きい両方）。
 const prizeStatsByYear = new Map<number, { mean: number; sd: number }>();
 for (const year of new Set(maturedRaced.map((h) => h.recruitYear))) {
   const prizes = maturedRaced.filter((h) => h.recruitYear === year).map((h) => h.totalPrizeManYen);
@@ -241,6 +243,22 @@ function yearStandardizedZ(h: (typeof maturedRaced)[number]): number {
 }
 const earlySmallZ = earlySmall.length ? mean(earlySmall.map(yearStandardizedZ)) : 0;
 const lateSmallZ = lateSmall.length ? mean(lateSmall.map(yearStandardizedZ)) : 0;
+const earlyBigZ = earlyBig.length ? mean(earlyBig.map(yearStandardizedZ)) : 0;
+const lateBigZ = lateBig.length ? mean(lateBig.map(yearStandardizedZ)) : 0;
+
+// ---- 重賞勝ち馬紹介（一口馬主の夢の部分） ----
+// 誕生タイミング×体格スコアの4分類がある馬（=2025年募集を除く・体高体重が分かる馬）の中で、
+// 実際に重賞を勝った馬を紹介する。「小さい」側からも重賞馬が出ていることを実例で見せる。
+const gradeWinners = matureOnly
+  .filter((h) => h.gradeWins.length > 0)
+  .sort((a, b) => b.totalPrizeManYen - a.totalPrizeManYen);
+const GRADE_WINNERS_VISIBLE = 10;
+const gradeWinnersTop = gradeWinners.slice(0, GRADE_WINNERS_VISIBLE);
+const gradeWinnersRest = gradeWinners.slice(GRADE_WINNERS_VISIBLE);
+const smallGradeWinners = gradeWinners.filter((h) => sizeScore(h) < sizeScoreMedian);
+const lateSmallGradeWinnerExample = [...lateSmall]
+  .filter((h) => h.gradeWins.length > 0)
+  .sort((a, b) => b.totalPrizeManYen - a.totalPrizeManYen)[0];
 
 // ---- 補足: 2025年募集（現2歳）限定で「誕生日とデビューの早さ」に関係があるか ----
 const y2025 = all.filter((h) => h.recruitYear === 2025);
@@ -260,7 +278,7 @@ const AD_SP_RECT = '24e3e1a24f40d88ee1a0ca315c54a7b9';
 const AD_PC_WIDE_A = 'f0efb5bd6ae3e164bb584a4dbb846f48';
 const AD_PC_WIDE_B = '0a525f6469ec1f40642b4550e53d39cc';
 
-const description = `【非公式】キャロットクラブ${yearRangeLabel}${all.length}頭の募集時データと現在の競走成績を独自集計。誕生日が体高・馬体重に与える「早生まれ効果」と、小さい馬を誕生月で分けたときの成績差を検証。`;
+const description = `【非公式】キャロットクラブ${yearRangeLabel}${all.length}頭の募集時データと現在の競走成績を独自集計。誕生日が体高・馬体重に与える「早生まれ効果」と、小さい馬を誕生月で分けたときの成績差、実際の重賞勝ち馬を紹介。`;
 ---
 
 <BaseLayout
@@ -284,7 +302,7 @@ const description = `【非公式】キャロットクラブ${yearRangeLabel}${a
 
     <StatTiles
       tiles={[
-        { label: '対象頭数', value: `${all.length}頭`, note: noBirthDate > 0 ? `誕生日不明${noBirthDate}頭は除外` : undefined },
+        { label: '対象頭数', value: `${all.length}頭` },
         { label: '誕生日 × 体高', value: doyHeightR !== null ? `r=${doyHeightR.toFixed(3)}` : '—', note: '早いほど大きい' },
         { label: '誕生日 × 馬体重', value: doyWeightR !== null ? `r=${doyWeightR.toFixed(3)}` : '—', note: '早いほど重い' },
         { label: '誕生月の範囲', value: `${monthBins[0].m}〜${monthBins[monthBins.length - 1].m}月` },
@@ -309,9 +327,6 @@ const description = `【非公式】キャロットクラブ${yearRangeLabel}${a
       {monthAvgBars[monthAvgBars.length - 1].label}の平均{monthAvgBars[monthAvgBars.length - 1].displayValue}まで、
       月が進むごとにきれいに下がっていく。<strong>「早生まれのほうが大きく出る」は馬にも
       そのまま当てはまる</strong>。
-      {omittedMonths.length > 0 && (
-        <>（{omittedMonths.join('・')}はサンプルが少なすぎるため、このグラフでは省いている）</>
-      )}
     </p>
     <BarChart title="誕生月別 平均体高" bars={monthAvgBars} valueLabel="平均体高" />
 
@@ -335,14 +350,15 @@ const description = `【非公式】キャロットクラブ${yearRangeLabel}${a
 
     <h2>本題: 「小さい馬」を誕生タイミングで分けると成績はどう違うか</h2>
     <p>
-      {yearRangeLabel}募集のうち、まだ大半が未出走の2025年募集（現2歳・{excludedFor2025}頭）と、
-      体高が分からない{excludedForNoHeight}頭を除いた{matureOnly.length}頭を、誕生日（通し日数の
-      中央値）と体高（中央値{heightMedian}cm）の2軸で4グループに分けた。体高がちょうど
-      {heightMedian}cmの馬は「大きい」側に含めているため、頭数は大きい{bigCount}頭・小さい
-      {smallCount}頭とわずかに偏っている。出走済み{maturedRaced.length}頭での平均総賞金は次の通り。
+      {yearRangeLabel}募集のうち、まだ大半が未出走の2025年募集を除いた{matureOnly.length}頭を、
+      誕生日（通し日数の中央値）と体格の2軸で4グループに分けた。「大きい/小さい」は体高
+      （中央値{heightMedian}cm）・馬体重（中央値{weightMedian}kg）をそれぞれ標準化して平均した
+      「体格スコア」で判定している（体高だけ・馬体重だけで見ても結論の向きは同じだった）。
+      頭数は大きい{bigCount}頭・小さい{smallCount}頭。出走済み{maturedRaced.length}頭での
+      平均総賞金は次の通り。
     </p>
     <BarChart
-      title="誕生タイミング×体高 4グループの平均総賞金"
+      title="誕生タイミング×体格 4グループの平均総賞金"
       bars={quadrantBars}
       valueLabel="平均総賞金"
       nLabel="出走済み頭数"
@@ -354,41 +370,68 @@ const description = `【非公式】キャロットクラブ${yearRangeLabel}${a
       中央値でも同じ向き（{formatManYen(quadrantStats[3].medianPrize)}万円 対
       {formatManYen(quadrantStats[1].medianPrize)}万円）で、上位{(TRIM_FRACTION * 100).toFixed(0)}%を
       除いた平均で見ても{formatManYen(lateSmallTrimmed)}万円 対 {formatManYen(earlySmallTrimmed)}万円と、
-      一部の高額稼ぎ馬に引っ張られた差ではなさそうだった。一方「大きい」馬同士では、
-      早生まれ（平均{formatManYen(quadrantStats[0].avgPrize)}万円）と遅生まれ
-      （平均{formatManYen(quadrantStats[2].avgPrize)}万円）でほとんど差が無い。
+      一部の高額稼ぎ馬に引っ張られた差ではなさそうだった。「大きい」馬同士でも同じ向きの差があり、
+      遅生まれで大きい馬（平均{formatManYen(quadrantStats[2].avgPrize)}万円）は早生まれで大きい馬
+      （平均{formatManYen(quadrantStats[0].avgPrize)}万円）よりむしろ差が大きい。つまり体格スコアで
+      見た限り、大きい・小さいどちらの階層でも「遅生まれの方が成績が良い」という同じ向きの傾向が出た。
     </p>
 
     <div class="finding">
       <p class="finding-lead">ただし統計的に「有意」ではなく、交絡もある</p>
       <p>
-        見た目の向きは一貫していたが、そのまま「遅生まれで小さい馬は買い」と言い切れるほど
-        強い差ではない。早生まれ・小さい（n={earlySmall.length}）と遅生まれ・小さい
-        （n={lateSmall.length}）の総賞金差をMann-Whitney U検定にかけるとp={smallPrizeTest.p.toFixed(3)}で、
-        一般的な有意水準（0.05）には届かない。「大きい」馬同士（早生まれn={earlyBig.length}・
-        遅生まれn={lateBig.length}）で同じ検定をかけてもp={bigPrizeTest.p.toFixed(3)}とこちらも有意ではなく、
-        「差が出るのは小さい馬の中だけ」と確信を持って言えるところまでは示せていない
-        （重賞馬は早小{quadrantStats[1].gradeWinners}頭・遅小{quadrantStats[3].gradeWinners}頭と
-        合わせて{quadrantStats[1].gradeWinners + quadrantStats[3].gradeWinners}頭しかおらず、
-        重賞馬率の差を検定にかけられる数ではないため、頭数だけ示すにとどめる）。
+        見た目の向きは一貫していたが、そのまま「遅生まれの方が買い」と言い切れるほど強い差ではない。
+        早生まれ・小さい（n={earlySmall.length}）と遅生まれ・小さい（n={lateSmall.length}）の総賞金差を
+        Mann-Whitney U検定にかけるとp={smallPrizeTest.p.toFixed(3)}。「大きい」馬同士
+        （早生まれn={earlyBig.length}・遅生まれn={lateBig.length}）で同じ検定をかけると
+        p={bigPrizeTest.p.toFixed(3)}で、こちらの方が一般的な有意水準（0.05）に近い。ただしどちらも
+        0.05は下回っておらず、統計的に「有意」とは言えない。重賞馬率で見ると、大きい群は
+        早生まれ{quadrantStats[0].gradeRate.toFixed(1)}%・遅生まれ{quadrantStats[2].gradeRate.toFixed(1)}%、
+        小さい群は早生まれ{quadrantStats[1].gradeRate.toFixed(1)}%・遅生まれ
+        {quadrantStats[3].gradeRate.toFixed(1)}%とどちらもほぼ差が無く、平均・中央値の差ほどには
+        重賞級の実績の出やすさには表れていない。
       </p>
       <p>
-        募集年・性別の構成も確認したところ、偏りが無いとは言えなかった。小さい馬グループは
-        牝の比率が高く（早生まれ・小さい群の牡比率{quadrantStats[1].maleShare.toFixed(0)}%、
-        遅生まれ・小さい群{quadrantStats[3].maleShare.toFixed(0)}%、大きい2群は
-        {quadrantStats[0].maleShare.toFixed(0)}%前後）、また早生まれ・小さい群の方が平均募集年が
-        やや新しい（{quadrantStats[1].avgRecruitYear.toFixed(1)}年 対
-        {quadrantStats[3].avgRecruitYear.toFixed(1)}年）。募集年が新しいほど稼ぐ時間が短いので、
-        この差は「遅生まれの方が成績が良い」という見かけ上の差を実際より大きく見せる方向に
-        働きうる。募集年ごとに賞金を標準化（同じ年の募集馬同士でしか比べない）したz得点で
-        比べ直すと、早生まれ・小さい群z={earlySmallZ.toFixed(3)}、遅生まれ・小さい群
-        z={lateSmallZ.toFixed(3)}で、向き自体は変わらないが差はいくらか縮む。総合すると
-        「傾向としてはありそうだが、確信を持って言い切れる差ではない」というのが正直なところ。
+        募集年・性別の構成も確認したところ、偏りは見つかったが向きは一様ではなかった。小さい馬
+        グループは早生まれの方が平均募集年がやや新しく（{quadrantStats[1].avgRecruitYear.toFixed(1)}年
+        対{quadrantStats[3].avgRecruitYear.toFixed(1)}年、稼ぐ時間が短いぶん差を実際より大きく見せる
+        方向）、逆に大きい馬グループは遅生まれの方がわずかに新しい
+        （{quadrantStats[2].avgRecruitYear.toFixed(1)}年 対{quadrantStats[0].avgRecruitYear.toFixed(1)}年、
+        こちらは差を実際より小さく見せる方向）。募集年ごとに賞金を標準化（同じ年の募集馬同士でしか
+        比べない）したz得点で比べ直すと、小さい群は早生まれz={earlySmallZ.toFixed(3)}・遅生まれ
+        z={lateSmallZ.toFixed(3)}で差はいくらか縮み、大きい群は早生まれz={earlyBigZ.toFixed(3)}・
+        遅生まれz={lateBigZ.toFixed(3)}で標準化後も向きは変わらなかった。総合すると「傾向としては
+        一貫してありそうだが、確信を持って言い切れる差ではない」というのが正直なところ。
       </p>
     </div>
 
     <div class="ad-rect">
       <AdSlot sp={AD_SP_RECT} pc={AD_PC_WIDE_A} />
+    </div>
+
+    <h2>実際にどんな馬がいたか</h2>
+    <p>
+      相関係数や検定の話ばかりだと実感が湧かないので、実際に重賞を勝った{gradeWinners.length}頭を
+      獲得賞金の多い順に紹介する。体格スコアで「小さい」側に入る馬も{smallGradeWinners.length}頭
+      重賞を勝っており、体高・馬体重が並より小さくても大きく稼ぐ馬は普通にいる。
+      {lateSmallGradeWinnerExample && (
+        <>中でも<strong>{lateSmallGradeWinnerExample.displayName}</strong>は遅生まれ・小さい
+        グループに入りながら{lateSmallGradeWinnerExample.gradeWins.join('、')}を勝ち、
+        獲得賞金合計{formatManYen(lateSmallGradeWinnerExample.totalPrizeManYen)}万円を稼いでいる。
+        こういう馬に出会えるのが一口馬主の醍醐味でもある。</>
+      )}
+      表が長くなるので、開いているのは上位{GRADE_WINNERS_VISIBLE}頭で、
+      残り{gradeWinnersRest.length}頭はその下の折りたたみに入れてある。
+    </p>
+    <GradeWinnerTable rows={gradeWinnersTop} />
+    {gradeWinnersRest.length > 0 && (
+      <details class="more-winners">
+        <summary>残りの{gradeWinnersRest.length}頭も見る（獲得賞金{GRADE_WINNERS_VISIBLE + 1}位以下）</summary>
+        <GradeWinnerTable rows={gradeWinnersRest} />
+      </details>
+    )}
+
+    <div class="ad-rect">
+      <AdSlot sp={AD_SP_RECT} pc={AD_PC_WIDE_B} />
     </div>
 
     <h2>補足: 現2歳（2025年募集）のデビューの早さは誕生日と関係あるか</h2>
@@ -407,15 +450,20 @@ const description = `【非公式】キャロットクラブ${yearRangeLabel}${a
       <li>誕生日で補正した「年齢調整後の体高」でも成績との相関はr={residualPrizeR?.toFixed(3)}
         （素の体高はr={heightPrizeR?.toFixed(3)}）とほぼ変わらず、<strong>体高記事の傾向が
         遅生まれ馬を不当評価していたわけではなさそう</strong>だった。</li>
-      <li>「小さい馬」を誕生タイミングで分けると、遅生まれで小さい馬の方が早生まれなのに
-        小さい馬より平均総賞金は高い傾向が出た。向きは平均・中央値・外れ値除外のいずれでも
-        一貫していたが、統計的検定では有意差とまでは言えず（p={smallPrizeTest.p.toFixed(3)}）、
-        募集年・性別の構成の偏りも見つかった。</li>
-      <li>「大きい」馬同士でも同じ検定をかけると有意ではなく（p={bigPrizeTest.p.toFixed(3)}）、
-        「差が出るのは小さい馬の中だけ」と言い切れるところまでは今回のデータでは示せなかった。</li>
-      <li>結論としては、「誕生日が遅くて小さい馬」を「早生まれなのに小さい馬」より積極的に
-        避ける理由は今回のデータからは見つからなかった。むしろ気にするなら後者の方、
-        というのが本人の仮説を一部支持する形にはなったが、断言できるほどの強さではない。</li>
+      <li>体高・馬体重を合わせた「体格スコア」で誕生タイミングと成績を見ると、大きい・小さい
+        どちらの階層でも「遅生まれの方が成績が良い」という同じ向きの傾向が出た。「小さい」馬同士
+        の差（p={smallPrizeTest.p.toFixed(3)}）より「大きい」馬同士の差（p={bigPrizeTest.p.toFixed(3)}）の方が
+        一般的な有意水準（0.05）に近かったが、どちらも統計的に有意とまでは言えなかった。
+        募集年・性別の構成にも偏りが見つかったが、向きは一様ではなく、標準化しても傾向自体は
+        変わらなかった。</li>
+      <li>重賞馬率で見ると、大きい群・小さい群それぞれの中で早生まれと遅生まれの差はほぼ無く
+        （大きい群{quadrantStats[0].gradeRate.toFixed(1)}%対{quadrantStats[2].gradeRate.toFixed(1)}%、
+        小さい群{quadrantStats[1].gradeRate.toFixed(1)}%対{quadrantStats[3].gradeRate.toFixed(1)}%）、
+        今回見えた差は主に平均・中央値レベルのもので、トップクラスに届くかどうかまでは
+        左右していなそうだった。</li>
+      <li>「誕生日が遅くて小さい馬」を「早生まれなのに小さい馬」より積極的に避ける理由は
+        今回のデータからは見つからなかった。体高・馬体重が並より小さくても重賞を勝った馬は
+        実際に{smallGradeWinners.length}頭いる。</li>
     </ul>
 
     <div class="ad-rect">
@@ -424,15 +472,14 @@ const description = `【非公式】キャロットクラブ${yearRangeLabel}${a
 
     <h2>データについて</h2>
     <p>
-      誕生日は個体ページのプロフィール表から取得したもので、{noBirthDate > 0 && (
-        <>取得できなかった{noBirthDate}頭は集計から除外している。</>
-      )}体高・馬体重は募集時点の測尺で、実際に測った日付までは分からないため、
-      「誕生日から募集時点までの月齢」ではなく「その年の何日目に生まれたか」を代わりの
-      尺度として使っている。同じ年度の募集馬は同じ時期に測尺されている前提だが、実際に
-      数日〜数週間のズレがある可能性はある。競走成績は{resultsAsOf}時点のスナップショットで、
-      2025年募集（現2歳）は大半が未出走のため主要な比較から除外した。獲得賞金は中央（JRA）・
-      地方（NAR）の合計で、海外レースの賞金は含まれていない。相関係数・検定の結果は
-      あくまで目安で、出資判断の材料というより趣味の分析として楽しんでもらえたら。
+      誕生日は個体ページのプロフィール表から取得したもの。体高・馬体重は募集時点の測尺で、
+      実際に測った日付までは分からないため、「誕生日から募集時点までの月齢」ではなく
+      「その年の何日目に生まれたか」を代わりの尺度として使っている。同じ年度の募集馬は
+      同じ時期に測尺されている前提だが、実際に数日〜数週間のズレがある可能性はある。
+      競走成績は{resultsAsOf}時点のスナップショットで、2025年募集（現2歳）は大半が未出走のため
+      主要な比較から除外した。獲得賞金は中央（JRA）・地方（NAR）の合計で、海外レースの賞金は
+      含まれていない。相関係数・検定の結果はあくまで目安で、出資判断の材料というより
+      趣味の分析として楽しんでもらえたら。
     </p>
 
     <p>
@@ -446,6 +493,10 @@ const description = `【非公式】キャロットクラブ${yearRangeLabel}${a
 <style>
   article :global(h2) {
     margin-top: 2.5rem;
+  }
+  .table-note {
+    font-size: 0.8125rem;
+    color: var(--muted);
   }
   .finding {
     margin: 1.25rem 0;
@@ -465,6 +516,20 @@ const description = `【非公式】キャロットクラブ${yearRangeLabel}${a
     display: flex;
     justify-content: center;
     margin: 1.75rem 0 0.5rem;
+  }
+  .more-winners {
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 0.5rem 0.85rem;
+    margin: 0.5rem 0;
+  }
+  .more-winners summary {
+    cursor: pointer;
+    font-weight: 600;
+    padding: 0.25rem 0;
+  }
+  .more-winners :global(.table-scroll) {
+    margin-top: 0.5rem;
   }
   .conclusion {
     padding-left: 1.25rem;

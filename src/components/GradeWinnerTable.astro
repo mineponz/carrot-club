@@ -6,6 +6,9 @@
  * 上位ぶんだけ出して残りを折りたたむ（表がスマホで画面数ぶんの長さになっていた・2026-08-23）。
  * その2つは同じ形の表なので、行の作りはここに1つだけ置く ―― 呼び出し側に2回書くと、
  * 列を足したときに片方だけ直して表がずれる。
+ *
+ * 誕生月・馬体重列は誕生月記事（birth-month.astro）のために追加（2026-08-24）。他の記事
+ * （height.astro・dam-age.astro）にも同じ表を使っているので、そちらにも自動的に反映される。
  */
 import type { RecruitWithResult } from '../lib/analysis-data.ts';
 import { formatManYen } from '../lib/chart-math.ts';
@@ -23,7 +26,9 @@ const { rows } = Astro.props;
       <tr>
         <th>馬名</th>
         <th>募集年</th>
+        <th>誕生月</th>
         <th>体高</th>
+        <th>馬体重</th>
         <th>母齢</th>
         <th>一口価格</th>
         <th>主な勝鞍</th>
@@ -37,7 +42,9 @@ const { rows } = Astro.props;
           <tr>
             <td>{h.displayName}</td>
             <td>{h.recruitYear}年</td>
+            <td>{h.birthDate ? `${Number(h.birthDate.split('-')[1])}月` : '—'}</td>
             <td>{h.height}cm</td>
+            <td>{h.weight !== null ? `${h.weight}kg` : '—'}</td>
             <td>{h.damAge !== null ? `${h.damAge}歳` : '—'}</td>
             <td>{h.pricePerShare !== null ? `${h.pricePerShare}万円` : '—'}</td>
             <td>{h.gradeWins.join('、')}</td>
