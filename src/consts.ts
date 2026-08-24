@@ -63,3 +63,12 @@ export const CLUB_PERMISSION_NOTICE =
  * 回答はGoogle側に届くので、このサイト自身は何も受け取らない（送信先が外部である点に注意）。
  */
 export const CONTACT_FORM_URL = 'https://forms.gle/3r55coJm62YbYZkF7';
+
+/**
+ * Google AdSense のパブリッシャーID（`ca-pub-…`）。
+ * `BaseLayout` の `<head>` で自動広告のスクリプトに渡し、`public/ads.txt` にも同じIDを書く。
+ * **2か所で同じIDを持つので、差し替えるときは両方直すこと**（ads.txt が食い違うと
+ * 「販売者情報が不明」扱いになり、広告が配信されなくなる）。
+ * 忍者AdMax（`src/components/AdSlot.astro`）とは別枠で、こちらはページ全体に自動で挿入される。
+ */
+export const ADSENSE_CLIENT_ID = 'ca-pub-7478797109606594';

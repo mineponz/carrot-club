@@ -1,0 +1,3 @@
+# Google AdSense の販売者情報。パブリッシャーIDは src/consts.ts の ADSENSE_CLIENT_ID と
+# 必ず一致させる（`ca-pub-` を外した数字だけを書く）。食い違うと広告が配信されない。
+google.com, pub-7478797109606594, DIRECT, f08c47fec0942fa0

@@ -9,6 +9,7 @@ import {
   CONTACT_FORM_URL,
   DOCUMENT_TITLE,
   ALLOW_INDEXING,
+  ADSENSE_CLIENT_ID,
 } from '../consts';
 
 interface Props {
@@ -187,6 +188,17 @@ const webAppJsonLd = {
 
       gtag('config', 'G-HV39111Z5T');
     </script>
+
+    <!--
+      Google AdSense（自動広告）。パブリッシャーIDは src/consts.ts の ADSENSE_CLIENT_ID に置き、
+      public/ads.txt と必ず同じIDにする。枠の位置はAdSense側の管理画面で決まるので、
+      忍者AdMaxの枠（src/components/AdSlot.astro）のようにページ側へ差し込む必要はない。
+    -->
+    <script
+      async
+      src={`https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=${ADSENSE_CLIENT_ID}`}
+      crossorigin="anonymous"
+      is:inline></script>
 
     <script type="application/ld+json" set:html={JSON.stringify(webSiteJsonLd)} is:inline />
     <script type="application/ld+json" set:html={JSON.stringify(webAppJsonLd)} is:inline />
