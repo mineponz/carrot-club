@@ -105,3 +105,71 @@ export function median(values: readonly number[]): number {
 export function formatManYen(value: number): string {
   return Math.round(value).toLocaleString('ja-JP');
 }
+
+/** 標準正規分布の累積分布関数（Abramowitz-Stegunの近似式）。 */
+function normCdf(x: number): number {
+  const sign = x < 0 ? -1 : 1;
+  const ax = Math.abs(x) / Math.SQRT2;
+  const a1 = 0.254829592;
+  const a2 = -0.284496736;
+  const a3 = 1.421413741;
+  const a4 = -1.453152027;
+  const a5 = 1.061405429;
+  const p = 0.3275911;
+  const t = 1 / (1 + p * ax);
+  const y = 1 - (((((a5 * t + a4) * t + a3) * t + a2) * t + a1) * t) * Math.exp(-ax * ax);
+  return 0.5 * (1 + sign * y);
+}
+
+/**
+ * Mann-Whitney U検定（正規近似、タイは平均順位で処理）。賞金のように分布が大きく歪む
+ * 指標で2群を比べるとき、平均値の差だけでは外れ値に引っ張られていないか分からないため使う。
+ * 戻り値の`p`が小さいほど「2群は同じ分布から出た」という帰無仮説が疑わしい（＝差がありそう）。
+ * `z`は`Math.min(u1, u2)`ベースなので常に0以下になり、どちらの群が大きいかの向きを持たない
+ * （`twoProportionZTest`の`z`とは符号の意味が違う）。向きが要るときは中央値等を別途比較すること。
+ * どちらかの配列が空なら`{ z: NaN, p: NaN }`を返す（呼び出し側で空群を渡さないこと）。
+ */
+export function mannWhitneyU(a: readonly number[], b: readonly number[]): { z: number; p: number } {
+  if (a.length === 0 || b.length === 0) return { z: NaN, p: NaN };
+  const combined = [...a.map((v) => ({ v, g: 0 })), ...b.map((v) => ({ v, g: 1 }))];
+  combined.sort((x, y) => x.v - y.v);
+  const ranks: number[] = new Array(combined.length);
+  let i = 0;
+  while (i < combined.length) {
+    let j = i;
+    while (j + 1 < combined.length && combined[j + 1].v === combined[i].v) j++;
+    const avgRank = (i + j) / 2 + 1;
+    for (let k = i; k <= j; k++) ranks[k] = avgRank;
+    i = j + 1;
+  }
+  let rSumA = 0;
+  combined.forEach((c, idx) => {
+    if (c.g === 0) rSumA += ranks[idx];
+  });
+  const n1 = a.length;
+  const n2 = b.length;
+  const u1 = rSumA - (n1 * (n1 + 1)) / 2;
+  const u = Math.min(u1, n1 * n2 - u1);
+  const muU = (n1 * n2) / 2;
+  const sigmaU = Math.sqrt((n1 * n2 * (n1 + n2 + 1)) / 12);
+  const z = (u - muU) / sigmaU;
+  return { z, p: 2 * (1 - normCdf(Math.abs(z))) };
+}
+
+/**
+ * 2標本の比率の差の検定（正規近似）。重賞馬率のような割合を2群で比べるとき使う。
+ * 正規近似は各群の期待成功数（`n * pooled比率`）が目安5未満だと信頼できない
+ * （二項分布を正規分布で近似する前提が崩れる）。少数のイベント（重賞馬など）を
+ * 比べるときは、先に期待成功数を確認し、5未満ならFisherの正確検定等に切り替えるか、
+ * 「検定に足るサンプルではない」と明記して数値だけ出すこと。
+ * `n1`または`n2`が0なら`{ z: NaN, p: NaN }`を返す。
+ */
+export function twoProportionZTest(x1: number, n1: number, x2: number, n2: number): { z: number; p: number } {
+  if (n1 === 0 || n2 === 0) return { z: NaN, p: NaN };
+  const p1 = x1 / n1;
+  const p2 = x2 / n2;
+  const pooled = (x1 + x2) / (n1 + n2);
+  const se = Math.sqrt(pooled * (1 - pooled) * (1 / n1 + 1 / n2));
+  const z = se === 0 ? 0 : (p1 - p2) / se;
+  return { z, p: 2 * (1 - normCdf(Math.abs(z))) };
+}

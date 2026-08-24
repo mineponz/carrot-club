@@ -33,6 +33,8 @@ export interface Recruit {
   broodmareSire: string | null;
   /** 母齢（募集年 - 母の生年）。血統表ページから取得できなかった場合はnull。 */
   damAge: number | null;
+  /** 生年月日（YYYY-MM-DD）。個体ページから取得できなかった場合はnull。 */
+  birthDate: string | null;
   pricePerShare: number | null;
   height: number | null;
   chestGirth: number | null;

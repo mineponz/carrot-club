@@ -16,7 +16,8 @@
     "weight": 406,
     "trainingFarm": "NF空港",
     "legacySource": true,
-    "damAge": 16
+    "damAge": 16,
+    "birthDate": "2016-04-05"
   },
   {
     "recruitYear": 2017,
@@ -35,7 +36,8 @@
     "weight": 449,
     "trainingFarm": "NF早来",
     "legacySource": true,
-    "damAge": 17
+    "damAge": 17,
+    "birthDate": "2016-04-01"
   },
   {
     "recruitYear": 2017,
@@ -54,7 +56,8 @@
     "weight": 447,
     "trainingFarm": "追分Ｆリリーバレー",
     "legacySource": true,
-    "damAge": 14
+    "damAge": 14,
+    "birthDate": "2016-05-06"
   },
   {
     "recruitYear": 2017,
@@ -73,7 +76,8 @@
     "weight": 416,
     "trainingFarm": "NF早来",
     "legacySource": true,
-    "damAge": 15
+    "damAge": 15,
+    "birthDate": "2016-05-18"
   },
   {
     "recruitYear": 2017,
@@ -92,7 +96,8 @@
     "weight": 407,
     "trainingFarm": "NF空港",
     "legacySource": true,
-    "damAge": 15
+    "damAge": 15,
+    "birthDate": "2016-03-08"
   },
   {
     "recruitYear": 2017,
@@ -111,7 +116,8 @@
     "weight": 380,
     "trainingFarm": "NF空港",
     "legacySource": true,
-    "damAge": 19
+    "damAge": 19,
+    "birthDate": "2016-05-13"
   },
   {
     "recruitYear": 2017,
@@ -130,7 +136,8 @@
     "weight": 451,
     "trainingFarm": "NF空港",
     "legacySource": true,
-    "damAge": 11
+    "damAge": 11,
+    "birthDate": "2016-02-29"
   },
   {
     "recruitYear": 2017,
@@ -149,7 +156,8 @@
     "weight": 446,
     "trainingFarm": "NF早来",
     "legacySource": true,
-    "damAge": 10
+    "damAge": 10,
+    "birthDate": "2016-02-19"
   },
   {
     "recruitYear": 2017,
@@ -168,7 +176,8 @@
     "weight": 366,
     "trainingFarm": "NF空港",
     "legacySource": true,
-    "damAge": 8
+    "damAge": 8,
+    "birthDate": "2016-05-29"
   },
   {
     "recruitYear": 2017,
@@ -187,7 +196,8 @@
     "weight": 379,
     "trainingFarm": "NF早来",
     "legacySource": true,
-    "damAge": 14
+    "damAge": 14,
+    "birthDate": "2016-02-15"
   },
   {
     "recruitYear": 2017,
@@ -206,7 +216,8 @@
     "weight": 494,
     "trainingFarm": "NF空港",
     "legacySource": true,
-    "damAge": 11
+    "damAge": 11,
+    "birthDate": "2016-01-24"
   },
   {
     "recruitYear": 2017,
@@ -225,7 +236,8 @@
     "weight": 438,
     "trainingFarm": "NF空港",
     "legacySource": true,
-    "damAge": 13
+    "damAge": 13,
+    "birthDate": "2016-03-05"
   },
   {
     "recruitYear": 2017,
@@ -244,7 +256,8 @@
     "weight": 492,
     "trainingFarm": "NF早来",
     "legacySource": true,
-    "damAge": 16
+    "damAge": 16,
+    "birthDate": "2016-02-23"
   },
   {
     "recruitYear": 2017,
@@ -263,7 +276,8 @@
     "weight": 536,
     "trainingFarm": "NF早来",
     "legacySource": true,
-    "damAge": 10
+    "damAge": 10,
+    "birthDate": "2016-02-08"
   },
   {
     "recruitYear": 2017,
@@ -282,7 +296,8 @@
     "weight": 496,
     "trainingFarm": "NF空港",
     "legacySource": true,
-    "damAge": 17
+    "damAge": 17,
+    "birthDate": "2016-02-23"
   },
   {
     "recruitYear": 2017,
@@ -301,7 +316,8 @@
     "weight": 436,
     "trainingFarm": "NF空港",
     "legacySource": true,
-    "damAge": 13
+    "damAge": 13,
+    "birthDate": "2016-03-14"
   },
   {
     "recruitYear": 2017,
@@ -320,7 +336,8 @@
     "weight": 446,
     "trainingFarm": "NF早来",
     "legacySource": true,
-    "damAge": 15
+    "damAge": 15,
+    "birthDate": "2016-01-31"
   },
   {
     "recruitYear": 2017,
@@ -339,7 +356,8 @@
     "weight": 443,
     "trainingFarm": "NF早来",
     "legacySource": true,
-    "damAge": null
+    "damAge": null,
+    "birthDate": null
   },
   {
     "recruitYear": 2017,
@@ -358,7 +376,8 @@
     "weight": 430,
     "trainingFarm": "NF空港",
     "legacySource": true,
-    "damAge": 9
+    "damAge": 9,
+    "birthDate": "2016-02-21"
   },
   {
     "recruitYear": 2017,
@@ -377,7 +396,8 @@
     "weight": 462,
     "trainingFarm": "NF空港",
     "legacySource": true,
-    "damAge": 11
+    "damAge": 11,
+    "birthDate": "2016-03-21"
   },
   {
     "recruitYear": 2017,
@@ -396,7 +416,8 @@
     "weight": 481,
     "trainingFarm": "NF空港",
     "legacySource": true,
-    "damAge": 7
+    "damAge": 7,
+    "birthDate": "2016-02-24"
   },
   {
     "recruitYear": 2017,
@@ -415,7 +436,8 @@
     "weight": 426,
     "trainingFarm": "NF空港",
     "legacySource": true,
-    "damAge": 16
+    "damAge": 16,
+    "birthDate": "2016-04-03"
   },
   {
     "recruitYear": 2017,
@@ -434,7 +456,8 @@
     "weight": 453,
     "trainingFarm": "NF早来",
     "legacySource": true,
-    "damAge": 20
+    "damAge": 20,
+    "birthDate": "2016-02-17"
   },
   {
     "recruitYear": 2017,
@@ -453,7 +476,8 @@
     "weight": 400,
     "trainingFarm": "NF空港",
     "legacySource": true,
-    "damAge": 8
+    "damAge": 8,
+    "birthDate": "2016-04-15"
   },
   {
     "recruitYear": 2017,
@@ -472,7 +496,8 @@
     "weight": 454,
     "trainingFarm": "NF早来",
     "legacySource": true,
-    "damAge": 6
+    "damAge": 6,
+    "birthDate": "2016-05-23"
   },
   {
     "recruitYear": 2017,
@@ -491,7 +516,8 @@
     "weight": 453,
     "trainingFarm": "NF空港",
     "legacySource": true,
-    "damAge": 8
+    "damAge": 8,
+    "birthDate": "2016-01-30"
   },
   {
     "recruitYear": 2017,
@@ -510,7 +536,8 @@
     "weight": 490,
     "trainingFarm": "NF早来",
     "legacySource": true,
-    "damAge": 11
+    "damAge": 11,
+    "birthDate": "2016-01-25"
   },
   {
     "recruitYear": 2017,
@@ -529,7 +556,8 @@
     "weight": 402,
     "trainingFarm": "NF早来",
     "legacySource": true,
-    "damAge": 14
+    "damAge": 14,
+    "birthDate": "2016-04-08"
   },
   {
     "recruitYear": 2017,
@@ -548,7 +576,8 @@
     "weight": 458,
     "trainingFarm": "NF空港",
     "legacySource": true,
-    "damAge": 16
+    "damAge": 16,
+    "birthDate": "2016-02-03"
   },
   {
     "recruitYear": 2017,
@@ -567,7 +596,8 @@
     "weight": 436,
     "trainingFarm": "NF空港",
     "legacySource": true,
-    "damAge": 11
+    "damAge": 11,
+    "birthDate": "2016-04-18"
   },
   {
     "recruitYear": 2017,
@@ -586,7 +616,8 @@
     "weight": 463,
     "trainingFarm": "NF空港",
     "legacySource": true,
-    "damAge": 13
+    "damAge": 13,
+    "birthDate": "2016-04-03"
   },
   {
     "recruitYear": 2017,
@@ -605,7 +636,8 @@
     "weight": 430,
     "trainingFarm": "NF早来",
     "legacySource": true,
-    "damAge": 14
+    "damAge": 14,
+    "birthDate": "2016-03-09"
   },
   {
     "recruitYear": 2017,
@@ -624,7 +656,8 @@
     "weight": 415,
     "trainingFarm": "NF空港",
     "legacySource": true,
-    "damAge": 11
+    "damAge": 11,
+    "birthDate": "2016-04-27"
   },
   {
     "recruitYear": 2017,
@@ -643,7 +676,8 @@
     "weight": 395,
     "trainingFarm": "NF早来",
     "legacySource": true,
-    "damAge": 17
+    "damAge": 17,
+    "birthDate": "2016-04-12"
   },
   {
     "recruitYear": 2017,
@@ -662,7 +696,8 @@
     "weight": 425,
     "trainingFarm": "NF早来",
     "legacySource": true,
-    "damAge": 7
+    "damAge": 7,
+    "birthDate": "2016-03-21"
   },
   {
     "recruitYear": 2017,
@@ -681,7 +716,8 @@
     "weight": 486,
     "trainingFarm": "NF空港",
     "legacySource": true,
-    "damAge": 11
+    "damAge": 11,
+    "birthDate": "2016-01-21"
   },
   {
     "recruitYear": 2017,
@@ -700,7 +736,8 @@
     "weight": 502,
     "trainingFarm": "NF空港",
     "legacySource": true,
-    "damAge": 13
+    "damAge": 13,
+    "birthDate": "2016-02-11"
   },
   {
     "recruitYear": 2017,
@@ -719,7 +756,8 @@
     "weight": 413,
     "trainingFarm": "NF空港",
     "legacySource": true,
-    "damAge": 13
+    "damAge": 13,
+    "birthDate": "2016-04-08"
   },
   {
     "recruitYear": 2017,
@@ -738,7 +776,8 @@
     "weight": 471,
     "trainingFarm": "NF空港",
     "legacySource": true,
-    "damAge": 10
+    "damAge": 10,
+    "birthDate": "2016-03-22"
   },
   {
     "recruitYear": 2017,
@@ -757,7 +796,8 @@
     "weight": 454,
     "trainingFarm": "NF空港",
     "legacySource": true,
-    "damAge": 9
+    "damAge": 9,
+    "birthDate": "2016-02-12"
   },
   {
     "recruitYear": 2017,
@@ -776,7 +816,8 @@
     "weight": 450,
     "trainingFarm": "NF早来",
     "legacySource": true,
-    "damAge": 9
+    "damAge": 9,
+    "birthDate": "2016-03-18"
   },
   {
     "recruitYear": 2017,
@@ -795,7 +836,8 @@
     "weight": 471,
     "trainingFarm": "NF早来",
     "legacySource": true,
-    "damAge": 11
+    "damAge": 11,
+    "birthDate": "2016-02-08"
   },
   {
     "recruitYear": 2017,
@@ -814,7 +856,8 @@
     "weight": 453,
     "trainingFarm": "NF早来",
     "legacySource": true,
-    "damAge": 8
+    "damAge": 8,
+    "birthDate": "2016-01-28"
   },
   {
     "recruitYear": 2017,
@@ -833,7 +876,8 @@
     "weight": 417,
     "trainingFarm": "NF空港",
     "legacySource": true,
-    "damAge": 12
+    "damAge": 12,
+    "birthDate": "2016-05-11"
   },
   {
     "recruitYear": 2017,
@@ -852,7 +896,8 @@
     "weight": 460,
     "trainingFarm": "NF空港",
     "legacySource": true,
-    "damAge": 11
+    "damAge": 11,
+    "birthDate": "2016-02-24"
   },
   {
     "recruitYear": 2017,
@@ -871,7 +916,8 @@
     "weight": 385,
     "trainingFarm": "NF早来",
     "legacySource": true,
-    "damAge": 6
+    "damAge": 6,
+    "birthDate": "2016-04-27"
   },
   {
     "recruitYear": 2017,
@@ -890,7 +936,8 @@
     "weight": 452,
     "trainingFarm": "NF早来",
     "legacySource": true,
-    "damAge": 13
+    "damAge": 13,
+    "birthDate": "2016-02-09"
   },
   {
     "recruitYear": 2017,
@@ -909,7 +956,8 @@
     "weight": 457,
     "trainingFarm": "NF早来",
     "legacySource": true,
-    "damAge": 11
+    "damAge": 11,
+    "birthDate": "2016-02-15"
   },
   {
     "recruitYear": 2017,
@@ -928,7 +976,8 @@
     "weight": 421,
     "trainingFarm": "NF早来",
     "legacySource": true,
-    "damAge": 9
+    "damAge": 9,
+    "birthDate": "2016-03-02"
   },
   {
     "recruitYear": 2017,
@@ -947,7 +996,8 @@
     "weight": 437,
     "trainingFarm": "NF早来",
     "legacySource": true,
-    "damAge": 12
+    "damAge": 12,
+    "birthDate": "2016-02-26"
   },
   {
     "recruitYear": 2017,
@@ -966,7 +1016,8 @@
     "weight": 458,
     "trainingFarm": "NF空港",
     "legacySource": true,
-    "damAge": 15
+    "damAge": 15,
+    "birthDate": "2016-02-04"
   },
   {
     "recruitYear": 2017,
@@ -985,7 +1036,8 @@
     "weight": 484,
     "trainingFarm": "NF早来",
     "legacySource": true,
-    "damAge": 15
+    "damAge": 15,
+    "birthDate": "2016-03-21"
   },
   {
     "recruitYear": 2017,
@@ -1004,7 +1056,8 @@
     "weight": 444,
     "trainingFarm": "NF空港",
     "legacySource": true,
-    "damAge": 10
+    "damAge": 10,
+    "birthDate": "2016-04-05"
   },
   {
     "recruitYear": 2017,
@@ -1023,7 +1076,8 @@
     "weight": 372,
     "trainingFarm": "NF空港",
     "legacySource": true,
-    "damAge": 6
+    "damAge": 6,
+    "birthDate": "2016-03-13"
   },
   {
     "recruitYear": 2017,
@@ -1042,7 +1096,8 @@
     "weight": 399,
     "trainingFarm": "NF早来",
     "legacySource": true,
-    "damAge": 8
+    "damAge": 8,
+    "birthDate": "2016-05-27"
   },
   {
     "recruitYear": 2017,
@@ -1061,7 +1116,8 @@
     "weight": 485,
     "trainingFarm": "NF空港",
     "legacySource": true,
-    "damAge": 10
+    "damAge": 10,
+    "birthDate": "2016-01-24"
   },
   {
     "recruitYear": 2017,
@@ -1080,7 +1136,8 @@
     "weight": 512,
     "trainingFarm": "NF空港",
     "legacySource": true,
-    "damAge": 14
+    "damAge": 14,
+    "birthDate": "2016-02-09"
   },
   {
     "recruitYear": 2017,
@@ -1099,7 +1156,8 @@
     "weight": 482,
     "trainingFarm": "NF空港",
     "legacySource": true,
-    "damAge": 14
+    "damAge": 14,
+    "birthDate": "2016-03-11"
   },
   {
     "recruitYear": 2017,
@@ -1118,7 +1176,8 @@
     "weight": 460,
     "trainingFarm": "NF空港",
     "legacySource": true,
-    "damAge": 13
+    "damAge": 13,
+    "birthDate": "2016-05-04"
   },
   {
     "recruitYear": 2017,
@@ -1137,7 +1196,8 @@
     "weight": 473,
     "trainingFarm": "NF空港",
     "legacySource": true,
-    "damAge": 20
+    "damAge": 20,
+    "birthDate": "2016-02-09"
   },
   {
     "recruitYear": 2017,
@@ -1156,7 +1216,8 @@
     "weight": 420,
     "trainingFarm": "NF空港",
     "legacySource": true,
-    "damAge": 10
+    "damAge": 10,
+    "birthDate": "2016-03-23"
   },
   {
     "recruitYear": 2017,
@@ -1175,7 +1236,8 @@
     "weight": 390,
     "trainingFarm": "NF早来",
     "legacySource": true,
-    "damAge": 7
+    "damAge": 7,
+    "birthDate": "2016-04-25"
   },
   {
     "recruitYear": 2017,
@@ -1194,7 +1256,8 @@
     "weight": 434,
     "trainingFarm": "NF空港",
     "legacySource": true,
-    "damAge": 6
+    "damAge": 6,
+    "birthDate": "2016-02-01"
   },
   {
     "recruitYear": 2017,
@@ -1213,7 +1276,8 @@
     "weight": 436,
     "trainingFarm": "NF早来",
     "legacySource": true,
-    "damAge": 12
+    "damAge": 12,
+    "birthDate": "2016-04-12"
   },
   {
     "recruitYear": 2017,
@@ -1232,7 +1296,8 @@
     "weight": 480,
     "trainingFarm": "NF空港",
     "legacySource": true,
-    "damAge": 16
+    "damAge": 16,
+    "birthDate": "2016-01-17"
   },
   {
     "recruitYear": 2017,
@@ -1251,7 +1316,8 @@
     "weight": 524,
     "trainingFarm": "NF早来",
     "legacySource": true,
-    "damAge": 9
+    "damAge": 9,
+    "birthDate": "2016-01-18"
   },
   {
     "recruitYear": 2017,
@@ -1270,7 +1336,8 @@
     "weight": 439,
     "trainingFarm": "NF空港",
     "legacySource": true,
-    "damAge": 10
+    "damAge": 10,
+    "birthDate": "2016-02-24"
   },
   {
     "recruitYear": 2017,
@@ -1289,7 +1356,8 @@
     "weight": 445,
     "trainingFarm": "NF空港",
     "legacySource": true,
-    "damAge": 21
+    "damAge": 21,
+    "birthDate": "2016-02-23"
   },
   {
     "recruitYear": 2017,
@@ -1308,7 +1376,8 @@
     "weight": 431,
     "trainingFarm": "社台Ｆ",
     "legacySource": true,
-    "damAge": 17
+    "damAge": 17,
+    "birthDate": "2016-04-16"
   },
   {
     "recruitYear": 2017,
@@ -1327,7 +1396,8 @@
     "weight": 385,
     "trainingFarm": "NF早来",
     "legacySource": true,
-    "damAge": 9
+    "damAge": 9,
+    "birthDate": "2016-05-17"
   },
   {
     "recruitYear": 2017,
@@ -1346,7 +1416,8 @@
     "weight": 487,
     "trainingFarm": "NF早来",
     "legacySource": true,
-    "damAge": 10
+    "damAge": 10,
+    "birthDate": "2016-02-01"
   },
   {
     "recruitYear": 2017,
@@ -1365,7 +1436,8 @@
     "weight": 409,
     "trainingFarm": "NF空港",
     "legacySource": true,
-    "damAge": 15
+    "damAge": 15,
+    "birthDate": "2016-05-07"
   },
   {
     "recruitYear": 2017,
@@ -1384,7 +1456,8 @@
     "weight": 456,
     "trainingFarm": "NF空港",
     "legacySource": true,
-    "damAge": 11
+    "damAge": 11,
+    "birthDate": "2016-02-10"
   },
   {
     "recruitYear": 2017,
@@ -1403,7 +1476,8 @@
     "weight": 470,
     "trainingFarm": "NF空港",
     "legacySource": true,
-    "damAge": 12
+    "damAge": 12,
+    "birthDate": "2016-02-22"
   },
   {
     "recruitYear": 2017,
@@ -1422,7 +1496,8 @@
     "weight": 466,
     "trainingFarm": "NF空港",
     "legacySource": true,
-    "damAge": 9
+    "damAge": 9,
+    "birthDate": "2016-03-18"
   },
   {
     "recruitYear": 2017,
@@ -1441,7 +1516,8 @@
     "weight": 465,
     "trainingFarm": "追分Ｆリリーバレー",
     "legacySource": true,
-    "damAge": 11
+    "damAge": 11,
+    "birthDate": "2016-02-12"
   },
   {
     "recruitYear": 2017,
@@ -1460,7 +1536,8 @@
     "weight": 461,
     "trainingFarm": "NF早来",
     "legacySource": true,
-    "damAge": 17
+    "damAge": 17,
+    "birthDate": "2016-04-13"
   },
   {
     "recruitYear": 2017,
@@ -1479,7 +1556,8 @@
     "weight": 424,
     "trainingFarm": "NF空港",
     "legacySource": true,
-    "damAge": 8
+    "damAge": 8,
+    "birthDate": "2016-04-09"
   },
   {
     "recruitYear": 2017,
@@ -1498,7 +1576,8 @@
     "weight": 425,
     "trainingFarm": "NF空港",
     "legacySource": true,
-    "damAge": 10
+    "damAge": 10,
+    "birthDate": "2016-03-18"
   },
   {
     "recruitYear": 2017,
@@ -1517,7 +1596,8 @@
     "weight": 474,
     "trainingFarm": "NF空港",
     "legacySource": true,
-    "damAge": 7
+    "damAge": 7,
+    "birthDate": "2016-03-02"
   },
   {
     "recruitYear": 2017,
@@ -1536,7 +1616,8 @@
     "weight": 498,
     "trainingFarm": "NF空港",
     "legacySource": true,
-    "damAge": 15
+    "damAge": 15,
+    "birthDate": "2016-02-10"
   },
   {
     "recruitYear": 2017,
@@ -1555,7 +1636,8 @@
     "weight": 480,
     "trainingFarm": "NF早来",
     "legacySource": true,
-    "damAge": 18
+    "damAge": 18,
+    "birthDate": "2016-02-16"
   },
   {
     "recruitYear": 2017,
@@ -1574,7 +1656,8 @@
     "weight": 500,
     "trainingFarm": "NF早来",
     "legacySource": true,
-    "damAge": 10
+    "damAge": 10,
+    "birthDate": "2016-02-15"
   },
   {
     "recruitYear": 2017,
@@ -1593,7 +1676,8 @@
     "weight": 464,
     "trainingFarm": "NF空港",
     "legacySource": true,
-    "damAge": 8
+    "damAge": 8,
+    "birthDate": "2016-02-16"
   },
   {
     "recruitYear": 2017,
@@ -1612,7 +1696,8 @@
     "weight": 426,
     "trainingFarm": "NF空港",
     "legacySource": true,
-    "damAge": 9
+    "damAge": 9,
+    "birthDate": "2016-04-02"
   },
   {
     "recruitYear": 2018,
@@ -1631,7 +1716,8 @@
     "weight": 457,
     "trainingFarm": "NF早来",
     "legacySource": true,
-    "damAge": 13
+    "damAge": 13,
+    "birthDate": "2017-02-06"
   },
   {
     "recruitYear": 2018,
@@ -1650,7 +1736,8 @@
     "weight": 388,
     "trainingFarm": "NF空港",
     "legacySource": true,
-    "damAge": 11
+    "damAge": 11,
+    "birthDate": "2017-05-13"
   },
   {
     "recruitYear": 2018,
@@ -1669,7 +1756,8 @@
     "weight": 443,
     "trainingFarm": "NF空港",
     "legacySource": true,
-    "damAge": 11
+    "damAge": 11,
+    "birthDate": "2017-02-13"
   },
   {
     "recruitYear": 2018,
@@ -1688,7 +1776,8 @@
     "weight": 412,
     "trainingFarm": "NF空港",
     "legacySource": true,
-    "damAge": 9
+    "damAge": 9,
+    "birthDate": "2017-02-16"
   },
   {
     "recruitYear": 2018,
@@ -1707,7 +1796,8 @@
     "weight": 473,
     "trainingFarm": "NF空港",
     "legacySource": true,
-    "damAge": 12
+    "damAge": 12,
+    "birthDate": "2017-03-14"
   },
   {
     "recruitYear": 2018,
@@ -1726,7 +1816,8 @@
     "weight": 412,
     "trainingFarm": "NF空港",
     "legacySource": true,
-    "damAge": 10
+    "damAge": 10,
+    "birthDate": "2017-04-17"
   },
   {
     "recruitYear": 2018,
@@ -1745,7 +1836,8 @@
     "weight": 471,
     "trainingFarm": "NF空港",
     "legacySource": true,
-    "damAge": 10
+    "damAge": 10,
+    "birthDate": "2017-02-13"
   },
   {
     "recruitYear": 2018,
@@ -1764,7 +1856,8 @@
     "weight": 409,
     "trainingFarm": "NF空港",
     "legacySource": true,
-    "damAge": 8
+    "damAge": 8,
+    "birthDate": "2017-04-01"
   },
   {
     "recruitYear": 2018,
@@ -1783,7 +1876,8 @@
     "weight": 457,
     "trainingFarm": "NF空港",
     "legacySource": true,
-    "damAge": 17
+    "damAge": 17,
+    "birthDate": "2017-03-04"
   },
   {
     "recruitYear": 2018,
@@ -1802,7 +1896,8 @@
     "weight": 428,
     "trainingFarm": "NF空港",
     "legacySource": true,
-    "damAge": 5
+    "damAge": 5,
+    "birthDate": "2017-03-14"
   },
   {
     "recruitYear": 2018,
@@ -1821,7 +1916,8 @@
     "weight": 440,
     "trainingFarm": "NF空港",
     "legacySource": true,
-    "damAge": 8
+    "damAge": 8,
+    "birthDate": "2017-03-19"
   },
   {
     "recruitYear": 2018,
@@ -1840,7 +1936,8 @@
     "weight": 404,
     "trainingFarm": "NF空港",
     "legacySource": true,
-    "damAge": 6
+    "damAge": 6,
+    "birthDate": "2017-03-31"
   },
   {
     "recruitYear": 2018,
@@ -1859,7 +1956,8 @@
     "weight": 481,
     "trainingFarm": "NF早来",
     "legacySource": true,
-    "damAge": 18
+    "damAge": 18,
+    "birthDate": "2017-03-25"
   },
   {
     "recruitYear": 2018,
@@ -1878,7 +1976,8 @@
     "weight": 440,
     "trainingFarm": "NF空港",
     "legacySource": true,
-    "damAge": 16
+    "damAge": 16,
+    "birthDate": "2017-05-06"
   },
   {
     "recruitYear": 2018,
@@ -1897,7 +1996,8 @@
     "weight": 435,
     "trainingFarm": "NF空港",
     "legacySource": true,
-    "damAge": 9
+    "damAge": 9,
+    "birthDate": "2017-03-07"
   },
   {
     "recruitYear": 2018,
@@ -1916,7 +2016,8 @@
     "weight": 463,
     "trainingFarm": "NF空港",
     "legacySource": true,
-    "damAge": 14
+    "damAge": 14,
+    "birthDate": "2017-04-05"
   },
   {
     "recruitYear": 2018,
@@ -1935,7 +2036,8 @@
     "weight": 460,
     "trainingFarm": "NF早来",
     "legacySource": true,
-    "damAge": 11
+    "damAge": 11,
+    "birthDate": "2017-02-22"
   },
   {
     "recruitYear": 2018,
@@ -1954,7 +2056,8 @@
     "weight": 420,
     "trainingFarm": "NF空港",
     "legacySource": true,
-    "damAge": 12
+    "damAge": 12,
+    "birthDate": "2017-05-02"
   },
   {
     "recruitYear": 2018,
@@ -1973,7 +2076,8 @@
     "weight": 419,
     "trainingFarm": "NF空港",
     "legacySource": true,
-    "damAge": 5
+    "damAge": 5,
+    "birthDate": "2017-02-09"
   },
   {
     "recruitYear": 2018,
@@ -1992,7 +2096,8 @@
     "weight": 439,
     "trainingFarm": "NF空港",
     "legacySource": true,
-    "damAge": 18
+    "damAge": 18,
+    "birthDate": "2017-04-19"
   },
   {
     "recruitYear": 2018,
@@ -2011,7 +2116,8 @@
     "weight": 476,
     "trainingFarm": "NF空港",
     "legacySource": true,
-    "damAge": null
+    "damAge": null,
+    "birthDate": null
   },
   {
     "recruitYear": 2018,
@@ -2030,7 +2136,8 @@
     "weight": 437,
     "trainingFarm": "NF早来",
     "legacySource": true,
-    "damAge": 15
+    "damAge": 15,
+    "birthDate": "2017-04-17"
   },
   {
     "recruitYear": 2018,
@@ -2049,7 +2156,8 @@
     "weight": 452,
     "trainingFarm": "NF空港",
     "legacySource": true,
-    "damAge": 14
+    "damAge": 14,
+    "birthDate": "2017-02-12"
   },
   {
     "recruitYear": 2018,
@@ -2068,7 +2176,8 @@
     "weight": 446,
     "trainingFarm": "NF早来",
     "legacySource": true,
-    "damAge": 17
+    "damAge": 17,
+    "birthDate": "2017-04-29"
   },
   {
     "recruitYear": 2018,
@@ -2087,7 +2196,8 @@
     "weight": 451,
     "trainingFarm": "NF空港",
     "legacySource": true,
-    "damAge": 17
+    "damAge": 17,
+    "birthDate": "2017-01-22"
   },
   {
     "recruitYear": 2018,
@@ -2106,7 +2216,8 @@
     "weight": 400,
     "trainingFarm": "NF空港",
     "legacySource": true,
-    "damAge": 15
+    "damAge": 15,
+    "birthDate": "2017-03-22"
   },
   {
     "recruitYear": 2018,
@@ -2125,7 +2236,8 @@
     "weight": 504,
     "trainingFarm": "NF早来",
     "legacySource": true,
-    "damAge": 12
+    "damAge": 12,
+    "birthDate": "2017-01-20"
   },
   {
     "recruitYear": 2018,
@@ -2144,7 +2256,8 @@
     "weight": 450,
     "trainingFarm": "NF空港",
     "legacySource": true,
-    "damAge": 16
+    "damAge": 16,
+    "birthDate": "2017-04-01"
   },
   {
     "recruitYear": 2018,
@@ -2163,7 +2276,8 @@
     "weight": 467,
     "trainingFarm": "NF空港",
     "legacySource": true,
-    "damAge": 13
+    "damAge": 13,
+    "birthDate": "2017-02-24"
   },
   {
     "recruitYear": 2018,
@@ -2182,7 +2296,8 @@
     "weight": 441,
     "trainingFarm": "NF空港",
     "legacySource": true,
-    "damAge": 16
+    "damAge": 16,
+    "birthDate": "2017-02-25"
   },
   {
     "recruitYear": 2018,
@@ -2201,7 +2316,8 @@
     "weight": 479,
     "trainingFarm": "NF空港",
     "legacySource": true,
-    "damAge": 14
+    "damAge": 14,
+    "birthDate": "2017-05-11"
   },
   {
     "recruitYear": 2018,
@@ -2220,7 +2336,8 @@
     "weight": 410,
     "trainingFarm": "NF空港",
     "legacySource": true,
-    "damAge": 9
+    "damAge": 9,
+    "birthDate": "2017-04-14"
   },
   {
     "recruitYear": 2018,
@@ -2239,7 +2356,8 @@
     "weight": 446,
     "trainingFarm": "NF空港",
     "legacySource": true,
-    "damAge": 16
+    "damAge": 16,
+    "birthDate": "2017-03-07"
   },
   {
     "recruitYear": 2018,
@@ -2258,7 +2376,8 @@
     "weight": 427,
     "trainingFarm": "NF空港",
     "legacySource": true,
-    "damAge": 8
+    "damAge": 8,
+    "birthDate": "2017-03-16"
   },
   {
     "recruitYear": 2018,
@@ -2277,7 +2396,8 @@
     "weight": 450,
     "trainingFarm": "NF空港",
     "legacySource": true,
-    "damAge": 10
+    "damAge": 10,
+    "birthDate": "2017-03-08"
   },
   {
     "recruitYear": 2018,
@@ -2296,7 +2416,8 @@
     "weight": 435,
     "trainingFarm": "NF空港",
     "legacySource": true,
-    "damAge": 14
+    "damAge": 14,
+    "birthDate": "2017-04-18"
   },
   {
     "recruitYear": 2018,
@@ -2315,7 +2436,8 @@
     "weight": 477,
     "trainingFarm": "NF早来",
     "legacySource": true,
-    "damAge": 12
+    "damAge": 12,
+    "birthDate": "2017-04-10"
   },
   {
     "recruitYear": 2018,
@@ -2334,7 +2456,8 @@
     "weight": 431,
     "trainingFarm": "NF空港",
     "legacySource": true,
-    "damAge": 12
+    "damAge": 12,
+    "birthDate": "2017-02-12"
   },
   {
     "recruitYear": 2018,
@@ -2353,7 +2476,8 @@
     "weight": 447,
     "trainingFarm": "NF早来",
     "legacySource": true,
-    "damAge": 15
+    "damAge": 15,
+    "birthDate": "2017-02-04"
   },
   {
     "recruitYear": 2018,
@@ -2372,7 +2496,8 @@
     "weight": 439,
     "trainingFarm": "NF早来",
     "legacySource": true,
-    "damAge": 8
+    "damAge": 8,
+    "birthDate": "2017-04-19"
   },
   {
     "recruitYear": 2018,
@@ -2391,7 +2516,8 @@
     "weight": 429,
     "trainingFarm": "NF空港",
     "legacySource": true,
-    "damAge": 16
+    "damAge": 16,
+    "birthDate": "2017-02-18"
   },
   {
     "recruitYear": 2018,
@@ -2410,7 +2536,8 @@
     "weight": 411,
     "trainingFarm": "NF空港",
     "legacySource": true,
-    "damAge": 13
+    "damAge": 13,
+    "birthDate": "2017-03-06"
   },
   {
     "recruitYear": 2018,
@@ -2429,7 +2556,8 @@
     "weight": 420,
     "trainingFarm": "NF空港",
     "legacySource": true,
-    "damAge": 15
+    "damAge": 15,
+    "birthDate": "2017-01-28"
   },
   {
     "recruitYear": 2018,
@@ -2448,7 +2576,8 @@
     "weight": 392,
     "trainingFarm": "NF早来",
     "legacySource": true,
-    "damAge": 16
+    "damAge": 16,
+    "birthDate": "2017-04-21"
   },
   {
     "recruitYear": 2018,
@@ -2467,7 +2596,8 @@
     "weight": 383,
     "trainingFarm": "NF早来",
     "legacySource": true,
-    "damAge": 7
+    "damAge": 7,
+    "birthDate": "2017-05-12"
   },
   {
     "recruitYear": 2018,
@@ -2486,7 +2616,8 @@
     "weight": 424,
     "trainingFarm": "NF早来",
     "legacySource": true,
-    "damAge": 8
+    "damAge": 8,
+    "birthDate": "2017-05-24"
   },
   {
     "recruitYear": 2018,
@@ -2505,7 +2636,8 @@
     "weight": 457,
     "trainingFarm": "追分Fリリーバレー",
     "legacySource": true,
-    "damAge": 13
+    "damAge": 13,
+    "birthDate": "2017-02-03"
   },
   {
     "recruitYear": 2018,
@@ -2524,7 +2656,8 @@
     "weight": 436,
     "trainingFarm": "NF早来",
     "legacySource": true,
-    "damAge": 13
+    "damAge": 13,
+    "birthDate": "2017-03-27"
   },
   {
     "recruitYear": 2018,
@@ -2543,7 +2676,8 @@
     "weight": 415,
     "trainingFarm": "NF早来",
     "legacySource": true,
-    "damAge": 16
+    "damAge": 16,
+    "birthDate": "2017-05-01"
   },
   {
     "recruitYear": 2018,
@@ -2562,7 +2696,8 @@
     "weight": 473,
     "trainingFarm": "NF空港",
     "legacySource": true,
-    "damAge": 8
+    "damAge": 8,
+    "birthDate": "2017-02-07"
   },
   {
     "recruitYear": 2018,
@@ -2581,7 +2716,8 @@
     "weight": 404,
     "trainingFarm": "NF早来",
     "legacySource": true,
-    "damAge": 9
+    "damAge": 9,
+    "birthDate": "2017-03-31"
   },
   {
     "recruitYear": 2018,
@@ -2600,7 +2736,8 @@
     "weight": 437,
     "trainingFarm": "NF早来",
     "legacySource": true,
-    "damAge": 11
+    "damAge": 11,
+    "birthDate": "2017-01-28"
   },
   {
     "recruitYear": 2018,
@@ -2619,7 +2756,8 @@
     "weight": 423,
     "trainingFarm": "NF早来",
     "legacySource": true,
-    "damAge": 10
+    "damAge": 10,
+    "birthDate": "2017-02-24"
   },
   {
     "recruitYear": 2018,
@@ -2638,7 +2776,8 @@
     "weight": 392,
     "trainingFarm": "NF空港",
     "legacySource": true,
-    "damAge": 9
+    "damAge": 9,
+    "birthDate": "2017-05-09"
   },
   {
     "recruitYear": 2018,
@@ -2657,7 +2796,8 @@
     "weight": 489,
     "trainingFarm": "NF空港",
     "legacySource": true,
-    "damAge": 6
+    "damAge": 6,
+    "birthDate": "2017-01-22"
   },
   {
     "recruitYear": 2018,
@@ -2676,7 +2816,8 @@
     "weight": 440,
     "trainingFarm": "社台Ｆ",
     "legacySource": true,
-    "damAge": 13
+    "damAge": 13,
+    "birthDate": "2017-03-09"
   },
   {
     "recruitYear": 2018,
@@ -2695,7 +2836,8 @@
     "weight": 429,
     "trainingFarm": "NF早来",
     "legacySource": true,
-    "damAge": 15
+    "damAge": 15,
+    "birthDate": "2017-04-09"
   },
   {
     "recruitYear": 2018,
@@ -2714,7 +2856,8 @@
     "weight": 462,
     "trainingFarm": "NF空港",
     "legacySource": true,
-    "damAge": 8
+    "damAge": 8,
+    "birthDate": "2017-02-15"
   },
   {
     "recruitYear": 2018,
@@ -2733,7 +2876,8 @@
     "weight": 457,
     "trainingFarm": "追分Fリリーバレー",
     "legacySource": true,
-    "damAge": 16
+    "damAge": 16,
+    "birthDate": "2017-05-04"
   },
   {
     "recruitYear": 2018,
@@ -2752,7 +2896,8 @@
     "weight": 491,
     "trainingFarm": "NF早来",
     "legacySource": true,
-    "damAge": 10
+    "damAge": 10,
+    "birthDate": "2017-01-19"
   },
   {
     "recruitYear": 2018,
@@ -2771,7 +2916,8 @@
     "weight": 420,
     "trainingFarm": "NF早来",
     "legacySource": true,
-    "damAge": 8
+    "damAge": 8,
+    "birthDate": "2017-02-15"
   },
   {
     "recruitYear": 2018,
@@ -2790,7 +2936,8 @@
     "weight": 436,
     "trainingFarm": "NF早来",
     "legacySource": true,
-    "damAge": 8
+    "damAge": 8,
+    "birthDate": "2017-03-24"
   },
   {
     "recruitYear": 2018,
@@ -2809,7 +2956,8 @@
     "weight": 444,
     "trainingFarm": "NF空港",
     "legacySource": true,
-    "damAge": 13
+    "damAge": 13,
+    "birthDate": "2017-01-30"
   },
   {
     "recruitYear": 2018,
@@ -2828,7 +2976,8 @@
     "weight": 427,
     "trainingFarm": "NF空港",
     "legacySource": true,
-    "damAge": 14
+    "damAge": 14,
+    "birthDate": "2017-04-19"
   },
   {
     "recruitYear": 2018,
@@ -2847,7 +2996,8 @@
     "weight": 423,
     "trainingFarm": "NF空港",
     "legacySource": true,
-    "damAge": 9
+    "damAge": 9,
+    "birthDate": "2017-03-05"
   },
   {
     "recruitYear": 2018,
@@ -2866,7 +3016,8 @@
     "weight": 397,
     "trainingFarm": "NF早来",
     "legacySource": true,
-    "damAge": 17
+    "damAge": 17,
+    "birthDate": "2017-05-14"
   },
   {
     "recruitYear": 2018,
@@ -2885,7 +3036,8 @@
     "weight": 482,
     "trainingFarm": "NF早来",
     "legacySource": true,
-    "damAge": 8
+    "damAge": 8,
+    "birthDate": "2017-03-15"
   },
   {
     "recruitYear": 2018,
@@ -2904,7 +3056,8 @@
     "weight": 440,
     "trainingFarm": "NF早来",
     "legacySource": true,
-    "damAge": 10
+    "damAge": 10,
+    "birthDate": "2017-02-05"
   },
   {
     "recruitYear": 2018,
@@ -2923,7 +3076,8 @@
     "weight": 457,
     "trainingFarm": "NF早来",
     "legacySource": true,
-    "damAge": 14
+    "damAge": 14,
+    "birthDate": "2017-03-21"
   },
   {
     "recruitYear": 2018,
@@ -2942,7 +3096,8 @@
     "weight": 497,
     "trainingFarm": "NF空港",
     "legacySource": true,
-    "damAge": 17
+    "damAge": 17,
+    "birthDate": "2017-02-01"
   },
   {
     "recruitYear": 2018,
@@ -2961,7 +3116,8 @@
     "weight": 483,
     "trainingFarm": "NF空港",
     "legacySource": true,
-    "damAge": 11
+    "damAge": 11,
+    "birthDate": "2017-01-19"
   },
   {
     "recruitYear": 2018,
@@ -2980,7 +3136,8 @@
     "weight": 492,
     "trainingFarm": "NF早来",
     "legacySource": true,
-    "damAge": 9
+    "damAge": 9,
+    "birthDate": "2017-02-28"
   },
   {
     "recruitYear": 2018,
@@ -2999,7 +3156,8 @@
     "weight": 457,
     "trainingFarm": "NF早来",
     "legacySource": true,
-    "damAge": 9
+    "damAge": 9,
+    "birthDate": "2017-03-06"
   },
   {
     "recruitYear": 2018,
@@ -3018,7 +3176,8 @@
     "weight": 494,
     "trainingFarm": "NF空港",
     "legacySource": true,
-    "damAge": 14
+    "damAge": 14,
+    "birthDate": "2017-02-06"
   },
   {
     "recruitYear": 2018,
@@ -3037,7 +3196,8 @@
     "weight": 442,
     "trainingFarm": "NF空港",
     "legacySource": true,
-    "damAge": 12
+    "damAge": 12,
+    "birthDate": "2017-03-20"
   },
   {
     "recruitYear": 2018,
@@ -3056,7 +3216,8 @@
     "weight": 455,
     "trainingFarm": "NF早来",
     "legacySource": true,
-    "damAge": 8
+    "damAge": 8,
+    "birthDate": "2017-02-02"
   },
   {
     "recruitYear": 2018,
@@ -3075,7 +3236,8 @@
     "weight": 458,
     "trainingFarm": "NF早来",
     "legacySource": true,
-    "damAge": 8
+    "damAge": 8,
+    "birthDate": "2017-02-13"
   },
   {
     "recruitYear": 2018,
@@ -3094,7 +3256,8 @@
     "weight": 490,
     "trainingFarm": "NF空港",
     "legacySource": true,
-    "damAge": 9
+    "damAge": 9,
+    "birthDate": "2017-02-02"
   },
   {
     "recruitYear": 2018,
@@ -3113,7 +3276,8 @@
     "weight": 437,
     "trainingFarm": "NF早来",
     "legacySource": true,
-    "damAge": 6
+    "damAge": 6,
+    "birthDate": "2017-04-01"
   },
   {
     "recruitYear": 2018,
@@ -3132,7 +3296,8 @@
     "weight": 434,
     "trainingFarm": "NF早来",
     "legacySource": true,
-    "damAge": 7
+    "damAge": 7,
+    "birthDate": "2017-01-31"
   },
   {
     "recruitYear": 2018,
@@ -3151,7 +3316,8 @@
     "weight": 454,
     "trainingFarm": "NF早来",
     "legacySource": true,
-    "damAge": 12
+    "damAge": 12,
+    "birthDate": "2017-03-11"
   },
   {
     "recruitYear": 2018,
@@ -3170,7 +3336,8 @@
     "weight": 412,
     "trainingFarm": "NF早来",
     "legacySource": true,
-    "damAge": 16
+    "damAge": 16,
+    "birthDate": "2017-04-13"
   },
   {
     "recruitYear": 2018,
@@ -3189,7 +3356,8 @@
     "weight": 422,
     "trainingFarm": "NF早来",
     "legacySource": true,
-    "damAge": 8
+    "damAge": 8,
+    "birthDate": "2017-02-24"
   },
   {
     "recruitYear": 2018,
@@ -3208,7 +3376,8 @@
     "weight": 481,
     "trainingFarm": "NF空港",
     "legacySource": true,
-    "damAge": 14
+    "damAge": 14,
+    "birthDate": "2017-03-18"
   },
   {
     "recruitYear": 2019,
@@ -3227,7 +3396,8 @@
     "weight": 470,
     "trainingFarm": "NF空港",
     "legacySource": true,
-    "damAge": 14
+    "damAge": 14,
+    "birthDate": "2018-03-21"
   },
   {
     "recruitYear": 2019,
@@ -3246,7 +3416,8 @@
     "weight": 394,
     "trainingFarm": "NF空港",
     "legacySource": true,
-    "damAge": 20
+    "damAge": 20,
+    "birthDate": "2018-05-20"
   },
   {
     "recruitYear": 2019,
@@ -3265,7 +3436,8 @@
     "weight": 491,
     "trainingFarm": "NF空港",
     "legacySource": true,
-    "damAge": 13
+    "damAge": 13,
+    "birthDate": "2018-02-05"
   },
   {
     "recruitYear": 2019,
@@ -3284,7 +3456,8 @@
     "weight": 478,
     "trainingFarm": "NF早来",
     "legacySource": true,
-    "damAge": 11
+    "damAge": 11,
+    "birthDate": "2018-02-23"
   },
   {
     "recruitYear": 2019,
@@ -3303,7 +3476,8 @@
     "weight": 415,
     "trainingFarm": "NF空港",
     "legacySource": true,
-    "damAge": 9
+    "damAge": 9,
+    "birthDate": "2018-03-16"
   },
   {
     "recruitYear": 2019,
@@ -3322,7 +3496,8 @@
     "weight": 425,
     "trainingFarm": "NF空港",
     "legacySource": true,
-    "damAge": 7
+    "damAge": 7,
+    "birthDate": "2018-03-31"
   },
   {
     "recruitYear": 2019,
@@ -3341,7 +3516,8 @@
     "weight": 425,
     "trainingFarm": "NF早来",
     "legacySource": true,
-    "damAge": null
+    "damAge": null,
+    "birthDate": null
   },
   {
     "recruitYear": 2019,
@@ -3360,7 +3536,8 @@
     "weight": 429,
     "trainingFarm": "NF空港",
     "legacySource": true,
-    "damAge": 17
+    "damAge": 17,
+    "birthDate": "2018-03-11"
   },
   {
     "recruitYear": 2019,
@@ -3379,7 +3556,8 @@
     "weight": 460,
     "trainingFarm": "NF早来",
     "legacySource": true,
-    "damAge": 11
+    "damAge": 11,
+    "birthDate": "2018-04-25"
   },
   {
     "recruitYear": 2019,
@@ -3398,7 +3576,8 @@
     "weight": 455,
     "trainingFarm": "NF早来",
     "legacySource": true,
-    "damAge": 8
+    "damAge": 8,
+    "birthDate": "2018-02-09"
   },
   {
     "recruitYear": 2019,
@@ -3417,7 +3596,8 @@
     "weight": 452,
     "trainingFarm": "NF空港",
     "legacySource": true,
-    "damAge": 9
+    "damAge": 9,
+    "birthDate": "2018-04-11"
   },
   {
     "recruitYear": 2019,
@@ -3436,7 +3616,8 @@
     "weight": null,
     "trainingFarm": null,
     "legacySource": true,
-    "damAge": 16
+    "damAge": 16,
+    "birthDate": "2018-04-10"
   },
   {
     "recruitYear": 2019,
@@ -3455,7 +3636,8 @@
     "weight": 438,
     "trainingFarm": "NF空港",
     "legacySource": true,
-    "damAge": 10
+    "damAge": 10,
+    "birthDate": "2018-04-15"
   },
   {
     "recruitYear": 2019,
@@ -3474,7 +3656,8 @@
     "weight": 455,
     "trainingFarm": "NF空港",
     "legacySource": true,
-    "damAge": 8
+    "damAge": 8,
+    "birthDate": "2018-01-19"
   },
   {
     "recruitYear": 2019,
@@ -3493,7 +3676,8 @@
     "weight": 489,
     "trainingFarm": "NF空港",
     "legacySource": true,
-    "damAge": 10
+    "damAge": 10,
+    "birthDate": "2018-03-10"
   },
   {
     "recruitYear": 2019,
@@ -3512,7 +3696,8 @@
     "weight": 413,
     "trainingFarm": "NF早来",
     "legacySource": true,
-    "damAge": 10
+    "damAge": 10,
+    "birthDate": "2018-03-29"
   },
   {
     "recruitYear": 2019,
@@ -3531,7 +3716,8 @@
     "weight": 422,
     "trainingFarm": "NF空港",
     "legacySource": true,
-    "damAge": 7
+    "damAge": 7,
+    "birthDate": "2018-05-16"
   },
   {
     "recruitYear": 2019,
@@ -3550,7 +3736,8 @@
     "weight": 406,
     "trainingFarm": "NF早来",
     "legacySource": true,
-    "damAge": 9
+    "damAge": 9,
+    "birthDate": "2018-01-29"
   },
   {
     "recruitYear": 2019,
@@ -3569,7 +3756,8 @@
     "weight": 425,
     "trainingFarm": "NF空港",
     "legacySource": true,
-    "damAge": 13
+    "damAge": 13,
+    "birthDate": "2018-03-23"
   },
   {
     "recruitYear": 2019,
@@ -3588,7 +3776,8 @@
     "weight": 478,
     "trainingFarm": "NF空港",
     "legacySource": true,
-    "damAge": 12
+    "damAge": 12,
+    "birthDate": "2018-01-28"
   },
   {
     "recruitYear": 2019,
@@ -3607,7 +3796,8 @@
     "weight": 429,
     "trainingFarm": "NF早来",
     "legacySource": true,
-    "damAge": 10
+    "damAge": 10,
+    "birthDate": "2018-01-23"
   },
   {
     "recruitYear": 2019,
@@ -3626,7 +3816,8 @@
     "weight": 442,
     "trainingFarm": "NF早来",
     "legacySource": true,
-    "damAge": 16
+    "damAge": 16,
+    "birthDate": "2018-04-08"
   },
   {
     "recruitYear": 2019,
@@ -3645,7 +3836,8 @@
     "weight": 430,
     "trainingFarm": "NF早来",
     "legacySource": true,
-    "damAge": 11
+    "damAge": 11,
+    "birthDate": "2018-02-08"
   },
   {
     "recruitYear": 2019,
@@ -3664,7 +3856,8 @@
     "weight": 407,
     "trainingFarm": "NF早来",
     "legacySource": true,
-    "damAge": 8
+    "damAge": 8,
+    "birthDate": "2018-03-15"
   },
   {
     "recruitYear": 2019,
@@ -3683,7 +3876,8 @@
     "weight": 418,
     "trainingFarm": "NF空港",
     "legacySource": true,
-    "damAge": 9
+    "damAge": 9,
+    "birthDate": "2018-04-29"
   },
   {
     "recruitYear": 2019,
@@ -3702,7 +3896,8 @@
     "weight": 458,
     "trainingFarm": "NF早来",
     "legacySource": true,
-    "damAge": 11
+    "damAge": 11,
+    "birthDate": "2018-03-07"
   },
   {
     "recruitYear": 2019,
@@ -3721,7 +3916,8 @@
     "weight": 471,
     "trainingFarm": "NF早来",
     "legacySource": true,
-    "damAge": 18
+    "damAge": 18,
+    "birthDate": "2018-06-08"
   },
   {
     "recruitYear": 2019,
@@ -3740,7 +3936,8 @@
     "weight": 410,
     "trainingFarm": "NF空港",
     "legacySource": true,
-    "damAge": 16
+    "damAge": 16,
+    "birthDate": "2018-04-17"
   },
   {
     "recruitYear": 2019,
@@ -3759,7 +3956,8 @@
     "weight": 450,
     "trainingFarm": "NF空港",
     "legacySource": true,
-    "damAge": 17
+    "damAge": 17,
+    "birthDate": "2018-03-22"
   },
   {
     "recruitYear": 2019,
@@ -3778,7 +3976,8 @@
     "weight": 480,
     "trainingFarm": "NF空港",
     "legacySource": true,
-    "damAge": 8
+    "damAge": 8,
+    "birthDate": "2018-02-22"
   },
   {
     "recruitYear": 2019,
@@ -3797,7 +3996,8 @@
     "weight": 470,
     "trainingFarm": "NF空港",
     "legacySource": true,
-    "damAge": 12
+    "damAge": 12,
+    "birthDate": "2018-02-09"
   },
   {
     "recruitYear": 2019,
@@ -3816,7 +4016,8 @@
     "weight": 425,
     "trainingFarm": "NF早来",
     "legacySource": true,
-    "damAge": 8
+    "damAge": 8,
+    "birthDate": "2018-01-31"
   },
   {
     "recruitYear": 2019,
@@ -3835,7 +4036,8 @@
     "weight": 435,
     "trainingFarm": "NF早来",
     "legacySource": true,
-    "damAge": 9
+    "damAge": 9,
+    "birthDate": "2018-02-19"
   },
   {
     "recruitYear": 2019,
@@ -3854,7 +4056,8 @@
     "weight": 420,
     "trainingFarm": "NF早来",
     "legacySource": true,
-    "damAge": 9
+    "damAge": 9,
+    "birthDate": "2018-05-21"
   },
   {
     "recruitYear": 2019,
@@ -3873,7 +4076,8 @@
     "weight": 441,
     "trainingFarm": "NF早来",
     "legacySource": true,
-    "damAge": 9
+    "damAge": 9,
+    "birthDate": "2018-03-23"
   },
   {
     "recruitYear": 2019,
@@ -3892,7 +4096,8 @@
     "weight": 458,
     "trainingFarm": "NF空港",
     "legacySource": true,
-    "damAge": 15
+    "damAge": 15,
+    "birthDate": "2018-05-08"
   },
   {
     "recruitYear": 2019,
@@ -3911,7 +4116,8 @@
     "weight": 435,
     "trainingFarm": "NF空港",
     "legacySource": true,
-    "damAge": 15
+    "damAge": 15,
+    "birthDate": "2018-02-17"
   },
   {
     "recruitYear": 2019,
@@ -3930,7 +4136,8 @@
     "weight": 431,
     "trainingFarm": "NF早来",
     "legacySource": true,
-    "damAge": 13
+    "damAge": 13,
+    "birthDate": "2018-02-14"
   },
   {
     "recruitYear": 2019,
@@ -3949,7 +4156,8 @@
     "weight": 457,
     "trainingFarm": "NF早来",
     "legacySource": true,
-    "damAge": 13
+    "damAge": 13,
+    "birthDate": "2018-04-08"
   },
   {
     "recruitYear": 2019,
@@ -3968,7 +4176,8 @@
     "weight": 430,
     "trainingFarm": "NF空港",
     "legacySource": true,
-    "damAge": 12
+    "damAge": 12,
+    "birthDate": "2018-05-03"
   },
   {
     "recruitYear": 2019,
@@ -3987,7 +4196,8 @@
     "weight": 401,
     "trainingFarm": "NF空港",
     "legacySource": true,
-    "damAge": 9
+    "damAge": 9,
+    "birthDate": "2018-03-29"
   },
   {
     "recruitYear": 2019,
@@ -4006,7 +4216,8 @@
     "weight": 410,
     "trainingFarm": "NF早来",
     "legacySource": true,
-    "damAge": 11
+    "damAge": 11,
+    "birthDate": "2018-04-10"
   },
   {
     "recruitYear": 2019,
@@ -4025,7 +4236,8 @@
     "weight": 402,
     "trainingFarm": "NF空港",
     "legacySource": true,
-    "damAge": 17
+    "damAge": 17,
+    "birthDate": "2018-05-04"
   },
   {
     "recruitYear": 2019,
@@ -4044,7 +4256,8 @@
     "weight": 454,
     "trainingFarm": "NF早来",
     "legacySource": true,
-    "damAge": 11
+    "damAge": 11,
+    "birthDate": "2018-01-18"
   },
   {
     "recruitYear": 2019,
@@ -4063,7 +4276,8 @@
     "weight": 400,
     "trainingFarm": "NF早来",
     "legacySource": true,
-    "damAge": 14
+    "damAge": 14,
+    "birthDate": "2018-03-09"
   },
   {
     "recruitYear": 2019,
@@ -4082,7 +4296,8 @@
     "weight": 473,
     "trainingFarm": "NF空港",
     "legacySource": true,
-    "damAge": 13
+    "damAge": 13,
+    "birthDate": "2018-04-12"
   },
   {
     "recruitYear": 2019,
@@ -4101,7 +4316,8 @@
     "weight": 425,
     "trainingFarm": "NF早来",
     "legacySource": true,
-    "damAge": 11
+    "damAge": 11,
+    "birthDate": "2018-03-03"
   },
   {
     "recruitYear": 2019,
@@ -4120,7 +4336,8 @@
     "weight": 435,
     "trainingFarm": "NF早来",
     "legacySource": true,
-    "damAge": 12
+    "damAge": 12,
+    "birthDate": "2018-01-17"
   },
   {
     "recruitYear": 2019,
@@ -4139,7 +4356,8 @@
     "weight": 456,
     "trainingFarm": "NF空港",
     "legacySource": true,
-    "damAge": 14
+    "damAge": 14,
+    "birthDate": "2018-03-02"
   },
   {
     "recruitYear": 2019,
@@ -4158,7 +4376,8 @@
     "weight": 441,
     "trainingFarm": "NF空港",
     "legacySource": true,
-    "damAge": 17
+    "damAge": 17,
+    "birthDate": "2018-04-22"
   },
   {
     "recruitYear": 2019,
@@ -4177,7 +4396,8 @@
     "weight": 466,
     "trainingFarm": "NF空港",
     "legacySource": true,
-    "damAge": 13
+    "damAge": 13,
+    "birthDate": "2018-02-07"
   },
   {
     "recruitYear": 2019,
@@ -4196,7 +4416,8 @@
     "weight": 429,
     "trainingFarm": "NF空港",
     "legacySource": true,
-    "damAge": 13
+    "damAge": 13,
+    "birthDate": "2018-04-28"
   },
   {
     "recruitYear": 2019,
@@ -4215,7 +4436,8 @@
     "weight": 438,
     "trainingFarm": "NF空港",
     "legacySource": true,
-    "damAge": 9
+    "damAge": 9,
+    "birthDate": "2018-05-02"
   },
   {
     "recruitYear": 2019,
@@ -4234,7 +4456,8 @@
     "weight": 422,
     "trainingFarm": "NF空港",
     "legacySource": true,
-    "damAge": 8
+    "damAge": 8,
+    "birthDate": "2018-01-21"
   },
   {
     "recruitYear": 2019,
@@ -4253,7 +4476,8 @@
     "weight": 467,
     "trainingFarm": "NF空港",
     "legacySource": true,
-    "damAge": 11
+    "damAge": 11,
+    "birthDate": "2018-01-27"
   },
   {
     "recruitYear": 2019,
@@ -4272,7 +4496,8 @@
     "weight": 495,
     "trainingFarm": "NF早来",
     "legacySource": true,
-    "damAge": 14
+    "damAge": 14,
+    "birthDate": "2018-02-01"
   },
   {
     "recruitYear": 2019,
@@ -4291,7 +4516,8 @@
     "weight": 443,
     "trainingFarm": "NF空港",
     "legacySource": true,
-    "damAge": 9
+    "damAge": 9,
+    "birthDate": "2018-04-23"
   },
   {
     "recruitYear": 2019,
@@ -4310,7 +4536,8 @@
     "weight": 455,
     "trainingFarm": "NF早来",
     "legacySource": true,
-    "damAge": 8
+    "damAge": 8,
+    "birthDate": "2018-02-28"
   },
   {
     "recruitYear": 2019,
@@ -4329,7 +4556,8 @@
     "weight": 448,
     "trainingFarm": "NF空港",
     "legacySource": true,
-    "damAge": 17
+    "damAge": 17,
+    "birthDate": "2018-03-19"
   },
   {
     "recruitYear": 2019,
@@ -4348,7 +4576,8 @@
     "weight": 472,
     "trainingFarm": "NF空港",
     "legacySource": true,
-    "damAge": 9
+    "damAge": 9,
+    "birthDate": "2018-02-16"
   },
   {
     "recruitYear": 2019,
@@ -4367,7 +4596,8 @@
     "weight": 502,
     "trainingFarm": "NF早来",
     "legacySource": true,
-    "damAge": 6
+    "damAge": 6,
+    "birthDate": "2018-01-21"
   },
   {
     "recruitYear": 2019,
@@ -4386,7 +4616,8 @@
     "weight": 435,
     "trainingFarm": "追分Fリリーバレー",
     "legacySource": true,
-    "damAge": 7
+    "damAge": 7,
+    "birthDate": "2018-01-24"
   },
   {
     "recruitYear": 2019,
@@ -4405,7 +4636,8 @@
     "weight": 449,
     "trainingFarm": "NF空港",
     "legacySource": true,
-    "damAge": 17
+    "damAge": 17,
+    "birthDate": "2018-04-28"
   },
   {
     "recruitYear": 2019,
@@ -4424,7 +4656,8 @@
     "weight": 406,
     "trainingFarm": "NF空港",
     "legacySource": true,
-    "damAge": 8
+    "damAge": 8,
+    "birthDate": "2018-02-06"
   },
   {
     "recruitYear": 2019,
@@ -4443,7 +4676,8 @@
     "weight": 472,
     "trainingFarm": "NF早来",
     "legacySource": true,
-    "damAge": 13
+    "damAge": 13,
+    "birthDate": "2018-03-26"
   },
   {
     "recruitYear": 2019,
@@ -4462,7 +4696,8 @@
     "weight": 465,
     "trainingFarm": "NF空港",
     "legacySource": true,
-    "damAge": 18
+    "damAge": 18,
+    "birthDate": "2018-01-29"
   },
   {
     "recruitYear": 2019,
@@ -4481,7 +4716,8 @@
     "weight": 478,
     "trainingFarm": "NF早来",
     "legacySource": true,
-    "damAge": 12
+    "damAge": 12,
+    "birthDate": "2018-02-09"
   },
   {
     "recruitYear": 2019,
@@ -4500,7 +4736,8 @@
     "weight": 456,
     "trainingFarm": "NF空港",
     "legacySource": true,
-    "damAge": 18
+    "damAge": 18,
+    "birthDate": "2018-05-06"
   },
   {
     "recruitYear": 2019,
@@ -4519,7 +4756,8 @@
     "weight": 412,
     "trainingFarm": "NF空港",
     "legacySource": true,
-    "damAge": 9
+    "damAge": 9,
+    "birthDate": "2018-03-14"
   },
   {
     "recruitYear": 2019,
@@ -4538,7 +4776,8 @@
     "weight": 466,
     "trainingFarm": "NF早来",
     "legacySource": true,
-    "damAge": 14
+    "damAge": 14,
+    "birthDate": "2018-03-31"
   },
   {
     "recruitYear": 2019,
@@ -4557,7 +4796,8 @@
     "weight": 411,
     "trainingFarm": "NF空港",
     "legacySource": true,
-    "damAge": 8
+    "damAge": 8,
+    "birthDate": "2018-03-25"
   },
   {
     "recruitYear": 2019,
@@ -4576,7 +4816,8 @@
     "weight": 462,
     "trainingFarm": "NF早来",
     "legacySource": true,
-    "damAge": 10
+    "damAge": 10,
+    "birthDate": "2018-04-04"
   },
   {
     "recruitYear": 2019,
@@ -4595,7 +4836,8 @@
     "weight": 423,
     "trainingFarm": "NF空港",
     "legacySource": true,
-    "damAge": 10
+    "damAge": 10,
+    "birthDate": "2018-04-14"
   },
   {
     "recruitYear": 2019,
@@ -4614,7 +4856,8 @@
     "weight": 463,
     "trainingFarm": "社台F",
     "legacySource": true,
-    "damAge": 15
+    "damAge": 15,
+    "birthDate": "2018-02-18"
   },
   {
     "recruitYear": 2019,
@@ -4633,7 +4876,8 @@
     "weight": 396,
     "trainingFarm": "NF空港",
     "legacySource": true,
-    "damAge": 8
+    "damAge": 8,
+    "birthDate": "2018-05-16"
   },
   {
     "recruitYear": 2019,
@@ -4652,7 +4896,8 @@
     "weight": 461,
     "trainingFarm": "NF空港",
     "legacySource": true,
-    "damAge": 10
+    "damAge": 10,
+    "birthDate": "2018-05-03"
   },
   {
     "recruitYear": 2019,
@@ -4671,7 +4916,8 @@
     "weight": 457,
     "trainingFarm": "NF空港",
     "legacySource": true,
-    "damAge": 13
+    "damAge": 13,
+    "birthDate": "2018-02-22"
   },
   {
     "recruitYear": 2019,
@@ -4690,7 +4936,8 @@
     "weight": 475,
     "trainingFarm": "NF早来",
     "legacySource": true,
-    "damAge": 9
+    "damAge": 9,
+    "birthDate": "2018-02-06"
   },
   {
     "recruitYear": 2019,
@@ -4709,7 +4956,8 @@
     "weight": 450,
     "trainingFarm": "NF空港",
     "legacySource": true,
-    "damAge": 12
+    "damAge": 12,
+    "birthDate": "2018-04-07"
   },
   {
     "recruitYear": 2019,
@@ -4728,7 +4976,8 @@
     "weight": 464,
     "trainingFarm": "NF早来",
     "legacySource": true,
-    "damAge": 15
+    "damAge": 15,
+    "birthDate": "2018-03-06"
   },
   {
     "recruitYear": 2019,
@@ -4747,7 +4996,8 @@
     "weight": 404,
     "trainingFarm": "追分Fリリーバレー",
     "legacySource": true,
-    "damAge": 20
+    "damAge": 20,
+    "birthDate": "2018-05-19"
   },
   {
     "recruitYear": 2019,
@@ -4766,7 +5016,8 @@
     "weight": 426,
     "trainingFarm": "NF早来",
     "legacySource": true,
-    "damAge": 12
+    "damAge": 12,
+    "birthDate": "2018-04-11"
   },
   {
     "recruitYear": 2019,
@@ -4785,7 +5036,8 @@
     "weight": 448,
     "trainingFarm": "NF早来",
     "legacySource": true,
-    "damAge": 9
+    "damAge": 9,
+    "birthDate": "2018-02-06"
   },
   {
     "recruitYear": 2019,
@@ -4804,7 +5056,8 @@
     "weight": 427,
     "trainingFarm": "NF空港",
     "legacySource": true,
-    "damAge": 20
+    "damAge": 20,
+    "birthDate": "2018-04-06"
   },
   {
     "recruitYear": 2019,
@@ -4823,7 +5076,8 @@
     "weight": 457,
     "trainingFarm": "NF空港",
     "legacySource": true,
-    "damAge": 21
+    "damAge": 21,
+    "birthDate": "2018-04-04"
   },
   {
     "recruitYear": 2019,
@@ -4842,7 +5096,8 @@
     "weight": 440,
     "trainingFarm": "NF空港",
     "legacySource": true,
-    "damAge": 16
+    "damAge": 16,
+    "birthDate": "2018-05-05"
   },
   {
     "recruitYear": 2019,
@@ -4861,7 +5116,8 @@
     "weight": 471,
     "trainingFarm": "NF空港",
     "legacySource": true,
-    "damAge": 9
+    "damAge": 9,
+    "birthDate": "2018-02-09"
   },
   {
     "recruitYear": 2020,
@@ -4880,7 +5136,8 @@
     "weight": 431,
     "trainingFarm": "NF空港",
     "legacySource": true,
-    "damAge": 7
+    "damAge": 7,
+    "birthDate": "2019-02-10"
   },
   {
     "recruitYear": 2020,
@@ -4899,7 +5156,8 @@
     "weight": 455,
     "trainingFarm": "NF早来",
     "legacySource": true,
-    "damAge": 13
+    "damAge": 13,
+    "birthDate": "2019-02-27"
   },
   {
     "recruitYear": 2020,
@@ -4918,7 +5176,8 @@
     "weight": 390,
     "trainingFarm": "NF早来",
     "legacySource": true,
-    "damAge": 10
+    "damAge": 10,
+    "birthDate": "2019-05-27"
   },
   {
     "recruitYear": 2020,
@@ -4937,7 +5196,8 @@
     "weight": 460,
     "trainingFarm": "NF早来",
     "legacySource": true,
-    "damAge": 7
+    "damAge": 7,
+    "birthDate": "2019-05-09"
   },
   {
     "recruitYear": 2020,
@@ -4956,7 +5216,8 @@
     "weight": 426,
     "trainingFarm": "NF早来",
     "legacySource": true,
-    "damAge": 11
+    "damAge": 11,
+    "birthDate": "2019-01-27"
   },
   {
     "recruitYear": 2020,
@@ -4975,7 +5236,8 @@
     "weight": 447,
     "trainingFarm": "NF空港",
     "legacySource": true,
-    "damAge": 9
+    "damAge": 9,
+    "birthDate": "2019-04-09"
   },
   {
     "recruitYear": 2020,
@@ -4994,7 +5256,8 @@
     "weight": 421,
     "trainingFarm": "NF空港",
     "legacySource": true,
-    "damAge": 8
+    "damAge": 8,
+    "birthDate": "2019-03-07"
   },
   {
     "recruitYear": 2020,
@@ -5013,7 +5276,8 @@
     "weight": 398,
     "trainingFarm": "NF早来",
     "legacySource": true,
-    "damAge": 13
+    "damAge": 13,
+    "birthDate": "2019-05-06"
   },
   {
     "recruitYear": 2020,
@@ -5032,7 +5296,8 @@
     "weight": 449,
     "trainingFarm": "NF早来",
     "legacySource": true,
-    "damAge": 9
+    "damAge": 9,
+    "birthDate": "2019-02-05"
   },
   {
     "recruitYear": 2020,
@@ -5051,7 +5316,8 @@
     "weight": 413,
     "trainingFarm": "NF空港",
     "legacySource": true,
-    "damAge": 15
+    "damAge": 15,
+    "birthDate": "2019-05-16"
   },
   {
     "recruitYear": 2020,
@@ -5070,7 +5336,8 @@
     "weight": 459,
     "trainingFarm": "NF空港",
     "legacySource": true,
-    "damAge": 12
+    "damAge": 12,
+    "birthDate": "2019-02-06"
   },
   {
     "recruitYear": 2020,
@@ -5089,7 +5356,8 @@
     "weight": 438,
     "trainingFarm": "NF空港",
     "legacySource": true,
-    "damAge": 17
+    "damAge": 17,
+    "birthDate": "2019-02-28"
   },
   {
     "recruitYear": 2020,
@@ -5108,7 +5376,8 @@
     "weight": 411,
     "trainingFarm": "追分Fリリーバレー",
     "legacySource": true,
-    "damAge": 12
+    "damAge": 12,
+    "birthDate": "2019-03-15"
   },
   {
     "recruitYear": 2020,
@@ -5127,7 +5396,8 @@
     "weight": 464,
     "trainingFarm": "NF空港",
     "legacySource": true,
-    "damAge": 10
+    "damAge": 10,
+    "birthDate": "2019-01-31"
   },
   {
     "recruitYear": 2020,
@@ -5146,7 +5416,8 @@
     "weight": 478,
     "trainingFarm": "NF早来",
     "legacySource": true,
-    "damAge": 9
+    "damAge": 9,
+    "birthDate": "2019-03-11"
   },
   {
     "recruitYear": 2020,
@@ -5165,7 +5436,8 @@
     "weight": 482,
     "trainingFarm": "NF早来",
     "legacySource": true,
-    "damAge": 9
+    "damAge": 9,
+    "birthDate": "2019-03-05"
   },
   {
     "recruitYear": 2020,
@@ -5184,7 +5456,8 @@
     "weight": 399,
     "trainingFarm": "NF空港",
     "legacySource": true,
-    "damAge": 10
+    "damAge": 10,
+    "birthDate": "2019-03-09"
   },
   {
     "recruitYear": 2020,
@@ -5203,7 +5476,8 @@
     "weight": 444,
     "trainingFarm": "NF空港",
     "legacySource": true,
-    "damAge": 8
+    "damAge": 8,
+    "birthDate": "2019-01-28"
   },
   {
     "recruitYear": 2020,
@@ -5222,7 +5496,8 @@
     "weight": 435,
     "trainingFarm": "NF早来",
     "legacySource": true,
-    "damAge": 9
+    "damAge": 9,
+    "birthDate": "2019-04-21"
   },
   {
     "recruitYear": 2020,
@@ -5241,7 +5516,8 @@
     "weight": 431,
     "trainingFarm": "NF空港",
     "legacySource": true,
-    "damAge": 17
+    "damAge": 17,
+    "birthDate": "2019-05-02"
   },
   {
     "recruitYear": 2020,
@@ -5260,7 +5536,8 @@
     "weight": 455,
     "trainingFarm": "NF空港",
     "legacySource": true,
-    "damAge": 11
+    "damAge": 11,
+    "birthDate": "2019-03-30"
   },
   {
     "recruitYear": 2020,
@@ -5279,7 +5556,8 @@
     "weight": 458,
     "trainingFarm": "NF空港",
     "legacySource": true,
-    "damAge": 8
+    "damAge": 8,
+    "birthDate": "2019-03-31"
   },
   {
     "recruitYear": 2020,
@@ -5298,7 +5576,8 @@
     "weight": 424,
     "trainingFarm": "NF早来",
     "legacySource": true,
-    "damAge": 7
+    "damAge": 7,
+    "birthDate": "2019-05-01"
   },
   {
     "recruitYear": 2020,
@@ -5317,7 +5596,8 @@
     "weight": 411,
     "trainingFarm": "追分Fリリーバレー",
     "legacySource": true,
-    "damAge": 9
+    "damAge": 9,
+    "birthDate": "2019-04-19"
   },
   {
     "recruitYear": 2020,
@@ -5336,7 +5616,8 @@
     "weight": 536,
     "trainingFarm": "NF早来",
     "legacySource": true,
-    "damAge": 9
+    "damAge": 9,
+    "birthDate": "2019-01-21"
   },
   {
     "recruitYear": 2020,
@@ -5355,7 +5636,8 @@
     "weight": 436,
     "trainingFarm": "NF早来",
     "legacySource": true,
-    "damAge": 7
+    "damAge": 7,
+    "birthDate": "2019-03-10"
   },
   {
     "recruitYear": 2020,
@@ -5374,7 +5656,8 @@
     "weight": 447,
     "trainingFarm": "NF早来",
     "legacySource": true,
-    "damAge": 8
+    "damAge": 8,
+    "birthDate": "2019-02-04"
   },
   {
     "recruitYear": 2020,
@@ -5393,7 +5676,8 @@
     "weight": 446,
     "trainingFarm": "NF空港",
     "legacySource": true,
-    "damAge": 18
+    "damAge": 18,
+    "birthDate": "2019-04-11"
   },
   {
     "recruitYear": 2020,
@@ -5412,7 +5696,8 @@
     "weight": 444,
     "trainingFarm": "NF早来",
     "legacySource": true,
-    "damAge": 12
+    "damAge": 12,
+    "birthDate": "2019-01-27"
   },
   {
     "recruitYear": 2020,
@@ -5431,7 +5716,8 @@
     "weight": 460,
     "trainingFarm": "NF空港",
     "legacySource": true,
-    "damAge": 16
+    "damAge": 16,
+    "birthDate": "2019-02-18"
   },
   {
     "recruitYear": 2020,
@@ -5450,7 +5736,8 @@
     "weight": 449,
     "trainingFarm": "NF早来",
     "legacySource": true,
-    "damAge": 12
+    "damAge": 12,
+    "birthDate": "2019-04-09"
   },
   {
     "recruitYear": 2020,
@@ -5469,7 +5756,8 @@
     "weight": 454,
     "trainingFarm": "NF空港",
     "legacySource": true,
-    "damAge": 14
+    "damAge": 14,
+    "birthDate": "2019-04-03"
   },
   {
     "recruitYear": 2020,
@@ -5488,7 +5776,8 @@
     "weight": 486,
     "trainingFarm": "NF空港",
     "legacySource": true,
-    "damAge": 8
+    "damAge": 8,
+    "birthDate": "2019-01-22"
   },
   {
     "recruitYear": 2020,
@@ -5507,7 +5796,8 @@
     "weight": 462,
     "trainingFarm": "NF早来",
     "legacySource": true,
-    "damAge": 8
+    "damAge": 8,
+    "birthDate": "2019-01-12"
   },
   {
     "recruitYear": 2020,
@@ -5526,7 +5816,8 @@
     "weight": 439,
     "trainingFarm": "NF空港",
     "legacySource": true,
-    "damAge": 11
+    "damAge": 11,
+    "birthDate": "2019-05-10"
   },
   {
     "recruitYear": 2020,
@@ -5545,7 +5836,8 @@
     "weight": 429,
     "trainingFarm": "NF早来",
     "legacySource": true,
-    "damAge": 9
+    "damAge": 9,
+    "birthDate": "2019-03-11"
   },
   {
     "recruitYear": 2020,
@@ -5564,7 +5856,8 @@
     "weight": 453,
     "trainingFarm": "NF空港",
     "legacySource": true,
-    "damAge": 9
+    "damAge": 9,
+    "birthDate": "2019-02-28"
   },
   {
     "recruitYear": 2020,
@@ -5583,7 +5876,8 @@
     "weight": 410,
     "trainingFarm": "NF空港",
     "legacySource": true,
-    "damAge": 14
+    "damAge": 14,
+    "birthDate": "2019-04-15"
   },
   {
     "recruitYear": 2020,
@@ -5602,7 +5896,8 @@
     "weight": 414,
     "trainingFarm": "NF空港",
     "legacySource": true,
-    "damAge": 9
+    "damAge": 9,
+    "birthDate": "2019-02-09"
   },
   {
     "recruitYear": 2020,
@@ -5621,7 +5916,8 @@
     "weight": 413,
     "trainingFarm": "NF空港",
     "legacySource": true,
-    "damAge": 13
+    "damAge": 13,
+    "birthDate": "2019-04-29"
   },
   {
     "recruitYear": 2020,
@@ -5640,7 +5936,8 @@
     "weight": 440,
     "trainingFarm": "NF早来",
     "legacySource": true,
-    "damAge": 8
+    "damAge": 8,
+    "birthDate": "2019-03-13"
   },
   {
     "recruitYear": 2020,
@@ -5659,7 +5956,8 @@
     "weight": 512,
     "trainingFarm": "NF空港",
     "legacySource": true,
-    "damAge": 13
+    "damAge": 13,
+    "birthDate": "2019-02-15"
   },
   {
     "recruitYear": 2020,
@@ -5678,7 +5976,8 @@
     "weight": 420,
     "trainingFarm": "NF空港",
     "legacySource": true,
-    "damAge": 16
+    "damAge": 16,
+    "birthDate": "2019-05-10"
   },
   {
     "recruitYear": 2020,
@@ -5697,7 +5996,8 @@
     "weight": 497,
     "trainingFarm": "NF空港",
     "legacySource": true,
-    "damAge": 9
+    "damAge": 9,
+    "birthDate": "2019-02-18"
   },
   {
     "recruitYear": 2020,
@@ -5716,7 +6016,8 @@
     "weight": 410,
     "trainingFarm": "NF早来",
     "legacySource": true,
-    "damAge": 11
+    "damAge": 11,
+    "birthDate": "2019-05-15"
   },
   {
     "recruitYear": 2020,
@@ -5735,7 +6036,8 @@
     "weight": 447,
     "trainingFarm": "NF空港",
     "legacySource": true,
-    "damAge": 11
+    "damAge": 11,
+    "birthDate": "2019-01-27"
   },
   {
     "recruitYear": 2020,
@@ -5754,7 +6056,8 @@
     "weight": 401,
     "trainingFarm": "NF空港",
     "legacySource": true,
-    "damAge": 8
+    "damAge": 8,
+    "birthDate": "2019-01-16"
   },
   {
     "recruitYear": 2020,
@@ -5773,7 +6076,8 @@
     "weight": 406,
     "trainingFarm": "NF空港",
     "legacySource": true,
-    "damAge": 7
+    "damAge": 7,
+    "birthDate": "2019-02-04"
   },
   {
     "recruitYear": 2020,
@@ -5792,7 +6096,8 @@
     "weight": 438,
     "trainingFarm": "NF空港",
     "legacySource": true,
-    "damAge": 10
+    "damAge": 10,
+    "birthDate": "2019-04-05"
   },
   {
     "recruitYear": 2020,
@@ -5811,7 +6116,8 @@
     "weight": 439,
     "trainingFarm": "NF早来",
     "legacySource": true,
-    "damAge": 18
+    "damAge": 18,
+    "birthDate": "2019-04-04"
   },
   {
     "recruitYear": 2020,
@@ -5830,7 +6136,8 @@
     "weight": 437,
     "trainingFarm": "NF空港",
     "legacySource": true,
-    "damAge": 9
+    "damAge": 9,
+    "birthDate": "2019-02-19"
   },
   {
     "recruitYear": 2020,
@@ -5849,7 +6156,8 @@
     "weight": 442,
     "trainingFarm": "NF空港",
     "legacySource": true,
-    "damAge": 15
+    "damAge": 15,
+    "birthDate": "2019-03-29"
   },
   {
     "recruitYear": 2020,
@@ -5868,7 +6176,8 @@
     "weight": 401,
     "trainingFarm": "NF空港",
     "legacySource": true,
-    "damAge": 11
+    "damAge": 11,
+    "birthDate": "2019-04-22"
   },
   {
     "recruitYear": 2020,
@@ -5887,7 +6196,8 @@
     "weight": 468,
     "trainingFarm": "NF早来",
     "legacySource": true,
-    "damAge": 20
+    "damAge": 20,
+    "birthDate": "2019-02-07"
   },
   {
     "recruitYear": 2020,
@@ -5906,7 +6216,8 @@
     "weight": 466,
     "trainingFarm": "NF空港",
     "legacySource": true,
-    "damAge": 17
+    "damAge": 17,
+    "birthDate": "2019-04-04"
   },
   {
     "recruitYear": 2020,
@@ -5925,7 +6236,8 @@
     "weight": 451,
     "trainingFarm": "NF空港",
     "legacySource": true,
-    "damAge": 7
+    "damAge": 7,
+    "birthDate": "2019-02-25"
   },
   {
     "recruitYear": 2020,
@@ -5944,7 +6256,8 @@
     "weight": 494,
     "trainingFarm": "NF早来",
     "legacySource": true,
-    "damAge": 13
+    "damAge": 13,
+    "birthDate": "2019-02-03"
   },
   {
     "recruitYear": 2020,
@@ -5963,7 +6276,8 @@
     "weight": 479,
     "trainingFarm": "NF早来",
     "legacySource": true,
-    "damAge": 20
+    "damAge": 20,
+    "birthDate": "2019-03-20"
   },
   {
     "recruitYear": 2020,
@@ -5982,7 +6296,8 @@
     "weight": null,
     "trainingFarm": null,
     "legacySource": true,
-    "damAge": 10
+    "damAge": 10,
+    "birthDate": "2019-05-24"
   },
   {
     "recruitYear": 2020,
@@ -6001,7 +6316,8 @@
     "weight": 438,
     "trainingFarm": "NF空港",
     "legacySource": true,
-    "damAge": 16
+    "damAge": 16,
+    "birthDate": "2019-03-11"
   },
   {
     "recruitYear": 2020,
@@ -6020,7 +6336,8 @@
     "weight": 412,
     "trainingFarm": "NF早来",
     "legacySource": true,
-    "damAge": 8
+    "damAge": 8,
+    "birthDate": "2019-03-23"
   },
   {
     "recruitYear": 2020,
@@ -6039,7 +6356,8 @@
     "weight": 430,
     "trainingFarm": "NF早来",
     "legacySource": true,
-    "damAge": 5
+    "damAge": 5,
+    "birthDate": "2019-04-18"
   },
   {
     "recruitYear": 2020,
@@ -6058,7 +6376,8 @@
     "weight": 429,
     "trainingFarm": "NF空港",
     "legacySource": true,
-    "damAge": 9
+    "damAge": 9,
+    "birthDate": "2019-02-11"
   },
   {
     "recruitYear": 2020,
@@ -6077,7 +6396,8 @@
     "weight": 460,
     "trainingFarm": "NF空港",
     "legacySource": true,
-    "damAge": 10
+    "damAge": 10,
+    "birthDate": "2019-03-09"
   },
   {
     "recruitYear": 2020,
@@ -6096,7 +6416,8 @@
     "weight": 426,
     "trainingFarm": "NF空港",
     "legacySource": true,
-    "damAge": 18
+    "damAge": 18,
+    "birthDate": "2019-03-13"
   },
   {
     "recruitYear": 2020,
@@ -6115,7 +6436,8 @@
     "weight": 482,
     "trainingFarm": "NF早来",
     "legacySource": true,
-    "damAge": 14
+    "damAge": 14,
+    "birthDate": "2019-03-15"
   },
   {
     "recruitYear": 2020,
@@ -6134,7 +6456,8 @@
     "weight": 424,
     "trainingFarm": "NF空港",
     "legacySource": true,
-    "damAge": 10
+    "damAge": 10,
+    "birthDate": "2019-03-02"
   },
   {
     "recruitYear": 2020,
@@ -6153,7 +6476,8 @@
     "weight": 405,
     "trainingFarm": "NF空港",
     "legacySource": true,
-    "damAge": 8
+    "damAge": 8,
+    "birthDate": "2019-03-29"
   },
   {
     "recruitYear": 2020,
@@ -6172,7 +6496,8 @@
     "weight": 426,
     "trainingFarm": "NF空港",
     "legacySource": true,
-    "damAge": 8
+    "damAge": 8,
+    "birthDate": "2019-02-28"
   },
   {
     "recruitYear": 2020,
@@ -6191,7 +6516,8 @@
     "weight": 386,
     "trainingFarm": "NF空港",
     "legacySource": true,
-    "damAge": 6
+    "damAge": 6,
+    "birthDate": "2019-05-06"
   },
   {
     "recruitYear": 2020,
@@ -6210,7 +6536,8 @@
     "weight": 445,
     "trainingFarm": "NF空港",
     "legacySource": true,
-    "damAge": 14
+    "damAge": 14,
+    "birthDate": "2019-03-15"
   },
   {
     "recruitYear": 2020,
@@ -6229,7 +6556,8 @@
     "weight": 439,
     "trainingFarm": "NF空港",
     "legacySource": true,
-    "damAge": 18
+    "damAge": 18,
+    "birthDate": "2019-05-05"
   },
   {
     "recruitYear": 2020,
@@ -6248,7 +6576,8 @@
     "weight": 488,
     "trainingFarm": "NF早来",
     "legacySource": true,
-    "damAge": 10
+    "damAge": 10,
+    "birthDate": "2019-01-27"
   },
   {
     "recruitYear": 2020,
@@ -6267,7 +6596,8 @@
     "weight": 401,
     "trainingFarm": "NF空港",
     "legacySource": true,
-    "damAge": 8
+    "damAge": 8,
+    "birthDate": "2019-02-09"
   },
   {
     "recruitYear": 2020,
@@ -6286,7 +6616,8 @@
     "weight": 487,
     "trainingFarm": "NF空港",
     "legacySource": true,
-    "damAge": 10
+    "damAge": 10,
+    "birthDate": "2019-02-15"
   },
   {
     "recruitYear": 2020,
@@ -6305,7 +6636,8 @@
     "weight": 460,
     "trainingFarm": "NF早来",
     "legacySource": true,
-    "damAge": 15
+    "damAge": 15,
+    "birthDate": "2019-02-26"
   },
   {
     "recruitYear": 2020,
@@ -6324,7 +6656,8 @@
     "weight": 403,
     "trainingFarm": "NF空港",
     "legacySource": true,
-    "damAge": 10
+    "damAge": 10,
+    "birthDate": "2019-03-21"
   },
   {
     "recruitYear": 2020,
@@ -6343,7 +6676,8 @@
     "weight": 435,
     "trainingFarm": "NF空港",
     "legacySource": true,
-    "damAge": 19
+    "damAge": 19,
+    "birthDate": "2019-02-04"
   },
   {
     "recruitYear": 2020,
@@ -6362,7 +6696,8 @@
     "weight": 450,
     "trainingFarm": "NF空港",
     "legacySource": true,
-    "damAge": 16
+    "damAge": 16,
+    "birthDate": "2019-03-25"
   },
   {
     "recruitYear": 2020,
@@ -6381,7 +6716,8 @@
     "weight": 467,
     "trainingFarm": "NF空港",
     "legacySource": true,
-    "damAge": 13
+    "damAge": 13,
+    "birthDate": "2019-03-07"
   },
   {
     "recruitYear": 2020,
@@ -6400,7 +6736,8 @@
     "weight": 401,
     "trainingFarm": "NF空港",
     "legacySource": true,
-    "damAge": 8
+    "damAge": 8,
+    "birthDate": "2019-03-05"
   },
   {
     "recruitYear": 2020,
@@ -6419,7 +6756,8 @@
     "weight": 413,
     "trainingFarm": "NF空港",
     "legacySource": true,
-    "damAge": 9
+    "damAge": 9,
+    "birthDate": "2019-01-31"
   },
   {
     "recruitYear": 2020,
@@ -6438,7 +6776,8 @@
     "weight": 406,
     "trainingFarm": "NF早来",
     "legacySource": true,
-    "damAge": 11
+    "damAge": 11,
+    "birthDate": "2019-05-08"
   },
   {
     "recruitYear": 2020,
@@ -6457,7 +6796,8 @@
     "weight": 458,
     "trainingFarm": "社台F",
     "legacySource": true,
-    "damAge": 12
+    "damAge": 12,
+    "birthDate": "2019-02-15"
   },
   {
     "recruitYear": 2020,
@@ -6476,7 +6816,8 @@
     "weight": 411,
     "trainingFarm": "NF早来",
     "legacySource": true,
-    "damAge": 18
+    "damAge": 18,
+    "birthDate": "2019-02-28"
   },
   {
     "recruitYear": 2020,
@@ -6495,7 +6836,8 @@
     "weight": 435,
     "trainingFarm": "NF早来",
     "legacySource": true,
-    "damAge": 7
+    "damAge": 7,
+    "birthDate": "2019-03-23"
   },
   {
     "recruitYear": 2020,
@@ -6514,7 +6856,8 @@
     "weight": 431,
     "trainingFarm": "NF早来",
     "legacySource": true,
-    "damAge": 7
+    "damAge": 7,
+    "birthDate": "2019-04-09"
   },
   {
     "recruitYear": 2020,
@@ -6533,7 +6876,8 @@
     "weight": 420,
     "trainingFarm": "NF早来",
     "legacySource": true,
-    "damAge": 12
+    "damAge": 12,
+    "birthDate": "2019-04-14"
   },
   {
     "recruitYear": 2020,
@@ -6552,7 +6896,8 @@
     "weight": 448,
     "trainingFarm": "NF早来",
     "legacySource": true,
-    "damAge": 16
+    "damAge": 16,
+    "birthDate": "2019-04-12"
   },
   {
     "recruitYear": 2020,
@@ -6571,7 +6916,8 @@
     "weight": 443,
     "trainingFarm": "NF空港",
     "legacySource": true,
-    "damAge": 8
+    "damAge": 8,
+    "birthDate": "2019-04-26"
   },
   {
     "recruitYear": 2020,
@@ -6590,7 +6936,8 @@
     "weight": 404,
     "trainingFarm": "NF空港",
     "legacySource": true,
-    "damAge": 6
+    "damAge": 6,
+    "birthDate": "2019-03-17"
   },
   {
     "recruitYear": 2020,
@@ -6609,7 +6956,8 @@
     "weight": 412,
     "trainingFarm": "NF早来",
     "legacySource": true,
-    "damAge": 18
+    "damAge": 18,
+    "birthDate": "2019-04-07"
   },
   {
     "recruitYear": 2021,
@@ -12246,7 +12594,7 @@
     "broodmareSire": "ロードカナロア",
     "dam": null,
     "damAge": 8,
-    "birthDate": "2022-02-19",
+    "birthDate": "2022-03-01",
     "stable": "西田雄一郎",
     "breedingFarm": "ノーザンＦ",
     "coatColor": null,
@@ -16896,7 +17244,7 @@
     "broodmareSire": "ロードカナロア",
     "dam": null,
     "damAge": 10,
-    "birthDate": "2024-01-08",
+    "birthDate": "2024-04-02",
     "stable": "辻哲英",
     "breedingFarm": null,
     "coatColor": null,

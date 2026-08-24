@@ -9,6 +9,8 @@ import {
   mean,
   median,
   formatManYen,
+  mannWhitneyU,
+  twoProportionZTest,
 } from './chart-math.ts';
 
 test('mean averages values', () => {
@@ -83,4 +85,30 @@ test('bucketAverage groups and averages by key', () => {
 test('formatManYen adds thousands separators and rounds', () => {
   assert.equal(formatManYen(1930), '1,930');
   assert.equal(formatManYen(602.5), '603' /* toLocaleString rounds half-to-even is not guaranteed; just check it's close */);
+});
+
+test('mannWhitneyU finds no difference (p close to 1) for two identical distributions', () => {
+  const a = [1, 2, 3, 4, 5];
+  const b = [1, 2, 3, 4, 5];
+  const { z, p } = mannWhitneyU(a, b);
+  assert.equal(z, 0);
+  assert.ok(p > 0.99);
+});
+
+test('mannWhitneyU finds a strong difference (small p) for clearly separated distributions', () => {
+  const low = [1, 2, 3, 4, 5, 6, 7, 8];
+  const high = [101, 102, 103, 104, 105, 106, 107, 108];
+  const { p } = mannWhitneyU(low, high);
+  assert.ok(p < 0.001);
+});
+
+test('twoProportionZTest finds no difference (p close to 1) for identical proportions', () => {
+  const { z, p } = twoProportionZTest(10, 100, 10, 100);
+  assert.equal(z, 0);
+  assert.ok(p > 0.99);
+});
+
+test('twoProportionZTest finds a strong difference (small p) for clearly separated proportions with enough n', () => {
+  const { p } = twoProportionZTest(5, 200, 100, 200);
+  assert.ok(p < 0.001);
 });

@@ -27,6 +27,7 @@ function recruit(over: Partial<RecruitWithResult>): RecruitWithResult {
     sire: 'キタサンブラック',
     broodmareSire: 'ディープインパクト',
     damAge: 10,
+    birthDate: '2024-03-15',
     pricePerShare: 20,
     height: 155,
     chestGirth: 178,
