@@ -275,6 +275,12 @@ const webAppJsonLd = {
         --accent: #b5651d;
         --accent-weak: #f5e9dc;
         --danger: #9d2f24;
+        /* データ分析記事の導線だけに使う色。絞り込み等の操作系ボックスと同じ--accentだと
+           見分けが付かないという指摘（2026-08-24）を受けて新設。グラフ（BarChart/ScatterChart
+           の--series-1）と同じ青系に揃え、「青＝データ分析系の読み物」「オレンジ＝操作・注記」
+           で役割を色分けする。 */
+        --info: #1d5fa8;
+        --info-weak: #e7eff9;
         --mono: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace;
         --sans: -apple-system, BlinkMacSystemFont, "Hiragino Kaku Gothic ProN",
           "Noto Sans JP", "Yu Gothic", sans-serif;
@@ -315,6 +321,8 @@ const webAppJsonLd = {
           --accent: #e0a45c;
           --accent-weak: #2b241c;
           --danger: #e08278;
+          --info: #7ab0e8;
+          --info-weak: #1b2a3d;
 
           /* ダークでは同じ色相のまま明度を反転させる（背景は沈ませ、文字を明るく） */
           --rating-a-bg: #4a1f38;
