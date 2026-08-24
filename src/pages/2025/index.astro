@@ -16,7 +16,14 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
 import SyncPanel from '../../components/SyncPanel.astro';
 import { SITE_DESCRIPTION_2025, SITE_TAGLINE_2025, UNOFFICIAL_NOTICE } from '../../consts.ts';
 import { horses2025 } from '../../data/horses2025.ts';
-import { sortHorses, uniqueValues, UNRATED, type SortKey } from '../../lib/horses.ts';
+import {
+  sortHorses,
+  uniqueSexes,
+  uniqueValues,
+  valueCounts,
+  UNRATED,
+  type SortKey,
+} from '../../lib/horses.ts';
 import { DEFAULT_EVALUATION } from '../../lib/evaluations.ts';
 // A〜Eの並びはAPI側の定義を唯一の出所にする（ここで別の配列を作ると表・集計とずれる）
 import { RATINGS } from '../../lib/evaluation-api.ts';
@@ -27,7 +34,17 @@ const DETAIL_BASE_PATH = '/2025/horses/';
 
 // フィルタの選択肢はビルド時に確定できるのでサーバー側で作る
 const sires = uniqueValues(horses2025, 'sire');
+// 父は複数選べるチェックリストにしてあるので、選択肢ごとの頭数も添える
+// （数十種類並ぶ中から選ぶので、1頭しかいない父を選んで表が空になる、という迷い方を減らす）。
+const sireCounts = valueCounts(horses2025, 'sire');
 const stables = uniqueValues(horses2025, 'stable');
+// その年にいない性別（セ）のチェックは出さない（押しても0頭になるだけの選択肢を並べない）
+const sexOptions = uniqueSexes(horses2025);
+// 母齢の入力欄の min/max に実データの範囲を入れる（スピナーがその年に居ない歳まで動かない）。
+// プレースホルダは他の範囲入力と同じ「下限/上限」にする ―― 数字を出すと入力済みに見えるため。
+const damAges = horses2025.map((h) => h.damAge);
+const damAgeMin = Math.min(...damAges);
+const damAgeMax = Math.max(...damAges);
 
 // COLUMNS は `as const` なので、そのままだと sortKey / align を持たない要素との
 // union になって参照できない。ここで緩い型に受け直す。
@@ -161,16 +178,36 @@ const faqJsonLd = {
       <span class="filter-active-count" id="filter-active-count" hidden></span>
     </summary>
     <div class="filters">
+      {/*
+        父は1つしか選べない <select> だったが、「キズナとサトノダイヤモンドを並べて見る」
+        ができなかったのでチェックボックスの複数選択にした（本人の指示・2026-08-24）。
+        選んだ父の**いずれか**に当てはまる馬が残る（OR）。1つも選ばなければ全頭のまま。
+        数十種類あって全部並べると絞り込みの箱が父だけで埋まるので <details> に畳み、
+        選んでいる数は畳んだままでも分かるよう summary に出す（絞り込み全体の
+        「N件の条件」と同じ考え方 ―― 効いている条件が画面から読み取れない状態を作らない）。
+      */}
+      <details class="multi-filter" id="filter-sire-details">
+        <summary>
+          父（種牡馬）
+          <span class="multi-filter-state" id="filter-sire-state">すべて</span>
+        </summary>
+        <div class="multi-filter-options" role="group" aria-label="父（種牡馬）">
+          {
+            sires.map((s) => (
+              <label class="checkbox-label">
+                <input type="checkbox" class="filter-sire" value={s} />
+                <span>
+                  {s}
+                  <span class="multi-filter-n">{sireCounts[s]}</span>
+                </span>
+              </label>
+            ))
+          }
+        </div>
+      </details>
       <label>
         馬名
         <input type="text" id="filter-name" placeholder="部分一致" />
-      </label>
-      <label>
-        父
-        <select id="filter-sire">
-          <option value="">すべて</option>
-          {sires.map((s) => <option value={s}>{s}</option>)}
-        </select>
       </label>
       <label>
         母父
@@ -183,15 +220,21 @@ const faqJsonLd = {
           {stables.map((s) => <option value={s}>{s}</option>)}
         </select>
       </label>
-      <label>
-        性別
-        <select id="filter-sex">
-          <option value="">すべて</option>
-          <option value="牡">牡</option>
-          <option value="牝">牝</option>
-          <option value="セ">セ</option>
-        </select>
-      </label>
+      {/* 性別も複数選択にした（牡とセをまとめて見る、という使い方があるため）。
+          父と同じく「1つも選ばなければ全頭」。その年にいない性別は選択肢に出さない。 */}
+      <div class="field-group">
+        <span class="field-group-label" id="sex-filter-label">性別</span>
+        <div class="field-group-options" role="group" aria-labelledby="sex-filter-label">
+          {
+            sexOptions.map((s) => (
+              <label class="checkbox-label">
+                <input type="checkbox" class="filter-sex" value={s} />
+                {s}
+              </label>
+            ))
+          }
+        </div>
+      </div>
       {/* 「母優先のみ」のチェックから3択に変えた（本人の指示・2026-08-23）。
           優先枠に取られにくい馬を探す＝「なし」で絞りたい、という使い方があるため。
           他の絞り込みと同じ <select> なので「すべて（空値）」は条件に数えられない。 */}
@@ -202,6 +245,16 @@ const faqJsonLd = {
           <option value="has">あり</option>
           <option value="none">なし</option>
         </select>
+      </label>
+      {/* 母齢（出産時点の母の年齢）。若い母の初期産駒に寄せる／高齢の母を避ける、といった
+          絞り方をするためのもの。他の測尺と同じ下限〜上限の形にそろえる。 */}
+      <label>
+        母齢 (歳)
+        <span class="range">
+          <input type="number" id="filter-dam-age-min" min={damAgeMin} max={damAgeMax} placeholder="下限" />
+          〜
+          <input type="number" id="filter-dam-age-max" min={damAgeMin} max={damAgeMax} placeholder="上限" />
+        </span>
       </label>
       <label>
         一口 (万円)
@@ -347,8 +400,9 @@ const faqJsonLd = {
   </p>
   <ul>
     <li>列見出しをクリックして並べ替える（もう一度押すと昇順・降順が入れ替わります）</li>
-    <li>馬名・父・母父・厩舎・性別で絞り込む</li>
-    <li>一口価格・体高・管囲・馬体重を下限〜上限の範囲で絞り込む</li>
+    <li>馬名・母父・厩舎で絞り込む</li>
+    <li>父（種牡馬）と性別は複数選べる（選んだうちのどれかに当てはまる馬が残ります）</li>
+    <li>母齢・一口価格・体高・管囲・馬体重を下限〜上限の範囲で絞り込む</li>
     <li>「母優先」（あり／なし）「手術・既往ありを除く」で候補を狭める</li>
     <li>各馬にA〜Eの評価・お気に入り（★）・消・メモを付け、「お気に入りのみ」「消を付けた馬を隠す」で見直す（メモ欄は表の上の「メモを表示」を入れると出ます。入っている馬は評価欄に📝が付きます）</li>
     <li>自分が付けたA〜Eで絞り込む（A・Bのように複数選べ、まだ印を付けていない「未評価」も選べます）</li>
@@ -358,7 +412,7 @@ const faqJsonLd = {
   <h2>使い方</h2>
   <ol>
     <li>まず「一口 (万円)」で出せる予算に絞り、頭数を減らします。</li>
-    <li>父・母父・厩舎など、自分が重視する条件で並べ替えて上から眺めます。</li>
+    <li>父・母父・厩舎など、自分が重視する条件で並べ替えて上から眺めます（父は「父（種牡馬）」から気になる種牡馬をまとめて選べます）。</li>
     <li>気になった馬の <strong>評価欄（馬名のすぐ右）</strong> でA〜Eを選ぶか、★を押します。</li>
     <li>検討から外した馬は「消」にチェックを入れ、「消を付けた馬を隠す」で視界から外します。</li>
     <li>
@@ -566,6 +620,56 @@ const faqJsonLd = {
       color: var(--muted);
       font-weight: 400;
     }
+    /* 父（種牡馬）の複数選択。選択肢が数十種類あるので既定は畳んでおき、開いたときだけ
+       絞り込みの箱いっぱいに広げる（幅を取らせないと1列に数十行並んで縦に伸びる）。 */
+    .multi-filter {
+      width: 100%;
+      border: 1px solid var(--border);
+      border-radius: 5px;
+      background: var(--bg);
+    }
+    .multi-filter > summary {
+      cursor: pointer;
+      padding: 0.4rem 0.6rem;
+      color: var(--muted);
+      /* 三角マーカーを内側に置く（既定の list-item 表示だと枠の外にはみ出す） */
+      list-style-position: inside;
+    }
+    .multi-filter-state {
+      margin-left: 0.3rem;
+      color: var(--text);
+      font-weight: 600;
+    }
+    .multi-filter-options {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(11rem, 1fr));
+      gap: 0.4rem 0.6rem;
+      /* 全部見せると絞り込みの箱が父だけで画面を埋めるので、高さを切って中でスクロールさせる */
+      max-height: 14rem;
+      overflow-y: auto;
+      padding: 0.6rem;
+      border-top: 1px solid var(--border);
+    }
+    .multi-filter-n {
+      margin-left: 0.3rem;
+      color: var(--muted);
+      font-size: 0.75rem;
+    }
+    /* <label>＋<input> ではなくチェックボックスの群れを1つの項目として見せるための入れ物。
+       見た目（ラベルが上・中身が下）は .filters label に合わせる。 */
+    .field-group {
+      display: flex;
+      flex-direction: column;
+      gap: 0.3rem;
+      color: var(--muted);
+    }
+    .field-group-options {
+      display: flex;
+      align-items: center;
+      gap: 0.7rem;
+      /* 隣の <select> と高さをそろえて、同じ行の項目が下端で揃うようにする */
+      padding-block: 0.4rem;
+    }
     .checkbox-label {
       flex-direction: row !important;
       align-items: center;
@@ -662,8 +766,11 @@ const faqJsonLd = {
          右半分が空いた状態で1列ずつ折り返してしまう。各項目を横幅いっぱいにする。 */
       .filters label { flex: 1 1 100%; min-width: 0; }
       /* ただし評価の印は中身が1文字なので、横幅いっぱいにすると6行を占有してしまう。
-         ここだけは内容幅のまま横に並べる。 */
+         ここだけは内容幅のまま横に並べる。性別（牡/牝/セ）も同じ理由で横並びのままにする。 */
       .filters .rating-filters label { flex: 0 0 auto; }
+      .filters .field-group-options label { flex: 0 0 auto; }
+      /* 父のチェックリストは1列（幅いっぱい）にして、名前が折り返さないようにする */
+      .multi-filter-options { grid-template-columns: 1fr; }
       /* 印を折り返した行に「未選択なら全頭」が取り残されないよう、右寄せをやめる */
       .rating-filters-hint { margin-left: 0; flex-basis: 100%; }
       .filters input[type='text'],
@@ -964,7 +1071,9 @@ const faqJsonLd = {
       countActiveFilters,
       filterStorageKeyForYear,
       loadFilterState,
+      parseMultiValue,
       saveFilterState,
+      serializeMultiValue,
       type FilterState,
     } from '../../lib/filter-state.ts';
     // 表示の切り替え（メモ列を出すか）は絞り込み条件とは別に覚える。混ぜると
@@ -986,10 +1095,8 @@ const faqJsonLd = {
 
     const el = <T extends HTMLElement>(id: string) => document.getElementById(id) as T;
     const filterName = el<HTMLInputElement>('filter-name');
-    const filterSire = el<HTMLSelectElement>('filter-sire');
     const filterBms = el<HTMLInputElement>('filter-bms');
     const filterStable = el<HTMLSelectElement>('filter-stable');
-    const filterSex = el<HTMLSelectElement>('filter-sex');
     const filterPriceMin = el<HTMLInputElement>('filter-price-min');
     const filterPriceMax = el<HTMLInputElement>('filter-price-max');
     const filterHeightMin = el<HTMLInputElement>('filter-height-min');
@@ -998,6 +1105,8 @@ const faqJsonLd = {
     const filterCaretMax = el<HTMLInputElement>('filter-caret-max');
     const filterWeightMin = el<HTMLInputElement>('filter-weight-min');
     const filterWeightMax = el<HTMLInputElement>('filter-weight-max');
+    const filterDamAgeMin = el<HTMLInputElement>('filter-dam-age-min');
+    const filterDamAgeMax = el<HTMLInputElement>('filter-dam-age-max');
     // 母優先は「すべて / あり / なし」の3択（空値＝すべて）。他のセレクトと同じ扱いにする。
     const filterDamPriority = el<HTMLSelectElement>('filter-dam-priority');
     const filterExcludeSurgery = el<HTMLInputElement>('filter-exclude-surgery');
@@ -1008,13 +1117,34 @@ const faqJsonLd = {
     const filterActiveCount = el<HTMLElement>('filter-active-count');
     // A〜E＋未評価。個別にidを振らず、値（value）をそのままフィルタ条件に使う
     const ratingCheckboxes = Array.from(document.querySelectorAll<HTMLInputElement>('.filter-rating'));
+    // 父・性別も同じく値をそのまま条件に使うチェックボックス群（複数選択）。
+    // 保存は「群のid → 選んだ値をカンマで繋いだ1つの文字列」にしてあるので、1つしか選べない
+    // <select> だったころの保存データ（値が1つだけの文字列）もそのまま復元できる。
+    const SIRE_FILTER_KEY = 'filter-sire';
+    const SEX_FILTER_KEY = 'filter-sex';
+    const sireCheckboxes = Array.from(document.querySelectorAll<HTMLInputElement>('.filter-sire'));
+    const sexCheckboxes = Array.from(document.querySelectorAll<HTMLInputElement>('.filter-sex'));
+    // 父のチェックリストは畳んであるので、選んだ数を見出しに出す
+    const sireDetails = document.getElementById('filter-sire-details') as HTMLDetailsElement;
+    const sireState = el<HTMLElement>('filter-sire-state');
+
+    const checkedValues = (boxes: HTMLInputElement[]) =>
+      boxes.filter((c) => c.checked).map((c) => c.value);
     // 絞り込みではなく表示の切り替え（メモ列の出し入れ）。表の外・表のすぐ上に置いてある。
     const showMemoToggle = el<HTMLInputElement>('toggle-show-memo');
 
-    const textInputs = [filterName, filterBms, filterPriceMin, filterPriceMax, filterHeightMin, filterHeightMax, filterCaretMin, filterCaretMax, filterWeightMin, filterWeightMax];
-    const selects = [filterSire, filterStable, filterSex, filterDamPriority];
-    // 評価チェックボックスもここに混ぜる。listener登録と「条件をクリア」の対象が同じで済む。
-    const toggles = [filterExcludeSurgery, filterHideSkip, filterFavoriteOnly, ...ratingCheckboxes];
+    const textInputs = [filterName, filterBms, filterDamAgeMin, filterDamAgeMax, filterPriceMin, filterPriceMax, filterHeightMin, filterHeightMax, filterCaretMin, filterCaretMax, filterWeightMin, filterWeightMax];
+    const selects = [filterStable, filterDamPriority];
+    // 評価・父・性別のチェックボックスもここに混ぜる。listener登録と「条件をクリア」の
+    // 対象が同じで済む。
+    const toggles = [
+      filterExcludeSurgery,
+      filterHideSkip,
+      filterFavoriteOnly,
+      ...ratingCheckboxes,
+      ...sireCheckboxes,
+      ...sexCheckboxes,
+    ].filter((t): t is HTMLInputElement => t !== null);
 
     let sortKey: SortKey = 'id';
     let sortDirection: SortDirection = 'asc';
@@ -1023,9 +1153,9 @@ const faqJsonLd = {
     const storageKey = storageKeyForYear(2025);
     let evaluations: EvaluationMap = loadEvaluations(window.localStorage, storageKey);
 
-    // 「自分の評価」のチェックボックスは value（A〜E / none）で見分けるのでidを持たない。
-    // 条件の保存はidを鍵にするので、idを持つチェックだけ分けておく。
-    const namedToggles = toggles.filter((t) => !t.classList.contains('filter-rating'));
+    // 評価・父・性別のチェックボックスは value で見分けるのでidを持たない（群としてまとめて
+    // 保存する）。条件の保存はidを鍵にするので、idを持つチェックだけ分けておく。
+    const namedToggles = toggles.filter((t) => t.id !== '');
     const filterDetails = document.querySelector('.filter-details') as HTMLDetailsElement;
     // 絞り込み条件の保存キーも評価と同じく年度ごとに分ける（父の選択肢も頭数も年で違うため、
     // 共有すると別の年の条件が復元されて頭数が合わなくなる）。
@@ -1037,6 +1167,11 @@ const faqJsonLd = {
       for (const input of [...textInputs, ...selects]) {
         if (input.value.trim() !== '') values[input.id] = input.value;
       }
+      // 複数選択は「1つの絞り込み」として1項目にまとめる（父を5つ選んでも条件は1件）
+      const sires = checkedValues(sireCheckboxes);
+      if (sires.length > 0) values[SIRE_FILTER_KEY] = serializeMultiValue(sires);
+      const sexes = checkedValues(sexCheckboxes);
+      if (sexes.length > 0) values[SEX_FILTER_KEY] = serializeMultiValue(sexes);
       const toggleState: Record<string, boolean> = {};
       for (const toggle of namedToggles) {
         if (toggle.checked) toggleState[toggle.id] = true;
@@ -1059,6 +1194,10 @@ const faqJsonLd = {
       for (const input of [...textInputs, ...selects]) input.value = state.values[input.id] ?? '';
       for (const toggle of namedToggles) toggle.checked = state.toggles[toggle.id] === true;
       for (const checkbox of ratingCheckboxes) checkbox.checked = state.ratings.includes(checkbox.value);
+      const sires = parseMultiValue(state.values[SIRE_FILTER_KEY]);
+      for (const checkbox of sireCheckboxes) checkbox.checked = sires.includes(checkbox.value);
+      const sexes = parseMultiValue(state.values[SEX_FILTER_KEY]);
+      for (const checkbox of sexCheckboxes) checkbox.checked = sexes.includes(checkbox.value);
       sortKey = state.sortKey;
       sortDirection = state.sortDirection;
     }
@@ -1070,10 +1209,15 @@ const faqJsonLd = {
     function currentFilter(): HorseFilter {
       const filter: HorseFilter = {};
       if (filterName.value.trim()) filter.name = filterName.value.trim();
-      if (filterSire.value) filter.sire = filterSire.value;
       if (filterBms.value.trim()) filter.broodmareSire = filterBms.value.trim();
       if (filterStable.value) filter.stable = filterStable.value;
-      if (filterSex.value) filter.sex = filterSex.value as Sex;
+      // 父・性別は複数選択。1つも選んでいないときは条件自体を積まない（＝全頭表示のまま）。
+      const sires = checkedValues(sireCheckboxes);
+      if (sires.length > 0) filter.sires = sires;
+      const sexes = checkedValues(sexCheckboxes);
+      if (sexes.length > 0) filter.sexes = sexes as Sex[];
+      filter.minDamAge = numberValue(filterDamAgeMin);
+      filter.maxDamAge = numberValue(filterDamAgeMax);
       filter.minPrice = numberValue(filterPriceMin);
       filter.maxPrice = numberValue(filterPriceMax);
       filter.minHeight = numberValue(filterHeightMin);
@@ -1109,6 +1253,15 @@ const faqJsonLd = {
       filterActiveCount.textContent = count === 0 ? '' : `${count}件の条件`;
     }
 
+    /**
+     * 父のチェックリストは畳んだままでも使えるので、選んだ数を見出しに出す。
+     * 0件のときは「すべて」＝絞っていないことを言葉で出す（空欄だと未設定か読み取れない）。
+     */
+    function updateSireSummary() {
+      const count = checkedValues(sireCheckboxes).length;
+      sireState.textContent = count === 0 ? 'すべて' : `${count}件選択`;
+    }
+
     function render() {
       let list = filterHorses(horses2025, currentFilter());
       // 評価はユーザーごとの状態なので、客観データのフィルタとは分けてここで適用する
@@ -1132,6 +1285,7 @@ const faqJsonLd = {
       // 保存先は localStorage だけで、サーバーには送らない（filter-state.ts のコメント参照）。
       const state = currentFilterState();
       updateActiveFilterCount(state);
+      updateSireSummary();
       saveFilterState(window.localStorage, filterStorageKey, state);
 
       for (const btn of sortButtons) {
@@ -1258,6 +1412,8 @@ const faqJsonLd = {
     const restoredState = loadFilterState(window.localStorage, filterStorageKey);
     applyFilterState(restoredState);
     if (countActiveFilters(restoredState) > 0) filterDetails.open = true;
+    // 父も同じ理由で開く。「3件選択」だけ見えてもどの父かが分からないため。
+    if (checkedValues(sireCheckboxes).length > 0) sireDetails.open = true;
 
     // メモ列の表示も前回のままにする（既定は隠す）
     showMemoToggle.checked = loadShowMemo(window.localStorage, showMemoStorageKey);
