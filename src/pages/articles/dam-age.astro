@@ -22,6 +22,7 @@ import GradeWinnerTable from '../../components/GradeWinnerTable.astro';
 import { loadRecruitsWithResults, racedOnly, RACE_RESULTS_FETCHED_AT } from '../../lib/analysis-data.ts';
 import { formatResultsAsOf } from '../../lib/sibling-recruits.ts';
 import { histogram, pearsonCorrelation, bucketAverage, countByBucket, formatManYen } from '../../lib/chart-math.ts';
+import { horses2026 } from '../../data/horses2026.ts';
 
 const allRecruits = loadRecruitsWithResults();
 const resultsAsOf = formatResultsAsOf(RACE_RESULTS_FETCHED_AT);
@@ -136,6 +137,14 @@ const gradeWinnersRest = gradeWinners.slice(GRADE_WINNERS_VISIBLE);
 const gradeWinnerAges = gradeWinners.map((h) => h.damAge as number);
 const gradeAgeMin = Math.min(...gradeWinnerAges);
 const gradeAgeMax = Math.max(...gradeWinnerAges);
+
+// ---- 2026年募集馬が母齢の階級分けのどこに当てはまるか（体高記事と同じ見せ方） ----
+const buckets2026 = AGE_BUCKETS.map(([label]) => ({
+  label,
+  horses: horses2026
+    .filter((h) => bucketLabel(h.damAge) === label)
+    .sort((a, b) => a.damAge - b.damAge),
+}));
 
 const RECRUIT_YEARS = [2017, 2018, 2019, 2020, 2021, 2022, 2023, 2024, 2025];
 const yearCounts = RECRUIT_YEARS.map((y) => `${y}年${all.filter((h) => h.recruitYear === y).length}頭`).join('・');
@@ -271,6 +280,28 @@ const description = `【非公式】キャロットクラブ${yearRangeLabel}${a
       <AdSlot sp={AD_SP_RECT} pc={AD_PC_WIDE_A} />
     </div>
 
+    <h2>2026年募集馬はどこに当てはまる？</h2>
+    <p>
+      せっかくなので、今の2026年募集{horses2026.length}頭の母齢が、この階級分けのどこに入るかも
+      並べておく（下の各行をタップすると開く。馬名は個別ページへのリンク）。母齢での絞り込みも
+      <a href="/">出資馬検討ツール</a>にあるので、実際に条件を変えて自分で探したい人はそちらもどうぞ。
+    </p>
+    {buckets2026.map((b) => (
+      <details class="bucket-accordion">
+        <summary>{b.label}（{b.horses.length}頭）</summary>
+        <ul>
+          {b.horses.map((h) => (
+            <li>
+              <a href={`/horses/${h.id}/`}>{h.name}</a>
+              <span class="bucket-meta">母齢{h.damAge}歳・{h.sex}・{h.sire}</span>
+            </li>
+          ))}
+        </ul>
+      </details>
+    ))}
+
+    <AdSlot sp={AD_SP_WIDE_A} pc={AD_PC_WIDE_A} />
+
     <h2>まとめ</h2>
     <ul class="conclusion">
       <li>母齢と獲得賞金合計の相関係数はr={ageR?.toFixed(3)}で、体高（弱い正の相関があった）とも
@@ -340,19 +371,37 @@ const description = `【非公式】キャロットクラブ${yearRangeLabel}${a
     justify-content: center;
     margin: 1.75rem 0 0.5rem;
   }
-  .more-winners {
+  .more-winners,
+  .bucket-accordion {
     border: 1px solid var(--border);
     border-radius: 8px;
     padding: 0.5rem 0.85rem;
     margin: 0.5rem 0;
   }
-  .more-winners summary {
+  .more-winners summary,
+  .bucket-accordion summary {
     cursor: pointer;
     font-weight: 600;
     padding: 0.25rem 0;
   }
   .more-winners :global(.table-scroll) {
     margin-top: 0.5rem;
+  }
+  .bucket-accordion ul {
+    list-style: none;
+    margin: 0.5rem 0 0.25rem;
+    padding: 0;
+  }
+  .bucket-accordion li {
+    padding: 0.25rem 0;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    align-items: baseline;
+  }
+  .bucket-meta {
+    font-size: 0.8125rem;
+    color: var(--muted);
   }
   .conclusion {
     padding-left: 1.25rem;
