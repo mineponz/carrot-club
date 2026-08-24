@@ -448,7 +448,12 @@ const faqJsonLd = {
     .lead { color: var(--muted); margin-top: 0; }
     .note { color: var(--muted); font-size: 0.875rem; }
     /* 年度切り替えの導線。本文より弱く、でも見落とさない程度に */
-    .year-switch { margin: 0 0 0.5rem; font-size: 0.875rem; color: var(--muted); }
+    /* margin(3値)だと左右マージンが暗黙に0になり、main.is-wideの子に効かせている
+       margin-inline: auto(BaseLayout側・グローバル)より詳細度で勝ってしまい中央寄せが
+       効かなくなる（Astroのスコープ付きCSSは同じクラス1つのセレクタでも[data-astro-cid-*]が
+       付き詳細度が上がるため）。margin-blockなら左右に触れないのでこの競合が起きない
+       （2026-08-24、本人指摘で発覚）。 */
+    .year-switch { margin-block: 0 0.5rem; font-size: 0.875rem; color: var(--muted); }
 
     /*
       データ分析記事への導線。以前は.year-switchに埋もれた小さいテキストリンク1本
@@ -458,7 +463,7 @@ const faqJsonLd = {
       記事を足すたびに直し忘れる）。
     */
     .analysis-promo {
-      margin: 0 0 0.75rem;
+      margin-block: 0 0.75rem;
       padding: 0.85rem 1.1rem;
       border: 1px solid var(--border);
       border-left: 3px solid var(--info);
@@ -688,7 +693,7 @@ const faqJsonLd = {
       align-items: baseline;
       justify-content: space-between;
       gap: 0.25rem 1rem;
-      margin: 0 0 0.35rem;
+      margin-block: 0 0.35rem;
     }
     .result-count {
       color: var(--muted);
@@ -705,7 +710,7 @@ const faqJsonLd = {
       cursor: pointer;
     }
 
-    .measure-list { margin: 0.75rem 0 0; }
+    .measure-list { margin-block: 0.75rem 0; }
     .measure-item {
       display: grid;
       grid-template-columns: 5rem 1fr;
