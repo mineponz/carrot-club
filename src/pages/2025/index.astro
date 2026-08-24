@@ -349,16 +349,17 @@ const faqJsonLd = {
   </div>
 
   <!--
-    メモ列は既定で隠し、評価欄の📝でメモの有無だけ分かるようにしている（本人の指示・2026-08-23）。
-    メモ欄は表の右端にあり、常時出しておくと表が横に伸びる割に普段は空欄が並ぶだけなので、
-    書き込みたいときだけ出す。絞り込み条件ではなく表示の切り替えなので、
+    メモは評価の隣の列にあり、既定では📝アイコンだけが出ている（本人の指示・2026-08-25）。
+    アイコンを押すとその行だけ入力欄に入れ替わるので、1頭だけ書きたいときはこの
+    チェックボックスを使わなくてよい。ここは「全頭ぶんをいっせいに開く／閉じる」ための
+    ショートカットとして残している。絞り込み条件ではなく表示の切り替えなので、
     畳んである絞り込みフォームの中ではなく表のすぐ上に置く（押した結果がその場で見える）。
   -->
   <div class="table-options">
     <p id="result-count" class="result-count">{total} / {total} 頭</p>
     <label class="checkbox-label show-memo-toggle">
       <input type="checkbox" id="toggle-show-memo" />
-      メモを表示
+      メモをすべて開く
     </label>
   </div>
   <p class="scroll-hint">
@@ -845,13 +846,12 @@ const faqJsonLd = {
       overflow: hidden;
       text-overflow: ellipsis;
     }
-    /* 評価列を 11.5rem にしてあるのは、メモの有無を示す📝を評価欄に足したぶん
-       （10rem のままだと中身が列幅からはみ出し、隣の列と重なる）。 */
+    /* 評価列は 10rem（メモの📝を隣のメモ列へ移したので、11.5rem まで広げなくてよくなった）。 */
     #horse-table th:nth-child(3),
     #horse-table td:nth-child(3) {
-      width: 11.5rem;
-      min-width: 11.5rem;
-      max-width: 11.5rem;
+      width: 10rem;
+      min-width: 10rem;
+      max-width: 10rem;
     }
 
     /* 表は画面幅に収まらない（実データで約2000px）。評価欄を操作している間もどの馬か
@@ -971,20 +971,40 @@ const faqJsonLd = {
       gap: 0.2rem;
       color: var(--muted);
     }
-    /* メモの有無を示す印。空のときも要素は残したまま見えなくして、評価欄の中身の幅が
-       馬ごとに変わらないようにする（visibility なら読み上げからも外れる）。 */
+    /* ---- メモ列（評価の隣・2026-08-25） ----
+       セルの中はアイコンと入力欄の排他表示。既定はアイコンだけで、`is-open` が付いた
+       セルだけ入力欄に入れ替わる。列ごと消していたころ（〜2026-08-24）と違い列は常に出す
+       ―― 空欄の馬でもアイコンを押せば書き始められるようにするため。
+       アイコンだけのときの列幅は1文字ぶんなので、出したままでも表はほとんど広がらない。 */
+    #horse-table .memo-col { white-space: nowrap; }
     #horse-table .memo-flag {
-      font-size: 0.75rem;
+      position: relative;
+      font-size: 0.875rem;
       line-height: 1;
-      flex: none;
-      cursor: default;
+      padding: 0.2rem 0.25rem;
+      background: transparent;
+      border: none;
+      cursor: pointer;
     }
-    #horse-table .memo-flag[data-has-memo='false'] { visibility: hidden; }
-
-    /* メモ列は既定で隠し、「メモを表示」を入れたときだけ出す（本人の指示・2026-08-23）。
-       有無は評価欄の📝で分かるので、普段は空欄の列で表を横に伸ばさない。 */
-    #horse-table .memo-col { display: none; }
-    #horse-table.show-memo .memo-col { display: table-cell; }
+    #horse-table .memo-flag:hover { background: var(--accent-weak); border-radius: 4px; }
+    /* メモが入っている馬だけ通知ドットを付ける。アイコン自体は空の馬にも出しているので、
+       「押せる場所」と「中身がある馬」をこの点で描き分ける。 */
+    #horse-table .memo-flag[data-has-memo='true']::after {
+      content: '';
+      position: absolute;
+      top: 0.05rem;
+      right: 0.05rem;
+      width: 0.4rem;
+      height: 0.4rem;
+      border-radius: 50%;
+      background: var(--accent);
+      /* 隣の文字と地続きに見えないよう、行の背景色で細く縁取る */
+      box-shadow: 0 0 0 1px var(--surface);
+    }
+    /* アイコン⇔入力欄の排他表示。開いているセルだけ入力欄を出す。 */
+    #horse-table .memo-col .memo-input { display: none; }
+    #horse-table .memo-col.is-open .memo-flag { display: none; }
+    #horse-table .memo-col.is-open .memo-input { display: inline-block; }
 
     #horse-table .memo-input {
       font: inherit;
@@ -1023,17 +1043,19 @@ const faqJsonLd = {
       }
       /* 馬名セルにまとめた列（No・父・母父・性・厩舎）は隠す。
          並べ替えは見出しのボタンだけで行うので、隠した5列はSPでは並べ替えられなくなる
-         （本人了承済み・2026-08-23。SP専用の並び替えバーは元のUIに戻すため取りやめた）。 */
+         （本人了承済み・2026-08-23。SP専用の並び替えバーは元のUIに戻すため取りやめた）。
+         列番号は COLUMNS の並び順に対応する（メモを4列目に移したぶん、以前の 5/6/7/15 から
+         1つずつ後ろにずれている。horse-row.test.ts に番号を突き合わせるテストがある）。 */
       #horse-table th:nth-child(1),
       #horse-table td:nth-child(1),
-      #horse-table th:nth-child(5),
-      #horse-table td:nth-child(5),
       #horse-table th:nth-child(6),
       #horse-table td:nth-child(6),
       #horse-table th:nth-child(7),
       #horse-table td:nth-child(7),
-      #horse-table th:nth-child(15),
-      #horse-table td:nth-child(15) { display: none; }
+      #horse-table th:nth-child(8),
+      #horse-table td:nth-child(8),
+      #horse-table th:nth-child(16),
+      #horse-table td:nth-child(16) { display: none; }
       /* 3行になるぶん、行の高さを稼ぐ余白は上下に薄く取る */
       #horse-table td { padding-top: 0.35rem; padding-bottom: 0.35rem; }
       #horse-table td:nth-child(2) { vertical-align: top; }
@@ -1130,7 +1152,7 @@ const faqJsonLd = {
 
     const checkedValues = (boxes: HTMLInputElement[]) =>
       boxes.filter((c) => c.checked).map((c) => c.value);
-    // 絞り込みではなく表示の切り替え（メモ列の出し入れ）。表の外・表のすぐ上に置いてある。
+    // 絞り込みではなく表示の切り替え（全頭ぶんのメモ欄をまとめて開く）。表のすぐ上に置いてある。
     const showMemoToggle = el<HTMLInputElement>('toggle-show-memo');
 
     const textInputs = [filterName, filterBms, filterDamAgeMin, filterDamAgeMax, filterPriceMin, filterPriceMax, filterHeightMin, filterHeightMax, filterCaretMin, filterCaretMax, filterWeightMin, filterWeightMax];
@@ -1280,6 +1302,9 @@ const faqJsonLd = {
               .map((h) => horseRowHtml(h, getEvaluation(evaluations, h.id), DETAIL_BASE_PATH))
               .join('');
       resultCount.textContent = `${list.length} / ${horses2025.length} 頭`;
+      // 行を作り直すとメモ欄の開閉状態も消えるので、一括表示がONのときだけ開き直す
+      // （個別に開いていた行は閉じた状態に戻る）。
+      if (showMemoToggle.checked) applyShowMemo(true);
 
       // 次に開いたときも同じ条件で見られるように、条件と並び順をこの端末に覚えさせる。
       // 保存先は localStorage だけで、サーバーには送らない（filter-state.ts のコメント参照）。
@@ -1325,13 +1350,18 @@ const faqJsonLd = {
     for (const toggle of toggles) toggle.addEventListener('change', render);
 
     /**
-     * メモ列の出し入れ。表にクラスを付け外しするだけで、行のHTMLには手を入れない
-     * （メモの中身はDOMに残るので、出し入れしても入力途中の内容が消えない）。
-     * 状態はこの端末に覚えさせる。保存先は絞り込みとは別キー（view-options.ts のコメント参照）。
+     * メモの一括開閉。全行のメモ欄に `is-open` を付け外しするだけで、行のHTMLには
+     * 手を入れない（メモの中身はDOMに残るので、閉じても入力途中の内容が消えない）。
+     *
+     * 個別に開いた行も一括OFFでまとめて閉じる（開閉状態を2か所で持たない）。
+     * 覚えておくのはこのチェックボックスのON/OFFだけで、個別に開いた行は再描画・再読み込みで
+     * 閉じた状態に戻る。保存先は絞り込みとは別キー（view-options.ts のコメント参照）。
      */
     const showMemoStorageKey = showMemoStorageKeyForYear(RECRUIT_YEAR);
     function applyShowMemo(show: boolean) {
-      table.classList.toggle('show-memo', show);
+      for (const cell of table.querySelectorAll<HTMLTableCellElement>('tbody td.memo-col')) {
+        cell.classList.toggle('is-open', show);
+      }
     }
     showMemoToggle.addEventListener('change', () => {
       applyShowMemo(showMemoToggle.checked);
@@ -1355,7 +1385,7 @@ const faqJsonLd = {
       if (!row) return;
       const memo = (target as HTMLInputElement).value;
       persistEvaluation(row.dataset.horseId!, { memo });
-      // メモ列を閉じたあとも有無が分かるよう、評価欄の印もその場で追随させる
+      // 閉じたあとも有無が分かるよう、同じセルのアイコンの印もその場で追随させる
       // （行は描き直さないので、ここで更新しないと次の再描画まで印が付かない）。
       const flag = row.querySelector('.memo-flag') as HTMLElement | null;
       if (flag) {
@@ -1390,13 +1420,43 @@ const faqJsonLd = {
 
     tbody.addEventListener('click', (e) => {
       const target = e.target as HTMLElement;
-      if (target.getAttribute('data-field') !== 'favorite') return;
+      const field = target.getAttribute('data-field');
       const row = target.closest('tr[data-horse-id]') as HTMLTableRowElement | null;
       if (!row) return;
-      const pressed = target.getAttribute('aria-pressed') === 'true';
-      target.setAttribute('aria-pressed', String(!pressed));
-      persistEvaluation(row.dataset.horseId!, { favorite: !pressed });
-      if (filterFavoriteOnly.checked) render();
+
+      if (field === 'favorite') {
+        const pressed = target.getAttribute('aria-pressed') === 'true';
+        target.setAttribute('aria-pressed', String(!pressed));
+        persistEvaluation(row.dataset.horseId!, { favorite: !pressed });
+        if (filterFavoriteOnly.checked) render();
+      } else if (field === 'memo-toggle') {
+        // 📝を押した行だけメモ欄に入れ替えて、そのまま打てるようにフォーカスまで移す。
+        const cell = target.closest('td.memo-col') as HTMLTableCellElement | null;
+        if (!cell) return;
+        cell.classList.add('is-open');
+        (cell.querySelector('.memo-input') as HTMLInputElement | null)?.focus();
+      }
+    });
+
+    /**
+     * 開いたメモ欄は、そこから離れたら閉じてアイコンに戻す（他の列が押し出されたままに
+     * ならないように）。アイコンは開くと隠れるので、閉じる操作はここに寄せている。
+     * 一括で開いているあいだは閉じない（チェックボックスの状態と食い違わせない）。
+     */
+    tbody.addEventListener('focusout', (e) => {
+      const target = e.target as HTMLElement;
+      if (!target.classList?.contains('memo-input')) return;
+      if (showMemoToggle.checked) return;
+      target.closest('td.memo-col')?.classList.remove('is-open');
+    });
+
+    // Enter / Escape でも閉じられるようにする（書き終わりにマウスへ戻らなくて済む）。
+    // 中身は打鍵のたびに保存済みなので、どちらで閉じてもメモは残る。
+    tbody.addEventListener('keydown', (e) => {
+      const target = e.target as HTMLElement;
+      if (!target.classList?.contains('memo-input')) return;
+      if (e.key !== 'Escape' && e.key !== 'Enter') return;
+      target.blur();
     });
 
     // 同期パネルが別の端末の評価を取り込むと localStorage だけが新しくなる。
@@ -1415,9 +1475,9 @@ const faqJsonLd = {
     // 父も同じ理由で開く。「3件選択」だけ見えてもどの父かが分からないため。
     if (checkedValues(sireCheckboxes).length > 0) sireDetails.open = true;
 
-    // メモ列の表示も前回のままにする（既定は隠す）
+    // メモを一括で開いていたかも前回のままにする（既定は閉じてアイコンだけ）。
+    // 実際に開くのは直後の render()（行を作り直したあとに開き直す）。
     showMemoToggle.checked = loadShowMemo(window.localStorage, showMemoStorageKey);
-    applyShowMemo(showMemoToggle.checked);
 
     // 初期HTMLは未評価の状態なので、保存済みの評価を反映するために一度描き直す。
     render();
