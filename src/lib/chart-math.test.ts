@@ -4,7 +4,9 @@ import {
   linearScale,
   histogram,
   pearsonCorrelation,
+  spearmanCorrelation,
   bucketAverage,
+  bucketMedian,
   countByBucket,
   mean,
   median,
@@ -53,6 +55,25 @@ test('pearsonCorrelation is null when a series has zero variance', () => {
   assert.equal(pearsonCorrelation([1, 1, 1], [1, 2, 3]), null);
 });
 
+test('spearmanCorrelation is 1 for a monotonic (but non-linear) relationship', () => {
+  // pearsonCorrelationだと歪みで1未満になる非線形単調データ
+  const r = spearmanCorrelation([1, 2, 3, 4, 5], [1, 4, 9, 16, 25]);
+  assert.ok(r !== null && Math.abs(r - 1) < 1e-9);
+});
+
+test('spearmanCorrelation resists a single extreme outlier better than pearsonCorrelation', () => {
+  const xs = [1, 2, 3, 4, 5, 6];
+  const ys = [1, 2, 3, 4, 5, 1000]; // 最後だけ桁違いの外れ値
+  const pearson = pearsonCorrelation(xs, ys) as number;
+  const spearman = spearmanCorrelation(xs, ys) as number;
+  assert.ok(spearman > pearson);
+});
+
+test('spearmanCorrelation handles tied values via average rank', () => {
+  const r = spearmanCorrelation([1, 1, 2, 3], [1, 1, 2, 3]);
+  assert.ok(r !== null && Math.abs(r - 1) < 1e-9);
+});
+
 test('countByBucket counts items per key and omits keys with no items', () => {
   const counts = countByBucket(
     [{ k: 'a' }, { k: 'a' }, { k: 'b' }],
@@ -80,6 +101,25 @@ test('bucketAverage groups and averages by key', () => {
   assert.equal(a?.avg, 15);
   assert.equal(b?.n, 1);
   assert.equal(b?.avg, 5);
+});
+
+test('bucketMedian groups and takes the median by key, resisting outliers', () => {
+  const result = bucketMedian(
+    [
+      { k: 'a', v: 10 },
+      { k: 'a', v: 20 },
+      { k: 'a', v: 10000 }, // 外れ値。中央値なら引っ張られない
+      { k: 'b', v: 5 },
+    ],
+    (item) => item.k,
+    (item) => item.v
+  );
+  const a = result.find((r) => r.bucket === 'a');
+  const b = result.find((r) => r.bucket === 'b');
+  assert.equal(a?.n, 3);
+  assert.equal(a?.med, 20);
+  assert.equal(b?.n, 1);
+  assert.equal(b?.med, 5);
 });
 
 test('formatManYen adds thousands separators and rounds', () => {

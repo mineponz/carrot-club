@@ -1,0 +1,547 @@
+---
+/**
+ * 分析記事「胸囲と成績・回収率の関係」。2017〜2025年募集の全頭（`analysis/data/recruits.json`）に
+ * ある胸囲（chestGirth）と現在の競走成績（`analysis/data/race-results.json`）をクロス集計する。
+ * 体高・母齢・誕生月に続く4本目。height.astro/dam-age.astroと同じデータ基盤・同じ書き方
+ * （動的計算・実名紹介・広告配置）を踏襲する。
+ *
+ * この記事は他の3本と2点違う:
+ * - データ取得ステップが不要（chestGirthは既に815/818頭ぶん入っている）。
+ * - 「獲得賞金合計」だけでなく「回収率（獲得賞金合計÷一口価格）」でも成績を見る
+ *   （本人指示: 安く仕入れて活躍した馬を見分けられるかという観点も加えてほしい）。
+ *   回収率は分布が極端に歪む（一部の稼ぎ頭が桁違いに大きい）ため、相関係数だけでなく
+ *   階級別**中央値**（`bucketMedian`、外れ値に強い）でも見る。この倍率は実際に会員へ
+ *   配当される金額そのものではない点を本文で明記する（配当計算式は複雑で不明）。
+ */
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import BarChart from '../../components/charts/BarChart.astro';
+import ScatterChart from '../../components/charts/ScatterChart.astro';
+import ChartTooltip from '../../components/charts/ChartTooltip.astro';
+import StatTiles from '../../components/charts/StatTiles.astro';
+import AdSlot from '../../components/AdSlot.astro';
+import GradeWinnerTable from '../../components/GradeWinnerTable.astro';
+import { loadRecruitsWithResults, racedOnly, RACE_RESULTS_FETCHED_AT } from '../../lib/analysis-data.ts';
+import { formatResultsAsOf } from '../../lib/sibling-recruits.ts';
+import {
+  histogram,
+  pearsonCorrelation,
+  spearmanCorrelation,
+  mannWhitneyU,
+  bucketAverage,
+  bucketMedian,
+  countByBucket,
+  mean,
+  median,
+  formatManYen,
+} from '../../lib/chart-math.ts';
+
+const allRecruits = loadRecruitsWithResults();
+const resultsAsOf = formatResultsAsOf(RACE_RESULTS_FETCHED_AT);
+
+// 胸囲が取れていない3頭（netkeibaページ自体を特定できなかった馬）は集計対象から外す。
+const all = allRecruits.filter((h) => h.chestGirth !== null);
+const raced = racedOnly(all);
+const unraced = all.length - raced.length;
+
+// ---- 胸囲の階級 ----
+// 体高記事の教訓（0.5cm刻みデータの境界を整数で切ると.5の値が黙って抜け落ちる）を踏まえ、
+// 境界はすべて整数にして「その値未満」で持つ。実データはほぼ0.5cm刻み（815頭中814頭）。
+const GIRTH_BUCKETS: [string, number, number][] = [
+  ['168cm未満', -Infinity, 168],
+  ['168〜174cm未満', 168, 174],
+  ['174〜180cm未満', 174, 180],
+  ['180cm以上', 180, Infinity],
+];
+function bucketLabel(girth: number): string {
+  for (const [label, lo, hiExclusive] of GIRTH_BUCKETS) {
+    if (girth >= lo && girth < hiExclusive) return label;
+  }
+  return '?';
+}
+const bucketOrder = GIRTH_BUCKETS.map(([label]) => label);
+function orderBuckets<T extends { bucket: string }>(rows: T[]): T[] {
+  return bucketOrder.map((label) => rows.find((r) => r.bucket === label)).filter((r): r is T => !!r);
+}
+
+// ---- 胸囲の分布 ----
+const girths = all.map((h) => h.chestGirth as number);
+const girthMin = Math.min(...girths);
+const girthMax = Math.max(...girths);
+const girthMean = mean(girths);
+const girthMedian = median(girths);
+const girthBins = histogram(girths, 3, 159, 195).map((b) => ({
+  label: `${b.binStart}〜${b.binEnd}`,
+  value: b.count,
+  displayValue: `${b.count}頭`,
+}));
+
+const SCATTER_Y_MAX = 10000;
+
+function sexSeriesKey(sex: string | null): string {
+  if (sex === '牝') return 'female';
+  if (sex === '牡' || sex === 'セン') return 'male';
+  return 'unknown';
+}
+
+// ---- 胸囲 × 獲得賞金合計（出走済みのみ） ----
+const girthR = pearsonCorrelation(
+  raced.map((h) => h.chestGirth as number),
+  raced.map((h) => h.totalPrizeManYen)
+);
+// 獲得賞金は少数の稼ぎ頭に大きく引っ張られる歪んだ分布のため、線形の相関係数（ピアソン）に加えて
+// 大きさに引っ張られない順位ベースの相関係数（スピアマン）でも確認する。
+const girthSpearmanR = spearmanCorrelation(
+  raced.map((h) => h.chestGirth as number),
+  raced.map((h) => h.totalPrizeManYen)
+);
+// 体高の記事と同じ計算を、その場でも動的に出す（体高記事側の数値が更新されてもここが
+// 古いまま取り残されないようにするため。ハードコードしない）。
+const raceWithHeight = raced.filter((h) => h.height !== null);
+const heightPrizeR = pearsonCorrelation(
+  raceWithHeight.map((h) => h.height as number),
+  raceWithHeight.map((h) => h.totalPrizeManYen)
+);
+const girthScatterAll = raced.length;
+const girthScatterPoints = raced
+  .filter((h) => h.totalPrizeManYen < SCATTER_Y_MAX)
+  .map((h) => ({
+    x: h.chestGirth as number,
+    y: h.totalPrizeManYen,
+    seriesKey: sexSeriesKey(h.sex),
+    tipTitle: h.displayName,
+    tipRows: [
+      ['胸囲', `${h.chestGirth}cm`],
+      ['獲得賞金合計', `${formatManYen(h.totalPrizeManYen)}万円`],
+      ['通算成績', `${h.starts}戦${h.wins}勝`],
+    ] as [string, string][],
+  }));
+const girthScatterOmitted = girthScatterAll - girthScatterPoints.length;
+const unknownSexPoints = girthScatterPoints.filter((p) => p.seriesKey === 'unknown').length;
+const sexSeries = [
+  { key: 'male', label: '牡', colorVar: '--series-1' },
+  { key: 'female', label: '牝', colorVar: '--series-2' },
+  ...(unknownSexPoints > 0 ? [{ key: 'unknown', label: '性別不明', colorVar: '--series-3' }] : []),
+];
+
+// ---- 胸囲階級別の平均賞金・平均勝ち数（出走済みが母数） ----
+const prizeByGirthBucket = bucketAverage(raced, (h) => bucketLabel(h.chestGirth as number), (h) => h.totalPrizeManYen);
+const winsByGirthBucket = bucketAverage(raced, (h) => bucketLabel(h.chestGirth as number), (h) => h.wins ?? 0);
+const allByGirthBucket = countByBucket(all, (h) => bucketLabel(h.chestGirth as number));
+const gradeWinnersByGirthBucket = countByBucket(
+  all.filter((h) => h.gradeWins.length > 0),
+  (h) => bucketLabel(h.chestGirth as number)
+);
+
+const prizeBars = orderBuckets(prizeByGirthBucket).map((r) => ({
+  label: r.bucket,
+  value: r.avg,
+  displayValue: `${formatManYen(r.avg)}万円`,
+  n: r.n,
+  note: `全${allByGirthBucket.get(r.bucket) ?? 0}頭・重賞馬${gradeWinnersByGirthBucket.get(r.bucket) ?? 0}頭`,
+}));
+const winBars = orderBuckets(winsByGirthBucket).map((r) => ({
+  label: r.bucket,
+  value: r.avg,
+  displayValue: `${r.avg.toFixed(2)}勝`,
+  n: r.n,
+}));
+
+// ---- 参考: 胸囲は馬体重・体高とどれだけ重なっているか ----
+const withWeight = all.filter((h) => h.weight !== null);
+const girthWeightR = pearsonCorrelation(
+  withWeight.map((h) => h.chestGirth as number),
+  withWeight.map((h) => h.weight as number)
+);
+const withHeight = all.filter((h) => h.height !== null);
+const girthHeightR = pearsonCorrelation(
+  withHeight.map((h) => h.chestGirth as number),
+  withHeight.map((h) => h.height as number)
+);
+
+// ---- 胸囲 × 回収率（獲得賞金合計 ÷ 一口価格） ----
+// 出走済み・一口価格が分かっている馬だけが対象。倍率は「投資した一口の何倍の規模の賞金を
+// 稼いだか」の目安で、実際に会員へ配当される金額そのものではない（配当計算式は不明）。
+const racedWithPrice = raced.filter((h) => h.pricePerShare !== null);
+const racedWithoutPrice = raced.length - racedWithPrice.length;
+const roiOf = (h: (typeof racedWithPrice)[number]) => h.totalPrizeManYen / (h.pricePerShare as number);
+const roiR = pearsonCorrelation(racedWithPrice.map((h) => h.chestGirth as number), racedWithPrice.map(roiOf));
+const roiSpearmanR = spearmanCorrelation(racedWithPrice.map((h) => h.chestGirth as number), racedWithPrice.map(roiOf));
+const roiMedianOverall = median(racedWithPrice.map(roiOf));
+const priceMedianOverall = median(racedWithPrice.map((h) => h.pricePerShare as number));
+const prizeMedianOverall = median(racedWithPrice.map((h) => h.totalPrizeManYen));
+const roiByGirthBucket = bucketMedian(racedWithPrice, (h) => bucketLabel(h.chestGirth as number), roiOf);
+const roiBars = orderBuckets(roiByGirthBucket).map((r) => ({
+  label: r.bucket,
+  value: r.med,
+  displayValue: `${r.med.toFixed(0)}倍`,
+  n: r.n,
+}));
+
+// 階級が上がるほど回収率の中央値も上がって見えるため、境界（174cm、階級分けと同じ区切り）で
+// 2群に割って分布差の検定（Mann-Whitney U）も確認する。中央値だけでなく分布全体の差を見る。
+const ROI_SPLIT_GIRTH = 174;
+const roiLowGirth = racedWithPrice.filter((h) => (h.chestGirth as number) < ROI_SPLIT_GIRTH).map(roiOf);
+const roiHighGirth = racedWithPrice.filter((h) => (h.chestGirth as number) >= ROI_SPLIT_GIRTH).map(roiOf);
+const roiMw = mannWhitneyU(roiLowGirth, roiHighGirth);
+
+// 「安く仕入れて稼いだ」実例（回収率が高い順）。重賞を勝った馬が上位を占めるので、
+// 表は重賞勝ち馬紹介（下）と役割が重なるが、こちらは倍率順に並べ替えて見せる。
+const ROI_TOP_N = 8;
+const roiTop = [...racedWithPrice].sort((a, b) => roiOf(b) - roiOf(a)).slice(0, ROI_TOP_N);
+const roiTopGirths = roiTop.map((h) => h.chestGirth as number);
+const roiTopGirthMin = Math.min(...roiTopGirths);
+const roiTopGirthMax = Math.max(...roiTopGirths);
+const roiTopAboveMedian = roiTopGirths.filter((g) => g >= girthMedian).length;
+
+// ---- 成績が確定しやすい古い世代（2017〜2021年募集）だけで再集計 ----
+const olderOnly = all.filter((h) => h.recruitYear <= 2021);
+const olderRaced = racedOnly(olderOnly);
+const girthROlder = pearsonCorrelation(
+  olderRaced.map((h) => h.chestGirth as number),
+  olderRaced.map((h) => h.totalPrizeManYen)
+);
+
+// ---- 代表馬（重賞勝ち馬） ----
+const gradeWinners = all.filter((h) => h.gradeWins.length > 0).sort((a, b) => b.totalPrizeManYen - a.totalPrizeManYen);
+const GRADE_WINNERS_VISIBLE = 10;
+const gradeWinnersTop = gradeWinners.slice(0, GRADE_WINNERS_VISIBLE);
+const gradeWinnersRest = gradeWinners.slice(GRADE_WINNERS_VISIBLE);
+const gradeWinnerGirths = gradeWinners.map((h) => h.chestGirth as number);
+const gradeGirthMin = Math.min(...gradeWinnerGirths);
+const gradeGirthMax = Math.max(...gradeWinnerGirths);
+
+const RECRUIT_YEARS = [2017, 2018, 2019, 2020, 2021, 2022, 2023, 2024, 2025];
+const yearCounts = RECRUIT_YEARS.map((y) => `${y}年${all.filter((h) => h.recruitYear === y).length}頭`).join('・');
+const yearRangeLabel = `${RECRUIT_YEARS[0]}〜${RECRUIT_YEARS[RECRUIT_YEARS.length - 1]}年`;
+
+// 広告コードは他の記事と同じもの（本人の判断で使い回し。vault: 20260821-article-ad-embed-snippets）
+const AD_SP_WIDE_A = 'f81bbb016a82d6366a0e2f70051b1a0c';
+const AD_SP_WIDE_B = 'b4b7d55c89d5fc92c564979491a16ad1';
+const AD_SP_RECT = '24e3e1a24f40d88ee1a0ca315c54a7b9';
+const AD_PC_WIDE_A = 'f0efb5bd6ae3e164bb584a4dbb846f48';
+const AD_PC_WIDE_B = '0a525f6469ec1f40642b4550e53d39cc';
+
+const description = `【非公式】キャロットクラブ${yearRangeLabel}${all.length}頭の募集時データと現在の競走成績を独自集計。胸囲と獲得賞金・回収率・重賞勝ち馬の関係を散布図で見る分析記事。`;
+---
+
+<BaseLayout
+  title="胸囲と成績・回収率の関係"
+  description={description}
+  breadcrumb={[{ label: '分析記事', href: '/articles/' }, { label: '胸囲と成績・回収率の関係', href: '/articles/chest-girth/' }]}
+  showHeaderNotices={false}
+>
+  <article>
+    <h1>胸囲と成績・回収率の関係を見てみた</h1>
+
+    <p>
+      募集馬を選ぶとき、体高や馬体重はみんな気にするけれど、「胸囲」まで注目している人は
+      案外少ない気がする。胸が深い馬は肺活量が大きく、スタミナに優れるという話も聞くので、
+      <a href="/articles/height/">体高</a>・<a href="/articles/dam-age/">母齢</a>・
+      <a href="/articles/birth-month/">誕生月</a>に続いて、今度はこの「胸囲」を実際のデータで
+      確かめてみた。{yearRangeLabel}募集（{yearCounts}）に、{resultsAsOf}時点の獲得賞金・通算成績を
+      突き合わせた独自集計。今回は獲得賞金だけでなく、「安く仕入れて活躍できたか」を見る
+      <strong>回収率</strong>（獲得賞金合計÷一口価格）でも合わせて見ていく。
+    </p>
+
+    <StatTiles
+      tiles={[
+        { label: '対象頭数', value: `${all.length}頭` },
+        { label: '出走済み', value: `${raced.length}頭` },
+        { label: '未出走', value: `${unraced}頭`, note: '大半が直近の募集組' },
+        {
+          label: '胸囲 × 獲得賞金合計',
+          value: girthR !== null ? `r=${girthR.toFixed(3)}` : '—',
+          note: '線形ではほぼ無相関',
+        },
+        { label: '胸囲の範囲', value: `${girthMin}〜${girthMax}cm` },
+      ]}
+    />
+
+    <AdSlot sp={AD_SP_WIDE_A} pc={AD_PC_WIDE_A} />
+
+    <h2>胸囲の分布</h2>
+    <p>
+      まず母集団を見ておくと、{all.length}頭の胸囲は{girthMin}〜{girthMax}cmに分布していて、
+      平均は{girthMean.toFixed(1)}cm・中央値は{girthMedian.toFixed(1)}cm。3cm刻みでヒストグラムに
+      するとこんな感じ。
+    </p>
+    <BarChart title={`胸囲の分布（全${all.length}頭・3cm刻み）`} bars={girthBins} valueLabel="頭数" />
+
+    <AdSlot sp={AD_SP_WIDE_B} pc={AD_PC_WIDE_B} />
+
+    <h2>胸囲 × 獲得賞金合計</h2>
+    <p>
+      出走済みの{raced.length}頭で、胸囲と獲得賞金合計（中央+地方、万円）を散布図にしてみた。
+      相関係数（ピアソン）は r={girthR?.toFixed(3)}。体高（r={heightPrizeR?.toFixed(3)}）よりも
+      ゼロに近い数字で、<strong>胸囲だけを見て成績を読むのはかなり難しい</strong>という結果になった。
+      獲得賞金は少数の稼ぎ頭に大きく引っ張られる歪んだ分布なので、大きさに引っ張られない
+      順位ベースの相関係数（スピアマン）でも確認すると r={girthSpearmanR?.toFixed(3)}で、
+      ピアソンよりは高く出るものの、それでも弱い部類であることに変わりはない。
+      {girthScatterOmitted > 0 && (
+        <>獲得賞金合計が1億円を超える{girthScatterOmitted}頭はグラフの外に出るため省略した
+        （後述の代表馬紹介を参照）。</>
+      )}
+    </p>
+    <ScatterChart
+      title={`胸囲 × 獲得賞金合計（出走済み・1億円未満${girthScatterPoints.length}頭）`}
+      points={girthScatterPoints}
+      series={sexSeries}
+      xLabel="胸囲(cm)"
+      yLabel="獲得賞金合計(万円)"
+      xDomain={[girthMin - 1, girthMax + 1]}
+      yDomain={[0, SCATTER_Y_MAX]}
+      xTicks={[165, 170, 175, 180, 185, 190]}
+      yTicks={[0, 2500, 5000, 7500, 10000]}
+      formatX={(v) => `${v}`}
+      formatY={(v) => (v === 0 ? '0' : `${v / 1000}k`)}
+    />
+
+    <AdSlot sp={AD_SP_WIDE_A} pc={AD_PC_WIDE_A} />
+
+    <h2>胸囲階級別に見ると</h2>
+    <p>
+      4階級に分けて平均を取ると、一番小さい階級（{prizeBars[0]?.n ?? 0}頭）が一番平均獲得賞金の
+      低いグループにはなっているものの、3番目の階級が一番高く、4番目（一番大きい階級）は
+      逆に下がるなど、階級が上がるほど単調に伸びていく並びにはなっていない。平均勝ち数も
+      同様の凸凹した並びで、相関係数の弱さ（r={girthR?.toFixed(3)}）が示す通り、
+      胸囲の大小からはっきりした傾向は読み取れなかった。
+    </p>
+    <BarChart
+      title="胸囲階級別 平均獲得賞金合計"
+      bars={prizeBars}
+      valueLabel="平均獲得賞金合計"
+      nLabel="平均の母数（出走済み）"
+      noteLabel="階級全体"
+    />
+    <BarChart title="胸囲階級別 平均勝ち数" bars={winBars} valueLabel="平均勝ち数" />
+
+    <div class="finding">
+      <p class="finding-lead">胸囲は「馬体重・体高の言い換え」に近い</p>
+      <p>
+        胸囲は馬体重とr={girthWeightR?.toFixed(3)}、体高ともr={girthHeightR?.toFixed(3)}と、
+        いずれもはっきりした相関がある。つまり胸囲が大きい馬は単純に馬体重も体高も大きい馬であることが多く、
+        胸囲だけが独自に持っている情報はそれほど多くない。<a href="/articles/height/">体高の記事</a>
+        で見た「体高もごく弱い正の相関」という結果と方向性は近く、胸囲を単体の判断材料として
+        重視するほどの根拠は見つからなかった。
+      </p>
+    </div>
+
+    <AdSlot sp={AD_SP_WIDE_B} pc={AD_PC_WIDE_B} />
+
+    <h2>胸囲 × 回収率（安く仕入れて稼げたか）</h2>
+    <p>
+      獲得賞金の絶対額だけでなく、「安い一口価格で活躍できたか」という観点でも見てみる。
+      出走済みかつ一口価格が分かっている{racedWithPrice.length}頭
+      {racedWithoutPrice > 0 && <>（残り{racedWithoutPrice}頭は一口価格の記載が確認できなかった馬）</>}
+      で、獲得賞金合計を一口価格で割った「回収率」を計算した。中央値は
+      {roiMedianOverall.toFixed(0)}倍（一口価格の中央値{priceMedianOverall}万円・獲得賞金合計の
+      中央値{formatManYen(prizeMedianOverall)}万円）。
+      <strong>ただしこれは一口価格に対する賞金総額の規模感の目安であり、実際に会員へ配当される
+      金額そのものではない</strong>（配当の計算方法はクラブ・馬ごとに複雑で、今回のデータからは
+      分からない）。
+    </p>
+    <p>
+      胸囲と回収率の相関係数（ピアソン）はr={roiR?.toFixed(3)}で、獲得賞金合計で見たとき
+      （r={girthR?.toFixed(3)}）とほぼ同じくらい弱い。回収率も獲得賞金と同様に一部の稼ぎ頭に
+      大きく引っ張られる歪んだ分布（中央値は{roiMedianOverall.toFixed(0)}倍でも、最大は
+      1万倍を超える）なので、順位ベースの相関係数（スピアマン）でも確認すると
+      r={roiSpearmanR?.toFixed(3)}で、こちらもピアソンより高く出る。
+    </p>
+    <BarChart title="胸囲階級別 回収率（中央値）" bars={roiBars} valueLabel="回収率(中央値)" />
+    <p>
+      外れ値の影響を受けにくいはずの中央値で見ても、階級が上がるほど回収率は単調に
+      高くなっている（{roiBars[0]?.displayValue}→{roiBars[roiBars.length - 1]?.displayValue}）。
+      実際、胸囲174cm未満と174cm以上の2群で回収率の分布を比べる検定
+      （Mann-WhitneyのU検定）をすると z={roiMw.z.toFixed(2)}・p={roiMw.p.toFixed(3)}となり、
+      5%水準では統計的にも差が見られた。ここまでの記事で唯一、検定で有意差が出た結果になる。
+      ただし前段の「胸囲は馬体重・体高の言い換えに近い」（胸囲は馬体重とr={girthWeightR?.toFixed(3)}・
+      体高とr={girthHeightR?.toFixed(3)}）を踏まえると、これは胸囲そのものが持つ独自の効果というより、
+      胸囲が馬体重・体高の代わりに「体が大きい馬ほどやや稼ぐ傾向」（体高記事で見たr={heightPrizeR?.toFixed(3)}
+      と同じ効果）を間接的に拾っているだけの可能性が高い。胸囲を単体で見て「安くて化ける馬」を
+      選別できるという主張はできない。
+    </p>
+
+    <h3>回収率が高かった馬</h3>
+    <p>
+      参考までに、回収率が高かった上位{ROI_TOP_N}頭を挙げておく。安い一口価格から
+      重賞を勝つところまで駆け上がった馬が並ぶ。
+    </p>
+    <div class="table-scroll">
+      <table class="roi-table">
+        <thead>
+          <tr>
+            <th>馬名</th>
+            <th>胸囲</th>
+            <th>一口価格</th>
+            <th>獲得賞金合計</th>
+            <th>回収率</th>
+            <th>主な勝鞍</th>
+          </tr>
+        </thead>
+        <tbody>
+          {roiTop.map((h) => (
+            <tr>
+              <td>{h.displayName}</td>
+              <td>{h.chestGirth}cm</td>
+              <td>{h.pricePerShare}万円</td>
+              <td>{formatManYen(h.totalPrizeManYen)}万円</td>
+              <td>{Math.round(roiOf(h))}倍</td>
+              <td>{h.gradeWins.join('、') || '—'}</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+    <p class="table-note">
+      胸囲の列を見ると、上位{ROI_TOP_N}頭は{roiTopGirthMin}〜{roiTopGirthMax}cmに集まっていて、
+      母集団の中央値（{girthMedian.toFixed(1)}cm）以上の馬が{roiTopAboveMedian}頭を占める。
+      前段の階級別中央値で見た「階級が上がるほど回収率が高い」傾向とは整合するが、
+      {ROI_TOP_N}頭だけでは数が少なく、この表単体で「胸囲が大きい馬の方が化けやすい」と
+      判断するのは早計。
+    </p>
+
+    <div class="ad-rect">
+      <AdSlot sp={AD_SP_RECT} pc={AD_PC_WIDE_A} />
+    </div>
+
+    <h2>実際にどんな馬がいたか</h2>
+    <p>
+      この{all.length}頭の中で実際に重賞を勝った{gradeWinners.length}頭を獲得賞金の多い順に
+      並べておく。胸囲の列を見てもらうと分かる通り、{gradeGirthMin}〜{gradeGirthMax}cmまで
+      ほぼ全域にわたって重賞馬が出ている。表が長くなるので、開いているのは上位
+      {GRADE_WINNERS_VISIBLE}頭で、残り{gradeWinnersRest.length}頭はその下の折りたたみに入れてある。
+    </p>
+    <GradeWinnerTable rows={gradeWinnersTop} showRoi />
+    {gradeWinnersRest.length > 0 && (
+      <details class="more-winners">
+        <summary>残りの{gradeWinnersRest.length}頭も見る（獲得賞金{GRADE_WINNERS_VISIBLE + 1}位以下）</summary>
+        <GradeWinnerTable rows={gradeWinnersRest} showRoi />
+      </details>
+    )}
+    <p class="table-note">
+      上の表と折りたたみを合わせた{gradeWinners.length}頭が、{all.length}頭のうち重賞
+      （中央G1〜G3・Jpn1〜3、地方重賞含む）を勝った馬のすべて。
+    </p>
+
+    <div class="finding">
+      <p class="finding-lead">デビュー時期の偏りではないか？</p>
+      <p>
+        直近の募集組（2022〜2025年）は未出走が多く、それだけで見かけ上の偏りが出ないか
+        気になったので、レースを重ねている2017〜2021年募集（{olderOnly.length}頭）だけに
+        絞って相関係数を出し直した。結果は r={girthROlder?.toFixed(3)}。絞り込む前
+        （r={girthR?.toFixed(3)}）とほぼ変わらず、デビュー時期の偏りで説明できる差ではなかった。
+      </p>
+    </div>
+
+    <div class="ad-rect">
+      <AdSlot sp={AD_SP_RECT} pc={AD_PC_WIDE_B} />
+    </div>
+
+    <h2>まとめ</h2>
+    <ul class="conclusion">
+      <li>胸囲と獲得賞金合計の線形の相関係数（ピアソン）はr={girthR?.toFixed(3)}、回収率で見ても
+        r={roiR?.toFixed(3)}と、<strong>どちらの見方でも弱かった</strong>。順位ベースの相関係数
+        （スピアマン）で見ると獲得賞金r={girthSpearmanR?.toFixed(3)}・回収率r={roiSpearmanR?.toFixed(3)}
+        とやや高くなり、回収率は174cmを境にした2群比較（Mann-Whitney検定、p={roiMw.p.toFixed(3)}）
+        で統計的な差も見られたが、これは次で述べる交絡を踏まえるとそのまま「胸囲が効いている」
+        とは言えない。</li>
+      <li>胸囲は馬体重（r={girthWeightR?.toFixed(3)}）・体高（r={girthHeightR?.toFixed(3)}）といずれも
+        はっきり連動しており、胸囲そのものが独自に持っている情報は薄い。回収率で見えた差も、
+        胸囲が馬体重・体高の代わりに「体が大きい馬ほどやや稼ぐ傾向」を間接的に拾っているだけの
+        可能性が高く、「胸囲が大きい＝馬体が大きい」以上のことは今回のデータからは言えなかった。</li>
+      <li>重賞馬の顔ぶれを見ても、実際の重賞馬は{gradeGirthMin}〜{gradeGirthMax}cmの中で
+        まんべんなく出ており、胸囲の大小だけで重賞馬になれるかが決まるような単純な話ではない。</li>
+      <li>直近募集組の未出走が多いことによる見かけ上の偏りも、古い世代だけに絞った再集計
+        （r={girthROlder?.toFixed(3)}）で否定できた。</li>
+      <li>「胸囲は軽視されがち」という話自体は間違っていないと思うが、今回のデータを見る限り
+        軽視されているなりの理由（体高・馬体重で見ている情報とほぼ重なる）はありそうだった。</li>
+    </ul>
+
+    <h2>データについて</h2>
+    <p>
+      胸囲は募集時にクラブが公表した測尺データが元。競走成績は{resultsAsOf}時点のスナップショットで、
+      今後レースを重ねるたびに変わっていく。直近の募集組はまだ大半が未出走〜デビュー間もないため、
+      今回の集計は出走済みの{raced.length}頭が中心になっている点は割り引いて見てほしい。獲得賞金は
+      中央（JRA）・地方（NAR）の合計で、海外レースで得た賞金は含まれていない。回収率
+      （獲得賞金合計÷一口価格）は投資規模に対する賞金の大きさの目安であり、実際に会員へ配当される
+      金額そのものではない点にも注意してほしい。相関係数はあくまで線形の関係の強さの目安で、
+      これだけで「胸囲が成績に影響しない」と断言できるわけではない。出資判断の材料というより、
+      あくまで趣味の分析として楽しんでもらえたら。
+    </p>
+
+    <p>
+      <a href="/">募集馬一覧へ戻る</a> ／ <a href="/articles/">分析記事一覧へ</a>
+    </p>
+  </article>
+
+  <ChartTooltip />
+</BaseLayout>
+
+<style>
+  article :global(h2) {
+    margin-top: 2.5rem;
+  }
+  .table-note {
+    font-size: 0.8125rem;
+    color: var(--muted);
+  }
+  .finding {
+    margin: 1.25rem 0;
+    padding: 0.9rem 1.1rem;
+    background: var(--accent-weak);
+    border-left: 3px solid var(--accent);
+    border-radius: 0 6px 6px 0;
+  }
+  .finding-lead {
+    margin: 0 0 0.5rem;
+    font-weight: 700;
+  }
+  .finding p:last-child {
+    margin-bottom: 0;
+  }
+  .ad-rect {
+    display: flex;
+    justify-content: center;
+    margin: 1.75rem 0 0.5rem;
+  }
+  .more-winners {
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 0.5rem 0.85rem;
+    margin: 0.5rem 0;
+  }
+  .more-winners summary {
+    cursor: pointer;
+    font-weight: 600;
+    padding: 0.25rem 0;
+  }
+  .more-winners :global(.table-scroll) {
+    margin-top: 0.5rem;
+  }
+  .table-scroll {
+    overflow-x: auto;
+    margin: 1rem 0;
+  }
+  table.roi-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.875rem;
+    white-space: nowrap;
+  }
+  table.roi-table th,
+  table.roi-table td {
+    padding: 0.4rem 0.6rem;
+    border-bottom: 1px solid var(--border);
+    text-align: left;
+  }
+  table.roi-table th {
+    color: var(--muted);
+    font-weight: 600;
+  }
+  .conclusion {
+    padding-left: 1.25rem;
+  }
+  .conclusion li + li {
+    margin-top: 0.5rem;
+  }
+</style>

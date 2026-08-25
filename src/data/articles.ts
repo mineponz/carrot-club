@@ -12,6 +12,12 @@ export interface AnalysisArticle {
 
 export const analysisArticles: AnalysisArticle[] = [
   {
+    href: '/articles/chest-girth/',
+    title: '胸囲と成績・回収率の関係',
+    description:
+      '体高・馬体重の陰で見落とされがちな「胸囲」は成績と関係あるのか。獲得賞金だけでなく、安く仕入れて稼いだ馬を測る「回収率」でも検証。',
+  },
+  {
     href: '/articles/birth-month/',
     title: '誕生月と体格・成績の関係',
     description:

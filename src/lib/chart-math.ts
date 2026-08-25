@@ -51,6 +51,33 @@ export function pearsonCorrelation(xs: readonly number[], ys: readonly number[])
   return cov / Math.sqrt(sx * sy);
 }
 
+/** 値配列を順位（同値は平均順位）に変換する。`spearmanCorrelation`の内部で使う。 */
+function toRanks(values: readonly number[]): number[] {
+  const indexed = values.map((v, i): [number, number] => [v, i]);
+  indexed.sort((a, b) => a[0] - b[0]);
+  const ranks = new Array<number>(values.length);
+  let i = 0;
+  while (i < indexed.length) {
+    let j = i;
+    while (j + 1 < indexed.length && indexed[j + 1][0] === indexed[i][0]) j++;
+    const avgRank = (i + j) / 2 + 1;
+    for (let k = i; k <= j; k++) ranks[indexed[k][1]] = avgRank;
+    i = j + 1;
+  }
+  return ranks;
+}
+
+/**
+ * スピアマンの順位相関係数（値を順位に変換してからピアソンを取る）。獲得賞金・回収率のように
+ * 分布が大きく歪む値は、線形の関係しか見ないピアソンだと単調な関係を過小評価しやすい
+ * （少数の桁違いの外れ値が共分散を支配するため）。順位ベースなら外れ値の大きさに引っ張られず、
+ * 「大小関係の向き」がどれだけ揃っているかを見られる。長さ2未満や分散0の場合は null。
+ */
+export function spearmanCorrelation(xs: readonly number[], ys: readonly number[]): number | null {
+  if (xs.length !== ys.length) return null;
+  return pearsonCorrelation(toRanks(xs), toRanks(ys));
+}
+
 /** 数値をグループ化して集計値（平均・件数）を返す。 */
 export function bucketAverage<T>(
   items: readonly T[],
@@ -68,6 +95,30 @@ export function bucketAverage<T>(
     bucket,
     n: values.length,
     avg: values.reduce((a, b) => a + b, 0) / values.length,
+  }));
+}
+
+/**
+ * 数値をグループ化して集計値（中央値・件数）を返す。回収率のように分布が極端に歪む
+ * （一部の稼ぎ頭が平均を大きく引き上げる）値は`bucketAverage`だと外れ値に引っ張られて
+ * 階級間の差が見えなくなるため、こちらを使う。
+ */
+export function bucketMedian<T>(
+  items: readonly T[],
+  bucketOf: (item: T) => string,
+  valueOf: (item: T) => number
+): { bucket: string; n: number; med: number }[] {
+  const groups = new Map<string, number[]>();
+  for (const item of items) {
+    const key = bucketOf(item);
+    const list = groups.get(key) ?? [];
+    list.push(valueOf(item));
+    groups.set(key, list);
+  }
+  return [...groups.entries()].map(([bucket, values]) => ({
+    bucket,
+    n: values.length,
+    med: median(values),
   }));
 }
 
