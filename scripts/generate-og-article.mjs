@@ -91,6 +91,22 @@ const ARTICLES = {
     chips: ['早生まれ効果の検証', '月別の平均体高', '重賞勝ち馬を紹介'],
     buildChart: birthMonthChart,
   },
+  'chest-girth': {
+    out: 'og-article-chest-girth-v1.png',
+    headline: ['胸囲と成績・回収率の', '関係を見てみた'],
+    lead: 'キャロットクラブ 2017〜2025年募集の募集時データ × 現在の競走成績',
+    yearRangePlaceholder: '2017〜2025年',
+    chips: ['胸囲 × 獲得賞金の散布図', '回収率でも検証', '重賞勝ち馬を全掲載'],
+    buildChart: chestGirthChart,
+  },
+  'birth-order': {
+    out: 'og-article-birth-order-v1.png',
+    headline: ['何番目の仔かと成績の', '関係を見てみた'],
+    lead: 'キャロットクラブ 2017〜2025年募集の募集時データ × 現在の競走成績',
+    yearRangePlaceholder: '2017〜2025年',
+    chips: ['3つの俗説を検証', '牡馬・牝馬で比較', '重賞勝ち馬を全掲載'],
+    buildChart: birthOrderChart,
+  },
 };
 
 const slug = process.argv[2];
@@ -246,6 +262,47 @@ function damAgeChart() {
     yearRangeLabel,
     html: barsHtml(bins.map((b) => b.count)),
     caption: '母齢の分布（2歳刻み）',
+  };
+}
+
+/** 記事と同じ胸囲分布（3cm刻み・159〜195cm）をミニ棒グラフのHTMLにする（chest-girth.astroと同じbinning）。 */
+function chestGirthChart() {
+  const recruits = JSON.parse(readFileSync(join(repoRoot, 'analysis', 'data', 'recruits.json'), 'utf8'));
+  const girths = recruits.map((h) => h.chestGirth).filter((v) => typeof v === 'number');
+  const bins = histogram(girths, 3, 159, 195);
+  const max = Math.max(...bins.map((b) => b.count));
+  const bars = bins
+    .map((b) => `<div class="bar" style="height:${Math.max(4, Math.round((b.count / max) * 96))}px"></div>`)
+    .join('');
+  const years = [...new Set(recruits.map((r) => r.recruitYear))].sort((a, b) => a - b);
+  const yearRangeLabel = years.length > 0 ? `${years[0]}〜${years[years.length - 1]}年` : '';
+  return {
+    total: girths.length,
+    yearRangeLabel,
+    html: `<div class="mini-chart">${bars}</div>`,
+    caption: '胸囲の分布（3cm刻み）',
+  };
+}
+
+/**
+ * 記事と同じ産次分布（1〜10番仔・10番仔以降はまとめて11本目）をミニ棒グラフのHTMLにする
+ * （birth-order.astroのDIST_TAIL_FROM=11と同じ区切り）。
+ */
+function birthOrderChart() {
+  const recruits = JSON.parse(readFileSync(join(repoRoot, 'analysis', 'data', 'recruits.json'), 'utf8'));
+  const parities = recruits.map((h) => h.damParity).filter((v) => typeof v === 'number');
+  const TAIL_FROM = 11;
+  const counts = [
+    ...Array.from({ length: TAIL_FROM - 1 }, (_, i) => parities.filter((p) => p === i + 1).length),
+    parities.filter((p) => p >= TAIL_FROM).length,
+  ];
+  const years = [...new Set(recruits.map((r) => r.recruitYear))].sort((a, b) => a - b);
+  const yearRangeLabel = years.length > 0 ? `${years[0]}〜${years[years.length - 1]}年` : '';
+  return {
+    total: parities.length,
+    yearRangeLabel,
+    html: barsHtml(counts),
+    caption: '産次の分布（1〜11番仔〜）',
   };
 }
 
