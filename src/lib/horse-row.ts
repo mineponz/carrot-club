@@ -49,6 +49,8 @@ export const COLUMNS = [
   { label: '管囲', sortKey: 'caretGirth', align: 'num' },
   { label: '馬体重', sortKey: 'weight', align: 'num' },
   { label: '母齢', sortKey: 'damAge', align: 'num' },
+  // 産次は母齢のすぐ右隣に置く（本人希望・2026-08-25）。同じ「母側の属性」として並べて見比べたい。
+  { label: '産次', sortKey: 'damParity', align: 'num' },
   { label: '誕生日', sortKey: 'birthDate' },
   { label: '厩舎', sortKey: 'stable' },
   { label: '兄弟' },
@@ -177,6 +179,7 @@ export function horseRowHtml(
   <td class="num">${horse.caretGirth}</td>
   <td class="num">${horse.weight}</td>
   <td class="num">${horse.damAge}</td>
+  <td class="num">${horse.damParity}</td>
   <td>${formatBirthDate(horse.birthDate)}</td>
   <td title="${escapeHtml(horse.stable)}">${escapeHtml(shortStableLabel(horse.stable))}</td>
   <td class="sibling" title="${escapeHtml(horse.sibling)}">${escapeHtml(horse.sibling)}</td>

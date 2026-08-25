@@ -22,6 +22,7 @@ const horse: Horse = {
   sire: 'エピファネイア',
   broodmareSire: 'ハービンジャー',
   damAge: 8,
+  damParity: 3,
   birthDate: '2024-01-10',
   stable: '木村哲也',
   pricePerShare: 25,
@@ -156,7 +157,7 @@ test('COLUMNS: SPで隠す列（No・父・母父・性・厩舎）の位置が�
   // index.astro / 2025/index.astro の @media (max-width: 40rem) が nth-child の番号で
   // 列を隠しているので、列を入れ替えたらここも一緒に直す（ずれると別の列が消える）。
   const labels = COLUMNS.map((c) => c.label);
-  const hiddenOnSp = [1, 6, 7, 8, 16].map((n) => labels[n - 1]);
+  const hiddenOnSp = [1, 6, 7, 8, 17].map((n) => labels[n - 1]);
   assert.deepEqual(hiddenOnSp, ['No', '父', '母父', '性', '厩舎']);
 });
 

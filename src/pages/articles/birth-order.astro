@@ -1,0 +1,919 @@
+---
+/**
+ * 分析記事「何番目の仔か（産次）と成績の関係」。2017〜2025年募集の全頭
+ * （`analysis/data/recruits.json`）に追加した産次（damParity = 母の産駒一覧を生年昇順に
+ * 並べたときの順位。取得方法は`scripts/fetch-birth-order.mjs`）と現在の競走成績
+ * （`analysis/data/race-results.json`）をクロス集計する。母齢記事に続く5本目。
+ *
+ * この記事の軸は3つ:
+ * - 産次そのもの（「3番仔以内が走る」「初仔は走らない」という2つの俗説の検証）
+ * - 空胎明け（`damGapBeforeYears >= 2`）かどうか。産次と同じデータから副産物で取れる。
+ * - 牡・牝で傾向が違うか。全体で均してしまうと消える差がないかを見る。
+ *
+ * ## 数値はすべてこのファイルで動的に計算する（ハードコードしない）
+ * 成績スナップショットを取り直すと数字が動くため、本文の断定（「差は無かった」等）も
+ * ここで計算した変数から組み立てる。特に否定文は記憶で書かないこと。
+ *
+ * ## 比率の検定は期待度数を確認してから出す
+ * `twoProportionZTest`の正規近似は期待成功数が5未満だと信頼できない（chart-math.tsの
+ * ドキュメント参照）。重賞馬のような少数イベントを性別×産次で切ると簡単に5を割るので、
+ * 期待度数を計算して足りない群では検定値を出さず「検定に足るサンプルではない」と明記する。
+ *
+ * ## mannWhitneyU の z は向きを持たない
+ * `Math.min(u1, u2)`ベースで常に0以下になるため、どちらの群が大きいかは中央値で別途示す。
+ * 本文でも p だけを引用し、大小は中央値の比較で語る。
+ */
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import BarChart from '../../components/charts/BarChart.astro';
+import ScatterChart from '../../components/charts/ScatterChart.astro';
+import ChartTooltip from '../../components/charts/ChartTooltip.astro';
+import StatTiles from '../../components/charts/StatTiles.astro';
+import AdSlot from '../../components/AdSlot.astro';
+import GradeWinnerTable from '../../components/GradeWinnerTable.astro';
+import { loadRecruitsWithResults, racedOnly, RACE_RESULTS_FETCHED_AT } from '../../lib/analysis-data.ts';
+import type { RecruitWithResult } from '../../lib/analysis-data.ts';
+import { formatResultsAsOf } from '../../lib/sibling-recruits.ts';
+import {
+  pearsonCorrelation,
+  spearmanCorrelation,
+  mannWhitneyU,
+  twoProportionZTest,
+  bucketAverage,
+  bucketMedian,
+  countByBucket,
+  mean,
+  median,
+  formatManYen,
+} from '../../lib/chart-math.ts';
+import { horses2026 } from '../../data/horses2026.ts';
+
+const allRecruits = loadRecruitsWithResults();
+const resultsAsOf = formatResultsAsOf(RACE_RESULTS_FETCHED_AT);
+
+// 産次が取れていない3頭（netkeibaページ自体を特定できなかった馬）は集計対象から外す。
+const all = allRecruits.filter((h) => h.damParity !== null);
+const raced = racedOnly(all);
+const unraced = all.length - raced.length;
+
+const parityOf = (h: RecruitWithResult) => h.damParity as number;
+const wonAtLeastOnce = (h: RecruitWithResult) => (h.wins ?? 0) > 0;
+const isGradeWinner = (h: RecruitWithResult) => h.gradeWins.length > 0;
+const pct = (part: number, whole: number) => (whole === 0 ? 0 : (100 * part) / whole);
+
+/** 「全N頭中M頭が重賞」を1つにまとめた集計。母数は全頭（出走済みに限らない）。 */
+function gradeRate(group: readonly RecruitWithResult[]) {
+  const winners = group.filter(isGradeWinner).length;
+  return { n: group.length, winners, rate: pct(winners, group.length) };
+}
+/** 勝ち上がり（1勝以上）の割合。母数は出走済みのみ。 */
+function winRate(group: readonly RecruitWithResult[]) {
+  const racedGroup = group.filter((h) => (h.starts ?? 0) > 0);
+  const winners = racedGroup.filter(wonAtLeastOnce).length;
+  return { n: racedGroup.length, winners, rate: pct(winners, racedGroup.length) };
+}
+/**
+ * 比率の差の検定を「出してよいときだけ」出す。正規近似は期待成功数が目安5未満だと
+ * 信頼できないため（chart-math.ts参照）、両群の期待度数を確認してから返す。
+ */
+function safeProportionTest(x1: number, n1: number, x2: number, n2: number) {
+  const pooled = (x1 + x2) / (n1 + n2);
+  const expected = Math.min(n1 * pooled, n2 * pooled);
+  if (expected < 5) return { usable: false as const, expected };
+  return { usable: true as const, expected, ...twoProportionZTest(x1, n1, x2, n2) };
+}
+const fmtP = (p: number) => (p < 0.001 ? 'p<0.001' : `p=${p.toFixed(3)}`);
+
+// ---- 産次の階級 ----
+// 「3番仔以内が走る」という俗説をそのまま見られるよう、初仔を単独にして2〜3をひとまとめにする。
+// 以降は頭数がなだらかに減るので3頭ずつ、10番仔以降は数が少ないので1つに畳む。
+const PARITY_BUCKETS: [string, number, number][] = [
+  ['初仔', 1, 1],
+  ['2〜3番仔', 2, 3],
+  ['4〜6番仔', 4, 6],
+  ['7〜9番仔', 7, 9],
+  ['10番仔〜', 10, Infinity],
+];
+function bucketLabel(parity: number): string {
+  for (const [label, lo, hi] of PARITY_BUCKETS) {
+    if (parity >= lo && parity <= hi) return label;
+  }
+  return '?';
+}
+const bucketOrder = PARITY_BUCKETS.map(([label]) => label);
+function orderBuckets<T extends { bucket: string }>(rows: T[]): T[] {
+  return bucketOrder.map((label) => rows.find((r) => r.bucket === label)).filter((r): r is T => !!r);
+}
+// 階級ごとの合計が母数と一致するか（境界の取りこぼしが無いか）をビルド時に検算する。
+const bucketedTotal = bucketOrder.reduce(
+  (sum, label) => sum + all.filter((h) => bucketLabel(parityOf(h)) === label).length,
+  0
+);
+if (bucketedTotal !== all.length) {
+  throw new Error(`産次の階級分けで取りこぼし: ${bucketedTotal} !== ${all.length}`);
+}
+
+// ---- 産次の分布 ----
+const parities = all.map(parityOf);
+const parityMin = Math.min(...parities);
+const parityMax = Math.max(...parities);
+const parityMedian = median(parities);
+// 分布のグラフは10番仔までを1本ずつ、それ以降は尾が細いのでまとめる。
+const DIST_TAIL_FROM = 11;
+const distBars = [
+  ...Array.from({ length: DIST_TAIL_FROM - 1 }, (_, i) => {
+    const p = i + 1;
+    const count = all.filter((h) => parityOf(h) === p).length;
+    return { label: `${p}`, value: count, displayValue: `${count}頭` };
+  }),
+  (() => {
+    const count = all.filter((h) => parityOf(h) >= DIST_TAIL_FROM).length;
+    return { label: `${DIST_TAIL_FROM}〜`, value: count, displayValue: `${count}頭` };
+  })(),
+];
+
+const SCATTER_Y_MAX = 10000;
+function sexSeriesKey(sex: string | null): string {
+  if (sex === '牝') return 'female';
+  if (sex === '牡' || sex === 'セン') return 'male';
+  return 'unknown';
+}
+
+// ---- 産次 × 獲得賞金合計（出走済みのみ） ----
+const parityR = pearsonCorrelation(raced.map(parityOf), raced.map((h) => h.totalPrizeManYen));
+// 獲得賞金は一部の稼ぎ頭に極端に引っ張られる分布なので、順位ベースのスピアマンでも見る。
+const paritySpearman = spearmanCorrelation(raced.map(parityOf), raced.map((h) => h.totalPrizeManYen));
+const parityWinsR = pearsonCorrelation(raced.map(parityOf), raced.map((h) => h.wins ?? 0));
+
+// 産次は母齢とほぼ同じものを測っていないか（この記事の結論の要）。
+const withAge = all.filter((h) => h.damAge !== null);
+const parityDamAgeR = pearsonCorrelation(withAge.map(parityOf), withAge.map((h) => h.damAge as number));
+const withPrice = all.filter((h) => h.pricePerShare !== null);
+const parityPriceR = pearsonCorrelation(
+  withPrice.map(parityOf),
+  withPrice.map((h) => h.pricePerShare as number)
+);
+// 母齢そのものと成績の相関も、母齢記事の数字を写経せずこの場で出し直す。
+const racedWithAge = raced.filter((h) => h.damAge !== null);
+const damAgePrizeR = pearsonCorrelation(
+  racedWithAge.map((h) => h.damAge as number),
+  racedWithAge.map((h) => h.totalPrizeManYen)
+);
+
+const scatterPoints = raced
+  .filter((h) => h.totalPrizeManYen < SCATTER_Y_MAX)
+  .map((h) => ({
+    x: parityOf(h),
+    y: h.totalPrizeManYen,
+    seriesKey: sexSeriesKey(h.sex),
+    tipTitle: h.displayName,
+    tipRows: [
+      ['産次', `${h.damParity}番仔`],
+      ['母齢', h.damAge !== null ? `${h.damAge}歳` : '—'],
+      ['獲得賞金合計', `${formatManYen(h.totalPrizeManYen)}万円`],
+      ['通算成績', `${h.starts}戦${h.wins}勝`],
+    ] as [string, string][],
+  }));
+const scatterOmitted = raced.length - scatterPoints.length;
+const unknownSexPoints = scatterPoints.filter((p) => p.seriesKey === 'unknown').length;
+const sexSeries = [
+  { key: 'male', label: '牡', colorVar: '--series-1' },
+  { key: 'female', label: '牝', colorVar: '--series-2' },
+  ...(unknownSexPoints > 0 ? [{ key: 'unknown', label: '性別不明', colorVar: '--series-3' }] : []),
+];
+
+// ---- 産次帯別 ----
+const allByBucket = countByBucket(all, (h) => bucketLabel(parityOf(h)));
+const gradeByBucket = countByBucket(all.filter(isGradeWinner), (h) => bucketLabel(parityOf(h)));
+const prizeAvgByBucket = bucketAverage(raced, (h) => bucketLabel(parityOf(h)), (h) => h.totalPrizeManYen);
+const prizeMedByBucket = bucketMedian(raced, (h) => bucketLabel(parityOf(h)), (h) => h.totalPrizeManYen);
+
+const prizeAvgBars = orderBuckets(prizeAvgByBucket).map((r) => ({
+  label: r.bucket,
+  value: r.avg,
+  displayValue: `${formatManYen(r.avg)}万円`,
+  n: r.n,
+  note: `全${allByBucket.get(r.bucket) ?? 0}頭・重賞馬${gradeByBucket.get(r.bucket) ?? 0}頭`,
+}));
+const prizeMedBars = orderBuckets(prizeMedByBucket).map((r) => ({
+  label: r.bucket,
+  value: r.med,
+  displayValue: `${formatManYen(r.med)}万円`,
+  n: r.n,
+}));
+const winRateBars = bucketOrder.map((label) => {
+  const w = winRate(all.filter((h) => bucketLabel(parityOf(h)) === label));
+  return { label, value: w.rate, displayValue: `${w.rate.toFixed(1)}%`, n: w.n };
+});
+// 平均が中央値と逆を向いていないかを本文で語るために、両方の並びを機械的に判定する。
+const medianRising = prizeMedBars.every((b, i) => i === 0 || b.value >= prizeMedBars[i - 1].value);
+const avgSpread =
+  Math.max(...prizeAvgBars.map((b) => b.value)) - Math.min(...prizeAvgBars.map((b) => b.value));
+
+// ---- 俗説1: 3番仔以内が走る ----
+const within3 = all.filter((h) => parityOf(h) <= 3);
+const from4 = all.filter((h) => parityOf(h) >= 4);
+const within3Raced = within3.filter((h) => (h.starts ?? 0) > 0);
+const from4Raced = from4.filter((h) => (h.starts ?? 0) > 0);
+const within3Grade = gradeRate(within3);
+const from4Grade = gradeRate(from4);
+const within3Med = median(within3Raced.map((h) => h.totalPrizeManYen));
+const from4Med = median(from4Raced.map((h) => h.totalPrizeManYen));
+const mw3 = mannWhitneyU(
+  within3Raced.map((h) => h.totalPrizeManYen),
+  from4Raced.map((h) => h.totalPrizeManYen)
+);
+const prop3 = safeProportionTest(within3Grade.winners, within3.length, from4Grade.winners, from4.length);
+
+// ---- 俗説2: 初仔は走らない ----
+const firstFoal = all.filter((h) => parityOf(h) === 1);
+const laterFoal = all.filter((h) => parityOf(h) >= 2);
+const firstRaced = firstFoal.filter((h) => (h.starts ?? 0) > 0);
+const laterRaced = laterFoal.filter((h) => (h.starts ?? 0) > 0);
+const firstGrade = gradeRate(firstFoal);
+const laterGrade = gradeRate(laterFoal);
+const firstMed = median(firstRaced.map((h) => h.totalPrizeManYen));
+const laterMed = median(laterRaced.map((h) => h.totalPrizeManYen));
+const firstAvg = mean(firstRaced.map((h) => h.totalPrizeManYen));
+const laterAvg = mean(laterRaced.map((h) => h.totalPrizeManYen));
+const mwFirst = mannWhitneyU(
+  firstRaced.map((h) => h.totalPrizeManYen),
+  laterRaced.map((h) => h.totalPrizeManYen)
+);
+const propFirst = safeProportionTest(firstGrade.winners, firstFoal.length, laterGrade.winners, laterFoal.length);
+// 初仔の平均を押し上げている稼ぎ頭（平均と中央値が食い違う理由をその場で示す）。
+const firstTopEarners = [...firstRaced].sort((a, b) => b.totalPrizeManYen - a.totalPrizeManYen).slice(0, 2);
+
+// ---- 空胎明け ----
+const consecutive = all.filter((h) => h.damGapBeforeYears === 1);
+const afterRest = all.filter((h) => h.damGapBeforeYears !== null && h.damGapBeforeYears >= 2);
+const consecutiveRaced = consecutive.filter((h) => (h.starts ?? 0) > 0);
+const afterRestRaced = afterRest.filter((h) => (h.starts ?? 0) > 0);
+const consecutiveGrade = gradeRate(consecutive);
+const afterRestGrade = gradeRate(afterRest);
+const consecutiveMed = median(consecutiveRaced.map((h) => h.totalPrizeManYen));
+const afterRestMed = median(afterRestRaced.map((h) => h.totalPrizeManYen));
+const consecutiveAvg = mean(consecutiveRaced.map((h) => h.totalPrizeManYen));
+const afterRestAvg = mean(afterRestRaced.map((h) => h.totalPrizeManYen));
+const mwRest = mannWhitneyU(
+  afterRestRaced.map((h) => h.totalPrizeManYen),
+  consecutiveRaced.map((h) => h.totalPrizeManYen)
+);
+const propRest = safeProportionTest(
+  afterRestGrade.winners,
+  afterRest.length,
+  consecutiveGrade.winners,
+  consecutive.length
+);
+const restGradeBars = [
+  { label: '初仔', ...(() => { const g = gradeRate(firstFoal); return { value: g.rate, displayValue: `${g.rate.toFixed(1)}%`, n: g.n }; })() },
+  { label: '連産（間隔1年）', value: consecutiveGrade.rate, displayValue: `${consecutiveGrade.rate.toFixed(1)}%`, n: consecutive.length },
+  { label: '空胎明け（2年以上）', value: afterRestGrade.rate, displayValue: `${afterRestGrade.rate.toFixed(1)}%`, n: afterRest.length },
+];
+const restGradeWinners = afterRest.filter(isGradeWinner).sort((a, b) => b.totalPrizeManYen - a.totalPrizeManYen);
+const topRestWinner = restGradeWinners[0];
+// 「連産の何倍か」は本文に書く数字なので、比を暗算せずここで出す。
+const restGradeRatio = consecutiveGrade.rate === 0 ? null : afterRestGrade.rate / consecutiveGrade.rate;
+// その馬が全体でも最上位の稼ぎ頭かどうかは、実際に並べて確かめてから書く。
+const topEarnerOverall = [...raced].sort((a, b) => b.totalPrizeManYen - a.totalPrizeManYen)[0];
+const topRestWinnerIsOverallTop = topRestWinner != null && topEarnerOverall?.displayName === topRestWinner.displayName;
+
+// ---- 性別で分ける ----
+type SexBreakdown = ReturnType<typeof buildSexBreakdown>;
+function buildSexBreakdown(sexLabel: '牡' | '牝') {
+  const group = all.filter((h) => h.sex === sexLabel);
+  const groupRaced = group.filter((h) => (h.starts ?? 0) > 0);
+  const first = group.filter((h) => parityOf(h) === 1);
+  const later = group.filter((h) => parityOf(h) >= 2);
+  const firstG = gradeRate(first);
+  const laterG = gradeRate(later);
+  return {
+    sexLabel,
+    group,
+    groupRaced,
+    r: pearsonCorrelation(groupRaced.map(parityOf), groupRaced.map((h) => h.totalPrizeManYen)),
+    medPrize: median(groupRaced.map((h) => h.totalPrizeManYen)),
+    first,
+    later,
+    firstG,
+    laterG,
+    firstTest: safeProportionTest(firstG.winners, first.length, laterG.winners, later.length),
+    gradeBars: bucketOrder.map((label) => {
+      const g = gradeRate(group.filter((h) => bucketLabel(parityOf(h)) === label));
+      return { label, value: g.rate, displayValue: `${g.rate.toFixed(1)}%`, n: g.n, note: `重賞馬${g.winners}頭` };
+    }),
+  };
+}
+const male = buildSexBreakdown('牡');
+const female = buildSexBreakdown('牝');
+// 牡と牝で成績の水準そのものが違うことの確認（分けて見る意味があるかの根拠）。
+const mwSex = mannWhitneyU(
+  male.groupRaced.map((h) => h.totalPrizeManYen),
+  female.groupRaced.map((h) => h.totalPrizeManYen)
+);
+// 産次帯ごとの牝率が偏っていないか（性別が産次の交絡になっていないかの確認）。
+const femaleShareByBucket = bucketOrder.map((label) => {
+  const g = all.filter((h) => bucketLabel(parityOf(h)) === label && (h.sex === '牡' || h.sex === '牝'));
+  return { label, share: pct(g.filter((h) => h.sex === '牝').length, g.length) };
+});
+const femaleShareMin = Math.min(...femaleShareByBucket.map((b) => b.share));
+const femaleShareMax = Math.max(...femaleShareByBucket.map((b) => b.share));
+const maleGradeSpread =
+  Math.max(...male.gradeBars.map((b) => b.value)) - Math.min(...male.gradeBars.map((b) => b.value));
+
+// ---- 「どの切り口も有意差なし」という本文の前提をビルド時に検算する ----
+// この記事は全編「差はあるが偶然の範囲」という書き方をしている。競走成績のスナップショットを
+// 取り直した結果どれかが有意になると、本文の断定が黙って嘘になる（否定文は検算されにくい・
+// [[development]]の教訓）。そうなったらビルドを止めて本文の書き直しを強制する。
+// 牡牝の賞金差（mwSex）は本文が「大きく違う」と書いている＝有意である前提なので対象外。
+const SIGNIFICANCE_ALPHA = 0.05;
+const nonSignificantClaims: [string, number][] = [
+  ['3番仔以内 vs 4番仔以降・賞金', mw3.p],
+  ['初仔 vs 2番仔以降・賞金', mwFirst.p],
+  ['空胎明け vs 連産・賞金', mwRest.p],
+  ...(prop3.usable ? ([['3番仔以内 vs 4番仔以降・重賞馬率', prop3.p]] as [string, number][]) : []),
+  ...(propFirst.usable ? ([['初仔 vs 2番仔以降・重賞馬率', propFirst.p]] as [string, number][]) : []),
+  ...(propRest.usable ? ([['空胎明け vs 連産・重賞馬率', propRest.p]] as [string, number][]) : []),
+  ...(male.firstTest.usable
+    ? ([['牡・初仔 vs 2番仔以降・重賞馬率', male.firstTest.p]] as [string, number][])
+    : []),
+  ...(female.firstTest.usable
+    ? ([['牝・初仔 vs 2番仔以降・重賞馬率', female.firstTest.p]] as [string, number][])
+    : []),
+];
+const nowSignificant = nonSignificantClaims.filter(([, p]) => p < SIGNIFICANCE_ALPHA);
+if (nowSignificant.length > 0) {
+  throw new Error(
+    '「有意差なし」を前提に書いた本文と矛盾する検定結果が出ている（本文を書き直すこと）: ' +
+      nowSignificant.map(([label, p]) => `${label} p=${p.toFixed(4)}`).join(' / ')
+  );
+}
+// 逆に「牡と牝では成績の水準そのものが違う」は有意である前提で書いている。
+if (mwSex.p >= SIGNIFICANCE_ALPHA) {
+  throw new Error(`牡牝の賞金差が有意でなくなった（p=${mwSex.p.toFixed(4)}）。本文の該当箇所を書き直すこと`);
+}
+
+// ---- デビュー時期の交絡確認 ----
+const OLDER_UNTIL = 2021;
+const older = all.filter((h) => h.recruitYear <= OLDER_UNTIL);
+const olderRaced = racedOnly(older);
+const parityROlder = pearsonCorrelation(olderRaced.map(parityOf), olderRaced.map((h) => h.totalPrizeManYen));
+const olderFirstGrade = gradeRate(older.filter((h) => parityOf(h) === 1));
+const olderLaterGrade = gradeRate(older.filter((h) => parityOf(h) >= 2));
+
+// ---- 代表馬（重賞勝ち馬） ----
+const gradeWinners = all.filter(isGradeWinner).sort((a, b) => b.totalPrizeManYen - a.totalPrizeManYen);
+const GRADE_WINNERS_VISIBLE = 10;
+const gradeWinnersTop = gradeWinners.slice(0, GRADE_WINNERS_VISIBLE);
+const gradeWinnersRest = gradeWinners.slice(GRADE_WINNERS_VISIBLE);
+const gradeParities = gradeWinners.map(parityOf);
+const gradeParityMin = Math.min(...gradeParities);
+const gradeParityMax = Math.max(...gradeParities);
+const gradeWithin3 = gradeWinners.filter((h) => parityOf(h) <= 3).length;
+// 上位数頭の産次が散らばっていることを本文で語るため、実データから並びを作る。
+const TOP_EARNERS_SHOWN = 5;
+const topEarners = gradeWinners.slice(0, TOP_EARNERS_SHOWN);
+const topEarnersLine = topEarners.map((h) => `${h.displayName}（${h.damParity}番仔）`).join('、');
+
+// ---- 2026年募集馬がどこに当てはまるか ----
+const buckets2026 = PARITY_BUCKETS.map(([label]) => ({
+  label,
+  horses: horses2026
+    .filter((h) => bucketLabel(h.damParity) === label)
+    .sort((a, b) => a.damParity - b.damParity),
+}));
+const first2026 = horses2026.filter((h) => h.damParity === 1).length;
+
+const RECRUIT_YEARS = [2017, 2018, 2019, 2020, 2021, 2022, 2023, 2024, 2025];
+const yearCounts = RECRUIT_YEARS.map((y) => `${y}年${all.filter((h) => h.recruitYear === y).length}頭`).join('・');
+const yearRangeLabel = `${RECRUIT_YEARS[0]}〜${RECRUIT_YEARS[RECRUIT_YEARS.length - 1]}年`;
+
+// 広告コードは他の記事と同じもの
+const AD_SP_WIDE_A = 'f81bbb016a82d6366a0e2f70051b1a0c';
+const AD_SP_WIDE_B = 'b4b7d55c89d5fc92c564979491a16ad1';
+const AD_SP_RECT = '24e3e1a24f40d88ee1a0ca315c54a7b9';
+const AD_PC_WIDE_A = 'f0efb5bd6ae3e164bb584a4dbb846f48';
+const AD_PC_WIDE_B = '0a525f6469ec1f40642b4550e53d39cc';
+
+const description = `【非公式】キャロットクラブ${yearRangeLabel}${all.length}頭の募集時データと現在の競走成績を独自集計。「母の何番目の仔か（産次）」と獲得賞金・重賞勝ち馬の関係を、初仔・空胎明け・牡牝別の切り口で検証した分析記事。`;
+---
+
+<BaseLayout
+  title="何番目の仔かと成績の関係"
+  description={description}
+  breadcrumb={[
+    { label: '分析記事', href: '/articles/' },
+    { label: '何番目の仔かと成績の関係', href: '/articles/birth-order/' },
+  ]}
+  showHeaderNotices={false}
+>
+  <article>
+    <h1>何番目の仔か（産次）と成績の関係を見てみた</h1>
+
+    <p>
+      「母の年齢そのものより、<strong>何番目の仔か</strong>の方が効くんじゃないか」というのは
+      一口馬主界隈でたまに聞く話だ。良い繁殖牝馬は2〜3番仔あたりで一発出している気がする、
+      逆に初仔は身体が小さく出て走らない ―― どちらもよく聞くし、私も何となくそう思っていた。
+      <a href="/articles/dam-age/">前回の母齢の記事</a>で「母の年齢からは成績が読めなかった」
+      という結果になったので、今度は産次の方を確かめてみた。
+      {yearRangeLabel}募集（{yearCounts}）に、{resultsAsOf}時点の獲得賞金・通算成績を
+      突き合わせた独自集計。
+    </p>
+
+    <p>
+      産次は母の産駒一覧を生まれた順に並べたときの順番で数えている。<strong
+        >母が仔を産まなかった年（空胎）は数に入れず、実際に産まれた仔の中で何番目か</strong
+      >としている。せっかくなので「空胎明けの仔は走る」という別の言い伝えも、同じデータから
+      ついでに検証した。
+    </p>
+
+    <StatTiles
+      tiles={[
+        { label: '対象頭数', value: `${all.length}頭` },
+        { label: '出走済み', value: `${raced.length}頭` },
+        { label: '未出走', value: `${unraced}頭`, note: '大半が直近の募集組' },
+        {
+          label: '産次 × 獲得賞金合計',
+          value: parityR !== null ? `r=${parityR.toFixed(3)}` : '—',
+          note: 'ほぼ無相関',
+        },
+        { label: '産次の範囲', value: `${parityMin}〜${parityMax}番仔`, note: `中央値${parityMedian}番仔` },
+      ]}
+    />
+
+    <AdSlot sp={AD_SP_WIDE_A} pc={AD_PC_WIDE_A} />
+
+    <h2>まず産次の分布</h2>
+    <p>
+      母集団を見ておくと、{all.length}頭は{parityMin}番仔から{parityMax}番仔まで分布していて、
+      中央値は{parityMedian}番仔だった。初仔が{all.filter((h) => parityOf(h) === 1).length}頭と
+      一番多く、番号が上がるにつれてなだらかに減っていく。クラブの募集は
+      「若い繁殖の仔ばかり」でも「ベテラン繁殖の仔ばかり」でもなく、かなり広く散らばっている。
+    </p>
+    <BarChart
+      title={`産次の分布（全${all.length}頭）`}
+      bars={distBars}
+      valueLabel="頭数"
+    />
+
+    <AdSlot sp={AD_SP_WIDE_B} pc={AD_PC_WIDE_B} />
+
+    <h2>産次 × 獲得賞金合計</h2>
+    <p>
+      出走済みの{raced.length}頭で、産次と獲得賞金合計（中央+地方、万円）を散布図にした。
+      相関係数は r={parityR?.toFixed(3)}。賞金は一部の稼ぎ頭に極端に引っ張られる分布なので、
+      順位で見るスピアマンの相関係数も出したが、そちらでも
+      {paritySpearman?.toFixed(3)}。<strong>産次から成績はほとんど読めなかった</strong>。
+      {scatterOmitted > 0 && (
+        <>獲得賞金合計が1億円を超える{scatterOmitted}頭はグラフの外に出るため省略した
+        （後述の代表馬紹介を参照）。</>
+      )}
+    </p>
+    <ScatterChart
+      title={`産次 × 獲得賞金合計（出走済み・1億円未満${scatterPoints.length}頭）`}
+      points={scatterPoints}
+      series={sexSeries}
+      xLabel="産次(番仔)"
+      yLabel="獲得賞金合計(万円)"
+      xDomain={[0, parityMax + 1]}
+      yDomain={[0, SCATTER_Y_MAX]}
+      xTicks={[1, 3, 5, 7, 9, 11, 13, 15]}
+      yTicks={[0, 2500, 5000, 7500, 10000]}
+      formatX={(v) => `${v}`}
+      formatY={(v) => (v === 0 ? '0' : `${v / 1000}k`)}
+    />
+
+    <div class="finding">
+      <p class="finding-lead">産次と母齢は、ほぼ同じものを測っている</p>
+      <p>
+        結果を見る前から薄々分かってはいたのだが、産次と母齢の相関係数は
+        <strong>r={parityDamAgeR?.toFixed(3)}</strong>だった。当たり前といえば当たり前で、
+        仔を産むたびに母は1歳ずつ年を取っていくので、産次が進むことと母が高齢になることは
+        ほぼ同じ現象を別の角度から呼んでいるにすぎない。
+        母齢と獲得賞金の相関がこのデータで r={damAgePrizeR?.toFixed(3)} だったことを思うと、
+        産次でもほぼ同じ結果（r={parityR?.toFixed(3)}）になったのは自然な流れだった。
+        「年齢というより何番目の仔か」という問いの立て方自体が、
+        <strong>データの上ではほとんど同じ質問になってしまう</strong>ということだと思う。
+      </p>
+    </div>
+
+    <AdSlot sp={AD_SP_WIDE_A} pc={AD_PC_WIDE_A} />
+
+    <h2>産次帯別に見ると</h2>
+    <p>
+      5つの階級に分けて平均を取ってみた。平均獲得賞金は一番低い階級と一番高い階級で
+      {formatManYen(avgSpread)}万円しか違わず、右肩上がりにも右肩下がりにもなっていない。
+    </p>
+    <BarChart
+      title="産次帯別 平均獲得賞金合計"
+      bars={prizeAvgBars}
+      valueLabel="平均獲得賞金合計"
+      nLabel="平均の母数（出走済み）"
+      noteLabel="階級全体"
+    />
+
+    <p>
+      ただし平均は少数の大物に引っ張られるので、中央値でも見ておく。すると
+      {medianRising ? (
+        <>
+          面白いことに、<strong>産次が上がるほど中央値がじりじり上がる</strong>という、
+          俗説とはむしろ逆の並びになった（{formatManYen(prizeMedBars[0].value)}万円 →
+          {formatManYen(prizeMedBars[prizeMedBars.length - 1].value)}万円）。
+        </>
+      ) : (
+        <>階級ごとに上下してはっきりした向きは出なかった。</>
+      )}
+      勝ち上がり率（1勝以上を挙げた馬の割合）でも同じ向きの並びになっている。
+      とはいえ後で検定にかけると、この程度の差は偶然の範囲を出ない。
+    </p>
+    <BarChart
+      title="産次帯別 獲得賞金合計の中央値"
+      bars={prizeMedBars}
+      valueLabel="獲得賞金合計の中央値"
+      nLabel="母数（出走済み）"
+    />
+    <BarChart
+      title="産次帯別 勝ち上がり率（1勝以上）"
+      bars={winRateBars}
+      valueLabel="勝ち上がり率"
+      nLabel="母数（出走済み）"
+    />
+
+    <AdSlot sp={AD_SP_WIDE_B} pc={AD_PC_WIDE_B} />
+
+    <h2>俗説その1「3番仔以内に走るのが出る」</h2>
+    <p>
+      一番よく聞くのがこれ。3番仔以内（{within3.length}頭）と4番仔以降（{from4.length}頭）で
+      真っ二つに割って比べてみた。
+    </p>
+    <ul class="compare">
+      <li>
+        <strong>3番仔以内</strong>：全{within3Grade.n}頭・重賞馬{within3Grade.winners}頭
+        （{within3Grade.rate.toFixed(1)}%）・獲得賞金の中央値{formatManYen(within3Med)}万円
+      </li>
+      <li>
+        <strong>4番仔以降</strong>：全{from4Grade.n}頭・重賞馬{from4Grade.winners}頭
+        （{from4Grade.rate.toFixed(1)}%）・獲得賞金の中央値{formatManYen(from4Med)}万円
+      </li>
+    </ul>
+    <p>
+      <strong>3番仔以内が強い、という結果にはならなかった</strong>。それどころか重賞馬率も
+      賞金の中央値も、わずかながら4番仔以降の方が上回っている。獲得賞金の分布の差を
+      Mann-Whitney検定にかけると{fmtP(mw3.p)}、重賞馬率の差も
+      {prop3.usable ? fmtP(prop3.p) : '（サンプル不足で検定できず）'}
+      で、どちらも<strong>偶然の範囲</strong>。要するに「3番仔以内かどうか」で選別しても、
+      このデータでは何も選別できていない。
+    </p>
+
+    <h2>俗説その2「初仔は走らない」</h2>
+    <p>
+      こちらはどうか。初仔{firstFoal.length}頭と2番仔以降{laterFoal.length}頭で比べる。
+    </p>
+    <ul class="compare">
+      <li>
+        <strong>初仔</strong>：重賞馬{firstGrade.winners}頭（{firstGrade.rate.toFixed(1)}%）・
+        賞金の中央値{formatManYen(firstMed)}万円・平均{formatManYen(firstAvg)}万円・
+        勝ち上がり率{winRate(firstFoal).rate.toFixed(1)}%
+      </li>
+      <li>
+        <strong>2番仔以降</strong>：重賞馬{laterGrade.winners}頭（{laterGrade.rate.toFixed(1)}%）・
+        賞金の中央値{formatManYen(laterMed)}万円・平均{formatManYen(laterAvg)}万円・
+        勝ち上がり率{winRate(laterFoal).rate.toFixed(1)}%
+      </li>
+    </ul>
+    <p>
+      重賞馬率も賞金の中央値も、初仔の方が低い。<strong>俗説の向きには合っている</strong>。
+      ただし検定にかけると賞金の分布の差は{fmtP(mwFirst.p)}、重賞馬率の差は
+      {propFirst.usable ? fmtP(propFirst.p) : '（サンプル不足で検定できず）'}
+      で、いずれも<strong>統計的に有意とは言えない</strong>。重賞馬の
+      頭数で言えば初仔{firstGrade.winners}頭対2番仔以降{laterGrade.winners}頭で、
+      この程度の頭数差は普通に偶然でも起きる。
+    </p>
+    <p>
+      面白いのは、初仔の<em>平均</em>賞金（{formatManYen(firstAvg)}万円）が
+      2番仔以降（{formatManYen(laterAvg)}万円）とほとんど変わらないのに、
+      <em>中央値</em>では{formatManYen(firstMed)}万円対{formatManYen(laterMed)}万円と
+      差がつくところ。これは初仔の中に極端な稼ぎ頭がいて平均を押し上げているからで、
+      実際この{firstFoal.length}頭には
+      {firstTopEarners.map((h, i) => (
+        <>
+          {i > 0 && 'と'}
+          <strong>{h.displayName}</strong>（{formatManYen(h.totalPrizeManYen)}万円）
+        </>
+      ))}
+      が含まれている。<strong>「初仔は走らない」と言い切ってしまうと、この2頭のような馬を
+      最初から候補から外すことになる</strong>。
+    </p>
+
+    <div class="ad-rect">
+      <AdSlot sp={AD_SP_RECT} pc={AD_PC_WIDE_A} />
+    </div>
+
+    <h2>俗説その3「空胎明けの仔は走る」</h2>
+    <p>
+      産次を数えるときに母の産駒一覧を全部見ているので、ついでに
+      「その仔の前年に、母が仔を産んでいたかどうか」も取れた。前の仔から1年空けずに
+      産んでいれば連産、2年以上空いていれば間に空胎（受胎しなかった年）を挟んでいる
+      ということになる。今回の{all.length}頭では連産が{consecutive.length}頭、
+      空胎明けが{afterRest.length}頭だった（初仔{firstFoal.length}頭は前の仔がいないので
+      この比較からは外れる）。
+    </p>
+    <BarChart
+      title="出産間隔別 重賞馬率"
+      bars={restGradeBars}
+      valueLabel="重賞馬率"
+      nLabel="母数（全頭）"
+    />
+    <p>
+      <strong>今回調べた中では、これが一番大きな差だった</strong>。空胎明けの重賞馬率
+      {afterRestGrade.rate.toFixed(1)}%は連産の{consecutiveGrade.rate.toFixed(1)}%の
+      {restGradeRatio !== null ? `約${restGradeRatio.toFixed(1)}倍` : '上'}で、
+      平均獲得賞金も{formatManYen(afterRestAvg)}万円対{formatManYen(consecutiveAvg)}万円と
+      上回っている。正直、書いていて一番「おっ」と思った数字だ。
+    </p>
+    <p>
+      ただし ―― ここが大事なところなのだが ―― <strong>検定にかけると有意には届かない</strong>。
+      重賞馬率の差は{propRest.usable ? fmtP(propRest.p) : '（サンプル不足で検定できず）'}、
+      賞金の分布の差は{fmtP(mwRest.p)}。空胎明けは{afterRest.length}頭しかなく、
+      重賞馬は{afterRestGrade.winners}頭。仮に本当は差が無くても、この頭数なら
+      これくらいの偏りは十分起こりうる、という水準だ。賞金の中央値で見ると
+      {formatManYen(afterRestMed)}万円対{formatManYen(consecutiveMed)}万円と差が縮むのも、
+      平均の側が一部の大物に引っ張られていることを示している。
+    </p>
+    {topRestWinner && (
+      <p>
+        なお空胎明けの重賞馬{restGradeWinners.length}頭の筆頭は
+        <strong>{topRestWinner.displayName}</strong>（{topRestWinner.damParity}番仔・
+        前の仔から{topRestWinner.damGapBeforeYears}年空き）で、
+        獲得賞金は{formatManYen(topRestWinner.totalPrizeManYen)}万円
+        {topRestWinnerIsOverallTop && <>―― この{all.length}頭で最も稼いだ1頭でもある</>}。
+        こういう馬が1頭いるだけで「空胎明けは走る」という印象は簡単に作られてしまう
+        ―― という見本のような例でもある。
+      </p>
+    )}
+
+    <AdSlot sp={AD_SP_WIDE_A} pc={AD_PC_WIDE_A} />
+
+    <h2>牡馬と牝馬で分けると</h2>
+    <p>
+      「牡と牝で傾向が違う」という話も聞くので、分けて見てみた。前提として、この
+      {all.length}頭でも牡（出走済み{male.groupRaced.length}頭・賞金の中央値
+      {formatManYen(male.medPrize)}万円）と牝（同{female.groupRaced.length}頭・
+      {formatManYen(female.medPrize)}万円）では成績の水準そのものが大きく違う（{fmtP(mwSex.p)}）。
+      なぜここまで開くのかは今回のデータからは分からないが、産次とは関係なくはっきり出る差なので、
+      <strong>性別をまたいで平均すると、片方だけにある傾向は薄まってしまう</strong>。
+      産次帯ごとの牝馬比率は{femaleShareMin.toFixed(1)}〜{femaleShareMax.toFixed(1)}%と
+      ほぼ均一だったので、性別の偏りが産次の結果を歪めてはいない。
+    </p>
+    <BarChart
+      title={`牡馬：産次帯別 重賞馬率（全${male.group.length}頭）`}
+      bars={male.gradeBars}
+      valueLabel="重賞馬率"
+      nLabel="母数（全頭）"
+      noteLabel="内訳"
+    />
+    <BarChart
+      title={`牝馬：産次帯別 重賞馬率（全${female.group.length}頭）`}
+      bars={female.gradeBars}
+      valueLabel="重賞馬率"
+      nLabel="母数（全頭）"
+      noteLabel="内訳"
+    />
+    <p>
+      並べてみると、<strong>牡馬はどの産次帯でも重賞馬率がばらついているだけで、
+      産次に沿った向きは無い</strong>（相関係数も r={male.r?.toFixed(3)}）。初仔
+      {male.first.length}頭からも{male.firstG.winners}頭
+      （{male.firstG.rate.toFixed(1)}%）の重賞馬が出ている。2番仔以降の
+      {male.laterG.rate.toFixed(1)}%よりは低いが、
+      {male.firstTest.usable ? (
+        <>差を検定すると{fmtP(male.firstTest.p)}で、偶然の範囲に収まる。</>
+      ) : (
+        <>この頭数では検定に足りず、差と呼べるものではない。</>
+      )}
+    </p>
+    <p>
+      一方<strong>牝馬は、初仔{female.first.length}頭から重賞馬が
+      {female.firstG.winners}頭</strong>だった。2番仔以降は{female.later.length}頭中
+      {female.laterG.winners}頭（{female.laterG.rate.toFixed(1)}%）なので、その割合で言えば
+      初仔からも{(female.first.length * (female.laterG.rate / 100)).toFixed(1)}頭ほど
+      出ていておかしくない計算になる。
+      {female.firstTest.usable ? (
+        <>差を検定すると{fmtP(female.firstTest.p)}だった。</>
+      ) : (
+        <>
+          ただし<strong>この頭数で重賞馬という珍しい出来事を比べるのは無理がある</strong>
+          （比率の検定が成り立つ目安は「期待される該当数が5以上」で、ここは
+          {female.firstTest.expected.toFixed(1)}しかない）ので、検定にはかけず数字だけ置いておく。
+        </>
+      )}
+      牝馬の方に「初仔はやや苦しい」という傾向が薄く出ている可能性はあるが、
+      今回のデータで断定できる差ではない。
+    </p>
+
+    <div class="ad-rect">
+      <AdSlot sp={AD_SP_RECT} pc={AD_PC_WIDE_B} />
+    </div>
+
+    <h2>実際にどんな馬がいたか</h2>
+    <p>
+      この{all.length}頭の中で実際に重賞を勝った{gradeWinners.length}頭を、獲得賞金の多い順に
+      産次つきで並べておく。見ての通り<strong>{gradeParityMin}番仔から{gradeParityMax}番仔まで
+      まんべんなく出ている</strong>。稼いだ上位{TOP_EARNERS_SHOWN}頭だけ見ても
+      {topEarnersLine}という散らばりようで、「何番仔なら当たり」という並びにはとても見えない。
+      {gradeWinners.length}頭のうち3番仔以内は{gradeWithin3}頭
+      （{pct(gradeWithin3, gradeWinners.length).toFixed(1)}%）で、
+      母集団に占める3番仔以内の割合（{pct(within3.length, all.length).toFixed(1)}%）と
+      ほぼ同じだ。表が長くなるので、開いているのは上位{GRADE_WINNERS_VISIBLE}頭、
+      残り{gradeWinnersRest.length}頭はその下の折りたたみに入れてある。
+    </p>
+    <GradeWinnerTable rows={gradeWinnersTop} showParity />
+    {gradeWinnersRest.length > 0 && (
+      <details class="more-winners">
+        <summary>残りの{gradeWinnersRest.length}頭も見る（獲得賞金{GRADE_WINNERS_VISIBLE + 1}位以下）</summary>
+        <GradeWinnerTable rows={gradeWinnersRest} showParity />
+      </details>
+    )}
+    <p class="table-note">
+      折りたたみを開いた{gradeWinners.length}頭が、{all.length}頭のうち重賞（中央G1〜G3・Jpn1〜3、
+      地方重賞含む）を勝った馬のすべて。産次の「（空胎明け）」は、前の仔から2年以上空けて
+      産まれたことを示す。
+    </p>
+
+    <div class="finding">
+      <p class="finding-lead">デビュー時期の偏りではないか？</p>
+      <p>
+        直近の募集組（{OLDER_UNTIL + 1}〜2025年）は未出走が多いので、それが結果を
+        歪めていないか確認した。レースを重ねている2017〜{OLDER_UNTIL}年募集
+        （{older.length}頭）だけに絞ると、産次と獲得賞金の相関は
+        r={parityROlder?.toFixed(3)}。絞り込む前（r={parityR?.toFixed(3)}）とほぼ変わらない。
+        この世代だけで見た初仔の重賞馬率は{olderFirstGrade.rate.toFixed(1)}%
+        （{olderFirstGrade.n}頭中{olderFirstGrade.winners}頭）、2番仔以降は
+        {olderLaterGrade.rate.toFixed(1)}%（{olderLaterGrade.n}頭中
+        {olderLaterGrade.winners}頭）で、全体で見たときと同じく初仔がやや低いものの、
+        やはり頭数が少なく決め手にはならなかった。
+      </p>
+    </div>
+
+    <AdSlot sp={AD_SP_WIDE_B} pc={AD_PC_WIDE_B} />
+
+    <h2>2026年募集馬はどこに当てはまる？</h2>
+    <p>
+      今の2026年募集{horses2026.length}頭が、この産次の階級分けのどこに入るかも並べておく
+      （各行をタップすると開く。馬名は個別ページへのリンク）。今年は初仔が
+      {first2026}頭いる。産次は<a href="/">出資馬検討ツール</a>の一覧にも母齢の隣に列で
+      出しているので、並べ替えて眺めたい人はそちらもどうぞ。
+    </p>
+    {buckets2026.map((b) => (
+      <details class="bucket-accordion">
+        <summary>{b.label}（{b.horses.length}頭）</summary>
+        <ul>
+          {b.horses.map((h) => (
+            <li>
+              <a href={`/horses/${h.id}/`}>{h.name}</a>
+              <span class="bucket-meta">{h.damParity}番仔・母齢{h.damAge}歳・{h.sex}・{h.sire}</span>
+            </li>
+          ))}
+        </ul>
+      </details>
+    ))}
+
+    <AdSlot sp={AD_SP_WIDE_A} pc={AD_PC_WIDE_A} />
+
+    <h2>まとめ</h2>
+    <ul class="conclusion">
+      <li>
+        産次と獲得賞金合計の相関係数は r={parityR?.toFixed(3)}（順位で見るスピアマンでも
+        {paritySpearman?.toFixed(3)}）で、<strong>産次から成績はほとんど読めなかった</strong>。
+      </li>
+      <li>
+        <strong>「3番仔以内に走るのが出る」は支持されなかった</strong>。重賞馬率は
+        3番仔以内{within3Grade.rate.toFixed(1)}%対4番仔以降{from4Grade.rate.toFixed(1)}%で、
+        むしろわずかに4番仔以降が上。差は偶然の範囲（{fmtP(mw3.p)}）。
+      </li>
+      <li>
+        <strong>「初仔は走らない」は向きだけ合っていた</strong>が、有意差には届かなかった
+        （{fmtP(mwFirst.p)}）。初仔からも{firstGrade.winners}頭の重賞馬が出ていて、
+        その中には{firstTopEarners[0]?.displayName}のような大物もいる。
+      </li>
+      <li>
+        <strong>「空胎明けは走る」が今回で最大の差</strong>（重賞馬率
+        {afterRestGrade.rate.toFixed(1)}%対{consecutiveGrade.rate.toFixed(1)}%）だったが、
+        こちらも{afterRest.length}頭というサンプルでは有意とは言えなかった
+        （{propRest.usable ? fmtP(propRest.p) : 'サンプル不足'}）。今後データが増えたら
+        もう一度見てみたい切り口。
+      </li>
+      <li>
+        牡牝で分けると、<strong>牡馬は産次による差がまったく無く、牝馬の初仔だけが
+        やや苦しい</strong>という形だった。ただし牝馬の初仔は{female.first.length}頭しかなく、
+        検定に耐えるサンプルではない。
+      </li>
+      <li>
+        そもそも<strong>産次と母齢は r={parityDamAgeR?.toFixed(3)} でほぼ同じものを測っている</strong>。
+        母齢で読めなかったものが産次で読めるようになる、という期待は最初から筋が良くなかった
+        のかもしれない。「年齢より何番仔か」は、データの上ではほとんど同じ問いだった。
+      </li>
+      <li>
+        個人的な結論としては、<strong>産次は出資馬を絞り込む条件には使えない</strong>。
+        気になる馬が初仔だから外す、3番仔だから加点する、というのはやめて、
+        目の前の馬体と血統を見た方がよさそうだ。
+      </li>
+    </ul>
+
+    <div class="ad-rect">
+      <AdSlot sp={AD_SP_RECT} pc={AD_PC_WIDE_A} />
+    </div>
+
+    <h2>データについて</h2>
+    <p>
+      産次は母の産駒一覧を生年順に並べて数えたもので、母が仔を産まなかった年は数に入れていない
+      （前の仔から2年以上空いた場合を「空胎明け」として別に集計した）。
+      海外で産まれた仔や、産駒一覧に載っていない仔がいる場合は数がずれる可能性がある。
+      競走成績は{resultsAsOf}時点のスナップショットで、今後レースを重ねるたびに変わっていく。
+      直近の募集組はまだ大半が未出走〜デビュー間もないため、今回の集計は出走済みの
+      {raced.length}頭が中心になっている点は割り引いて見てほしい。獲得賞金は中央（JRA）・
+      地方（NAR）の合計で、海外レースで得た賞金は含まれていない。
+      検定の p 値は「差が無いのにこれくらいの偏りが偶然出る確率」の目安で、小さいほど
+      差がありそうということになる。一般的には0.05を下回ると「有意」と言うが、今回はどの
+      切り口もそこには届かなかった。出資判断の材料というより、あくまで趣味の分析として
+      楽しんでもらえたら。
+    </p>
+
+    <p>
+      <a href="/">募集馬一覧へ戻る</a> ／ <a href="/articles/">分析記事一覧へ</a>
+    </p>
+  </article>
+
+  <ChartTooltip />
+</BaseLayout>
+
+<style>
+  article :global(h2) {
+    margin-top: 2.5rem;
+  }
+  .table-note {
+    font-size: 0.8125rem;
+    color: var(--muted);
+  }
+  .finding {
+    margin: 1.25rem 0;
+    padding: 0.9rem 1.1rem;
+    background: var(--accent-weak);
+    border-left: 3px solid var(--accent);
+    border-radius: 0 6px 6px 0;
+  }
+  .finding-lead {
+    margin: 0 0 0.5rem;
+    font-weight: 700;
+  }
+  .finding p:last-child {
+    margin-bottom: 0;
+  }
+  .ad-rect {
+    display: flex;
+    justify-content: center;
+    margin: 1.75rem 0 0.5rem;
+  }
+  .more-winners,
+  .bucket-accordion {
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 0.5rem 0.85rem;
+    margin: 0.5rem 0;
+  }
+  .more-winners summary,
+  .bucket-accordion summary {
+    cursor: pointer;
+    font-weight: 600;
+    padding: 0.25rem 0;
+  }
+  .more-winners :global(.table-scroll) {
+    margin-top: 0.5rem;
+  }
+  .bucket-accordion ul {
+    list-style: none;
+    margin: 0.5rem 0 0.25rem;
+    padding: 0;
+  }
+  .bucket-accordion li {
+    padding: 0.25rem 0;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    align-items: baseline;
+  }
+  .bucket-meta {
+    font-size: 0.8125rem;
+    color: var(--muted);
+  }
+  .conclusion {
+    padding-left: 1.25rem;
+  }
+  .conclusion li + li {
+    margin-top: 0.5rem;
+  }
+  .compare {
+    padding-left: 1.25rem;
+  }
+  .compare li + li {
+    margin-top: 0.4rem;
+  }
+</style>

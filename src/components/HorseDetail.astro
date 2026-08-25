@@ -76,6 +76,7 @@ const facts: { term: string; value: string }[] = [
   { term: '母', value: dam },
   { term: '母父', value: horse.broodmareSire },
   { term: '母齢', value: `${horse.damAge}` },
+  { term: '産次', value: `${horse.damParity}番仔` },
   { term: '誕生日', value: formatBirthDateLong(horse.birthDate) },
   { term: '厩舎', value: horse.stable },
   { term: '一口価格', value: `${horse.pricePerShare}万円` },

@@ -18,6 +18,7 @@ function makeHorse(overrides: Partial<Horse> & Pick<Horse, 'id'>): Horse {
     sire: 'テストサイアー',
     broodmareSire: 'テスト母父',
     damAge: 8,
+    damParity: 3,
     birthDate: '2024-03-01',
     stable: 'テスト厩舎',
     pricePerShare: 20,

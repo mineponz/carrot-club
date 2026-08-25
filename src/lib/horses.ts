@@ -29,6 +29,8 @@ export interface Horse {
   broodmareSire: string;
   /** 母齢（出産時点の母の年齢） */
   damAge: number;
+  /** 産次（母がその仔を何番目に産んだか。1=初仔） */
+  damParity: number;
   /** ISO 8601形式 (YYYY-MM-DD) */
   birthDate: string;
   stable: string;
@@ -59,6 +61,7 @@ export type SortKey =
   | 'sire'
   | 'broodmareSire'
   | 'damAge'
+  | 'damParity'
   | 'birthDate'
   | 'stable'
   | 'pricePerShare'

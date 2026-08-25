@@ -33,6 +33,19 @@ export interface Recruit {
   broodmareSire: string | null;
   /** 母齢（募集年 - 母の生年）。血統表ページから取得できなかった場合はnull。 */
   damAge: number | null;
+  /**
+   * 産次（母がその仔を何番目に産んだか。1=初仔）。母の産駒一覧ページの生年昇順での順位で、
+   * 空胎年は行自体が無いため「実際に産んだ仔の中で何番目か」になる。
+   * 取得方法は`scripts/fetch-birth-order.mjs`。取得できなかった場合はnull。
+   */
+  damParity: number | null;
+  /** 母の産駒総数（産駒一覧ページに載っている頭数）。取得できなかった場合はnull。 */
+  damProduceCount: number | null;
+  /**
+   * 直前の仔との出産間隔（年）。1なら連産、2以上なら間に空胎年がある（＝空胎明け）。
+   * 初仔（直前の仔がいない）と未取得はnull。
+   */
+  damGapBeforeYears: number | null;
   /** 生年月日（YYYY-MM-DD）。個体ページから取得できなかった場合はnull。 */
   birthDate: string | null;
   pricePerShare: number | null;

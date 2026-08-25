@@ -19,6 +19,7 @@ const horse: Horse = {
   sire: 'イクイノックス',
   broodmareSire: 'ロードカナロア',
   damAge: 9,
+  damParity: 2,
   birthDate: '2025-04-30',
   stable: '武井亮',
   pricePerShare: 20,

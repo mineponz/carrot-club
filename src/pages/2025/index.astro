@@ -1045,7 +1045,8 @@ const faqJsonLd = {
          並べ替えは見出しのボタンだけで行うので、隠した5列はSPでは並べ替えられなくなる
          （本人了承済み・2026-08-23。SP専用の並び替えバーは元のUIに戻すため取りやめた）。
          列番号は COLUMNS の並び順に対応する（メモを4列目に移したぶん、以前の 5/6/7/15 から
-         1つずつ後ろにずれている。horse-row.test.ts に番号を突き合わせるテストがある）。 */
+         1つずつ後ろにずれている。さらに産次列を母齢の右隣に追加したぶん、厩舎は16→17に
+         ずれている。horse-row.test.ts に番号を突き合わせるテストがある）。 */
       #horse-table th:nth-child(1),
       #horse-table td:nth-child(1),
       #horse-table th:nth-child(6),
@@ -1054,8 +1055,8 @@ const faqJsonLd = {
       #horse-table td:nth-child(7),
       #horse-table th:nth-child(8),
       #horse-table td:nth-child(8),
-      #horse-table th:nth-child(16),
-      #horse-table td:nth-child(16) { display: none; }
+      #horse-table th:nth-child(17),
+      #horse-table td:nth-child(17) { display: none; }
       /* 3行になるぶん、行の高さを稼ぐ余白は上下に薄く取る */
       #horse-table td { padding-top: 0.35rem; padding-bottom: 0.35rem; }
       #horse-table td:nth-child(2) { vertical-align: top; }

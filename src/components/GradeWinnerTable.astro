@@ -15,6 +15,10 @@
  * この倍率は実際の会員配当額ではなく規模感の目安に過ぎず、その注記は胸囲記事の本文にしか
  * 無いため、注記の無い他記事にまで数字だけ出ると出資リターンと誤読されうる
  * （reviewerサブエージェントの指摘・2026-08-25）。胸囲記事だけが`showRoi`を渡す。
+ *
+ * 産次列（＝母の何番目の仔か）も同じ理由で`showParity`がtrueの時だけ出す（既定false）。
+ * 「3番仔」という数字だけが注記なしに他記事へ出ると、空胎年を挟んでいても連産でも同じ
+ * 数え方をしている点が伝わらない。産次記事（birth-order.astro）だけが`showParity`を渡す。
  */
 import type { RecruitWithResult } from '../lib/analysis-data.ts';
 import { formatManYen } from '../lib/chart-math.ts';
@@ -22,9 +26,10 @@ import { formatManYen } from '../lib/chart-math.ts';
 interface Props {
   rows: RecruitWithResult[];
   showRoi?: boolean;
+  showParity?: boolean;
 }
 
-const { rows, showRoi = false } = Astro.props;
+const { rows, showRoi = false, showParity = false } = Astro.props;
 ---
 
 <div class="table-scroll">
@@ -38,6 +43,7 @@ const { rows, showRoi = false } = Astro.props;
         <th>胸囲</th>
         <th>馬体重</th>
         <th>母齢</th>
+        {showParity && <th>産次</th>}
         <th>一口価格</th>
         <th>主な勝鞍</th>
         <th>通算成績</th>
@@ -56,6 +62,13 @@ const { rows, showRoi = false } = Astro.props;
             <td>{h.chestGirth !== null ? `${h.chestGirth}cm` : '—'}</td>
             <td>{h.weight !== null ? `${h.weight}kg` : '—'}</td>
             <td>{h.damAge !== null ? `${h.damAge}歳` : '—'}</td>
+            {showParity && (
+              <td>
+                {h.damParity !== null
+                  ? `${h.damParity}番仔${h.damGapBeforeYears !== null && h.damGapBeforeYears >= 2 ? '（空胎明け）' : ''}`
+                  : '—'}
+              </td>
+            )}
             <td>{h.pricePerShare !== null ? `${h.pricePerShare}万円` : '—'}</td>
             <td>{h.gradeWins.join('、')}</td>
             <td>

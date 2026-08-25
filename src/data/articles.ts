@@ -12,6 +12,12 @@ export interface AnalysisArticle {
 
 export const analysisArticles: AnalysisArticle[] = [
   {
+    href: '/articles/birth-order/',
+    title: '何番目の仔かと成績の関係',
+    description:
+      '「良い母は3番仔以内に走るのを出す」「初仔は走らない」「空胎明けは走る」――産次にまつわる3つの俗説を、牡馬・牝馬に分けても検証した。',
+  },
+  {
     href: '/articles/chest-girth/',
     title: '胸囲と成績・回収率の関係',
     description:
