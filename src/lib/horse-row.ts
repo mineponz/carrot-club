@@ -35,6 +35,10 @@ export const COLUMNS = [
   { label: 'No', sortKey: 'id', align: 'num' },
   { label: '馬名', sortKey: 'name' },
   { label: '評価' },
+  // メモ列は評価のすぐ隣（左端の固定列の真横）に置く。右端にあったころは、書こうと思うたびに
+  // 表を端まで横スクロールする必要があった（本人の指示・2026-08-25）。
+  // 既定はセルの中が📝アイコンだけなので、常に出したままでも表の幅をほとんど食わない。
+  { label: 'メモ', cls: 'memo-col' },
   { label: 'netkeiba' },
   { label: '父', sortKey: 'sire' },
   { label: '母父', sortKey: 'broodmareSire' },
@@ -50,9 +54,6 @@ export const COLUMNS = [
   { label: '兄弟' },
   { label: '母優' },
   { label: '手術・既往' },
-  // メモ列は既定で隠す（`show-memo` が付いたときだけ出す）。見出しと中身の両方に同じ
-  // クラスを付けたいので、列定義側に持たせてページのthとhorseRowHtmlのtdで共有する。
-  { label: 'メモ', cls: 'memo-col' },
   { label: 'X検索' },
   { label: '母' },
 ] as const;
@@ -157,15 +158,15 @@ export function horseRowHtml(
       <select class="rating-select" data-field="rating" data-rating="${evaluation.rating ?? ''}" aria-label="${name}の評価">${ratingOptions}</select>
       <button type="button" class="favorite-btn" data-field="favorite" aria-pressed="${evaluation.favorite}" aria-label="${name}をお気に入りにする" title="お気に入り">★</button>
       <label class="skip-label"><input type="checkbox" class="skip-checkbox" data-field="skip" ${evaluation.skip ? 'checked' : ''} aria-label="${name}を消にする" /> 消</label>
-      <!--
-        メモの有無を示す印。メモ列は既定で隠しているので、入っているかどうかだけは
-        ここで分かるようにする。評価欄は左端の固定列なので、SPでも横スクロールしても見える。
-        中身はホバー（title）で覗ける。空のときもCSSで見えなくするだけで要素は残し、
-        評価欄の幅が馬ごとに変わらないようにしている。
-      -->
-      <span class="memo-flag" data-has-memo="${evaluation.memo !== ''}" title="${memo ? `メモ: ${memo}` : ''}" aria-label="${name}のメモあり" role="img">📝</span>
     </div>
   </td>
+  <!--
+    メモのセルは「アイコン」と「入力欄」を両方持ち、CSSで排他表示する（既定はアイコンだけ、
+    is-open が付くと入力欄）。同じセルで入れ替えるので、開いても列が増えたように見えない。
+    アイコンはメモが空の馬にも常に出す（＝そこから書き始められる）。入っている馬だけ
+    CSSの ::after で通知ドットを付け、中身はホバー（title）で覗ける。
+  -->
+  <td class="memo-col"><button type="button" class="memo-flag" data-field="memo-toggle" data-has-memo="${evaluation.memo !== ''}" title="${memo ? `メモ: ${memo}` : ''}" aria-label="${name}のメモを開く">📝</button><input type="text" class="memo-input" data-field="memo" value="${memo}" placeholder="メモ" aria-label="${name}のメモ" maxlength="${MAX_MEMO_LENGTH}" /></td>
   <td class="links"><a href="${escapeHtml(horse.netkeibaUrl)}" target="_blank" rel="noopener">netkeiba</a></td>
   <td>${escapeHtml(horse.sire)}</td>
   <td>${escapeHtml(horse.broodmareSire)}</td>
@@ -181,7 +182,6 @@ export function horseRowHtml(
   <td class="sibling" title="${escapeHtml(horse.sibling)}">${escapeHtml(horse.sibling)}</td>
   <td class="dam-priority">${horse.damPriority ? '◯' : ''}</td>
   <td class="surgery" title="${escapeHtml(surgeryText)}">${horse.surgery === '' ? '' : '◯'}</td>
-  <td class="memo-col"><input type="text" class="memo-input" data-field="memo" value="${memo}" placeholder="メモ" aria-label="${name}のメモ" maxlength="${MAX_MEMO_LENGTH}" /></td>
   <td class="links"><a href="${escapeHtml(horse.xSearchUrl)}" target="_blank" rel="noopener">X</a></td>
   <td class="links">${damLink}</td>
 </tr>`;

@@ -131,7 +131,7 @@ test('COLUMNS: 一口価格の見出しには単位を付ける（万円と分�
   assert.ok(!labels.includes('一口'));
 });
 
-test('COLUMNS: メモ列だけ出し入れ用のクラスを持つ', () => {
+test('COLUMNS: メモ列だけ見出し・セル共通のクラスを持つ', () => {
   const withClass = COLUMNS.filter((c): c is typeof c & { cls: string } => 'cls' in c);
   assert.equal(withClass.length, 1);
   assert.equal(withClass[0].label, 'メモ');
@@ -144,6 +144,20 @@ test('COLUMNS: netkeibaは血統より左、X検索と母は右端、左3列は 
   assert.equal(labels.at(-2), 'X検索');
   assert.equal(labels.at(-1), '母');
   assert.deepEqual(labels.slice(0, 3), ['No', '馬名', '評価']);
+});
+
+test('COLUMNS: メモは評価のすぐ隣（4列目）に置く', () => {
+  const labels = COLUMNS.map((c) => c.label);
+  assert.equal(labels.indexOf('メモ'), labels.indexOf('評価') + 1);
+  assert.equal(labels[3], 'メモ');
+});
+
+test('COLUMNS: SPで隠す列（No・父・母父・性・厩舎）の位置がページのCSSと一致する', () => {
+  // index.astro / 2025/index.astro の @media (max-width: 40rem) が nth-child の番号で
+  // 列を隠しているので、列を入れ替えたらここも一緒に直す（ずれると別の列が消える）。
+  const labels = COLUMNS.map((c) => c.label);
+  const hiddenOnSp = [1, 6, 7, 8, 16].map((n) => labels[n - 1]);
+  assert.deepEqual(hiddenOnSp, ['No', '父', '母父', '性', '厩舎']);
 });
 
 test('horseRowHtml: 母優先の馬には◯を出す', () => {
@@ -181,16 +195,28 @@ test('horseRowHtml: 厩舎セルは短い表記にして、元の記載は title
   assert.match(html, /<td title="門別・田中淳司厩舎or大井・渡邉和雄厩舎（外厩）">門別or大井<\/td>/);
 });
 
-test('horseRowHtml: メモの有無を評価欄の印（data-has-memo）で示す', () => {
-  const evalCell = (memo: string) =>
-    horseRowHtml(horse, { ...DEFAULT_EVALUATION, memo }).match(/<div class="eval-cell">[^]*?<\/div>/)![0];
-  assert.match(evalCell('本命'), /class="memo-flag" data-has-memo="true"/);
-  assert.match(evalCell('本命'), /title="メモ: 本命"/);
-  assert.match(evalCell(''), /class="memo-flag" data-has-memo="false"/);
+test('horseRowHtml: メモの有無をメモ列の印（data-has-memo）で示す', () => {
+  const memoCell = (memo: string) =>
+    horseRowHtml(horse, { ...DEFAULT_EVALUATION, memo }).match(/<td class="memo-col">[^]*?<\/td>/)![0];
+  assert.match(memoCell('本命'), /class="memo-flag" data-field="memo-toggle" data-has-memo="true"/);
+  assert.match(memoCell('本命'), /title="メモ: 本命"/);
+  // 空でもアイコンは出す（そこから書き始められるように）。印だけ false にする。
+  assert.match(memoCell(''), /class="memo-flag" data-field="memo-toggle" data-has-memo="false"/);
 });
 
-test('horseRowHtml: メモのセルには memo-col を付ける（列ごと出し入れするため）', () => {
-  assert.match(horseRowHtml(horse, DEFAULT_EVALUATION), /<td class="memo-col"><input type="text" class="memo-input"/);
+test('horseRowHtml: 評価欄にメモの印は置かない（メモ列のアイコンに一本化した）', () => {
+  const evalCell = horseRowHtml(horse, { ...DEFAULT_EVALUATION, memo: '本命' }).match(
+    /<div class="eval-cell">[^]*?<\/div>/,
+  )![0];
+  assert.ok(!evalCell.includes('memo-flag'));
+});
+
+test('horseRowHtml: メモのセルはアイコン（button）と入力欄を両方持つ（CSSで排他表示する）', () => {
+  const cell = horseRowHtml(horse, DEFAULT_EVALUATION).match(/<td class="memo-col">[^]*?<\/td>/)![0];
+  assert.match(cell, /<button type="button" class="memo-flag"/);
+  assert.match(cell, /<input type="text" class="memo-input" data-field="memo"/);
+  // アイコンはクリックで開く前提の読み上げ文言にする
+  assert.match(cell, /aria-label="フィリアプーラの2024のメモを開く"/);
 });
 
 test('horseRowHtml: 保存済みの評価を反映する', () => {
