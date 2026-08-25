@@ -64,6 +64,33 @@ export function parseMultiValue(raw: string | null | undefined): string[] {
   return out;
 }
 
+/**
+ * 複数選択の絞り込みで「チェックが1つも入っていない」状態を作らないための正規化。
+ * 空なら全選択（＝すべて）を返し、1つでも選ばれていればそのまま返す。
+ *
+ * 父（種牡馬）のチェックリスト向け。最後の1つを外すと全頭が出るのに、チェックは空欄という
+ * 見た目と結果の食い違いが起きていたので、全部外したら全部にチェックを戻す
+ * （本人の指示・2026-08-25）。
+ */
+export function withAllWhenNoneSelected(
+  selected: readonly string[],
+  all: readonly string[],
+): string[] {
+  return selected.length === 0 ? [...all] : [...selected];
+}
+
+/**
+ * 選択肢を全部選んでいるか。上の正規化のせいで「全選択」は「絞っていない」と同じ意味に
+ * なるので、条件の件数・保存・見出しの表示ではこれを見て“条件なし”として扱う
+ * （全選択を条件として保存すると、次に開いたとき「1件の条件」と出てしまう）。
+ * 選択肢が0個のときは false（絞り込みとして成立していない）。
+ */
+export function isAllSelected(selected: readonly string[], all: readonly string[]): boolean {
+  if (all.length === 0) return false;
+  const chosen = new Set(selected);
+  return all.every((value) => chosen.has(value));
+}
+
 export function filterStorageKeyForYear(year: number): string {
   return `carrot-club:filters:${year}`;
 }

@@ -4,6 +4,7 @@ import {
   countActiveFilters,
   emptyFilterState,
   filterStorageKeyForYear,
+  isAllSelected,
   isEmptyFilterState,
   loadFilterState,
   parseFilterState,
@@ -11,6 +12,7 @@ import {
   saveFilterState,
   serializeFilterState,
   serializeMultiValue,
+  withAllWhenNoneSelected,
   type FilterState,
 } from './filter-state.ts';
 
@@ -154,4 +156,45 @@ test('parseMultiValue: 名前に含まれる空白は残す', () => {
 test('countActiveFilters: 複数選んでも1つの絞り込みは1件と数える', () => {
   const s = state({ values: { 'filter-sire': serializeMultiValue(['キズナ', 'ハーツクライ']) } });
   assert.equal(countActiveFilters(s), 1);
+});
+
+// --- 「全部外したら全部にチェック」（父の絞り込み） ---
+
+const SIRES = ['キズナ', 'サトノダイヤモンド', 'ドゥラメンテ'];
+
+test('withAllWhenNoneSelected: 1つも選んでいなければ全選択になる', () => {
+  assert.deepEqual(withAllWhenNoneSelected([], SIRES), SIRES);
+});
+
+test('withAllWhenNoneSelected: 1つでも選んでいればそのまま', () => {
+  assert.deepEqual(withAllWhenNoneSelected(['キズナ'], SIRES), ['キズナ']);
+  assert.deepEqual(withAllWhenNoneSelected(SIRES, SIRES), SIRES);
+});
+
+test('withAllWhenNoneSelected: 元の配列は変えない', () => {
+  const selected: string[] = [];
+  const result = withAllWhenNoneSelected(selected, SIRES);
+  result.push('ハーツクライ');
+  assert.deepEqual(selected, []);
+  assert.deepEqual(SIRES, ['キズナ', 'サトノダイヤモンド', 'ドゥラメンテ']);
+});
+
+test('isAllSelected: 全部選んでいる＝絞っていない', () => {
+  assert.equal(isAllSelected(SIRES, SIRES), true);
+  // 並び順は問わない
+  assert.equal(isAllSelected(['ドゥラメンテ', 'キズナ', 'サトノダイヤモンド'], SIRES), true);
+});
+
+test('isAllSelected: 一部だけなら絞り込みとして効いている', () => {
+  assert.equal(isAllSelected(['キズナ'], SIRES), false);
+  assert.equal(isAllSelected([], SIRES), false);
+});
+
+test('isAllSelected: 選択肢が0個のときは false', () => {
+  assert.equal(isAllSelected([], []), false);
+});
+
+test('isAllSelected: 選択肢に無い値が混ざっていても全部揃っていれば true', () => {
+  // その年に居なくなった父が保存データに残っている場合（復元時に読み飛ばされる）
+  assert.equal(isAllSelected([...SIRES, 'ハーツクライ'], SIRES), true);
 });

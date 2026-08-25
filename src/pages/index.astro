@@ -219,7 +219,11 @@ const faqJsonLd = {
       {/*
         父は1つしか選べない <select> だったが、「キズナとサトノダイヤモンドを並べて見る」
         ができなかったのでチェックボックスの複数選択にした（本人の指示・2026-08-24）。
-        選んだ父の**いずれか**に当てはまる馬が残る（OR）。1つも選ばなければ全頭のまま。
+        選んだ父の**いずれか**に当てはまる馬が残る（OR）。
+        既定は全部チェック（＝すべて）で、最後の1つを外すと全部にチェックが戻る
+        （本人の指示・2026-08-25）。全部外して0件のままにすると、表には全頭出ているのに
+        チェックは空欄という食い違った見た目になるため。全チェック＝絞っていない扱いなので、
+        「N件の条件」にも数えず保存もしない。
         数十種類あって全部並べると絞り込みの箱が父だけで埋まるので <details> に畳み、
         選んでいる数は畳んだままでも分かるよう summary に出す（絞り込み全体の
         「N件の条件」と同じ考え方 ―― 効いている条件が画面から読み取れない状態を作らない）。
@@ -233,7 +237,7 @@ const faqJsonLd = {
           {
             sires.map((s) => (
               <label class="checkbox-label">
-                <input type="checkbox" class="filter-sire" value={s} />
+                <input type="checkbox" class="filter-sire" value={s} checked />
                 <span>
                   {s}
                   <span class="multi-filter-n">{sireCounts[s]}</span>
@@ -461,7 +465,7 @@ const faqJsonLd = {
   <ul>
     <li>列見出しをクリックして並べ替える（もう一度押すと昇順・降順が入れ替わります）</li>
     <li>馬名・母父・厩舎で絞り込む</li>
-    <li>父（種牡馬）と性別は複数選べる（選んだうちのどれかに当てはまる馬が残ります）</li>
+    <li>父（種牡馬）と性別は複数選べる（選んだうちのどれかに当てはまる馬が残ります。父は全部のチェックを外すと「すべて」に戻ります）</li>
     <li>母齢・一口価格・体高・管囲・馬体重を下限〜上限の範囲で絞り込む</li>
     <li>{hasSurgeryData ? '「母優先」（あり／なし）「手術・既往ありを除く」で候補を狭める' : '「母優先」（あり／なし）で候補を狭める'}</li>
     <li>各馬にA〜Eの評価・お気に入り（★）・消・メモを付け、「お気に入りのみ」「消を付けた馬を隠す」で見直す（メモ欄は表の上の「メモを表示」を入れると出ます。入っている馬は評価欄に📝が付きます）</li>
@@ -1339,10 +1343,12 @@ const faqJsonLd = {
     import {
       countActiveFilters,
       filterStorageKeyForYear,
+      isAllSelected,
       loadFilterState,
       parseMultiValue,
       saveFilterState,
       serializeMultiValue,
+      withAllWhenNoneSelected,
       type FilterState,
     } from '../lib/filter-state.ts';
     // 表示の切り替え（メモ列を出すか）は絞り込み条件とは別に覚える。混ぜると
@@ -1396,6 +1402,9 @@ const faqJsonLd = {
     // 父のチェックリストは畳んであるので、選んだ数を見出しに出す
     const sireDetails = document.getElementById('filter-sire-details') as HTMLDetailsElement;
     const sireState = el<HTMLElement>('filter-sire-state');
+    // その年に居る父の一覧（チェックボックスの value そのもの）。「全部選んでいる＝すべて」の
+    // 判定と、全部外したときにチェックを戻すのに使う。
+    const sireValues = sireCheckboxes.map((c) => c.value);
 
     const checkedValues = (boxes: HTMLInputElement[]) =>
       boxes.filter((c) => c.checked).map((c) => c.value);
@@ -1443,9 +1452,13 @@ const faqJsonLd = {
       for (const input of [...textInputs, ...selects]) {
         if (input.value.trim() !== '') values[input.id] = input.value;
       }
-      // 複数選択は「1つの絞り込み」として1項目にまとめる（父を5つ選んでも条件は1件）
+      // 複数選択は「1つの絞り込み」として1項目にまとめる（父を5つ選んでも条件は1件）。
+      // 父は全チェック＝絞っていないので保存しない（保存すると次に開いたとき「1件の条件」に
+      // 数えられ、絞り込みが勝手に開いた状態になる）。
       const sires = checkedValues(sireCheckboxes);
-      if (sires.length > 0) values[SIRE_FILTER_KEY] = serializeMultiValue(sires);
+      if (sires.length > 0 && !isAllSelected(sires, sireValues)) {
+        values[SIRE_FILTER_KEY] = serializeMultiValue(sires);
+      }
       const sexes = checkedValues(sexCheckboxes);
       if (sexes.length > 0) values[SEX_FILTER_KEY] = serializeMultiValue(sexes);
       const toggleState: Record<string, boolean> = {};
@@ -1470,8 +1483,10 @@ const faqJsonLd = {
       for (const input of [...textInputs, ...selects]) input.value = state.values[input.id] ?? '';
       for (const toggle of namedToggles) toggle.checked = state.toggles[toggle.id] === true;
       for (const checkbox of ratingCheckboxes) checkbox.checked = state.ratings.includes(checkbox.value);
+      // 保存が無い（＝前回は「すべて」）ときは空になるので、そのあと全チェックに戻る。
       const sires = parseMultiValue(state.values[SIRE_FILTER_KEY]);
       for (const checkbox of sireCheckboxes) checkbox.checked = sires.includes(checkbox.value);
+      normalizeSireCheckboxes();
       const sexes = parseMultiValue(state.values[SEX_FILTER_KEY]);
       for (const checkbox of sexCheckboxes) checkbox.checked = sexes.includes(checkbox.value);
       sortKey = state.sortKey;
@@ -1488,8 +1503,9 @@ const faqJsonLd = {
       if (filterBms.value.trim()) filter.broodmareSire = filterBms.value.trim();
       if (filterStable.value) filter.stable = filterStable.value;
       // 父・性別は複数選択。1つも選んでいないときは条件自体を積まない（＝全頭表示のまま）。
+      // 父は全部にチェックが入っている状態＝「すべて」なので、これも条件にしない。
       const sires = checkedValues(sireCheckboxes);
-      if (sires.length > 0) filter.sires = sires;
+      if (sires.length > 0 && !isAllSelected(sires, sireValues)) filter.sires = sires;
       const sexes = checkedValues(sexCheckboxes);
       if (sexes.length > 0) filter.sexes = sexes as Sex[];
       filter.minDamAge = numberValue(filterDamAgeMin);
@@ -1530,15 +1546,33 @@ const faqJsonLd = {
     }
 
     /**
+     * 父のチェックを1つも入っていない状態にしない。最後の1つを外したら全部にチェックを戻す
+     * （＝「すべて」＝絞っていない）。描き直す前に必ず通す。
+     */
+    function normalizeSireCheckboxes() {
+      const next = withAllWhenNoneSelected(checkedValues(sireCheckboxes), sireValues);
+      for (const checkbox of sireCheckboxes) checkbox.checked = next.includes(checkbox.value);
+    }
+
+    /** 父を全部選んでいる（＝絞っていない）か。 */
+    function isAllSiresSelected(): boolean {
+      return isAllSelected(checkedValues(sireCheckboxes), sireValues);
+    }
+
+    /**
      * 父のチェックリストは畳んだままでも使えるので、選んだ数を見出しに出す。
-     * 0件のときは「すべて」＝絞っていないことを言葉で出す（空欄だと未設定か読み取れない）。
+     * 全部選んでいるときは「すべて」＝絞っていないことを言葉で出す
+     * （「37件選択」だと絞り込んでいるように読めてしまう）。
      */
     function updateSireSummary() {
-      const count = checkedValues(sireCheckboxes).length;
-      sireState.textContent = count === 0 ? 'すべて' : `${count}件選択`;
+      const selected = checkedValues(sireCheckboxes);
+      sireState.textContent = isAllSiresSelected() ? 'すべて' : `${selected.length}件選択`;
     }
 
     function render() {
+      // 「条件をクリア」や最後の1つを外した直後は父のチェックが0件になるので、まず全部に戻す
+      // （表は全頭に戻るので、チェックの見た目も「すべて」に揃える）。
+      normalizeSireCheckboxes();
       let list = filterHorses(horses2026, currentFilter());
       // 評価はユーザーごとの状態なので、客観データのフィルタとは分けてここで適用する
       if (filterHideSkip.checked) {
@@ -1778,7 +1812,8 @@ const faqJsonLd = {
     applyFilterState(restoredState);
     if (countActiveFilters(restoredState) > 0) filterDetails.open = true;
     // 父も同じ理由で開く。「3件選択」だけ見えてもどの父かが分からないため。
-    if (checkedValues(sireCheckboxes).length > 0) sireDetails.open = true;
+    // 全部にチェックが入っているとき（＝すべて）は絞っていないので畳んだままにする。
+    if (!isAllSiresSelected()) sireDetails.open = true;
 
     // メモを一括で開いていたかも前回のままにする（既定は閉じてアイコンだけ）。
     // 実際に開くのは直後の render()（行を作り直したあとに開き直す）。
