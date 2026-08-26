@@ -48,7 +48,7 @@ export const horses2026: Horse[] = [
     "sire": "イクイノックス",
     "broodmareSire": "Brody's Cause",
     "damAge": 7,
-    "damParity": 1,
+    "damParity": 2,
     "birthDate": "2025-03-24",
     "stable": "宮田敬介",
     "pricePerShare": 17.5,
