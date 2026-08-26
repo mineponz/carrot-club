@@ -46,6 +46,9 @@ export interface SiblingRecruit {
   netkeibaUrl: string | null;
   /** 父（同じ母の産駒なので、兄姉との違いはここに出る）。取れていない年度・馬は null */
   sire: string | null;
+  sex: string | null;
+  /** ISO 8601形式 (YYYY-MM-DD)。取れていない馬は null */
+  birthDate: string | null;
   /** 募集時の測尺。取れていない年度・馬は null */
   height: number | null;
   chestGirth: number | null;
@@ -73,6 +76,8 @@ export interface MeasurementRow {
   name: string;
   netkeibaUrl: string | null;
   sire: string | null;
+  sex: string | null;
+  birthDate: string | null;
   height: number | null;
   chestGirth: number | null;
   caretGirth: number | null;
@@ -90,6 +95,8 @@ export interface SelfMeasurement {
   id: string;
   netkeibaUrl: string;
   sire: string;
+  sex: string;
+  birthDate: string;
   height: number;
   chestGirth: number;
   caretGirth: number;
@@ -119,6 +126,8 @@ export function buildMeasurementRows(
       name: SELF_ROW_NAME,
       netkeibaUrl: self.netkeibaUrl || null,
       sire: self.sire,
+      sex: self.sex,
+      birthDate: self.birthDate,
       height: self.height,
       chestGirth: self.chestGirth,
       caretGirth: self.caretGirth,
@@ -134,6 +143,8 @@ export function buildMeasurementRows(
       name: sibling.name,
       netkeibaUrl: sibling.netkeibaUrl,
       sire: sibling.sire,
+      sex: sibling.sex,
+      birthDate: sibling.birthDate,
       height: sibling.height,
       chestGirth: sibling.chestGirth,
       caretGirth: sibling.caretGirth,
@@ -159,6 +170,8 @@ function toSibling(recruit: RecruitWithResult, matchedBy: SiblingRecruit['matche
     name: recruit.displayName,
     netkeibaUrl: recruit.netkeibaUrl,
     sire: recruit.sire,
+    sex: recruit.sex,
+    birthDate: recruit.birthDate,
     height: recruit.height,
     chestGirth: recruit.chestGirth,
     caretGirth: recruit.caretGirth,

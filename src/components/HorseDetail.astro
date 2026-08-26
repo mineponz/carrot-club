@@ -11,6 +11,7 @@
  */
 import type { Horse } from '../lib/horses.ts';
 import { damNameOf, formatBirthDateLong, horsePhotoUrl, type RecruitYear } from '../lib/horse-meta.ts';
+import { formatBirthDate } from '../lib/horse-row.ts';
 // メモ欄の上限はサーバー側の検証と同じ値（一覧の horse-row.ts と揃える）
 import { MAX_MEMO_LENGTH } from '../lib/evaluation-api.ts';
 import { loadRecruitsWithResults, RACE_RESULTS_FETCHED_AT } from '../lib/analysis-data.ts';
@@ -155,10 +156,12 @@ const facts: { term: string; value: string }[] = [
               <tr>
                 <th>馬名</th>
                 <th>父</th>
+                <th>牡牝</th>
+                <th>誕生日</th>
                 <th>体高</th>
+                <th>馬体重</th>
                 <th>胸囲</th>
                 <th>管囲</th>
-                <th>馬体重</th>
                 <th>通算成績</th>
                 <th>獲得賞金</th>
                 <th>募集年</th>
@@ -184,10 +187,12 @@ const facts: { term: string; value: string }[] = [
                       )}
                     </td>
                     <td>{row.sire || '—'}</td>
+                    <td>{row.sex || '—'}</td>
+                    <td>{row.birthDate == null ? '—' : formatBirthDate(row.birthDate)}</td>
                     <td>{row.height == null ? '—' : `${row.height}cm`}</td>
+                    <td>{row.weight == null ? '—' : `${row.weight}kg`}</td>
                     <td>{row.chestGirth == null ? '—' : `${row.chestGirth}cm`}</td>
                     <td>{row.caretGirth == null ? '—' : `${row.caretGirth}cm`}</td>
-                    <td>{row.weight == null ? '—' : `${row.weight}kg`}</td>
                     <td>{record ?? '—'}</td>
                     <td>{row.totalPrizeManYen == null ? '—' : `${formatManYen(row.totalPrizeManYen)}万円`}</td>
                     {/* 募集年は見比べる主役ではない（測尺と成績のほう）ので右端に置く（本人希望） */}

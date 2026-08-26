@@ -238,6 +238,8 @@ function self(over: Partial<Parameters<typeof buildMeasurementRows>[0]> = {}) {
     id: '5',
     netkeibaUrl: 'https://db.netkeiba.com/horse/2025100005/',
     sire: 'イクイノックス',
+    sex: '牡',
+    birthDate: '2025-03-01',
     height: 152,
     chestGirth: 175,
     caretGirth: 20,
