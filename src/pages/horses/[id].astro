@@ -24,5 +24,14 @@ const { horse } = Astro.props as { horse: Horse };
   breadcrumbLabel={horse.name}
   description={horseDetailDescription(horse, 2026)}
 >
-  <HorseDetail horse={horse} recruitYear={2026} listHref="/" />
+  {/* allHorses / detailBasePath は前後の馬・ジャンプ用プルダウン・測尺の順位に使う
+      （順位の母集団は同じ募集年の全頭）。detailBasePath は horse-row.ts の
+      DEFAULT_DETAIL_BASE_PATH・sibling-recruits.ts の siblingDetailHref と同じ値にする。 */}
+  <HorseDetail
+    horse={horse}
+    recruitYear={2026}
+    listHref="/"
+    allHorses={horses2026}
+    detailBasePath="/horses/"
+  />
 </BaseLayout>

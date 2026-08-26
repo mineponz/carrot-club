@@ -104,9 +104,21 @@ vault: `1-projects/carrot-club/tasks/20260818-import-2026-data.md`。
   （`src/pages/horses/[id].astro` / `src/pages/2025/horses/[id].astro` の `getStaticPaths`）。
   一覧の表は横スクロールで1行に出せる情報量に限りがあるため、馬名でのロングテール検索の
   受け皿を別ページに分けている。
-- 表示は `src/components/HorseDetail.astro`（年度共通）。年度差はprops（募集年・一覧のURL）だけ。
+- 表示は `src/components/HorseDetail.astro`（年度共通）。年度差はprops（募集年・一覧のURL・
+  その年度の全頭・個別ページの接頭辞）だけ。
   コンポーネント内のクライアントスクリプトはpropsを直接読めないので、馬ID・募集年は
   `#eval-panel` の `data-` 属性で受け渡している。
+- **馬送り**（`src/components/HorseNav.astro`、ページの上下2か所）。一覧に戻らず隣の馬を
+  見られるようにするためのもの（本人の要望・2026-08-26）。並びは一覧の既定と同じ**No.昇順**
+  （`findHorseNeighbors()`）で、先頭・末尾では片側のリンクを出さない（中央のセレクトの位置が
+  ずれないよう、同じ幅の空要素で場所だけ残す）。前後リンクは素の `<a href>`（no-JSでも効き、
+  全頭ページを数珠つなぎにたどれる）で、任意の馬へ飛ぶ `<select>` だけがJS必須。狭い画面
+  （`max-width: 40rem`）では前後リンクとセレクトを2行に分ける ―― 1行に詰めると馬名が
+  全部省略されて「No.54 ス…」になり、どの馬か読めなくなるため。
+- 測尺（体高・胸囲・管囲・馬体重）には**同じ募集年の全頭中での順位**を添える
+  （`measurementRank()` / `formatMeasurementRank()`。大きい方が1位・同値は同順位）。
+  数字だけでは大柄なのか平均的なのかがその年の分布次第で読み取れないため。母集団は年度で
+  閉じているので `allHorses` に別の年の配列を渡さないこと（No.も測尺の比較対象も年ごと）。
 - title / description は `src/lib/horse-meta.ts` で馬ごとに機械生成する。似た雛形が187ページ並ぶと
   重複コンテンツになりうるので、馬名・血統・測尺などその馬固有の値を必ず混ぜること。
 - 一覧の馬名セルが個別ページへのリンク。年度ごとのURL接頭辞は `horseRowHtml()` の第3引数

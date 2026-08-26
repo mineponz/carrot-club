@@ -95,6 +95,59 @@ export function sortHorses(horses: Horse[], key: SortKey, direction: SortDirecti
 }
 
 /**
+ * 個別ページで前後の馬をたどるための隣接馬。並びは**募集番号（No.）の昇順**で、
+ * 一覧の既定の並び（No.順）と同じ順序で馬を1頭ずつ見ていけるようにするためのもの。
+ * 先頭の馬には `prev` が、末尾の馬には `next` が無い（`undefined`）。
+ */
+export interface HorseNeighbors {
+  prev?: Horse;
+  next?: Horse;
+}
+
+/**
+ * No.昇順に並べたときの、指定した馬の前後の馬を返す。
+ * 渡す配列の並び順には依存しない（この関数の中で `sortHorses(..., 'id', 'asc')` する）ので、
+ * 呼び出し側は「その年度の全頭」をそのまま渡してよい。該当IDが無い場合は両方 `undefined`。
+ */
+export function findHorseNeighbors(horses: readonly Horse[], horseId: string): HorseNeighbors {
+  const sorted = sortHorses([...horses], 'id', 'asc');
+  const index = sorted.findIndex((h) => h.id === horseId);
+  if (index < 0) return {};
+  return { prev: sorted[index - 1], next: sorted[index + 1] };
+}
+
+/** 順位を出す測尺の項目。いずれも「大きいほど上位」として扱う（本人合意・2026-08-26）。 */
+export type MeasurementKey = 'height' | 'chestGirth' | 'caretGirth' | 'weight';
+
+export interface MeasurementRank {
+  /** 1位が最大値。同値は同順位（標準的な競技順位方式） */
+  rank: number;
+  /** 母集団の頭数（＝同じ募集年の全頭） */
+  total: number;
+}
+
+/**
+ * 同じ募集年の全頭の中で、その値が何位かを返す。
+ *
+ * **大きい方が1位・同値は同順位**（標準的な競技順位方式）。すなわち「自分より大きい値を持つ
+ * 頭数 + 1」で、同値が並んだ次の順位は飛ぶ（1, 2, 2, 4）。測尺は数値が大きいほど
+ * 馬格があるという読み方をするので、価格などと違い降順で数える。
+ */
+export function measurementRank(
+  horses: readonly Horse[],
+  key: MeasurementKey,
+  value: number,
+): MeasurementRank {
+  const values = horses.map((h) => h[key]);
+  return { rank: values.filter((v) => v > value).length + 1, total: values.length };
+}
+
+/** 順位の表示形（`（12位/94頭中）`）。値の後ろに足して使う。 */
+export function formatMeasurementRank(rank: MeasurementRank): string {
+  return `（${rank.rank}位/${rank.total}頭中）`;
+}
+
+/**
  * 評価フィルタの選択肢。A〜Eに加えて「まだ何も評価を付けていない」を `'none'` で表す。
  *
  * 未評価を `undefined` や空文字ではなく明示的な値にしているのは、チェックボックスの

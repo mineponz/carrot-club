@@ -3,6 +3,9 @@ import assert from 'node:assert/strict';
 import {
   sortHorses,
   filterHorses,
+  findHorseNeighbors,
+  formatMeasurementRank,
+  measurementRank,
   uniqueValues,
   uniqueSexes,
   valueCounts,
@@ -369,4 +372,76 @@ test('uniqueSexes: データにある性別だけを牡→牝→セの順で返�
   assert.deepEqual(uniqueSexes(horses), ['牡', '牝']);
   assert.deepEqual(uniqueSexes([...horses, makeHorse({ id: '98', sex: 'セ' })]), ['牡', '牝', 'セ']);
   assert.deepEqual(uniqueSexes([]), []);
+});
+
+// --- 前後の馬（個別ページの導線） ---
+
+test('findHorseNeighbors: No.昇順で前後の馬を返す（渡す配列の並びに依存しない）', () => {
+  // horses は id が '2', '1', '10' の順で並んでいる。No.順は 1 → 2 → 10。
+  const { prev, next } = findHorseNeighbors(horses, '2');
+  assert.equal(prev?.id, '1');
+  assert.equal(next?.id, '10');
+});
+
+test('findHorseNeighbors: 先頭の馬は prev が無い / 末尾の馬は next が無い', () => {
+  const first = findHorseNeighbors(horses, '1');
+  assert.equal(first.prev, undefined);
+  assert.equal(first.next?.id, '2');
+
+  const last = findHorseNeighbors(horses, '10');
+  assert.equal(last.prev?.id, '2');
+  assert.equal(last.next, undefined);
+});
+
+test('findHorseNeighbors: 該当IDが無ければ両方 undefined', () => {
+  assert.deepEqual(findHorseNeighbors(horses, '999'), {});
+  assert.deepEqual(findHorseNeighbors([], '1'), {});
+});
+
+test('findHorseNeighbors: 渡した配列を並べ替えない', () => {
+  const before = horses.map((h) => h.id);
+  findHorseNeighbors(horses, '2');
+  assert.deepEqual(
+    horses.map((h) => h.id),
+    before,
+  );
+});
+
+// --- 測尺の順位 ---
+
+test('measurementRank: 大きい方が1位', () => {
+  // 体高は 162(id=1) > 158(id=2) > 154(id=10)
+  assert.deepEqual(measurementRank(horses, 'height', 162), { rank: 1, total: 3 });
+  assert.deepEqual(measurementRank(horses, 'height', 158), { rank: 2, total: 3 });
+  assert.deepEqual(measurementRank(horses, 'height', 154), { rank: 3, total: 3 });
+});
+
+test('measurementRank: 同値は同順位で、次の順位は飛ぶ（競技順位方式）', () => {
+  const tied = [
+    makeHorse({ id: '1', weight: 500 }),
+    makeHorse({ id: '2', weight: 480 }),
+    makeHorse({ id: '3', weight: 480 }),
+    makeHorse({ id: '4', weight: 400 }),
+  ];
+  assert.deepEqual(measurementRank(tied, 'weight', 500), { rank: 1, total: 4 });
+  assert.deepEqual(measurementRank(tied, 'weight', 480), { rank: 2, total: 4 });
+  assert.deepEqual(measurementRank(tied, 'weight', 400), { rank: 4, total: 4 });
+});
+
+test('measurementRank: 小数を取る管囲でも比較できる', () => {
+  // 管囲は 21.5(id=1) > 20.5(id=2) > 19.0(id=10)
+  assert.deepEqual(measurementRank(horses, 'caretGirth', 20.5), { rank: 2, total: 3 });
+  assert.deepEqual(measurementRank(horses, 'caretGirth', 21.5), { rank: 1, total: 3 });
+});
+
+test('measurementRank: 胸囲も同じ物差しで数える', () => {
+  const list = [
+    makeHorse({ id: '1', chestGirth: 180 }),
+    makeHorse({ id: '2', chestGirth: 176 }),
+  ];
+  assert.deepEqual(measurementRank(list, 'chestGirth', 176), { rank: 2, total: 2 });
+});
+
+test('formatMeasurementRank: 「（12位/94頭中）」の形にする', () => {
+  assert.equal(formatMeasurementRank({ rank: 12, total: 94 }), '（12位/94頭中）');
 });

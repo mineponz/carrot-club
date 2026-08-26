@@ -9,9 +9,17 @@
  * （`storageKeyForYear(募集年)`）を読み書きするので、一覧↔個別ページを行き来しても保持される。
  * クライアント側スクリプトはpropsを直接参照できないので、必要な値は data 属性で受け渡す。
  */
-import type { Horse } from '../lib/horses.ts';
+import {
+  findHorseNeighbors,
+  formatMeasurementRank,
+  measurementRank,
+  sortHorses,
+  type Horse,
+  type MeasurementKey,
+} from '../lib/horses.ts';
 import { damNameOf, formatBirthDateLong, horsePhotoUrl, type RecruitYear } from '../lib/horse-meta.ts';
 import { formatBirthDate } from '../lib/horse-row.ts';
+import HorseNav from './HorseNav.astro';
 // メモ欄の上限はサーバー側の検証と同じ値（一覧の horse-row.ts と揃える）
 import { MAX_MEMO_LENGTH } from '../lib/evaluation-api.ts';
 import { loadRecruitsWithResults, RACE_RESULTS_FETCHED_AT } from '../lib/analysis-data.ts';
@@ -29,10 +37,32 @@ interface Props {
   recruitYear: RecruitYear;
   /** その年度の一覧ページ（`/` または `/2025/`） */
   listHref: string;
+  /**
+   * その年度の全頭。前後の馬・ジャンプ用プルダウン・測尺の順位（母集団＝同じ募集年の全頭）に使う。
+   * 年度をまたいで混ぜないこと（No.は年ごとに1から振り直され、測尺の比較対象も年で閉じている）。
+   */
+  allHorses: Horse[];
+  /** その年度の個別ページの接頭辞（`/horses/` または `/2025/horses/`） */
+  detailBasePath: string;
 }
 
-const { horse, recruitYear, listHref } = Astro.props;
+const { horse, recruitYear, listHref, allHorses, detailBasePath } = Astro.props;
 const dam = damNameOf(horse);
+
+/**
+ * 馬送り（前の馬・次の馬・プルダウン）。一覧に戻らず隣の馬を見られるようにするためのもの
+ * （本人の要望・2026-08-26）。並びは一覧の既定と同じNo.昇順。
+ */
+const sortedHorses = sortHorses(allHorses, 'id', 'asc');
+const { prev: prevHorse, next: nextHorse } = findHorseNeighbors(allHorses, horse.id);
+
+/**
+ * 測尺の値に「同じ募集年の全頭中で何位か」を添える。大きい方が1位・同値は同順位。
+ * 数字だけでは大きいのか小さいのか読み取れない（体高158cmが平均的なのか大柄なのかは
+ * その年の分布次第）ため、順位を並べて出す。
+ */
+const rankNote = (key: MeasurementKey) =>
+  formatMeasurementRank(measurementRank(allHorses, key, horse[key]));
 
 /**
  * 同じ母の産駒で、過去にキャロットで募集された馬（＝クラブ内の兄姉）。
@@ -76,8 +106,11 @@ const hasUnknownSire = measurementRows.some((row) => !row.sire);
  */
 const photoUrl = recruitYear === 2026 ? horsePhotoUrl(horse) : null;
 
-/** 定義リストに出す項目。値が無いものは出さない（空欄の行を並べても情報にならない）。 */
-const facts: { term: string; value: string }[] = [
+/**
+ * 定義リストに出す項目。値が無いものは出さない（空欄の行を並べても情報にならない）。
+ * `note` は値に添える補足（測尺の順位）。値そのものより弱く見せたいので別に持つ。
+ */
+const facts: { term: string; value: string; note?: string }[] = [
   { term: '性別', value: horse.sex },
   { term: '父', value: horse.sire },
   { term: '母', value: dam },
@@ -87,10 +120,10 @@ const facts: { term: string; value: string }[] = [
   { term: '誕生日', value: formatBirthDateLong(horse.birthDate) },
   { term: '厩舎', value: horse.stable },
   { term: '一口価格', value: `${horse.pricePerShare}万円` },
-  { term: '体高', value: `${horse.height}cm` },
-  { term: '胸囲', value: `${horse.chestGirth}cm` },
-  { term: '管囲', value: `${horse.caretGirth}cm` },
-  { term: '馬体重', value: `${horse.weight}kg` },
+  { term: '体高', value: `${horse.height}cm`, note: rankNote('height') },
+  { term: '胸囲', value: `${horse.chestGirth}cm`, note: rankNote('chestGirth') },
+  { term: '管囲', value: `${horse.caretGirth}cm`, note: rankNote('caretGirth') },
+  { term: '馬体重', value: `${horse.weight}kg`, note: rankNote('weight') },
   { term: '兄弟', value: horse.sibling },
   { term: '母優先', value: horse.damPriority ? '対象' : '対象外' },
 ];
@@ -98,6 +131,14 @@ const facts: { term: string; value: string }[] = [
 
 <article class="horse-detail">
   <p class="back-link"><a href={listHref}>← {recruitYear}年募集馬の一覧へ戻る</a></p>
+  <HorseNav
+    horse={horse}
+    sortedHorses={sortedHorses}
+    prev={prevHorse}
+    next={nextHorse}
+    detailBasePath={detailBasePath}
+    recruitYear={recruitYear}
+  />
 
   <h1>{horse.name}</h1>
   <p class="lead">
@@ -122,7 +163,10 @@ const facts: { term: string; value: string }[] = [
       facts.map((f) => (
         <div class="fact">
           <dt>{f.term}</dt>
-          <dd>{f.value || '—'}</dd>
+          <dd>
+            {f.value || '—'}
+            {f.note && <span class="fact-note">{f.note}</span>}
+          </dd>
         </div>
       ))
     }
@@ -264,6 +308,15 @@ const facts: { term: string; value: string }[] = [
   </div>
 
   <p class="back-link bottom"><a href={listHref}>← {recruitYear}年募集馬の一覧へ戻る</a></p>
+  {/* 読み終えた位置からそのまま次の馬へ行けるよう、下にも同じ馬送りを置く */}
+  <HorseNav
+    horse={horse}
+    sortedHorses={sortedHorses}
+    prev={prevHorse}
+    next={nextHorse}
+    detailBasePath={detailBasePath}
+    recruitYear={recruitYear}
+  />
 </article>
 
 <style>
@@ -318,6 +371,14 @@ const facts: { term: string; value: string }[] = [
     margin: 0.1rem 0 0;
     font-size: 1rem;
     font-weight: 600;
+  }
+  /* 測尺に添える順位。主役は測尺の値そのものなので、一段小さく・弱い色にして
+     値を読む邪魔をしないようにする（強調を2つ並べない） */
+  .fact dd .fact-note {
+    margin-left: 0.15rem;
+    font-size: 0.75rem;
+    font-weight: 400;
+    color: var(--muted);
   }
 
   .surgery-note p {

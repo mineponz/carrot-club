@@ -1,0 +1,127 @@
+---
+/**
+ * 個別ページの馬送り（前の馬 / 次の馬 / 任意の馬へのジャンプ）。
+ *
+ * 一覧に戻らないと別の馬を見られないのが面倒、という指摘（本人・2026-08-26）への対応。
+ * `HorseDetail.astro` の上下2か所で同じものを出すため、部品として切り出している
+ * （2か所にマークアップを複製すると片方だけ直す事故が起きる）。
+ *
+ * - 前後リンクは**素の `<a href>`**。JSが無くても効くし、クローラーが全頭ページを
+ *   数珠つなぎにたどれる（このサイトの既定方針＝SSG + progressive enhancement）。
+ * - ジャンプ用の `<select>` はJS必須（`onchange` で遷移する）。任意の馬へ飛ぶという
+ *   性質上、no-JSの代替は作らない。最低限の導線は上の前後リンクが担保する。
+ *   上下2か所に出るので `id` は付けず、`aria-label` で用途を伝える。
+ */
+import { horseDetailHref } from '../lib/horse-row.ts';
+import type { Horse } from '../lib/horses.ts';
+
+interface Props {
+  /** 今見ている馬 */
+  horse: Horse;
+  /** No.昇順に並べた、その年度の全頭（`<select>` の並びに使う） */
+  sortedHorses: Horse[];
+  prev?: Horse;
+  next?: Horse;
+  /** 年度ごとの個別ページの接頭辞（`/horses/` または `/2025/horses/`） */
+  detailBasePath: string;
+  recruitYear: number;
+}
+
+const { horse, sortedHorses, prev, next, detailBasePath, recruitYear } = Astro.props;
+const optionLabel = (h: Horse) => `No.${h.id} ${h.name}`;
+---
+
+<nav class="horse-nav" aria-label="馬の切り替え">
+  {
+    prev ? (
+      <a class="nav-link prev" href={horseDetailHref(prev.id, detailBasePath)} rel="prev">
+        ← No.{prev.id} {prev.name}
+      </a>
+    ) : (
+      /* 先頭・末尾の馬でリンクを消すとボタンの位置が左右にずれるので、空の箱で場所だけ残す */
+      <span class="nav-link prev empty" aria-hidden="true" />
+    )
+  }
+
+  <select
+    class="horse-jump"
+    aria-label={`${recruitYear}年募集馬から選んで移動`}
+    onchange="if(this.value)location.href=this.value"
+  >
+    {
+      sortedHorses.map((h) => (
+        <option value={horseDetailHref(h.id, detailBasePath)} selected={h.id === horse.id}>
+          {optionLabel(h)}
+        </option>
+      ))
+    }
+  </select>
+
+  {
+    next ? (
+      <a class="nav-link next" href={horseDetailHref(next.id, detailBasePath)} rel="next">
+        No.{next.id} {next.name} →
+      </a>
+    ) : (
+      <span class="nav-link next empty" aria-hidden="true" />
+    )
+  }
+</nav>
+
+<style>
+  /* 広い画面では「前 / 選択 / 次」を1行に並べる。前後リンクは左右対称に場所を取り
+     （リンクが無い側は同じ幅の空要素で埋める）、中央のセレクトが揃って見えるようにする。 */
+  .horse-nav {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.5rem;
+    margin: 0 0 1rem;
+    font-size: 0.875rem;
+  }
+  /* 前後リンクは三次的な導線なので、リンク色のテキストのみに留める（塗り・枠線は使わない） */
+  .nav-link {
+    flex: 1 1 0;
+    min-width: 0;
+    /* 広い画面では3つを1行に収めたいので、長い馬名は省略する（どの馬かはNo.で分かる） */
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .nav-link.next {
+    text-align: right;
+  }
+  .horse-jump {
+    flex: 0 1 auto;
+    min-width: 0;
+    max-width: 100%;
+    font: inherit;
+    font-size: 0.875rem;
+    padding: 0.25rem 0.5rem;
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    background: var(--bg);
+    color: var(--text);
+  }
+
+  /* 狭い画面では3つを1行に詰めると馬名が全部「No.54 ス…」になって読めないので、
+     前後リンクを1行・セレクトをその下の1行に分ける（一覧の表と同じ 40rem を境にする）。
+     この幅なら馬名を省略せず折り返して出せる。 */
+  @media (max-width: 40rem) {
+    .nav-link.prev {
+      order: 1;
+    }
+    .nav-link.next {
+      order: 2;
+    }
+    .horse-jump {
+      order: 3;
+      flex: 1 1 100%;
+    }
+    .nav-link {
+      overflow: visible;
+      text-overflow: clip;
+      white-space: normal;
+    }
+  }
+</style>

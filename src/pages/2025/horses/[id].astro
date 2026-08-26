@@ -27,5 +27,12 @@ const { horse } = Astro.props as { horse: Horse };
   breadcrumb={[{ label: '2025年募集馬 一覧', href: '/2025/' }]}
   homeHref="/2025/"
 >
-  <HorseDetail horse={horse} recruitYear={2025} listHref="/2025/" />
+  {/* 2026年版と同じく、その年度の全頭と個別ページの接頭辞を渡す（年度をまたいで混ぜない） */}
+  <HorseDetail
+    horse={horse}
+    recruitYear={2025}
+    listHref="/2025/"
+    allHorses={horses2025}
+    detailBasePath="/2025/horses/"
+  />
 </BaseLayout>
