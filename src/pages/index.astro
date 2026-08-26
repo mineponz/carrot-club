@@ -169,7 +169,19 @@ const faqJsonLd = {
     <p class="analysis-promo-eyebrow">データ分析記事</p>
     <ul class="analysis-promo-list">
       {analysisArticles.map((a) => (
-        <li><a href={a.href}>{a.title}</a></li>
+        <li>
+          <a class="analysis-promo-card" href={a.href}>
+            <img
+              class="analysis-promo-thumb"
+              src={a.image}
+              alt=""
+              width="1200"
+              height="630"
+              loading="lazy"
+            />
+            <span class="analysis-promo-title">{a.title}</span>
+          </a>
+        </li>
       ))}
     </ul>
     <a class="analysis-promo-more" href="/articles/">記事一覧へ</a>
@@ -519,33 +531,76 @@ const faqJsonLd = {
     */
     .analysis-promo {
       margin-block: 0 0.75rem;
-      padding: 0.85rem 1.1rem;
+      padding: 0.85rem 0 0.85rem 1.1rem;
       border: 1px solid var(--border);
       border-left: 3px solid var(--info);
       border-radius: 0 8px 8px 0;
       background: var(--info-weak);
     }
     .analysis-promo-eyebrow {
-      margin: 0 0 0.4rem;
+      margin: 0 1.1rem 0.55rem;
       font-size: 0.75rem;
       font-weight: 700;
       color: var(--info);
     }
+    /*
+      横スクロールのカード列。カード幅を固定（rem）にして、コンテナ幅からはみ出す
+      前提で並べる ―― 右端のカードを少し切れさせておくと「まだ続きがある」と
+      スクロール可能なことが一目で伝わる（幅ぴったりに収まると気づかれない）。
+    */
     .analysis-promo-list {
-      margin: 0;
-      padding: 0;
-      list-style: none;
       display: flex;
-      flex-wrap: wrap;
-      gap: 0.3rem 1.25rem;
+      gap: 0.75rem;
+      margin: 0;
+      padding: 0 1.1rem 0.3rem 0;
+      list-style: none;
+      overflow-x: auto;
+      scroll-snap-type: x proximity;
+      -webkit-overflow-scrolling: touch;
     }
-    .analysis-promo-list a {
+    .analysis-promo-list li {
+      flex: 0 0 auto;
+      scroll-snap-align: start;
+      width: 8rem;
+    }
+    .analysis-promo-card {
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      background: var(--surface);
+      text-decoration: none;
+    }
+    .analysis-promo-card:hover { border-color: var(--info); }
+    /*
+      img の width/height 属性（1200/630）はCSSのwidth:100%だけ上書きしても、heightが
+      属性側の630pxのまま残って縦横比が崩れる（aspect-ratioはheightが auto の時しか
+      効かない）。height: auto を明示して初めてaspect-ratio通りに縮小される。
+    */
+    .analysis-promo-thumb {
+      display: block;
+      width: 100%;
+      height: auto;
+      aspect-ratio: 1200 / 630;
+      object-fit: cover;
+      background: var(--accent-weak);
+    }
+    .analysis-promo-title {
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+      padding: 0.5rem 0.6rem 0.6rem;
+      font-size: 0.8125rem;
       font-weight: 600;
-      color: var(--info);
+      line-height: 1.5;
+      color: var(--text);
     }
+    .analysis-promo-card:hover .analysis-promo-title { color: var(--info); }
     .analysis-promo-more {
       display: inline-block;
-      margin-top: 0.5rem;
+      margin: 0.6rem 1.1rem 0;
       font-size: 0.8125rem;
       color: var(--muted);
     }

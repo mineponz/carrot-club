@@ -8,6 +8,8 @@ export interface AnalysisArticle {
   href: string;
   title: string;
   description: string;
+  /** カード用サムネイル。各記事ページの`ogImage`と同じ画像を流用する（新規生成しない）。 */
+  image: string;
 }
 
 export const analysisArticles: AnalysisArticle[] = [
@@ -16,29 +18,34 @@ export const analysisArticles: AnalysisArticle[] = [
     title: '何番目の仔かと成績の関係',
     description:
       '「良い母は3番仔以内に走るのを出す」「初仔は走らない」「空胎明けは走る」――産次にまつわる3つの俗説を、牡馬・牝馬に分けても検証した。',
+    image: '/og-article-birth-order-v1.png',
   },
   {
     href: '/articles/chest-girth/',
     title: '胸囲と成績・回収率の関係',
     description:
       '体高・馬体重の陰で見落とされがちな「胸囲」は成績と関係あるのか。獲得賞金だけでなく、安く仕入れて稼いだ馬を測る「回収率」でも検証。',
+    image: '/og-article-chest-girth-v1.png',
   },
   {
     href: '/articles/birth-month/',
     title: '誕生月と体格・成績の関係',
     description:
       '「早生まれのほうが大きく出る」は馬にも当てはまるか。誕生日と体高・馬体重の相関、小さい馬を誕生タイミングで分けたときの成績差を検証。',
+    image: '/og-article-birth-month-v1.png',
   },
   {
     href: '/articles/dam-age/',
     title: '母馬の年齢と成績の関係',
     description:
       '「高齢の母馬は不利」という俗説を、母齢と獲得賞金の相関係数・階級別グラフで検証。結果はほぼ無相関だった。',
+    image: '/og-article-dam-age-v1.png',
   },
   {
     href: '/articles/height/',
     title: '体高と成績の関係',
     description:
       '募集時の体高と、その後の中央・地方獲得賞金の関係を散布図・階級別グラフで見る。ダービー馬タスティエーラなど実際の代表馬も紹介。',
+    image: '/og-article-height-v1.png',
   },
 ];
