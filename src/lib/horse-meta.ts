@@ -67,3 +67,18 @@ export function formatBirthDateLong(isoDate: string): string {
   const [year, month, day] = isoDate.split('-');
   return `${year}年${Number(month)}月${Number(day)}日`;
 }
+
+/**
+ * クラブ公式サイトが持つ馬体写真のURL。
+ *
+ * `https://carrotclub.net/upfile/<code>/bd-<code>.jpg` の `<code>` は「生年下2桁＋募集番号
+ * （3桁ゼロ埋め）」（例: 2025年生まれの募集番号1なら `25001`）。募集番号ではなく生年を使うのは、
+ * 2026年募集馬の名前が「〜の25」＝2025年生まれだから（2026-08-26、`carrotclub.net`への実アクセスで
+ * 1〜94番全頭の200応答を確認して確定）。2025年募集以前は生年の表記が異なり未検証なので、
+ * 呼び出し側で2026年募集にだけ絞って使うこと。
+ */
+export function horsePhotoUrl(horse: Horse): string {
+  const birthYearYY = horse.birthDate.slice(2, 4);
+  const code = `${birthYearYY}${horse.id.padStart(3, '0')}`;
+  return `https://carrotclub.net/upfile/${code}/bd-${code}.jpg`;
+}

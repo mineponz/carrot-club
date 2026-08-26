@@ -10,7 +10,7 @@
  * クライアント側スクリプトはpropsを直接参照できないので、必要な値は data 属性で受け渡す。
  */
 import type { Horse } from '../lib/horses.ts';
-import { damNameOf, formatBirthDateLong, type RecruitYear } from '../lib/horse-meta.ts';
+import { damNameOf, formatBirthDateLong, horsePhotoUrl, type RecruitYear } from '../lib/horse-meta.ts';
 // メモ欄の上限はサーバー側の検証と同じ値（一覧の horse-row.ts と揃える）
 import { MAX_MEMO_LENGTH } from '../lib/evaluation-api.ts';
 import { loadRecruitsWithResults, RACE_RESULTS_FETCHED_AT } from '../lib/analysis-data.ts';
@@ -69,6 +69,12 @@ const measurementRows = buildMeasurementRows(horse, recruitYear, siblingRecruits
 // 理由を注記する（2026-08-23、netkeibaの血統表ページから追加取得して345/348頭は埋めた）。
 const hasUnknownSire = measurementRows.some((row) => !row.sire);
 
+/**
+ * 馬体写真はクラブ公式サイトの命名規則が2026年募集ぶんでしか実アクセス確認できていないため、
+ * 2026年募集ページにのみ出す（詳細は horsePhotoUrl のコメント参照）。
+ */
+const photoUrl = recruitYear === 2026 ? horsePhotoUrl(horse) : null;
+
 /** 定義リストに出す項目。値が無いものは出さない（空欄の行を並べても情報にならない）。 */
 const facts: { term: string; value: string }[] = [
   { term: '性別', value: horse.sex },
@@ -98,6 +104,17 @@ const facts: { term: string; value: string }[] = [
       horse.broodmareSire
     }）。
   </p>
+
+  {
+    photoUrl && (
+      /* 写真が未掲載の馬もいるので、読み込み失敗時はfigureごと隠す（このサイトはCSP未導入なので
+         onerror属性が素直に使える）。 */
+      <figure class="horse-photo">
+        <img src={photoUrl} alt={`${horse.name}の馬体写真`} loading="eager" referrerpolicy="no-referrer" onerror="this.closest('figure').hidden = true" />
+        <figcaption>キャロットクラブ公式サイトの馬体写真</figcaption>
+      </figure>
+    )
+  }
 
   <dl class="fact-list">
     {
@@ -259,6 +276,22 @@ const facts: { term: string; value: string }[] = [
   .note {
     color: var(--muted);
     font-size: 0.875rem;
+  }
+
+  .horse-photo {
+    margin: 1rem 0 0;
+  }
+  .horse-photo img {
+    display: block;
+    max-width: 100%;
+    height: auto;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+  }
+  .horse-photo figcaption {
+    margin-top: 0.35rem;
+    font-size: 0.75rem;
+    color: var(--muted);
   }
 
   /* 1項目1行の縦積みだと縦に間延びするので、狭い画面でも2列以上に並ぶグリッドにする */
