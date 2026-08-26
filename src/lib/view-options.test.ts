@@ -1,6 +1,13 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { loadShowMemo, saveShowMemo, showMemoStorageKeyForYear } from './view-options.ts';
+import {
+  hiddenColumnsStorageKeyForYear,
+  loadHiddenColumns,
+  loadShowMemo,
+  saveHiddenColumns,
+  saveShowMemo,
+  showMemoStorageKeyForYear,
+} from './view-options.ts';
 
 /** テスト用の localStorage 代わり（filter-state.test.ts と同じ形）。 */
 function createStore() {
@@ -41,4 +48,36 @@ test('loadShowMemo: 壊れた値は隠す側に倒す', () => {
   const store = createStore();
   store.setItem('k', 'yes');
   assert.equal(loadShowMemo(store, 'k'), false);
+});
+
+test('hiddenColumnsStorageKeyForYear: 募集年ごとにキーを分ける', () => {
+  assert.equal(hiddenColumnsStorageKeyForYear(2026), 'carrot-club:hidden-columns:2026');
+  assert.notEqual(hiddenColumnsStorageKeyForYear(2026), hiddenColumnsStorageKeyForYear(2025));
+  // メモ列のトグルとは別キーにする（片方を消してももう片方が残るように）
+  assert.notEqual(hiddenColumnsStorageKeyForYear(2026), showMemoStorageKeyForYear(2026));
+});
+
+test('loadHiddenColumns: 保存が無ければ1列も隠さない（既定＝全列表示）', () => {
+  const store = createStore();
+  assert.deepEqual(loadHiddenColumns(store, 'k'), new Set());
+});
+
+test('saveHiddenColumns → loadHiddenColumns で往復できる', () => {
+  const store = createStore();
+  saveHiddenColumns(store, 'k', new Set(['sire', 'stable']));
+  assert.deepEqual(loadHiddenColumns(store, 'k'), new Set(['sire', 'stable']));
+});
+
+test('saveHiddenColumns: 全部表示に戻したらキーごと消す', () => {
+  const store = createStore();
+  saveHiddenColumns(store, 'k', new Set(['sire']));
+  saveHiddenColumns(store, 'k', new Set());
+  assert.equal(store.map.has('k'), false);
+  assert.deepEqual(loadHiddenColumns(store, 'k'), new Set());
+});
+
+test('loadHiddenColumns: 空要素・前後の空白が混ざっていても読める', () => {
+  const store = createStore();
+  store.setItem('k', ' sire ,, stable,');
+  assert.deepEqual(loadHiddenColumns(store, 'k'), new Set(['sire', 'stable']));
 });

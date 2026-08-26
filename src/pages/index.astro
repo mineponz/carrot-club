@@ -23,7 +23,7 @@ import {
 import { DEFAULT_EVALUATION } from '../lib/evaluations.ts';
 // A〜Eの並びはAPI側の定義を唯一の出所にする（ここで別の配列を作ると表・集計とずれる）
 import { RATINGS } from '../lib/evaluation-api.ts';
-import { COLUMNS, horseRowHtml } from '../lib/horse-row.ts';
+import { COLUMNS, horseRowHtml, toggleableColumns } from '../lib/horse-row.ts';
 import { analysisArticles } from '../data/articles.ts';
 
 // フィルタの選択肢はビルド時に確定できるのでサーバー側で作る
@@ -42,7 +42,18 @@ const damAgeMax = Math.max(...damAges);
 
 // COLUMNS は `as const` なので、そのままだと sortKey / align を持たない要素との
 // union になって参照できない。ここで緩い型に受け直す。
-const columns: readonly { label: string; sortKey?: SortKey; align?: string; cls?: string }[] = COLUMNS;
+const columns: readonly {
+  key: string;
+  label: string;
+  sortKey?: SortKey;
+  /** 狭い画面でだけ使う代替の並べ替えキー（馬名 → No）。horse-row.ts のコメント参照。 */
+  spSortKey?: SortKey;
+  align?: string;
+  cls?: string;
+}[] = COLUMNS;
+
+// 「表示設定」で出す列（No・馬名・評価・メモ以外）。並びは表と同じにする。
+const columnOptions = toggleableColumns();
 
 // 初期表示はクライアント側の既定（id昇順）と揃える。評価は端末ごとの値なので
 // 初期HTMLでは未評価（DEFAULT_EVALUATION）で描き、読み込み後に上書きする。
@@ -372,11 +383,45 @@ const faqJsonLd = {
   -->
   <div class="table-options">
     <p id="result-count" class="result-count">{total} / {total} 頭</p>
-    <label class="checkbox-label show-memo-toggle">
-      <input type="checkbox" id="toggle-show-memo" />
-      メモをすべて開く
-    </label>
+    <div class="table-options-controls">
+      <label class="checkbox-label show-memo-toggle">
+        <input type="checkbox" id="toggle-show-memo" />
+        メモをすべて開く
+      </label>
+      <!--
+        表示する列の切り替え（PC/SP共通）。既定は全部チェック＝全列表示なので、JSが動かない
+        環境でも初期HTMLのまま全列が見える。選んだ状態はこの端末に保存する（サーバーには送らない）。
+        No・馬名・評価は行の識別と入力に要るので出さない。メモは既存の「メモをすべて開く」が
+        受け持っているので、ここには含めない（設定を2か所に分けない）。
+      -->
+      <details class="column-settings">
+        <summary>
+          表示設定
+          <span class="column-settings-state" id="column-settings-state">すべて表示</span>
+        </summary>
+        <div class="column-settings-panel">
+          <div class="column-settings-options" role="group" aria-label="表示する列">
+            {
+              columnOptions.map((col) => (
+                <label class="checkbox-label">
+                  <input type="checkbox" class="column-toggle" value={col.key} checked />
+                  {col.label}
+                </label>
+              ))
+            }
+          </div>
+          <button type="button" id="column-settings-reset">すべて表示に戻す</button>
+        </div>
+      </details>
+    </div>
   </div>
+  <!--
+    表示する列の切り替えはここに `[data-col="..."] { display: none }` を流し込んで当てる。
+    行は render() のたびに tbody.innerHTML で作り直されるので、セルへ直接 style を当てると
+    再描画のたびに当て直しが要る。見出し（th）と中身（td）が同じ data-col を持つので、
+    1つのセレクタで両方まとめて隠せる。中身はJSが書き換えるので Astro に触らせない（is:inline）。
+  -->
+  <style id="column-visibility-style" is:inline></style>
   <div class="table-wrap">
     <table id="horse-table">
       <caption class="visually-hidden">
@@ -386,9 +431,14 @@ const faqJsonLd = {
         <tr>
           {
             columns.map((col) => (
-              <th class:list={[col.align === 'num' && 'num', col.cls]}>
+              <th data-col={col.key} class:list={[col.align === 'num' && 'num', col.cls]}>
                 {col.sortKey ? (
-                  <button type="button" class="sort-btn" data-sort-key={col.sortKey}>{col.label}</button>
+                  <button
+                    type="button"
+                    class="sort-btn"
+                    data-sort-key={col.sortKey}
+                    data-sort-key-sp={col.spSortKey}
+                  >{col.label}</button>
                 ) : (
                   col.label
                 )}
@@ -416,6 +466,7 @@ const faqJsonLd = {
     <li>{hasSurgeryData ? '「母優先」（あり／なし）「手術・既往ありを除く」で候補を狭める' : '「母優先」（あり／なし）で候補を狭める'}</li>
     <li>各馬にA〜Eの評価・お気に入り（★）・消・メモを付け、「お気に入りのみ」「消を付けた馬を隠す」で見直す（メモ欄は表の上の「メモを表示」を入れると出ます。入っている馬は評価欄に📝が付きます）</li>
     <li>自分が付けたA〜Eで絞り込む（A・Bのように複数選べ、まだ印を付けていない「未評価」も選べます）</li>
+    <li>表の上の「表示設定」で、見ない列（父・母父・測尺・厩舎など）を隠して表を短くする（選んだ状態はこの端末に保存されます）</li>
     <li>気になった馬はその場で netkeiba の個体ページや X の検索結果を開いて調べる</li>
   </ul>
 
@@ -848,6 +899,9 @@ const faqJsonLd = {
     /* 絞り込みの箱と表の間に挟まる唯一の行なので、上下の余白は詰めて表を近づける。
        頭数（左）と表示の切り替え（右）を同じ行に載せる。 */
     .table-options {
+      /* 「表示設定」のパネル（絶対配置）の基準。summary を基準にすると、狭い画面で行が
+         折り返して summary が左寄りに来たとき、右端揃えのパネルが画面の外へはみ出す。 */
+      position: relative;
       display: flex;
       flex-wrap: wrap;
       align-items: baseline;
@@ -869,6 +923,76 @@ const faqJsonLd = {
       color: var(--muted);
       cursor: pointer;
     }
+    /* 表示にまつわる操作（メモの一括開閉・表示する列）は右側にまとめる */
+    .table-options-controls {
+      display: flex;
+      align-items: center;
+      gap: 0.9rem;
+    }
+
+    /* ---- 表示する列の切り替え ----
+       絞り込みの <details> と同じ「畳んでおいて、効いている状態は summary に出す」形にそろえる。
+       ただし選択肢は絶対配置で表に重ねる（表のすぐ上にある要素なので、その場で開くと
+       押すたびに表が下へ飛んで、消した列を確かめられない）。 */
+    .column-settings {
+      font-size: 0.8125rem;
+      color: var(--muted);
+    }
+    .column-settings > summary {
+      cursor: pointer;
+      /* 三角マーカーを内側に置く（既定の list-item 表示だと行の外にはみ出す） */
+      list-style-position: inside;
+    }
+    @media (hover: hover) {
+      .column-settings > summary:hover { color: var(--accent); }
+    }
+    /* 畳んだまま列を隠していることに気づけるよう、状態を見出しに出す（父の複数選択と同じ） */
+    .column-settings-state { margin-left: 0.3rem; color: var(--text); font-weight: 600; }
+    .column-settings-panel {
+      position: absolute;
+      top: 100%;
+      right: 0;
+      /* 表の見出し（position: sticky, z-index: 3）より前に出す */
+      z-index: 5;
+      /* 幅は内容任せ（max-content）にしない。下の grid が auto-fill なので、内容幅で測ると
+         1列に潰れて18行の縦長になる。先に幅を決めて、その中で列数を決めさせる。 */
+      width: min(24rem, 88vw);
+      margin-top: 0.4rem;
+      padding: 0.8rem;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      background: var(--surface);
+      /* 表の上に浮いていることが分かる程度の弱い影だけ（枠線と二重に主張させない） */
+      box-shadow: 0 2px 6px rgb(0 0 0 / 0.12);
+    }
+    .column-settings-options {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(6.5rem, 1fr));
+      gap: 0.4rem 0.8rem;
+      /* 18列あるので、狭い画面では中でスクロールさせて画面を埋め尽くさないようにする */
+      max-height: 16rem;
+      overflow-y: auto;
+    }
+    .column-settings-options label {
+      display: flex;
+      align-items: center;
+      gap: 0.35rem;
+      color: var(--text);
+      cursor: pointer;
+    }
+    /* 全部消してから戻すのに18回押させない。見た目は「条件をクリア」と同じ副次ボタン */
+    #column-settings-reset {
+      font: inherit;
+      font-size: 0.75rem;
+      margin-top: 0.8rem;
+      background: transparent;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 0.3rem 0.8rem;
+      cursor: pointer;
+      color: var(--text);
+    }
+    #column-settings-reset:hover { border-color: var(--accent); color: var(--accent); }
 
     .measure-list { margin-block: 0.75rem 0; }
     .measure-item {
@@ -1224,7 +1348,10 @@ const faqJsonLd = {
     // 表示の切り替え（メモ列を出すか）は絞り込み条件とは別に覚える。混ぜると
     // 「N件の条件」に数えられ、「条件をクリア」でも消えてしまうため（view-options.ts参照）。
     import {
+      hiddenColumnsStorageKeyForYear,
+      loadHiddenColumns,
       loadShowMemo,
+      saveHiddenColumns,
       saveShowMemo,
       showMemoStorageKeyForYear,
     } from '../lib/view-options.ts';
@@ -1274,6 +1401,11 @@ const faqJsonLd = {
       boxes.filter((c) => c.checked).map((c) => c.value);
     // 絞り込みではなく表示の切り替え（全頭ぶんのメモ欄をまとめて開く）。表のすぐ上に置いてある。
     const showMemoToggle = el<HTMLInputElement>('toggle-show-memo');
+    // 同じく表示の切り替え（どの列を出すか）。
+    const columnStyle = el<HTMLStyleElement>('column-visibility-style');
+    const columnToggles = Array.from(document.querySelectorAll<HTMLInputElement>('.column-toggle'));
+    const columnSettingsState = el<HTMLElement>('column-settings-state');
+    const columnSettingsReset = el<HTMLButtonElement>('column-settings-reset');
 
     const textInputs = [filterName, filterBms, filterDamAgeMin, filterDamAgeMax, filterPriceMin, filterPriceMax, filterHeightMin, filterHeightMax, filterCaretMin, filterCaretMax, filterWeightMin, filterWeightMax];
     const selects = [filterStable, filterDamPriority];
@@ -1436,7 +1568,7 @@ const faqJsonLd = {
       saveFilterState(window.localStorage, filterStorageKey, state);
 
       for (const btn of sortButtons) {
-        const active = btn.dataset.sortKey === sortKey;
+        const active = sortKeyOf(btn) === sortKey;
         btn.setAttribute('data-active', String(active));
         const label = btn.textContent!.replace(/\s*[▲▼]$/u, '');
         btn.textContent = active ? `${label} ${sortDirection === 'asc' ? '▲' : '▼'}` : label;
@@ -1454,9 +1586,27 @@ const faqJsonLd = {
       queueEvaluationSync(RECRUIT_YEAR, horseId, getEvaluation(evaluations, horseId));
     }
 
+    /**
+     * その見出しボタンで今どのキーを使って並べ替えるか。
+     *
+     * 狭い画面では No 列を隠して馬名セルに畳んでいる（下の `@media (max-width: 40rem)`）ので、
+     * 見出しから押せる並べ替えが実質「馬名」だけになり、募集番号順に戻す手段が無くなっていた。
+     * SP幅のときだけ、馬名見出しの並べ替えキーを No（`data-sort-key-sp="id"`）に差し替える。
+     * ラベルは「馬名」のまま変えない（SP専用のUI要素は増やさない・本人合意 2026-08-26）。
+     *
+     * この 40rem は No 列を隠しているCSSの境界と**必ず同じ値にする**。ずれると、No 列が
+     * 見えているのに馬名がNo順に並ぶ（またはその逆の）幅ができる。
+     */
+    const SP_MEDIA_QUERY = '(max-width: 40rem)';
+    function sortKeyOf(btn: HTMLButtonElement): SortKey {
+      const spKey = btn.dataset.sortKeySp;
+      if (spKey && window.matchMedia(SP_MEDIA_QUERY).matches) return spKey as SortKey;
+      return btn.dataset.sortKey as SortKey;
+    }
+
     for (const btn of sortButtons) {
       btn.addEventListener('click', () => {
-        const key = btn.dataset.sortKey as SortKey;
+        const key = sortKeyOf(btn);
         if (sortKey === key) {
           sortDirection = sortDirection === 'asc' ? 'desc' : 'asc';
         } else {
@@ -1488,6 +1638,39 @@ const faqJsonLd = {
     showMemoToggle.addEventListener('change', () => {
       applyShowMemo(showMemoToggle.checked);
       saveShowMemo(window.localStorage, showMemoStorageKey, showMemoToggle.checked);
+    });
+
+    /**
+     * 表示する列の切り替え。
+     *
+     * 当てるのは個別のセルではなく <style id="column-visibility-style"> 1つ。行は render() の
+     * たびに tbody.innerHTML で作り直されるので、セルに直接 style を当てると再描画のたびに
+     * 当て直しが要る（＝当て直し漏れで列が復活する）。見出しと中身が同じ data-col を持つので、
+     * `[data-col="sire"]` の1セレクタで両方まとめて隠せる。
+     *
+     * 注意（矛盾ではなく仕様）: 父・母父・性・厩舎の4列は、狭い画面（max-width: 40rem）では
+     * 上のCSSが nth-child で強制的に display:none にしている（馬名セルにまとめて出すため）。
+     * この設定でその4列を「表示する」にしても、SP幅では見た目が変わらない（PC幅でだけ効く）。
+     */
+    const hiddenColumnsStorageKey = hiddenColumnsStorageKeyForYear(RECRUIT_YEAR);
+    function hiddenColumnKeys(): Set<string> {
+      return new Set(columnToggles.filter((c) => !c.checked).map((c) => c.value));
+    }
+    function applyHiddenColumns() {
+      const hidden = hiddenColumnKeys();
+      // セレクタは #horse-table 配下に限定する（data-col を他の場所で使い始めても巻き込まない）
+      columnStyle.textContent = [...hidden]
+        .map((key) => `#horse-table [data-col="${key}"] { display: none; }`)
+        .join('\n');
+      // 畳んだまま列を消していると「あった列が無い」理由が読み取れないので、状態を見出しに出す
+      columnSettingsState.textContent = hidden.size === 0 ? 'すべて表示' : `${hidden.size}列を非表示`;
+      // 保存するのは隠している列だけ。全部表示ならキーごと消える（view-options.ts 参照）。
+      saveHiddenColumns(window.localStorage, hiddenColumnsStorageKey, hidden);
+    }
+    for (const toggle of columnToggles) toggle.addEventListener('change', applyHiddenColumns);
+    columnSettingsReset.addEventListener('click', () => {
+      for (const toggle of columnToggles) toggle.checked = true;
+      applyHiddenColumns();
     });
 
     filterResetBtn.addEventListener('click', () => {
@@ -1600,6 +1783,13 @@ const faqJsonLd = {
     // メモを一括で開いていたかも前回のままにする（既定は閉じてアイコンだけ）。
     // 実際に開くのは直後の render()（行を作り直したあとに開き直す）。
     showMemoToggle.checked = loadShowMemo(window.localStorage, showMemoStorageKey);
+
+    // 隠していた列も前回のまま戻す。保存に無いキー（＝あとから増えた列）は自動で表示側に倒れる。
+    // チェックボックスに戻してから applyHiddenColumns() を呼ぶので、保存済みデータに
+    // 今は存在しない列のキーが残っていても、次の操作で保存し直すときに落ちる。
+    const restoredHiddenColumns = loadHiddenColumns(window.localStorage, hiddenColumnsStorageKey);
+    for (const toggle of columnToggles) toggle.checked = !restoredHiddenColumns.has(toggle.value);
+    applyHiddenColumns();
 
     // 初期HTMLは未評価の状態なので、保存済みの評価を反映するために一度描き直す。
     render();

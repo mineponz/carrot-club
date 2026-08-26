@@ -1,6 +1,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import {
+  ALWAYS_VISIBLE_COLUMN_KEYS,
   COLUMNS,
   escapeHtml,
   formatBirthDate,
@@ -9,6 +10,7 @@ import {
   pedigreeLine,
   shortStableLabel,
   stableSexLine,
+  toggleableColumns,
 } from './horse-row.ts';
 import { DEFAULT_EVALUATION } from './evaluations.ts';
 import type { Horse } from './horses.ts';
@@ -78,14 +80,14 @@ test('horseDetailHref: 末尾スラッシュ付きのURLを作る（trailingSlas
 
 test('horseRowHtml: 馬名セルは個別ページへのリンクになる（同一タブ遷移なので target は付けない）', () => {
   const html = horseRowHtml(horse, DEFAULT_EVALUATION);
-  const cell = html.match(/<td class="horse-name">[^]*?<\/td>/)![0];
+  const cell = html.match(/<td data-col="name" class="horse-name">[^]*?<\/td>/)![0];
   assert.match(cell, /<a href="\/horses\/7\/">フィリアプーラの2024<\/a>/);
   assert.ok(!cell.includes('target='));
 });
 
 test('horseRowHtml: 馬名セルにSP用の No.・父（母父）・厩舎・性を重ねて持たせる', () => {
   const html = horseRowHtml(horse, DEFAULT_EVALUATION);
-  const cell = html.match(/<td class="horse-name">[^]*?<\/td>/)![0];
+  const cell = html.match(/<td data-col="name" class="horse-name">[^]*?<\/td>/)![0];
   assert.match(cell, /<span class="sp-no">7\.<\/span>/);
   assert.match(cell, /<span class="sp-line">エピファネイア（ハービンジャー）<\/span>/);
   assert.match(cell, /<span class="sp-line">木村哲也・牡<\/span>/);
@@ -153,6 +155,42 @@ test('COLUMNS: メモは評価のすぐ隣（4列目）に置く', () => {
   assert.equal(labels[3], 'メモ');
 });
 
+test('COLUMNS: 列のkeyは重複しない（表示設定の保存が別の列に効かないように）', () => {
+  const keys = COLUMNS.map((c) => c.key);
+  assert.equal(new Set(keys).size, keys.length);
+  for (const key of keys) assert.match(key, /^[A-Za-z][A-Za-z0-9]*$/);
+});
+
+test('horseRowHtml: 各セルの data-col が COLUMNS の key と同じ並びで付く（見出しと対で使う）', () => {
+  const html = horseRowHtml(horse, DEFAULT_EVALUATION);
+  // <td> の先頭に置いた data-col だけを拾う（中の要素の属性を拾わないよう <td 直後に限る）
+  const cols = [...html.matchAll(/<td data-col="([^"]+)"/g)].map((m) => m[1]);
+  assert.deepEqual(cols, COLUMNS.map((c) => c.key));
+});
+
+test('toggleableColumns: No・馬名・評価・メモ以外のすべてを切り替え対象にする', () => {
+  const keys = toggleableColumns().map((c) => c.key);
+  assert.deepEqual(ALWAYS_VISIBLE_COLUMN_KEYS, ['id', 'name', 'rating', 'memo']);
+  for (const always of ALWAYS_VISIBLE_COLUMN_KEYS) assert.ok(!keys.includes(always));
+  assert.equal(keys.length, COLUMNS.length - ALWAYS_VISIBLE_COLUMN_KEYS.length);
+  // 並びは COLUMNS のまま（設定の並び順が表の並び順と一致する）
+  assert.deepEqual(
+    keys,
+    COLUMNS.map((c) => c.key).filter((k) => !ALWAYS_VISIBLE_COLUMN_KEYS.includes(k)),
+  );
+});
+
+test('COLUMNS: SP幅で馬名見出しを押したときは No（id）で並べ替える', () => {
+  // 見出しのラベルは「馬名」のまま変えず、押したときのキーだけ差し替える（本人合意・2026-08-26）。
+  // SPでは No 列を隠しているので、そのままだと募集番号順に戻す手段が無くなるため。
+  const name = COLUMNS.find((c) => c.key === 'name')!;
+  assert.equal(name.label, '馬名');
+  assert.equal(name.sortKey, 'name');
+  assert.equal((name as { spSortKey?: string }).spSortKey, 'id');
+  // 代替キーを持つのは馬名だけ（他の列はPC/SPで同じ挙動）
+  assert.equal(COLUMNS.filter((c) => 'spSortKey' in c).length, 1);
+});
+
 test('COLUMNS: SPで隠す列（No・父・母父・性・厩舎）の位置がページのCSSと一致する', () => {
   // index.astro / 2025/index.astro の @media (max-width: 40rem) が nth-child の番号で
   // 列を隠しているので、列を入れ替えたらここも一緒に直す（ずれると別の列が消える）。
@@ -168,7 +206,7 @@ test('horseRowHtml: 母優先の馬には◯を出す', () => {
 
 test('horseRowHtml: 手術・既往は有無を◯で出すだけにする（全文は title と個別ページ）', () => {
   const html = horseRowHtml({ ...horse, surgery: '手術A (2024/1/1)\n手術B (2025/1/8)' }, DEFAULT_EVALUATION);
-  const cell = html.match(/<td class="surgery"[^]*?<\/td>/)![0];
+  const cell = html.match(/<td data-col="surgery"[^]*?<\/td>/)![0];
   // 改行は1行に畳んだうえで title（ホバー）にだけ残す
   assert.match(cell, /title="手術A \(2024\/1\/1\) \/ 手術B \(2025\/1\/8\)"/);
   assert.match(cell, />◯<\/td>/);
@@ -176,7 +214,7 @@ test('horseRowHtml: 手術・既往は有無を◯で出すだけにする（全
 });
 
 test('horseRowHtml: 手術・既往の記載が無ければ◯を出さない', () => {
-  assert.match(horseRowHtml(horse, DEFAULT_EVALUATION), /<td class="surgery" title=""><\/td>/);
+  assert.match(horseRowHtml(horse, DEFAULT_EVALUATION), /<td data-col="surgery" class="surgery" title=""><\/td>/);
 });
 
 test('shortStableLabel: 地方馬の長い表記はトラック名だけにする', () => {
@@ -193,12 +231,12 @@ test('shortStableLabel: JRAの調教師名（・を含まない）はそのま�
 test('horseRowHtml: 厩舎セルは短い表記にして、元の記載は title に残す', () => {
   const stable = '門別・田中淳司厩舎or大井・渡邉和雄厩舎（外厩）';
   const html = horseRowHtml({ ...horse, stable }, DEFAULT_EVALUATION);
-  assert.match(html, /<td title="門別・田中淳司厩舎or大井・渡邉和雄厩舎（外厩）">門別or大井<\/td>/);
+  assert.match(html, /<td data-col="stable" title="門別・田中淳司厩舎or大井・渡邉和雄厩舎（外厩）">門別or大井<\/td>/);
 });
 
 test('horseRowHtml: メモの有無をメモ列の印（data-has-memo）で示す', () => {
   const memoCell = (memo: string) =>
-    horseRowHtml(horse, { ...DEFAULT_EVALUATION, memo }).match(/<td class="memo-col">[^]*?<\/td>/)![0];
+    horseRowHtml(horse, { ...DEFAULT_EVALUATION, memo }).match(/<td data-col="memo" class="memo-col">[^]*?<\/td>/)![0];
   assert.match(memoCell('本命'), /class="memo-flag" data-field="memo-toggle" data-has-memo="true"/);
   assert.match(memoCell('本命'), /title="メモ: 本命"/);
   // 空でもアイコンは出す（そこから書き始められるように）。印だけ false にする。
@@ -213,7 +251,7 @@ test('horseRowHtml: 評価欄にメモの印は置かない（メモ列のアイ
 });
 
 test('horseRowHtml: メモのセルはアイコン（button）と入力欄を両方持つ（CSSで排他表示する）', () => {
-  const cell = horseRowHtml(horse, DEFAULT_EVALUATION).match(/<td class="memo-col">[^]*?<\/td>/)![0];
+  const cell = horseRowHtml(horse, DEFAULT_EVALUATION).match(/<td data-col="memo" class="memo-col">[^]*?<\/td>/)![0];
   assert.match(cell, /<button type="button" class="memo-flag"/);
   assert.match(cell, /<input type="text" class="memo-input" data-field="memo"/);
   // アイコンはクリックで開く前提の読み上げ文言にする

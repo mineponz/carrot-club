@@ -48,7 +48,13 @@ const damAgeMax = Math.max(...damAges);
 
 // COLUMNS は `as const` なので、そのままだと sortKey / align を持たない要素との
 // union になって参照できない。ここで緩い型に受け直す。
-const columns: readonly { label: string; sortKey?: SortKey; align?: string; cls?: string }[] = COLUMNS;
+const columns: readonly {
+  key: string;
+  label: string;
+  sortKey?: SortKey;
+  align?: string;
+  cls?: string;
+}[] = COLUMNS;
 
 // 初期表示はクライアント側の既定（id昇順）と揃える。評価は端末ごとの値なので
 // 初期HTMLでは未評価（DEFAULT_EVALUATION）で描き、読み込み後に上書きする。
@@ -374,10 +380,13 @@ const faqJsonLd = {
         2025年募集馬{total}頭の血統・測尺・一口価格・厩舎の一覧（評価欄つき）
       </caption>
       <thead>
+        <!-- 各 <th> の data-col は horseRowHtml() が出す <td data-col> と対。過去年度には
+             「表示設定」のUIを置いていないので今は効かないが、見出しと中身で片方だけ属性が
+             欠けている状態にはしない（あとで同じ仕組みを載せられるように）。 -->
         <tr>
           {
             columns.map((col) => (
-              <th class:list={[col.align === 'num' && 'num', col.cls]}>
+              <th data-col={col.key} class:list={[col.align === 'num' && 'num', col.cls]}>
                 {col.sortKey ? (
                   <button type="button" class="sort-btn" data-sort-key={col.sortKey}>{col.label}</button>
                 ) : (
