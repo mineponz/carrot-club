@@ -352,16 +352,32 @@ const facts: { term: string; value: string; note?: string }[] = [
     color: var(--muted);
   }
 
-  /* 1項目1行の縦積みだと縦に間延びするので、狭い画面でも2列以上に並ぶグリッドにする */
+  /*
+   * 1項目1行の縦積みだと縦に間延びするので、狭い画面でも2列以上に並ぶグリッドにする。
+   *
+   * 列の下限を素の `11rem` にすると、実機のSP幅（375〜412px。ここでの中身の幅は
+   * 画面幅 − 本文の余白2.5rem − このリストの余白2rem）では11remが2つ入らず1列に落ち、
+   * 15項目が縦一列に並んでページが倍の高さになっていた（390px幅で987px→515px）。
+   * `min(11rem, (100% - 1rem) / 2)` は「中身の幅の半分（＝列間1rem分を引いた残りの半分）を
+   * 超えない」ので、どれだけ狭くても必ず2列は入る。広い画面では 11rem 側が選ばれるため、
+   * これまでどおり3列以上に並ぶ（40rem付近で列数が急に減るような切り替えも起きない）。
+   */
   .fact-list {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(11rem, 1fr));
+    grid-template-columns: repeat(auto-fill, minmax(min(11rem, (100% - 1rem) / 2), 1fr));
     gap: 0.75rem 1rem;
     margin: 1.5rem 0 0;
     padding: 1rem;
     background: var(--surface);
     border: 1px solid var(--border);
     border-radius: 8px;
+  }
+  /* 2列に詰まるSPでは、余白まで広いままだと1列あたりが狭くなりすぎるので少しだけ削る */
+  @media (max-width: 40rem) {
+    .fact-list {
+      gap: 0.6rem 0.75rem;
+      padding: 0.85rem;
+    }
   }
   .fact dt {
     color: var(--muted);
@@ -379,6 +395,9 @@ const facts: { term: string; value: string; note?: string }[] = [
     font-size: 0.75rem;
     font-weight: 400;
     color: var(--muted);
+    /* 2列にすると列幅が狭く「（12位/94頭中）」が途中で折り返して読みにくいので、
+       折り返すときは注記ごと次の行へ送る */
+    white-space: nowrap;
   }
 
   .surgery-note p {
