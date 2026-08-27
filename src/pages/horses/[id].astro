@@ -9,11 +9,7 @@
 import BaseLayout from '../../layouts/BaseLayout.astro';
 import HorseDetail from '../../components/HorseDetail.astro';
 import { horses2026 } from '../../data/horses2026.ts';
-import {
-  horseDetailDescription,
-  horseDetailTitle,
-  horsePhotoUrlForYear,
-} from '../../lib/horse-meta.ts';
+import { horseDetailDescription, horseDetailTitle } from '../../lib/horse-meta.ts';
 import type { Horse } from '../../lib/horses.ts';
 
 export function getStaticPaths() {
@@ -21,26 +17,12 @@ export function getStaticPaths() {
 }
 
 const { horse } = Astro.props as { horse: Horse };
-
-/**
- * SNSカードの画像はサイト共通のOGP画像ではなくその馬の馬体写真にする（本人の指示・2026-08-27）。
- * 94頭ぶんのカードが全部同じ絵だと、貼った先でどの馬の話か見分けられないため。
- *
- * 参照先はクラブ公式サイトの画像（本文の写真と同じURL）で、こちらで加工・再配布はしない。
- * 実寸が分からないので `ogImageSize` は `null` にして og:image:width / height を出さない
- * （1200x630 と書くと、その比率で場所を確保してから実物を出すSNSでカードがずれる）。
- * 写真を確認できていない2025年募集ぶん（`/2025/horses/`）は共通画像のままにしてある。
- */
-const photoUrl = horsePhotoUrlForYear(horse, 2026);
 ---
 
 <BaseLayout
   title={horseDetailTitle(horse)}
   breadcrumbLabel={horse.name}
   description={horseDetailDescription(horse, 2026)}
-  ogImage={photoUrl ?? undefined}
-  ogImageAlt={photoUrl ? `${horse.name}の馬体写真（キャロットクラブ公式サイト）` : undefined}
-  ogImageSize={photoUrl ? null : undefined}
 >
   {/* allHorses / detailBasePath は前後の馬・ジャンプ用プルダウン・測尺の順位に使う
       （順位の母集団は同じ募集年の全頭）。detailBasePath は horse-row.ts の

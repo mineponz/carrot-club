@@ -17,12 +17,7 @@ import {
   type Horse,
   type MeasurementKey,
 } from '../lib/horses.ts';
-import {
-  damNameOf,
-  formatBirthDateLong,
-  horsePhotoUrlForYear,
-  type RecruitYear,
-} from '../lib/horse-meta.ts';
+import { damNameOf, formatBirthDateLong, horsePhotoUrl, type RecruitYear } from '../lib/horse-meta.ts';
 import { formatBirthDate } from '../lib/horse-row.ts';
 import HorseNav from './HorseNav.astro';
 // メモ欄の上限はサーバー側の検証と同じ値（一覧の horse-row.ts と揃える）
@@ -109,7 +104,7 @@ const hasUnknownSire = measurementRows.some((row) => !row.sire);
  * 馬体写真はクラブ公式サイトの命名規則が2026年募集ぶんでしか実アクセス確認できていないため、
  * 2026年募集ページにのみ出す（詳細は horsePhotoUrl のコメント参照）。
  */
-const photoUrl = horsePhotoUrlForYear(horse, recruitYear);
+const photoUrl = recruitYear === 2026 ? horsePhotoUrl(horse) : null;
 
 /**
  * 定義リストに出す項目。値が無いものは出さない（空欄の行を並べても情報にならない）。

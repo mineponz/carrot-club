@@ -82,15 +82,3 @@ export function horsePhotoUrl(horse: Horse): string {
   const code = `${birthYearYY}${horse.id.padStart(3, '0')}`;
   return `https://carrotclub.net/upfile/${code}/bd-${code}.jpg`;
 }
-
-/**
- * 馬体写真のURL。ただし命名規則を実アクセスで確認できているのは2026年募集ぶんだけなので、
- * それ以外の年度は `null` を返す（上の `horsePhotoUrl` のコメント参照）。
- *
- * 「2026年募集にだけ出す」という判定をここ1か所に置くためのもの。個別ページ本文の写真
- * （`HorseDetail.astro`）とOGP画像（`src/pages/horses/[id].astro`）が同じ条件で動くようにし、
- * 年度が増えたときに片方だけ直して「本文には出るのにカードは出ない」状態になるのを防ぐ。
- */
-export function horsePhotoUrlForYear(horse: Horse, recruitYear: RecruitYear): string | null {
-  return recruitYear === 2026 ? horsePhotoUrl(horse) : null;
-}
