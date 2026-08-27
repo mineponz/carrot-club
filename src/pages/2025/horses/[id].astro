@@ -26,6 +26,8 @@ const { horse } = Astro.props as { horse: Horse };
   tagline={SITE_TAGLINE_2025}
   breadcrumb={[{ label: '2025年募集馬 一覧', href: '/2025/' }]}
   homeHref="/2025/"
+  ogImage="/og-horse-detail-v1.png"
+  ogImageAlt="出資馬検討ツール - キャロットクラブの募集馬詳細ページ"
 >
   {/* 2026年版と同じく、その年度の全頭と個別ページの接頭辞を渡す（年度をまたいで混ぜない） */}
   <HorseDetail
