@@ -6,6 +6,8 @@ import {
   formatBirthDateLong,
   horseDetailDescription,
   horseDetailTitle,
+  horsePhotoUrl,
+  horsePhotoUrlForYear,
   normalizeDamName,
 } from './horse-meta.ts';
 import type { Horse } from './horses.ts';
@@ -99,4 +101,20 @@ test('horseDetailDescription: 別の馬なら別の文言になる（重複コ�
   const other: Horse = { ...horse, id: '2', name: 'カリプソⅡの25', sire: 'キズナ', weight: 468 };
   assert.notEqual(horseDetailDescription(horse, 2026), horseDetailDescription(other, 2026));
   assert.notEqual(horseDetailTitle(horse), horseDetailTitle(other));
+});
+
+test('horsePhotoUrl: 生年下2桁＋募集番号3桁ゼロ埋めのURLを作る', () => {
+  assert.equal(horsePhotoUrl(horse), 'https://carrotclub.net/upfile/25001/bd-25001.jpg');
+});
+
+test('horsePhotoUrlForYear: 2026年募集は写真のURLを返す', () => {
+  assert.equal(
+    horsePhotoUrlForYear(horse, 2026),
+    'https://carrotclub.net/upfile/25001/bd-25001.jpg'
+  );
+});
+
+test('horsePhotoUrlForYear: 命名規則を確認できていない年度はnull', () => {
+  // 本文の写真もOGP画像も、ここがnullなら共通画像のまま（存在しないURLを指さない）
+  assert.equal(horsePhotoUrlForYear(horse, 2025), null);
 });

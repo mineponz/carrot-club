@@ -214,6 +214,13 @@ vault: `1-projects/carrot-club/tasks/20260818-import-2026-data.md`。
   （生成: `node scripts/generate-og-article.mjs <スラッグ>`。1200x630・要playwright）。
   **作り替えたらファイル名の `-v1` を上げること**（SNSは画像URL単位でキャッシュする）。
   記事の相関係数のように成績更新で変わる数字は画像に焼き込まない（カードだけ古い値で残る）。
+  **個別ページ（`/horses/*`）のカードはその馬の馬体写真**（クラブ公式サイトの画像URLをそのまま
+  参照。2026-08-27）。94頭ぶんのカードが同じ絵だと貼った先で見分けられないため。写真の
+  命名規則を確認できているのは2026年募集ぶんだけなので、出すかどうかの判定は
+  `horsePhotoUrlForYear()` 1か所に置く（本文の写真とOGPで条件がずれないように）。
+  実寸が分からない画像なので `ogImageSize={null}` を渡して `og:image:width` /
+  `og:image:height` を出さない ―― 1200x630 と書くとSNSがその比率で場所を確保するため、
+  実物と合わないとカードがずれる。自前の画像（共通・記事）は今までどおり1200x630固定。
 - `SITE_URL`（`src/consts.ts`）は canonical と sitemap.xml に直結する。本番URLと一致させる。
 - Cloudflareの新フローでは `wrangler.jsonc` が必須（`assets.directory` で出力先指定）。
   `not_found_handling` は `"single-page-application"` にしない（全URL 200になり重複コンテンツ扱い）。

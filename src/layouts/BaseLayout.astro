@@ -50,13 +50,22 @@ interface Props {
   wide?: boolean;
   /**
    * OGP画像のパス（サイト直下からの絶対パス。例: `/og-article-height-v1.png`）。
+   * 外部サイトの画像URL（`https://…`）も渡せる（個別ページの馬体写真がこれ）。
    * 既定はサイト共通の `/og-v2.png`。記事ページのようにカードで内容を見分けたいページだけ
    * 専用画像を渡す（生成は `scripts/generate-og-article.mjs`）。
-   * 渡す画像は1200x630で作ること（下の og:image:width / height は固定値）。
+   * 自前で用意する画像は1200x630で作ること（`ogImageSize` の既定値がその前提）。
    */
   ogImage?: string;
   /** OGP画像の代替テキスト。`ogImage` を渡すときは中身に合わせて必ず一緒に渡す。 */
   ogImageAlt?: string;
+  /**
+   * OGP画像の実寸。既定は自前の画像（1200x630）。
+   * **実寸が分からない画像を渡すときは `null`** にして `og:image:width` /
+   * `og:image:height` ごと出さない ―― 合わない数値を書くと、SNS側がその比率で場所を
+   * 確保してから実物を出すため、カードの余白や切り取られ方がずれる。省いた場合は
+   * クローラが画像を取得して自分で判断する。
+   */
+  ogImageSize?: { width: number; height: number } | null;
   /**
    * ヘッダーに非公式・転載許可の注記を出すか。既定は出す（全ページ従来どおり）。
    * 分析記事のような読み物ページは、本文の前に注記2つが割り込むと読み始めが遅くなるため
@@ -78,6 +87,7 @@ const {
   showHeaderNotices = true,
   ogImage: ogImagePath = '/og-v2.png',
   ogImageAlt: ogImageAltProp,
+  ogImageSize = { width: 1200, height: 630 },
 } = Astro.props;
 
 // トップは「サイト名｜内容」、下層は「ページ名 | サイト名」。
@@ -89,7 +99,8 @@ const canonical = new URL(Astro.url.pathname, SITE_URL).href;
 const robotsContent = ALLOW_INDEXING ? 'index,follow,max-image-preview:large' : 'noindex,follow';
 
 // OGP画像は既定で public/og-v2.png（1200x630）を絶対URLで参照する。
-// ページ側から `ogImage` を渡すと差し替えられる（記事ページはこちら）。
+// ページ側から `ogImage` を渡すと差し替えられる（記事ページ・個別ページの馬体写真はこちら）。
+// `https://…` を渡した場合は new URL がそのまま外部URLを返すので、自前の画像と同じ書き方でよい。
 // 中身は本人のデザイン画像を scripts/generate-og-wide.mjs で横長に組み直したもの。
 // サイズを変えたら下の og:image:width / height も直すこと。
 //
@@ -167,8 +178,8 @@ const webAppJsonLd = {
     <meta property="og:description" content={description} />
     <meta property="og:url" content={canonical} />
     <meta property="og:image" content={ogImage} />
-    <meta property="og:image:width" content="1200" />
-    <meta property="og:image:height" content="630" />
+    {ogImageSize && <meta property="og:image:width" content={String(ogImageSize.width)} />}
+    {ogImageSize && <meta property="og:image:height" content={String(ogImageSize.height)} />}
     <meta property="og:image:alt" content={ogImageAlt} />
 
     <meta name="twitter:card" content="summary_large_image" />
