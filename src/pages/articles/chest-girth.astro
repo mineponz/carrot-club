@@ -20,7 +20,12 @@ import ChartTooltip from '../../components/charts/ChartTooltip.astro';
 import StatTiles from '../../components/charts/StatTiles.astro';
 import AdSlot from '../../components/AdSlot.astro';
 import GradeWinnerTable from '../../components/GradeWinnerTable.astro';
-import { loadRecruitsWithResults, racedOnly, RACE_RESULTS_FETCHED_AT } from '../../lib/analysis-data.ts';
+import {
+  loadRecruitsWithResults,
+  racedOnly,
+  RACE_RESULTS_FETCHED_AT,
+  DEFAULT_SHARE_COUNT,
+} from '../../lib/analysis-data.ts';
 import { formatResultsAsOf } from '../../lib/sibling-recruits.ts';
 import {
   histogram,
@@ -158,36 +163,53 @@ const girthHeightR = pearsonCorrelation(
   withHeight.map((h) => h.height as number)
 );
 
-// ---- 胸囲 × 回収率（獲得賞金合計 ÷ 一口価格） ----
-// 出走済み・一口価格が分かっている馬だけが対象。倍率は「投資した一口の何倍の規模の賞金を
-// 稼いだか」の目安で、実際に会員へ配当される金額そのものではない（配当計算式は不明）。
-const racedWithPrice = raced.filter((h) => h.pricePerShare !== null);
-const racedWithoutPrice = raced.length - racedWithPrice.length;
-const roiOf = (h: (typeof racedWithPrice)[number]) => h.totalPrizeManYen / (h.pricePerShare as number);
-const roiR = pearsonCorrelation(racedWithPrice.map((h) => h.chestGirth as number), racedWithPrice.map(roiOf));
-const roiSpearmanR = spearmanCorrelation(racedWithPrice.map((h) => h.chestGirth as number), racedWithPrice.map(roiOf));
-const roiMedianOverall = median(racedWithPrice.map(roiOf));
-const priceMedianOverall = median(racedWithPrice.map((h) => h.pricePerShare as number));
-const prizeMedianOverall = median(racedWithPrice.map((h) => h.totalPrizeManYen));
-const roiByGirthBucket = bucketMedian(racedWithPrice, (h) => bucketLabel(h.chestGirth as number), roiOf);
+// ---- 胸囲 × 回収率（獲得賞金合計 ÷ 募集総額） ----
+// 回収率 = 獲得賞金合計 ÷ 募集総額（一口価格 × 口数）。100%なら「額面の獲得賞金が
+// 募集総額とちょうど同じ」。キャロットの口数は馬ごとに違う（大半は400口、一部100口）ため、
+// 一口価格だけで割ると口数のぶんだけ数字がずれて意味をなさない（本人指摘・2026-08-28）。
+// この値は賞金の額面ベースで、管理費・維持費・引退時の売却額を差し引いた
+// 実際の会員配当そのものではない（配当計算式はクラブ・馬ごとに複雑で不明）。
+const racedWithOffering = raced.filter((h) => h.offeringTotalManYen !== null);
+const racedWithoutPrice = raced.length - racedWithOffering.length;
+const roiOf = (h: (typeof racedWithOffering)[number]) => h.totalPrizeManYen / (h.offeringTotalManYen as number);
+const roiPctOf = (h: (typeof racedWithOffering)[number]) => roiOf(h) * 100;
+const roiR = pearsonCorrelation(racedWithOffering.map((h) => h.chestGirth as number), racedWithOffering.map(roiOf));
+const roiSpearmanR = spearmanCorrelation(racedWithOffering.map((h) => h.chestGirth as number), racedWithOffering.map(roiOf));
+const roiMedianPct = median(racedWithOffering.map(roiPctOf));
+const roiMaxPct = Math.max(...racedWithOffering.map(roiPctOf));
+const offeringMedianOverall = median(racedWithOffering.map((h) => h.offeringTotalManYen as number));
+const prizeMedianOverall = median(racedWithOffering.map((h) => h.totalPrizeManYen));
+const roiByGirthBucket = bucketMedian(racedWithOffering, (h) => bucketLabel(h.chestGirth as number), roiPctOf);
 const roiBars = orderBuckets(roiByGirthBucket).map((r) => ({
   label: r.bucket,
   value: r.med,
-  displayValue: `${r.med.toFixed(0)}倍`,
+  displayValue: `${r.med.toFixed(1)}%`,
   n: r.n,
 }));
 
 // 階級が上がるほど回収率の中央値も上がって見えるため、境界（174cm、階級分けと同じ区切り）で
 // 2群に割って分布差の検定（Mann-Whitney U）も確認する。中央値だけでなく分布全体の差を見る。
 const ROI_SPLIT_GIRTH = 174;
-const roiLowGirth = racedWithPrice.filter((h) => (h.chestGirth as number) < ROI_SPLIT_GIRTH).map(roiOf);
-const roiHighGirth = racedWithPrice.filter((h) => (h.chestGirth as number) >= ROI_SPLIT_GIRTH).map(roiOf);
+const roiLowGirth = racedWithOffering.filter((h) => (h.chestGirth as number) < ROI_SPLIT_GIRTH).map(roiOf);
+const roiHighGirth = racedWithOffering.filter((h) => (h.chestGirth as number) >= ROI_SPLIT_GIRTH).map(roiOf);
 const roiMw = mannWhitneyU(roiLowGirth, roiHighGirth);
 
+// 本文は「回収率の174cm境界の2群比較だけは5%水準で有意（＝ここまでの記事で唯一の有意差）」
+// という前提で書いている。成績データを取り直したときにこの検定が有意でなくなると、本文の
+// 「統計的にも差が見られた」「唯一、検定で有意差が出た」がそのまま嘘になるので、ビルド時に
+// 検算して外れたら止める（否定文・肯定文どちらの向きの破綻も拾う）。
+const ROI_SIGNIFICANCE_ALPHA = 0.05;
+if (!(roiMw.p < ROI_SIGNIFICANCE_ALPHA)) {
+  throw new Error(
+    `回収率の174cm境界のMann-Whitney検定が有意でなくなった（p=${roiMw.p.toFixed(4)}）。` +
+      '「統計的にも差が見られた」「唯一、検定で有意差が出た」と書いた本文を書き直すこと。'
+  );
+}
+
 // 「安く仕入れて稼いだ」実例（回収率が高い順）。重賞を勝った馬が上位を占めるので、
-// 表は重賞勝ち馬紹介（下）と役割が重なるが、こちらは倍率順に並べ替えて見せる。
+// 表は重賞勝ち馬紹介（下）と役割が重なるが、こちらは回収率順に並べ替えて見せる。
 const ROI_TOP_N = 8;
-const roiTop = [...racedWithPrice].sort((a, b) => roiOf(b) - roiOf(a)).slice(0, ROI_TOP_N);
+const roiTop = [...racedWithOffering].sort((a, b) => roiOf(b) - roiOf(a)).slice(0, ROI_TOP_N);
 const roiTopGirths = roiTop.map((h) => h.chestGirth as number);
 const roiTopGirthMin = Math.min(...roiTopGirths);
 const roiTopGirthMax = Math.max(...roiTopGirths);
@@ -242,7 +264,7 @@ const description = `【非公式】キャロットクラブ${yearRangeLabel}${a
       <a href="/articles/birth-month/">誕生月</a>に続いて、今度はこの「胸囲」を実際のデータで
       確かめてみた。{yearRangeLabel}募集（{yearCounts}）に、{resultsAsOf}時点の獲得賞金・通算成績を
       突き合わせた独自集計。今回は獲得賞金だけでなく、「安く仕入れて活躍できたか」を見る
-      <strong>回収率</strong>（獲得賞金合計÷一口価格）でも合わせて見ていく。
+      <strong>回収率</strong>（獲得賞金合計 ÷ 募集総額）でも合わせて見ていく。
     </p>
 
     <StatTiles
@@ -332,22 +354,25 @@ const description = `【非公式】キャロットクラブ${yearRangeLabel}${a
 
     <h2>胸囲 × 回収率（安く仕入れて稼げたか）</h2>
     <p>
-      獲得賞金の絶対額だけでなく、「安い一口価格で活躍できたか」という観点でも見てみる。
-      出走済みかつ一口価格が分かっている{racedWithPrice.length}頭
-      {racedWithoutPrice > 0 && <>（残り{racedWithoutPrice}頭は一口価格の記載が確認できなかった馬）</>}
-      で、獲得賞金合計を一口価格で割った「回収率」を計算した。中央値は
-      {roiMedianOverall.toFixed(0)}倍（一口価格の中央値{priceMedianOverall}万円・獲得賞金合計の
-      中央値{formatManYen(prizeMedianOverall)}万円）。
-      <strong>ただしこれは一口価格に対する賞金総額の規模感の目安であり、実際に会員へ配当される
-      金額そのものではない</strong>（配当の計算方法はクラブ・馬ごとに複雑で、今回のデータからは
-      分からない）。
+      獲得賞金の絶対額だけでなく、「安く仕入れて活躍できたか」という観点でも見てみる。
+      出走済みかつ募集価格が分かっている{racedWithOffering.length}頭
+      {racedWithoutPrice > 0 && <>（残り{racedWithoutPrice}頭は募集価格の記載が確認できなかった馬）</>}
+      で、<strong>回収率 ＝ 獲得賞金合計 ÷ 募集総額</strong>（一口価格 × 口数）を計算した。
+      100%なら「額面の獲得賞金が募集総額とちょうど同じ」という意味になる。全体の中央値は
+      {roiMedianPct.toFixed(1)}%（募集総額の中央値{formatManYen(offeringMedianOverall)}万円・
+      獲得賞金合計の中央値{formatManYen(prizeMedianOverall)}万円）で、
+      <strong>典型的な募集馬は生涯かけて募集総額の3分の1ほどを額面の賞金で戻す</strong>、
+      という水準感になる。
+      <strong>ここでの回収率は賞金の額面ベースで、管理費・維持費や引退時の売却額を
+      加味した実際の会員配当そのものではない</strong>（配当の計算方法はクラブ・馬ごとに複雑で、
+      今回のデータからは分からない）。
     </p>
     <p>
       胸囲と回収率の相関係数（ピアソン）はr={roiR?.toFixed(3)}で、獲得賞金合計で見たとき
       （r={girthR?.toFixed(3)}）とほぼ同じくらい弱い。回収率も獲得賞金と同様に一部の稼ぎ頭に
-      大きく引っ張られる歪んだ分布（中央値は{roiMedianOverall.toFixed(0)}倍でも、最大は
-      1万倍を超える）なので、順位ベースの相関係数（スピアマン）でも確認すると
-      r={roiSpearmanR?.toFixed(3)}で、こちらもピアソンより高く出る。
+      大きく引っ張られる歪んだ分布（中央値は{roiMedianPct.toFixed(1)}%でも、最大は
+      {roiMaxPct.toFixed(0)}%）なので、順位ベースの相関係数（スピアマン）でも確認すると
+      r={roiSpearmanR?.toFixed(3)}で、こちらもピアソンより少しだけ高く出る。
     </p>
     <BarChart title="胸囲階級別 回収率（中央値）" bars={roiBars} valueLabel="回収率(中央値)" />
     <p>
@@ -365,7 +390,7 @@ const description = `【非公式】キャロットクラブ${yearRangeLabel}${a
 
     <h3>回収率が高かった馬</h3>
     <p>
-      参考までに、回収率が高かった上位{ROI_TOP_N}頭を挙げておく。安い一口価格から
+      参考までに、回収率が高かった上位{ROI_TOP_N}頭を挙げておく。安い募集価格から
       重賞を勝つところまで駆け上がった馬が並ぶ。
     </p>
     <div class="table-scroll">
@@ -374,7 +399,8 @@ const description = `【非公式】キャロットクラブ${yearRangeLabel}${a
           <tr>
             <th>馬名</th>
             <th>胸囲</th>
-            <th>一口価格</th>
+            <th>一口価格 × 口数</th>
+            <th>募集総額</th>
             <th>獲得賞金合計</th>
             <th>回収率</th>
             <th>主な勝鞍</th>
@@ -385,9 +411,10 @@ const description = `【非公式】キャロットクラブ${yearRangeLabel}${a
             <tr>
               <td>{h.displayName}</td>
               <td>{h.chestGirth}cm</td>
-              <td>{h.pricePerShare}万円</td>
+              <td>{h.pricePerShare}万円 × {h.shareCount ?? `${DEFAULT_SHARE_COUNT}（推定）`}口</td>
+              <td>{formatManYen(h.offeringTotalManYen as number)}万円</td>
               <td>{formatManYen(h.totalPrizeManYen)}万円</td>
-              <td>{Math.round(roiOf(h))}倍</td>
+              <td>{Math.round(roiPctOf(h))}%</td>
               <td>{h.gradeWins.join('、') || '—'}</td>
             </tr>
           ))}
@@ -465,8 +492,10 @@ const description = `【非公式】キャロットクラブ${yearRangeLabel}${a
       今後レースを重ねるたびに変わっていく。直近の募集組はまだ大半が未出走〜デビュー間もないため、
       今回の集計は出走済みの{raced.length}頭が中心になっている点は割り引いて見てほしい。獲得賞金は
       中央（JRA）・地方（NAR）の合計で、海外レースで得た賞金は含まれていない。回収率
-      （獲得賞金合計÷一口価格）は投資規模に対する賞金の大きさの目安であり、実際に会員へ配当される
-      金額そのものではない点にも注意してほしい。相関係数はあくまで線形の関係の強さの目安で、
+      （獲得賞金合計 ÷ 募集総額）は募集総額に対する賞金の額面の大きさの目安であり、
+      管理費・維持費や引退時の売却額を加味した実際の会員配当そのものではない点にも注意してほしい。
+      募集口数は各馬のnetkeibaの募集情報から取得し、記載が無い馬はキャロットで最も一般的な
+      400口とみなした。相関係数はあくまで線形の関係の強さの目安で、
       これだけで「胸囲が成績に影響しない」と断言できるわけではない。出資判断の材料というより、
       あくまで趣味の分析として楽しんでもらえたら。
     </p>

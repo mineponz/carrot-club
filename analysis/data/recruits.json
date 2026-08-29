@@ -20,7 +20,8 @@
     "birthDate": "2016-04-05",
     "damParity": 6,
     "damProduceCount": 8,
-    "damGapBeforeYears": 2
+    "damGapBeforeYears": 2,
+    "shareCount": null
   },
   {
     "recruitYear": 2017,
@@ -43,7 +44,8 @@
     "birthDate": "2016-04-01",
     "damParity": 10,
     "damProduceCount": 13,
-    "damGapBeforeYears": 1
+    "damGapBeforeYears": 1,
+    "shareCount": 400
   },
   {
     "recruitYear": 2017,
@@ -66,7 +68,8 @@
     "birthDate": "2016-05-06",
     "damParity": 6,
     "damProduceCount": 8,
-    "damGapBeforeYears": 1
+    "damGapBeforeYears": 1,
+    "shareCount": 400
   },
   {
     "recruitYear": 2017,
@@ -89,7 +92,8 @@
     "birthDate": "2016-05-18",
     "damParity": 9,
     "damProduceCount": 14,
-    "damGapBeforeYears": 1
+    "damGapBeforeYears": 1,
+    "shareCount": 400
   },
   {
     "recruitYear": 2017,
@@ -112,7 +116,8 @@
     "birthDate": "2016-03-08",
     "damParity": 8,
     "damProduceCount": 12,
-    "damGapBeforeYears": 1
+    "damGapBeforeYears": 1,
+    "shareCount": 400
   },
   {
     "recruitYear": 2017,
@@ -135,7 +140,8 @@
     "birthDate": "2016-05-13",
     "damParity": 12,
     "damProduceCount": 13,
-    "damGapBeforeYears": 1
+    "damGapBeforeYears": 1,
+    "shareCount": 400
   },
   {
     "recruitYear": 2017,
@@ -158,7 +164,8 @@
     "birthDate": "2016-02-29",
     "damParity": 4,
     "damProduceCount": 11,
-    "damGapBeforeYears": 1
+    "damGapBeforeYears": 1,
+    "shareCount": 400
   },
   {
     "recruitYear": 2017,
@@ -181,7 +188,8 @@
     "birthDate": "2016-02-19",
     "damParity": 4,
     "damProduceCount": 13,
-    "damGapBeforeYears": 1
+    "damGapBeforeYears": 1,
+    "shareCount": 400
   },
   {
     "recruitYear": 2017,
@@ -204,7 +212,8 @@
     "birthDate": "2016-05-29",
     "damParity": 1,
     "damProduceCount": 8,
-    "damGapBeforeYears": null
+    "damGapBeforeYears": null,
+    "shareCount": null
   },
   {
     "recruitYear": 2017,
@@ -227,7 +236,8 @@
     "birthDate": "2016-02-15",
     "damParity": 7,
     "damProduceCount": 10,
-    "damGapBeforeYears": 2
+    "damGapBeforeYears": 2,
+    "shareCount": 400
   },
   {
     "recruitYear": 2017,
@@ -250,7 +260,8 @@
     "birthDate": "2016-01-24",
     "damParity": 4,
     "damProduceCount": 11,
-    "damGapBeforeYears": 1
+    "damGapBeforeYears": 1,
+    "shareCount": 400
   },
   {
     "recruitYear": 2017,
@@ -273,7 +284,8 @@
     "birthDate": "2016-03-05",
     "damParity": 7,
     "damProduceCount": 14,
-    "damGapBeforeYears": 1
+    "damGapBeforeYears": 1,
+    "shareCount": 400
   },
   {
     "recruitYear": 2017,
@@ -296,7 +308,8 @@
     "birthDate": "2016-02-23",
     "damParity": 6,
     "damProduceCount": 7,
-    "damGapBeforeYears": 3
+    "damGapBeforeYears": 3,
+    "shareCount": 400
   },
   {
     "recruitYear": 2017,
@@ -319,7 +332,8 @@
     "birthDate": "2016-02-08",
     "damParity": 2,
     "damProduceCount": 7,
-    "damGapBeforeYears": 1
+    "damGapBeforeYears": 1,
+    "shareCount": null
   },
   {
     "recruitYear": 2017,
@@ -342,7 +356,8 @@
     "birthDate": "2016-02-23",
     "damParity": 8,
     "damProduceCount": 10,
-    "damGapBeforeYears": 2
+    "damGapBeforeYears": 2,
+    "shareCount": 400
   },
   {
     "recruitYear": 2017,
@@ -365,7 +380,8 @@
     "birthDate": "2016-03-14",
     "damParity": 5,
     "damProduceCount": 10,
-    "damGapBeforeYears": 1
+    "damGapBeforeYears": 1,
+    "shareCount": 400
   },
   {
     "recruitYear": 2017,
@@ -388,7 +404,8 @@
     "birthDate": "2016-01-31",
     "damParity": 7,
     "damProduceCount": 12,
-    "damGapBeforeYears": 1
+    "damGapBeforeYears": 1,
+    "shareCount": null
   },
   {
     "recruitYear": 2017,
@@ -411,7 +428,8 @@
     "birthDate": null,
     "damParity": null,
     "damProduceCount": null,
-    "damGapBeforeYears": null
+    "damGapBeforeYears": null,
+    "shareCount": null
   },
   {
     "recruitYear": 2017,
@@ -434,7 +452,8 @@
     "birthDate": "2016-02-21",
     "damParity": 3,
     "damProduceCount": 9,
-    "damGapBeforeYears": 1
+    "damGapBeforeYears": 1,
+    "shareCount": null
   },
   {
     "recruitYear": 2017,
@@ -457,7 +476,8 @@
     "birthDate": "2016-03-21",
     "damParity": 5,
     "damProduceCount": 11,
-    "damGapBeforeYears": 1
+    "damGapBeforeYears": 1,
+    "shareCount": 400
   },
   {
     "recruitYear": 2017,
@@ -480,7 +500,8 @@
     "birthDate": "2016-02-24",
     "damParity": 1,
     "damProduceCount": 8,
-    "damGapBeforeYears": null
+    "damGapBeforeYears": null,
+    "shareCount": 400
   },
   {
     "recruitYear": 2017,
@@ -503,7 +524,8 @@
     "birthDate": "2016-04-03",
     "damParity": 5,
     "damProduceCount": 9,
-    "damGapBeforeYears": 3
+    "damGapBeforeYears": 3,
+    "shareCount": 400
   },
   {
     "recruitYear": 2017,
@@ -526,7 +548,8 @@
     "birthDate": "2016-02-17",
     "damParity": 10,
     "damProduceCount": 12,
-    "damGapBeforeYears": 3
+    "damGapBeforeYears": 3,
+    "shareCount": 400
   },
   {
     "recruitYear": 2017,
@@ -549,7 +572,8 @@
     "birthDate": "2016-04-15",
     "damParity": 2,
     "damProduceCount": 7,
-    "damGapBeforeYears": 1
+    "damGapBeforeYears": 1,
+    "shareCount": null
   },
   {
     "recruitYear": 2017,
@@ -572,7 +596,8 @@
     "birthDate": "2016-05-23",
     "damParity": 1,
     "damProduceCount": 6,
-    "damGapBeforeYears": null
+    "damGapBeforeYears": null,
+    "shareCount": null
   },
   {
     "recruitYear": 2017,
@@ -595,7 +620,8 @@
     "birthDate": "2016-01-30",
     "damParity": 1,
     "damProduceCount": 8,
-    "damGapBeforeYears": null
+    "damGapBeforeYears": null,
+    "shareCount": 400
   },
   {
     "recruitYear": 2017,
@@ -618,7 +644,8 @@
     "birthDate": "2016-01-25",
     "damParity": 1,
     "damProduceCount": 8,
-    "damGapBeforeYears": null
+    "damGapBeforeYears": null,
+    "shareCount": 400
   },
   {
     "recruitYear": 2017,
@@ -641,7 +668,8 @@
     "birthDate": "2016-04-08",
     "damParity": 6,
     "damProduceCount": 11,
-    "damGapBeforeYears": 1
+    "damGapBeforeYears": 1,
+    "shareCount": null
   },
   {
     "recruitYear": 2017,
@@ -664,7 +692,8 @@
     "birthDate": "2016-02-03",
     "damParity": 7,
     "damProduceCount": 9,
-    "damGapBeforeYears": 1
+    "damGapBeforeYears": 1,
+    "shareCount": 400
   },
   {
     "recruitYear": 2017,
@@ -687,7 +716,8 @@
     "birthDate": "2016-04-18",
     "damParity": 4,
     "damProduceCount": 10,
-    "damGapBeforeYears": 1
+    "damGapBeforeYears": 1,
+    "shareCount": null
   },
   {
     "recruitYear": 2017,
@@ -710,7 +740,8 @@
     "birthDate": "2016-04-03",
     "damParity": 6,
     "damProduceCount": 13,
-    "damGapBeforeYears": 1
+    "damGapBeforeYears": 1,
+    "shareCount": 400
   },
   {
     "recruitYear": 2017,
@@ -733,7 +764,8 @@
     "birthDate": "2016-03-09",
     "damParity": 9,
     "damProduceCount": 11,
-    "damGapBeforeYears": 1
+    "damGapBeforeYears": 1,
+    "shareCount": 400
   },
   {
     "recruitYear": 2017,
@@ -756,7 +788,8 @@
     "birthDate": "2016-04-27",
     "damParity": 5,
     "damProduceCount": 12,
-    "damGapBeforeYears": 1
+    "damGapBeforeYears": 1,
+    "shareCount": 400
   },
   {
     "recruitYear": 2017,
@@ -779,7 +812,8 @@
     "birthDate": "2016-04-12",
     "damParity": 9,
     "damProduceCount": 15,
-    "damGapBeforeYears": 1
+    "damGapBeforeYears": 1,
+    "shareCount": null
   },
   {
     "recruitYear": 2017,
@@ -802,7 +836,8 @@
     "birthDate": "2016-03-21",
     "damParity": 1,
     "damProduceCount": 1,
-    "damGapBeforeYears": null
+    "damGapBeforeYears": null,
+    "shareCount": 400
   },
   {
     "recruitYear": 2017,
@@ -825,7 +860,8 @@
     "birthDate": "2016-01-21",
     "damParity": 6,
     "damProduceCount": 14,
-    "damGapBeforeYears": 1
+    "damGapBeforeYears": 1,
+    "shareCount": 400
   },
   {
     "recruitYear": 2017,
@@ -848,7 +884,8 @@
     "birthDate": "2016-02-11",
     "damParity": 5,
     "damProduceCount": 8,
-    "damGapBeforeYears": 2
+    "damGapBeforeYears": 2,
+    "shareCount": 400
   },
   {
     "recruitYear": 2017,
@@ -871,7 +908,8 @@
     "birthDate": "2016-04-08",
     "damParity": 6,
     "damProduceCount": 10,
-    "damGapBeforeYears": 1
+    "damGapBeforeYears": 1,
+    "shareCount": null
   },
   {
     "recruitYear": 2017,
@@ -894,7 +932,8 @@
     "birthDate": "2016-03-22",
     "damParity": 5,
     "damProduceCount": 12,
-    "damGapBeforeYears": 1
+    "damGapBeforeYears": 1,
+    "shareCount": 400
   },
   {
     "recruitYear": 2017,
@@ -917,7 +956,8 @@
     "birthDate": "2016-02-12",
     "damParity": 3,
     "damProduceCount": 8,
-    "damGapBeforeYears": 2
+    "damGapBeforeYears": 2,
+    "shareCount": 400
   },
   {
     "recruitYear": 2017,
@@ -940,7 +980,8 @@
     "birthDate": "2016-03-18",
     "damParity": 4,
     "damProduceCount": 12,
-    "damGapBeforeYears": 1
+    "damGapBeforeYears": 1,
+    "shareCount": 400
   },
   {
     "recruitYear": 2017,
@@ -963,7 +1004,8 @@
     "birthDate": "2016-02-08",
     "damParity": 4,
     "damProduceCount": 6,
-    "damGapBeforeYears": 1
+    "damGapBeforeYears": 1,
+    "shareCount": 400
   },
   {
     "recruitYear": 2017,
@@ -986,7 +1028,8 @@
     "birthDate": "2016-01-28",
     "damParity": 2,
     "damProduceCount": 11,
-    "damGapBeforeYears": 1
+    "damGapBeforeYears": 1,
+    "shareCount": 400
   },
   {
     "recruitYear": 2017,
@@ -1009,7 +1052,8 @@
     "birthDate": "2016-05-11",
     "damParity": 6,
     "damProduceCount": 12,
-    "damGapBeforeYears": 1
+    "damGapBeforeYears": 1,
+    "shareCount": 400
   },
   {
     "recruitYear": 2017,
@@ -1032,7 +1076,8 @@
     "birthDate": "2016-02-24",
     "damParity": 4,
     "damProduceCount": 11,
-    "damGapBeforeYears": 1
+    "damGapBeforeYears": 1,
+    "shareCount": 400
   },
   {
     "recruitYear": 2017,
@@ -1055,7 +1100,8 @@
     "birthDate": "2016-04-27",
     "damParity": 1,
     "damProduceCount": 4,
-    "damGapBeforeYears": null
+    "damGapBeforeYears": null,
+    "shareCount": 400
   },
   {
     "recruitYear": 2017,
@@ -1078,7 +1124,8 @@
     "birthDate": "2016-02-09",
     "damParity": 7,
     "damProduceCount": 13,
-    "damGapBeforeYears": 2
+    "damGapBeforeYears": 2,
+    "shareCount": 400
   },
   {
     "recruitYear": 2017,
@@ -1101,7 +1148,8 @@
     "birthDate": "2016-02-15",
     "damParity": 2,
     "damProduceCount": 9,
-    "damGapBeforeYears": 2
+    "damGapBeforeYears": 2,
+    "shareCount": 400
   },
   {
     "recruitYear": 2017,
@@ -1124,7 +1172,8 @@
     "birthDate": "2016-03-02",
     "damParity": 2,
     "damProduceCount": 11,
-    "damGapBeforeYears": 1
+    "damGapBeforeYears": 1,
+    "shareCount": null
   },
   {
     "recruitYear": 2017,
@@ -1147,7 +1196,8 @@
     "birthDate": "2016-02-26",
     "damParity": 4,
     "damProduceCount": 10,
-    "damGapBeforeYears": 1
+    "damGapBeforeYears": 1,
+    "shareCount": 400
   },
   {
     "recruitYear": 2017,
@@ -1170,7 +1220,8 @@
     "birthDate": "2016-02-04",
     "damParity": 6,
     "damProduceCount": 10,
-    "damGapBeforeYears": 1
+    "damGapBeforeYears": 1,
+    "shareCount": 400
   },
   {
     "recruitYear": 2017,
@@ -1193,7 +1244,8 @@
     "birthDate": "2016-03-21",
     "damParity": 9,
     "damProduceCount": 12,
-    "damGapBeforeYears": 1
+    "damGapBeforeYears": 1,
+    "shareCount": 400
   },
   {
     "recruitYear": 2017,
@@ -1216,7 +1268,8 @@
     "birthDate": "2016-04-05",
     "damParity": 4,
     "damProduceCount": 11,
-    "damGapBeforeYears": 1
+    "damGapBeforeYears": 1,
+    "shareCount": 400
   },
   {
     "recruitYear": 2017,
@@ -1239,7 +1292,8 @@
     "birthDate": "2016-03-13",
     "damParity": 1,
     "damProduceCount": 9,
-    "damGapBeforeYears": null
+    "damGapBeforeYears": null,
+    "shareCount": null
   },
   {
     "recruitYear": 2017,
@@ -1262,7 +1316,8 @@
     "birthDate": "2016-05-27",
     "damParity": 3,
     "damProduceCount": 3,
-    "damGapBeforeYears": 1
+    "damGapBeforeYears": 1,
+    "shareCount": null
   },
   {
     "recruitYear": 2017,
@@ -1285,7 +1340,8 @@
     "birthDate": "2016-01-24",
     "damParity": 1,
     "damProduceCount": 5,
-    "damGapBeforeYears": null
+    "damGapBeforeYears": null,
+    "shareCount": 400
   },
   {
     "recruitYear": 2017,
@@ -1308,7 +1364,8 @@
     "birthDate": "2016-02-09",
     "damParity": 7,
     "damProduceCount": 11,
-    "damGapBeforeYears": 1
+    "damGapBeforeYears": 1,
+    "shareCount": 400
   },
   {
     "recruitYear": 2017,
@@ -1331,7 +1388,8 @@
     "birthDate": "2016-03-11",
     "damParity": 9,
     "damProduceCount": 14,
-    "damGapBeforeYears": 1
+    "damGapBeforeYears": 1,
+    "shareCount": 400
   },
   {
     "recruitYear": 2017,
@@ -1354,7 +1412,8 @@
     "birthDate": "2016-05-04",
     "damParity": 5,
     "damProduceCount": 13,
-    "damGapBeforeYears": 1
+    "damGapBeforeYears": 1,
+    "shareCount": 400
   },
   {
     "recruitYear": 2017,
@@ -1377,7 +1436,8 @@
     "birthDate": "2016-02-09",
     "damParity": 13,
     "damProduceCount": 14,
-    "damGapBeforeYears": 1
+    "damGapBeforeYears": 1,
+    "shareCount": 400
   },
   {
     "recruitYear": 2017,
@@ -1400,7 +1460,8 @@
     "birthDate": "2016-03-23",
     "damParity": 3,
     "damProduceCount": 10,
-    "damGapBeforeYears": 1
+    "damGapBeforeYears": 1,
+    "shareCount": null
   },
   {
     "recruitYear": 2017,
@@ -1423,7 +1484,8 @@
     "birthDate": "2016-04-25",
     "damParity": 1,
     "damProduceCount": 4,
-    "damGapBeforeYears": null
+    "damGapBeforeYears": null,
+    "shareCount": null
   },
   {
     "recruitYear": 2017,
@@ -1446,7 +1508,8 @@
     "birthDate": "2016-02-01",
     "damParity": 1,
     "damProduceCount": 8,
-    "damGapBeforeYears": null
+    "damGapBeforeYears": null,
+    "shareCount": null
   },
   {
     "recruitYear": 2017,
@@ -1469,7 +1532,8 @@
     "birthDate": "2016-04-12",
     "damParity": 8,
     "damProduceCount": 10,
-    "damGapBeforeYears": 1
+    "damGapBeforeYears": 1,
+    "shareCount": 400
   },
   {
     "recruitYear": 2017,
@@ -1492,7 +1556,8 @@
     "birthDate": "2016-01-17",
     "damParity": 7,
     "damProduceCount": 10,
-    "damGapBeforeYears": 1
+    "damGapBeforeYears": 1,
+    "shareCount": null
   },
   {
     "recruitYear": 2017,
@@ -1515,7 +1580,8 @@
     "birthDate": "2016-01-18",
     "damParity": 2,
     "damProduceCount": 9,
-    "damGapBeforeYears": 1
+    "damGapBeforeYears": 1,
+    "shareCount": 400
   },
   {
     "recruitYear": 2017,
@@ -1538,7 +1604,8 @@
     "birthDate": "2016-02-24",
     "damParity": 2,
     "damProduceCount": 9,
-    "damGapBeforeYears": 1
+    "damGapBeforeYears": 1,
+    "shareCount": 400
   },
   {
     "recruitYear": 2017,
@@ -1561,7 +1628,8 @@
     "birthDate": "2016-02-23",
     "damParity": 13,
     "damProduceCount": 15,
-    "damGapBeforeYears": 2
+    "damGapBeforeYears": 2,
+    "shareCount": null
   },
   {
     "recruitYear": 2017,
@@ -1584,7 +1652,8 @@
     "birthDate": "2016-04-16",
     "damParity": 7,
     "damProduceCount": 10,
-    "damGapBeforeYears": 1
+    "damGapBeforeYears": 1,
+    "shareCount": 400
   },
   {
     "recruitYear": 2017,
@@ -1607,7 +1676,8 @@
     "birthDate": "2016-05-17",
     "damParity": 3,
     "damProduceCount": 8,
-    "damGapBeforeYears": 1
+    "damGapBeforeYears": 1,
+    "shareCount": 400
   },
   {
     "recruitYear": 2017,
@@ -1630,7 +1700,8 @@
     "birthDate": "2016-02-01",
     "damParity": 5,
     "damProduceCount": 9,
-    "damGapBeforeYears": 1
+    "damGapBeforeYears": 1,
+    "shareCount": 400
   },
   {
     "recruitYear": 2017,
@@ -1653,7 +1724,8 @@
     "birthDate": "2016-05-07",
     "damParity": 10,
     "damProduceCount": 14,
-    "damGapBeforeYears": 1
+    "damGapBeforeYears": 1,
+    "shareCount": 400
   },
   {
     "recruitYear": 2017,
@@ -1676,7 +1748,8 @@
     "birthDate": "2016-02-10",
     "damParity": 3,
     "damProduceCount": 9,
-    "damGapBeforeYears": 2
+    "damGapBeforeYears": 2,
+    "shareCount": 400
   },
   {
     "recruitYear": 2017,
@@ -1699,7 +1772,8 @@
     "birthDate": "2016-02-22",
     "damParity": 4,
     "damProduceCount": 11,
-    "damGapBeforeYears": 1
+    "damGapBeforeYears": 1,
+    "shareCount": null
   },
   {
     "recruitYear": 2017,
@@ -1722,7 +1796,8 @@
     "birthDate": "2016-03-18",
     "damParity": 4,
     "damProduceCount": 8,
-    "damGapBeforeYears": 1
+    "damGapBeforeYears": 1,
+    "shareCount": null
   },
   {
     "recruitYear": 2017,
@@ -1745,7 +1820,8 @@
     "birthDate": "2016-02-12",
     "damParity": 5,
     "damProduceCount": 10,
-    "damGapBeforeYears": 2
+    "damGapBeforeYears": 2,
+    "shareCount": 400
   },
   {
     "recruitYear": 2017,
@@ -1768,7 +1844,8 @@
     "birthDate": "2016-04-13",
     "damParity": 9,
     "damProduceCount": 12,
-    "damGapBeforeYears": 1
+    "damGapBeforeYears": 1,
+    "shareCount": null
   },
   {
     "recruitYear": 2017,
@@ -1791,7 +1868,8 @@
     "birthDate": "2016-04-09",
     "damParity": 1,
     "damProduceCount": 9,
-    "damGapBeforeYears": null
+    "damGapBeforeYears": null,
+    "shareCount": 400
   },
   {
     "recruitYear": 2017,
@@ -1814,7 +1892,8 @@
     "birthDate": "2016-03-18",
     "damParity": 4,
     "damProduceCount": 11,
-    "damGapBeforeYears": 1
+    "damGapBeforeYears": 1,
+    "shareCount": 400
   },
   {
     "recruitYear": 2017,
@@ -1837,7 +1916,8 @@
     "birthDate": "2016-03-02",
     "damParity": 2,
     "damProduceCount": 5,
-    "damGapBeforeYears": 1
+    "damGapBeforeYears": 1,
+    "shareCount": 400
   },
   {
     "recruitYear": 2017,
@@ -1860,7 +1940,8 @@
     "birthDate": "2016-02-10",
     "damParity": 7,
     "damProduceCount": 9,
-    "damGapBeforeYears": 1
+    "damGapBeforeYears": 1,
+    "shareCount": 400
   },
   {
     "recruitYear": 2017,
@@ -1883,7 +1964,8 @@
     "birthDate": "2016-02-16",
     "damParity": 10,
     "damProduceCount": 10,
-    "damGapBeforeYears": 1
+    "damGapBeforeYears": 1,
+    "shareCount": 100
   },
   {
     "recruitYear": 2017,
@@ -1906,7 +1988,8 @@
     "birthDate": "2016-02-15",
     "damParity": 4,
     "damProduceCount": 4,
-    "damGapBeforeYears": 2
+    "damGapBeforeYears": 2,
+    "shareCount": null
   },
   {
     "recruitYear": 2017,
@@ -1929,7 +2012,8 @@
     "birthDate": "2016-02-16",
     "damParity": 3,
     "damProduceCount": 10,
-    "damGapBeforeYears": 1
+    "damGapBeforeYears": 1,
+    "shareCount": null
   },
   {
     "recruitYear": 2017,
@@ -1952,7 +2036,8 @@
     "birthDate": "2016-04-02",
     "damParity": 3,
     "damProduceCount": 6,
-    "damGapBeforeYears": 1
+    "damGapBeforeYears": 1,
+    "shareCount": 100
   },
   {
     "recruitYear": 2018,
@@ -1975,7 +2060,8 @@
     "birthDate": "2017-02-06",
     "damParity": 6,
     "damProduceCount": 9,
-    "damGapBeforeYears": 1
+    "damGapBeforeYears": 1,
+    "shareCount": 400
   },
   {
     "recruitYear": 2018,
@@ -1998,7 +2084,8 @@
     "birthDate": "2017-05-13",
     "damParity": 3,
     "damProduceCount": 5,
-    "damGapBeforeYears": 1
+    "damGapBeforeYears": 1,
+    "shareCount": 400
   },
   {
     "recruitYear": 2018,
@@ -2021,7 +2108,8 @@
     "birthDate": "2017-02-13",
     "damParity": 5,
     "damProduceCount": 13,
-    "damGapBeforeYears": 1
+    "damGapBeforeYears": 1,
+    "shareCount": 400
   },
   {
     "recruitYear": 2018,
@@ -2044,7 +2132,8 @@
     "birthDate": "2017-02-16",
     "damParity": 3,
     "damProduceCount": 10,
-    "damGapBeforeYears": 1
+    "damGapBeforeYears": 1,
+    "shareCount": 400
   },
   {
     "recruitYear": 2018,
@@ -2067,7 +2156,8 @@
     "birthDate": "2017-03-14",
     "damParity": 5,
     "damProduceCount": 11,
-    "damGapBeforeYears": 1
+    "damGapBeforeYears": 1,
+    "shareCount": 400
   },
   {
     "recruitYear": 2018,
@@ -2090,7 +2180,8 @@
     "birthDate": "2017-04-17",
     "damParity": 5,
     "damProduceCount": 12,
-    "damGapBeforeYears": 1
+    "damGapBeforeYears": 1,
+    "shareCount": 400
   },
   {
     "recruitYear": 2018,
@@ -2113,7 +2204,8 @@
     "birthDate": "2017-02-13",
     "damParity": 2,
     "damProduceCount": 9,
-    "damGapBeforeYears": 2
+    "damGapBeforeYears": 2,
+    "shareCount": 400
   },
   {
     "recruitYear": 2018,
@@ -2136,7 +2228,8 @@
     "birthDate": "2017-04-01",
     "damParity": 1,
     "damProduceCount": 7,
-    "damGapBeforeYears": null
+    "damGapBeforeYears": null,
+    "shareCount": null
   },
   {
     "recruitYear": 2018,
@@ -2159,7 +2252,8 @@
     "birthDate": "2017-03-04",
     "damParity": 9,
     "damProduceCount": 9,
-    "damGapBeforeYears": 1
+    "damGapBeforeYears": 1,
+    "shareCount": 400
   },
   {
     "recruitYear": 2018,
@@ -2182,7 +2276,8 @@
     "birthDate": "2017-03-14",
     "damParity": 1,
     "damProduceCount": 9,
-    "damGapBeforeYears": null
+    "damGapBeforeYears": null,
+    "shareCount": 400
   },
   {
     "recruitYear": 2018,
@@ -2205,7 +2300,8 @@
     "birthDate": "2017-03-19",
     "damParity": 1,
     "damProduceCount": 8,
-    "damGapBeforeYears": null
+    "damGapBeforeYears": null,
+    "shareCount": 400
   },
   {
     "recruitYear": 2018,
@@ -2228,7 +2324,8 @@
     "birthDate": "2017-03-31",
     "damParity": 1,
     "damProduceCount": 7,
-    "damGapBeforeYears": null
+    "damGapBeforeYears": null,
+    "shareCount": 400
   },
   {
     "recruitYear": 2018,
@@ -2251,7 +2348,8 @@
     "birthDate": "2017-03-25",
     "damParity": 11,
     "damProduceCount": 13,
-    "damGapBeforeYears": 1
+    "damGapBeforeYears": 1,
+    "shareCount": null
   },
   {
     "recruitYear": 2018,
@@ -2274,7 +2372,8 @@
     "birthDate": "2017-05-06",
     "damParity": 10,
     "damProduceCount": 14,
-    "damGapBeforeYears": 1
+    "damGapBeforeYears": 1,
+    "shareCount": 400
   },
   {
     "recruitYear": 2018,
@@ -2297,7 +2396,8 @@
     "birthDate": "2017-03-07",
     "damParity": 4,
     "damProduceCount": 9,
-    "damGapBeforeYears": 1
+    "damGapBeforeYears": 1,
+    "shareCount": 400
   },
   {
     "recruitYear": 2018,
@@ -2320,7 +2420,8 @@
     "birthDate": "2017-04-05",
     "damParity": 6,
     "damProduceCount": 7,
-    "damGapBeforeYears": 1
+    "damGapBeforeYears": 1,
+    "shareCount": 400
   },
   {
     "recruitYear": 2018,
@@ -2343,7 +2444,8 @@
     "birthDate": "2017-02-22",
     "damParity": 3,
     "damProduceCount": 7,
-    "damGapBeforeYears": 2
+    "damGapBeforeYears": 2,
+    "shareCount": 400
   },
   {
     "recruitYear": 2018,
@@ -2366,7 +2468,8 @@
     "birthDate": "2017-05-02",
     "damParity": 6,
     "damProduceCount": 12,
-    "damGapBeforeYears": 1
+    "damGapBeforeYears": 1,
+    "shareCount": 400
   },
   {
     "recruitYear": 2018,
@@ -2389,7 +2492,8 @@
     "birthDate": "2017-02-09",
     "damParity": 2,
     "damProduceCount": 9,
-    "damGapBeforeYears": 1
+    "damGapBeforeYears": 1,
+    "shareCount": null
   },
   {
     "recruitYear": 2018,
@@ -2412,7 +2516,8 @@
     "birthDate": "2017-04-19",
     "damParity": 9,
     "damProduceCount": 10,
-    "damGapBeforeYears": 1
+    "damGapBeforeYears": 1,
+    "shareCount": 400
   },
   {
     "recruitYear": 2018,
@@ -2435,7 +2540,8 @@
     "birthDate": null,
     "damParity": null,
     "damProduceCount": null,
-    "damGapBeforeYears": null
+    "damGapBeforeYears": null,
+    "shareCount": null
   },
   {
     "recruitYear": 2018,
@@ -2458,7 +2564,8 @@
     "birthDate": "2017-04-17",
     "damParity": 7,
     "damProduceCount": 11,
-    "damGapBeforeYears": 1
+    "damGapBeforeYears": 1,
+    "shareCount": 400
   },
   {
     "recruitYear": 2018,
@@ -2481,7 +2588,8 @@
     "birthDate": "2017-02-12",
     "damParity": 4,
     "damProduceCount": 10,
-    "damGapBeforeYears": 3
+    "damGapBeforeYears": 3,
+    "shareCount": 400
   },
   {
     "recruitYear": 2018,
@@ -2504,7 +2612,8 @@
     "birthDate": "2017-04-29",
     "damParity": 8,
     "damProduceCount": 8,
-    "damGapBeforeYears": 2
+    "damGapBeforeYears": 2,
+    "shareCount": null
   },
   {
     "recruitYear": 2018,
@@ -2527,7 +2636,8 @@
     "birthDate": "2017-01-22",
     "damParity": 8,
     "damProduceCount": 9,
-    "damGapBeforeYears": 1
+    "damGapBeforeYears": 1,
+    "shareCount": 400
   },
   {
     "recruitYear": 2018,
@@ -2550,7 +2660,8 @@
     "birthDate": "2017-03-22",
     "damParity": 9,
     "damProduceCount": 13,
-    "damGapBeforeYears": 1
+    "damGapBeforeYears": 1,
+    "shareCount": 400
   },
   {
     "recruitYear": 2018,
@@ -2573,7 +2684,8 @@
     "birthDate": "2017-01-20",
     "damParity": 5,
     "damProduceCount": 11,
-    "damGapBeforeYears": 1
+    "damGapBeforeYears": 1,
+    "shareCount": 400
   },
   {
     "recruitYear": 2018,
@@ -2596,7 +2708,8 @@
     "birthDate": "2017-04-01",
     "damParity": 8,
     "damProduceCount": 9,
-    "damGapBeforeYears": 2
+    "damGapBeforeYears": 2,
+    "shareCount": 400
   },
   {
     "recruitYear": 2018,
@@ -2619,7 +2732,8 @@
     "birthDate": "2017-02-24",
     "damParity": 5,
     "damProduceCount": 10,
-    "damGapBeforeYears": 1
+    "damGapBeforeYears": 1,
+    "shareCount": 400
   },
   {
     "recruitYear": 2018,
@@ -2642,7 +2756,8 @@
     "birthDate": "2017-02-25",
     "damParity": 8,
     "damProduceCount": 12,
-    "damGapBeforeYears": 1
+    "damGapBeforeYears": 1,
+    "shareCount": 400
   },
   {
     "recruitYear": 2018,
@@ -2665,7 +2780,8 @@
     "birthDate": "2017-05-11",
     "damParity": 6,
     "damProduceCount": 13,
-    "damGapBeforeYears": 1
+    "damGapBeforeYears": 1,
+    "shareCount": 400
   },
   {
     "recruitYear": 2018,
@@ -2688,7 +2804,8 @@
     "birthDate": "2017-04-14",
     "damParity": 2,
     "damProduceCount": 8,
-    "damGapBeforeYears": 1
+    "damGapBeforeYears": 1,
+    "shareCount": null
   },
   {
     "recruitYear": 2018,
@@ -2711,7 +2828,8 @@
     "birthDate": "2017-03-07",
     "damParity": 9,
     "damProduceCount": 12,
-    "damGapBeforeYears": 1
+    "damGapBeforeYears": 1,
+    "shareCount": 400
   },
   {
     "recruitYear": 2018,
@@ -2734,7 +2852,8 @@
     "birthDate": "2017-03-16",
     "damParity": 1,
     "damProduceCount": 7,
-    "damGapBeforeYears": null
+    "damGapBeforeYears": null,
+    "shareCount": 400
   },
   {
     "recruitYear": 2018,
@@ -2757,7 +2876,8 @@
     "birthDate": "2017-03-08",
     "damParity": 5,
     "damProduceCount": 11,
-    "damGapBeforeYears": 1
+    "damGapBeforeYears": 1,
+    "shareCount": 400
   },
   {
     "recruitYear": 2018,
@@ -2780,7 +2900,8 @@
     "birthDate": "2017-04-18",
     "damParity": 7,
     "damProduceCount": 13,
-    "damGapBeforeYears": 1
+    "damGapBeforeYears": 1,
+    "shareCount": 400
   },
   {
     "recruitYear": 2018,
@@ -2803,7 +2924,8 @@
     "birthDate": "2017-04-10",
     "damParity": 7,
     "damProduceCount": 8,
-    "damGapBeforeYears": 1
+    "damGapBeforeYears": 1,
+    "shareCount": 400
   },
   {
     "recruitYear": 2018,
@@ -2826,7 +2948,8 @@
     "birthDate": "2017-02-12",
     "damParity": 4,
     "damProduceCount": 6,
-    "damGapBeforeYears": 2
+    "damGapBeforeYears": 2,
+    "shareCount": null
   },
   {
     "recruitYear": 2018,
@@ -2849,7 +2972,8 @@
     "birthDate": "2017-02-04",
     "damParity": 8,
     "damProduceCount": 12,
-    "damGapBeforeYears": 2
+    "damGapBeforeYears": 2,
+    "shareCount": 400
   },
   {
     "recruitYear": 2018,
@@ -2872,7 +2996,8 @@
     "birthDate": "2017-04-19",
     "damParity": 2,
     "damProduceCount": 2,
-    "damGapBeforeYears": 2
+    "damGapBeforeYears": 2,
+    "shareCount": 400
   },
   {
     "recruitYear": 2018,
@@ -2895,7 +3020,8 @@
     "birthDate": "2017-02-18",
     "damParity": 8,
     "damProduceCount": 9,
-    "damGapBeforeYears": 1
+    "damGapBeforeYears": 1,
+    "shareCount": 400
   },
   {
     "recruitYear": 2018,
@@ -2918,7 +3044,8 @@
     "birthDate": "2017-03-06",
     "damParity": 6,
     "damProduceCount": 9,
-    "damGapBeforeYears": 2
+    "damGapBeforeYears": 2,
+    "shareCount": 400
   },
   {
     "recruitYear": 2018,
@@ -2941,7 +3068,8 @@
     "birthDate": "2017-01-28",
     "damParity": 8,
     "damProduceCount": 12,
-    "damGapBeforeYears": 2
+    "damGapBeforeYears": 2,
+    "shareCount": 400
   },
   {
     "recruitYear": 2018,
@@ -2964,7 +3092,8 @@
     "birthDate": "2017-04-21",
     "damParity": 9,
     "damProduceCount": 13,
-    "damGapBeforeYears": 2
+    "damGapBeforeYears": 2,
+    "shareCount": 400
   },
   {
     "recruitYear": 2018,
@@ -2987,7 +3116,8 @@
     "birthDate": "2017-05-12",
     "damParity": 2,
     "damProduceCount": 8,
-    "damGapBeforeYears": 1
+    "damGapBeforeYears": 1,
+    "shareCount": null
   },
   {
     "recruitYear": 2018,
@@ -3010,7 +3140,8 @@
     "birthDate": "2017-05-24",
     "damParity": 2,
     "damProduceCount": 4,
-    "damGapBeforeYears": 1
+    "damGapBeforeYears": 1,
+    "shareCount": 400
   },
   {
     "recruitYear": 2018,
@@ -3033,7 +3164,8 @@
     "birthDate": "2017-02-03",
     "damParity": 5,
     "damProduceCount": 11,
-    "damGapBeforeYears": 1
+    "damGapBeforeYears": 1,
+    "shareCount": null
   },
   {
     "recruitYear": 2018,
@@ -3056,7 +3188,8 @@
     "birthDate": "2017-03-27",
     "damParity": 6,
     "damProduceCount": 9,
-    "damGapBeforeYears": 3
+    "damGapBeforeYears": 3,
+    "shareCount": 400
   },
   {
     "recruitYear": 2018,
@@ -3079,7 +3212,8 @@
     "birthDate": "2017-05-01",
     "damParity": 10,
     "damProduceCount": 12,
-    "damGapBeforeYears": 1
+    "damGapBeforeYears": 1,
+    "shareCount": 400
   },
   {
     "recruitYear": 2018,
@@ -3102,7 +3236,8 @@
     "birthDate": "2017-02-07",
     "damParity": 1,
     "damProduceCount": 5,
-    "damGapBeforeYears": null
+    "damGapBeforeYears": null,
+    "shareCount": null
   },
   {
     "recruitYear": 2018,
@@ -3125,7 +3260,8 @@
     "birthDate": "2017-03-31",
     "damParity": 2,
     "damProduceCount": 9,
-    "damGapBeforeYears": 1
+    "damGapBeforeYears": 1,
+    "shareCount": null
   },
   {
     "recruitYear": 2018,
@@ -3148,7 +3284,8 @@
     "birthDate": "2017-01-28",
     "damParity": 6,
     "damProduceCount": 13,
-    "damGapBeforeYears": 1
+    "damGapBeforeYears": 1,
+    "shareCount": 400
   },
   {
     "recruitYear": 2018,
@@ -3171,7 +3308,8 @@
     "birthDate": "2017-02-24",
     "damParity": 3,
     "damProduceCount": 9,
-    "damGapBeforeYears": 1
+    "damGapBeforeYears": 1,
+    "shareCount": 400
   },
   {
     "recruitYear": 2018,
@@ -3194,7 +3332,8 @@
     "birthDate": "2017-05-09",
     "damParity": 2,
     "damProduceCount": 9,
-    "damGapBeforeYears": 1
+    "damGapBeforeYears": 1,
+    "shareCount": 400
   },
   {
     "recruitYear": 2018,
@@ -3217,7 +3356,8 @@
     "birthDate": "2017-01-22",
     "damParity": 1,
     "damProduceCount": 7,
-    "damGapBeforeYears": null
+    "damGapBeforeYears": null,
+    "shareCount": null
   },
   {
     "recruitYear": 2018,
@@ -3240,7 +3380,8 @@
     "birthDate": "2017-03-09",
     "damParity": 7,
     "damProduceCount": 8,
-    "damGapBeforeYears": 1
+    "damGapBeforeYears": 1,
+    "shareCount": null
   },
   {
     "recruitYear": 2018,
@@ -3263,7 +3404,8 @@
     "birthDate": "2017-04-09",
     "damParity": 10,
     "damProduceCount": 11,
-    "damGapBeforeYears": 1
+    "damGapBeforeYears": 1,
+    "shareCount": null
   },
   {
     "recruitYear": 2018,
@@ -3286,7 +3428,8 @@
     "birthDate": "2017-02-15",
     "damParity": 2,
     "damProduceCount": 6,
-    "damGapBeforeYears": 1
+    "damGapBeforeYears": 1,
+    "shareCount": 400
   },
   {
     "recruitYear": 2018,
@@ -3309,7 +3452,8 @@
     "birthDate": "2017-05-04",
     "damParity": 7,
     "damProduceCount": 11,
-    "damGapBeforeYears": 1
+    "damGapBeforeYears": 1,
+    "shareCount": 400
   },
   {
     "recruitYear": 2018,
@@ -3332,7 +3476,8 @@
     "birthDate": "2017-01-19",
     "damParity": 3,
     "damProduceCount": 9,
-    "damGapBeforeYears": 1
+    "damGapBeforeYears": 1,
+    "shareCount": 400
   },
   {
     "recruitYear": 2018,
@@ -3355,7 +3500,8 @@
     "birthDate": "2017-02-15",
     "damParity": 1,
     "damProduceCount": 6,
-    "damGapBeforeYears": null
+    "damGapBeforeYears": null,
+    "shareCount": 400
   },
   {
     "recruitYear": 2018,
@@ -3378,7 +3524,8 @@
     "birthDate": "2017-03-24",
     "damParity": 1,
     "damProduceCount": 3,
-    "damGapBeforeYears": null
+    "damGapBeforeYears": null,
+    "shareCount": 400
   },
   {
     "recruitYear": 2018,
@@ -3401,7 +3548,8 @@
     "birthDate": "2017-01-30",
     "damParity": 6,
     "damProduceCount": 12,
-    "damGapBeforeYears": 1
+    "damGapBeforeYears": 1,
+    "shareCount": null
   },
   {
     "recruitYear": 2018,
@@ -3424,7 +3572,8 @@
     "birthDate": "2017-04-19",
     "damParity": 4,
     "damProduceCount": 4,
-    "damGapBeforeYears": 1
+    "damGapBeforeYears": 1,
+    "shareCount": 400
   },
   {
     "recruitYear": 2018,
@@ -3447,7 +3596,8 @@
     "birthDate": "2017-03-05",
     "damParity": 2,
     "damProduceCount": 8,
-    "damGapBeforeYears": 1
+    "damGapBeforeYears": 1,
+    "shareCount": 400
   },
   {
     "recruitYear": 2018,
@@ -3470,7 +3620,8 @@
     "birthDate": "2017-05-14",
     "damParity": 6,
     "damProduceCount": 9,
-    "damGapBeforeYears": 1
+    "damGapBeforeYears": 1,
+    "shareCount": 400
   },
   {
     "recruitYear": 2018,
@@ -3493,7 +3644,8 @@
     "birthDate": "2017-03-15",
     "damParity": 2,
     "damProduceCount": 8,
-    "damGapBeforeYears": 1
+    "damGapBeforeYears": 1,
+    "shareCount": 400
   },
   {
     "recruitYear": 2018,
@@ -3516,7 +3668,8 @@
     "birthDate": "2017-02-05",
     "damParity": 3,
     "damProduceCount": 11,
-    "damGapBeforeYears": 1
+    "damGapBeforeYears": 1,
+    "shareCount": null
   },
   {
     "recruitYear": 2018,
@@ -3539,7 +3692,8 @@
     "birthDate": "2017-03-21",
     "damParity": 6,
     "damProduceCount": 10,
-    "damGapBeforeYears": 1
+    "damGapBeforeYears": 1,
+    "shareCount": 400
   },
   {
     "recruitYear": 2018,
@@ -3562,7 +3716,8 @@
     "birthDate": "2017-02-01",
     "damParity": 8,
     "damProduceCount": 10,
-    "damGapBeforeYears": 1
+    "damGapBeforeYears": 1,
+    "shareCount": 400
   },
   {
     "recruitYear": 2018,
@@ -3585,7 +3740,8 @@
     "birthDate": "2017-01-19",
     "damParity": 6,
     "damProduceCount": 9,
-    "damGapBeforeYears": 1
+    "damGapBeforeYears": 1,
+    "shareCount": 400
   },
   {
     "recruitYear": 2018,
@@ -3608,7 +3764,8 @@
     "birthDate": "2017-02-28",
     "damParity": 3,
     "damProduceCount": 11,
-    "damGapBeforeYears": 1
+    "damGapBeforeYears": 1,
+    "shareCount": 400
   },
   {
     "recruitYear": 2018,
@@ -3631,7 +3788,8 @@
     "birthDate": "2017-03-06",
     "damParity": 1,
     "damProduceCount": 1,
-    "damGapBeforeYears": null
+    "damGapBeforeYears": null,
+    "shareCount": 400
   },
   {
     "recruitYear": 2018,
@@ -3654,7 +3812,8 @@
     "birthDate": "2017-02-06",
     "damParity": 6,
     "damProduceCount": 8,
-    "damGapBeforeYears": 1
+    "damGapBeforeYears": 1,
+    "shareCount": null
   },
   {
     "recruitYear": 2018,
@@ -3677,7 +3836,8 @@
     "birthDate": "2017-03-20",
     "damParity": 5,
     "damProduceCount": 11,
-    "damGapBeforeYears": 1
+    "damGapBeforeYears": 1,
+    "shareCount": 400
   },
   {
     "recruitYear": 2018,
@@ -3700,7 +3860,8 @@
     "birthDate": "2017-02-02",
     "damParity": 1,
     "damProduceCount": 1,
-    "damGapBeforeYears": null
+    "damGapBeforeYears": null,
+    "shareCount": 400
   },
   {
     "recruitYear": 2018,
@@ -3723,7 +3884,8 @@
     "birthDate": "2017-02-13",
     "damParity": 1,
     "damProduceCount": 9,
-    "damGapBeforeYears": null
+    "damGapBeforeYears": null,
+    "shareCount": 400
   },
   {
     "recruitYear": 2018,
@@ -3746,7 +3908,8 @@
     "birthDate": "2017-02-02",
     "damParity": 3,
     "damProduceCount": 7,
-    "damGapBeforeYears": 1
+    "damGapBeforeYears": 1,
+    "shareCount": null
   },
   {
     "recruitYear": 2018,
@@ -3769,7 +3932,8 @@
     "birthDate": "2017-04-01",
     "damParity": 1,
     "damProduceCount": 5,
-    "damGapBeforeYears": null
+    "damGapBeforeYears": null,
+    "shareCount": 400
   },
   {
     "recruitYear": 2018,
@@ -3792,7 +3956,8 @@
     "birthDate": "2017-01-31",
     "damParity": 1,
     "damProduceCount": 6,
-    "damGapBeforeYears": null
+    "damGapBeforeYears": null,
+    "shareCount": 400
   },
   {
     "recruitYear": 2018,
@@ -3815,7 +3980,8 @@
     "birthDate": "2017-03-11",
     "damParity": 3,
     "damProduceCount": 6,
-    "damGapBeforeYears": 2
+    "damGapBeforeYears": 2,
+    "shareCount": 100
   },
   {
     "recruitYear": 2018,
@@ -3838,7 +4004,8 @@
     "birthDate": "2017-04-13",
     "damParity": 5,
     "damProduceCount": 9,
-    "damGapBeforeYears": 2
+    "damGapBeforeYears": 2,
+    "shareCount": null
   },
   {
     "recruitYear": 2018,
@@ -3861,7 +4028,8 @@
     "birthDate": "2017-02-24",
     "damParity": 1,
     "damProduceCount": 8,
-    "damGapBeforeYears": null
+    "damGapBeforeYears": null,
+    "shareCount": null
   },
   {
     "recruitYear": 2018,
@@ -3884,7 +4052,8 @@
     "birthDate": "2017-03-18",
     "damParity": 7,
     "damProduceCount": 13,
-    "damGapBeforeYears": 1
+    "damGapBeforeYears": 1,
+    "shareCount": 100
   },
   {
     "recruitYear": 2019,
@@ -3907,7 +4076,8 @@
     "birthDate": "2018-03-21",
     "damParity": 7,
     "damProduceCount": 9,
-    "damGapBeforeYears": 1
+    "damGapBeforeYears": 1,
+    "shareCount": null
   },
   {
     "recruitYear": 2019,
@@ -3930,7 +4100,8 @@
     "birthDate": "2018-05-20",
     "damParity": 9,
     "damProduceCount": 11,
-    "damGapBeforeYears": 2
+    "damGapBeforeYears": 2,
+    "shareCount": 400
   },
   {
     "recruitYear": 2019,
@@ -3953,7 +4124,8 @@
     "birthDate": "2018-02-05",
     "damParity": 6,
     "damProduceCount": 11,
-    "damGapBeforeYears": 1
+    "damGapBeforeYears": 1,
+    "shareCount": 400
   },
   {
     "recruitYear": 2019,
@@ -3976,7 +4148,8 @@
     "birthDate": "2018-02-23",
     "damParity": 4,
     "damProduceCount": 9,
-    "damGapBeforeYears": 1
+    "damGapBeforeYears": 1,
+    "shareCount": 400
   },
   {
     "recruitYear": 2019,
@@ -3999,7 +4172,8 @@
     "birthDate": "2018-03-16",
     "damParity": 2,
     "damProduceCount": 7,
-    "damGapBeforeYears": 1
+    "damGapBeforeYears": 1,
+    "shareCount": 400
   },
   {
     "recruitYear": 2019,
@@ -4022,7 +4196,8 @@
     "birthDate": "2018-03-31",
     "damParity": 2,
     "damProduceCount": 7,
-    "damGapBeforeYears": 1
+    "damGapBeforeYears": 1,
+    "shareCount": 400
   },
   {
     "recruitYear": 2019,
@@ -4045,7 +4220,8 @@
     "birthDate": null,
     "damParity": null,
     "damProduceCount": null,
-    "damGapBeforeYears": null
+    "damGapBeforeYears": null,
+    "shareCount": null
   },
   {
     "recruitYear": 2019,
@@ -4068,7 +4244,8 @@
     "birthDate": "2018-03-11",
     "damParity": 10,
     "damProduceCount": 12,
-    "damGapBeforeYears": 1
+    "damGapBeforeYears": 1,
+    "shareCount": null
   },
   {
     "recruitYear": 2019,
@@ -4091,7 +4268,8 @@
     "birthDate": "2018-04-25",
     "damParity": 5,
     "damProduceCount": 11,
-    "damGapBeforeYears": 1
+    "damGapBeforeYears": 1,
+    "shareCount": 400
   },
   {
     "recruitYear": 2019,
@@ -4114,7 +4292,8 @@
     "birthDate": "2018-02-09",
     "damParity": 1,
     "damProduceCount": 8,
-    "damGapBeforeYears": null
+    "damGapBeforeYears": null,
+    "shareCount": 400
   },
   {
     "recruitYear": 2019,
@@ -4137,7 +4316,8 @@
     "birthDate": "2018-04-11",
     "damParity": 2,
     "damProduceCount": 8,
-    "damGapBeforeYears": 1
+    "damGapBeforeYears": 1,
+    "shareCount": 400
   },
   {
     "recruitYear": 2019,
@@ -4160,7 +4340,8 @@
     "birthDate": "2018-04-10",
     "damParity": 11,
     "damProduceCount": 11,
-    "damGapBeforeYears": 1
+    "damGapBeforeYears": 1,
+    "shareCount": null
   },
   {
     "recruitYear": 2019,
@@ -4183,7 +4364,8 @@
     "birthDate": "2018-04-15",
     "damParity": 4,
     "damProduceCount": 8,
-    "damGapBeforeYears": 1
+    "damGapBeforeYears": 1,
+    "shareCount": 400
   },
   {
     "recruitYear": 2019,
@@ -4206,7 +4388,8 @@
     "birthDate": "2018-01-19",
     "damParity": 1,
     "damProduceCount": 6,
-    "damGapBeforeYears": null
+    "damGapBeforeYears": null,
+    "shareCount": 400
   },
   {
     "recruitYear": 2019,
@@ -4229,7 +4412,8 @@
     "birthDate": "2018-03-10",
     "damParity": 2,
     "damProduceCount": 8,
-    "damGapBeforeYears": 2
+    "damGapBeforeYears": 2,
+    "shareCount": 400
   },
   {
     "recruitYear": 2019,
@@ -4252,7 +4436,8 @@
     "birthDate": "2018-03-29",
     "damParity": 3,
     "damProduceCount": 9,
-    "damGapBeforeYears": 1
+    "damGapBeforeYears": 1,
+    "shareCount": null
   },
   {
     "recruitYear": 2019,
@@ -4275,7 +4460,8 @@
     "birthDate": "2018-05-16",
     "damParity": 2,
     "damProduceCount": 4,
-    "damGapBeforeYears": 1
+    "damGapBeforeYears": 1,
+    "shareCount": 400
   },
   {
     "recruitYear": 2019,
@@ -4298,7 +4484,8 @@
     "birthDate": "2018-01-29",
     "damParity": 2,
     "damProduceCount": 6,
-    "damGapBeforeYears": 1
+    "damGapBeforeYears": 1,
+    "shareCount": 400
   },
   {
     "recruitYear": 2019,
@@ -4321,7 +4508,8 @@
     "birthDate": "2018-03-23",
     "damParity": 6,
     "damProduceCount": 7,
-    "damGapBeforeYears": 1
+    "damGapBeforeYears": 1,
+    "shareCount": 400
   },
   {
     "recruitYear": 2019,
@@ -4344,7 +4532,8 @@
     "birthDate": "2018-01-28",
     "damParity": 6,
     "damProduceCount": 13,
-    "damGapBeforeYears": 1
+    "damGapBeforeYears": 1,
+    "shareCount": 400
   },
   {
     "recruitYear": 2019,
@@ -4367,7 +4556,8 @@
     "birthDate": "2018-01-23",
     "damParity": 3,
     "damProduceCount": 8,
-    "damGapBeforeYears": 1
+    "damGapBeforeYears": 1,
+    "shareCount": null
   },
   {
     "recruitYear": 2019,
@@ -4390,7 +4580,8 @@
     "birthDate": "2018-04-08",
     "damParity": 8,
     "damProduceCount": 12,
-    "damGapBeforeYears": 2
+    "damGapBeforeYears": 2,
+    "shareCount": 400
   },
   {
     "recruitYear": 2019,
@@ -4413,7 +4604,8 @@
     "birthDate": "2018-02-08",
     "damParity": 4,
     "damProduceCount": 11,
-    "damGapBeforeYears": 1
+    "damGapBeforeYears": 1,
+    "shareCount": null
   },
   {
     "recruitYear": 2019,
@@ -4436,7 +4628,8 @@
     "birthDate": "2018-03-15",
     "damParity": 1,
     "damProduceCount": 8,
-    "damGapBeforeYears": null
+    "damGapBeforeYears": null,
+    "shareCount": null
   },
   {
     "recruitYear": 2019,
@@ -4459,7 +4652,8 @@
     "birthDate": "2018-04-29",
     "damParity": 2,
     "damProduceCount": 7,
-    "damGapBeforeYears": 1
+    "damGapBeforeYears": 1,
+    "shareCount": null
   },
   {
     "recruitYear": 2019,
@@ -4482,7 +4676,8 @@
     "birthDate": "2018-03-07",
     "damParity": 6,
     "damProduceCount": 10,
-    "damGapBeforeYears": 1
+    "damGapBeforeYears": 1,
+    "shareCount": 400
   },
   {
     "recruitYear": 2019,
@@ -4505,7 +4700,8 @@
     "birthDate": "2018-06-08",
     "damParity": 9,
     "damProduceCount": 12,
-    "damGapBeforeYears": 2
+    "damGapBeforeYears": 2,
+    "shareCount": null
   },
   {
     "recruitYear": 2019,
@@ -4528,7 +4724,8 @@
     "birthDate": "2018-04-17",
     "damParity": 8,
     "damProduceCount": 11,
-    "damGapBeforeYears": 1
+    "damGapBeforeYears": 1,
+    "shareCount": null
   },
   {
     "recruitYear": 2019,
@@ -4551,7 +4748,8 @@
     "birthDate": "2018-03-22",
     "damParity": 9,
     "damProduceCount": 9,
-    "damGapBeforeYears": 1
+    "damGapBeforeYears": 1,
+    "shareCount": 400
   },
   {
     "recruitYear": 2019,
@@ -4574,7 +4772,8 @@
     "birthDate": "2018-02-22",
     "damParity": 1,
     "damProduceCount": 5,
-    "damGapBeforeYears": null
+    "damGapBeforeYears": null,
+    "shareCount": 400
   },
   {
     "recruitYear": 2019,
@@ -4597,7 +4796,8 @@
     "birthDate": "2018-02-09",
     "damParity": 5,
     "damProduceCount": 12,
-    "damGapBeforeYears": 1
+    "damGapBeforeYears": 1,
+    "shareCount": 400
   },
   {
     "recruitYear": 2019,
@@ -4620,7 +4820,8 @@
     "birthDate": "2018-01-31",
     "damParity": 1,
     "damProduceCount": 5,
-    "damGapBeforeYears": null
+    "damGapBeforeYears": null,
+    "shareCount": 400
   },
   {
     "recruitYear": 2019,
@@ -4643,7 +4844,8 @@
     "birthDate": "2018-02-19",
     "damParity": 2,
     "damProduceCount": 5,
-    "damGapBeforeYears": 1
+    "damGapBeforeYears": 1,
+    "shareCount": null
   },
   {
     "recruitYear": 2019,
@@ -4666,7 +4868,8 @@
     "birthDate": "2018-05-21",
     "damParity": 3,
     "damProduceCount": 4,
-    "damGapBeforeYears": 1
+    "damGapBeforeYears": 1,
+    "shareCount": 400
   },
   {
     "recruitYear": 2019,
@@ -4689,7 +4892,8 @@
     "birthDate": "2018-03-23",
     "damParity": 4,
     "damProduceCount": 8,
-    "damGapBeforeYears": 1
+    "damGapBeforeYears": 1,
+    "shareCount": null
   },
   {
     "recruitYear": 2019,
@@ -4712,7 +4916,8 @@
     "birthDate": "2018-05-08",
     "damParity": 7,
     "damProduceCount": 13,
-    "damGapBeforeYears": 1
+    "damGapBeforeYears": 1,
+    "shareCount": null
   },
   {
     "recruitYear": 2019,
@@ -4735,7 +4940,8 @@
     "birthDate": "2018-02-17",
     "damParity": 9,
     "damProduceCount": 13,
-    "damGapBeforeYears": 1
+    "damGapBeforeYears": 1,
+    "shareCount": 400
   },
   {
     "recruitYear": 2019,
@@ -4758,7 +4964,8 @@
     "birthDate": "2018-02-14",
     "damParity": 2,
     "damProduceCount": 8,
-    "damGapBeforeYears": 2
+    "damGapBeforeYears": 2,
+    "shareCount": 400
   },
   {
     "recruitYear": 2019,
@@ -4781,7 +4988,8 @@
     "birthDate": "2018-04-08",
     "damParity": 7,
     "damProduceCount": 11,
-    "damGapBeforeYears": 1
+    "damGapBeforeYears": 1,
+    "shareCount": 400
   },
   {
     "recruitYear": 2019,
@@ -4804,7 +5012,8 @@
     "birthDate": "2018-05-03",
     "damParity": 7,
     "damProduceCount": 9,
-    "damGapBeforeYears": 1
+    "damGapBeforeYears": 1,
+    "shareCount": null
   },
   {
     "recruitYear": 2019,
@@ -4827,7 +5036,8 @@
     "birthDate": "2018-03-29",
     "damParity": 1,
     "damProduceCount": 8,
-    "damGapBeforeYears": null
+    "damGapBeforeYears": null,
+    "shareCount": 400
   },
   {
     "recruitYear": 2019,
@@ -4850,7 +5060,8 @@
     "birthDate": "2018-04-10",
     "damParity": 6,
     "damProduceCount": 12,
-    "damGapBeforeYears": 1
+    "damGapBeforeYears": 1,
+    "shareCount": null
   },
   {
     "recruitYear": 2019,
@@ -4873,7 +5084,8 @@
     "birthDate": "2018-05-04",
     "damParity": 11,
     "damProduceCount": 14,
-    "damGapBeforeYears": 2
+    "damGapBeforeYears": 2,
+    "shareCount": 400
   },
   {
     "recruitYear": 2019,
@@ -4896,7 +5108,8 @@
     "birthDate": "2018-01-18",
     "damParity": 5,
     "damProduceCount": 10,
-    "damGapBeforeYears": 1
+    "damGapBeforeYears": 1,
+    "shareCount": 400
   },
   {
     "recruitYear": 2019,
@@ -4919,7 +5132,8 @@
     "birthDate": "2018-03-09",
     "damParity": 3,
     "damProduceCount": 6,
-    "damGapBeforeYears": 2
+    "damGapBeforeYears": 2,
+    "shareCount": 400
   },
   {
     "recruitYear": 2019,
@@ -4942,7 +5156,8 @@
     "birthDate": "2018-04-12",
     "damParity": 6,
     "damProduceCount": 11,
-    "damGapBeforeYears": 1
+    "damGapBeforeYears": 1,
+    "shareCount": 400
   },
   {
     "recruitYear": 2019,
@@ -4965,7 +5180,8 @@
     "birthDate": "2018-03-03",
     "damParity": 4,
     "damProduceCount": 9,
-    "damGapBeforeYears": 1
+    "damGapBeforeYears": 1,
+    "shareCount": 400
   },
   {
     "recruitYear": 2019,
@@ -4988,7 +5204,8 @@
     "birthDate": "2018-01-17",
     "damParity": 7,
     "damProduceCount": 13,
-    "damGapBeforeYears": 1
+    "damGapBeforeYears": 1,
+    "shareCount": null
   },
   {
     "recruitYear": 2019,
@@ -5011,7 +5228,8 @@
     "birthDate": "2018-03-02",
     "damParity": 6,
     "damProduceCount": 11,
-    "damGapBeforeYears": 1
+    "damGapBeforeYears": 1,
+    "shareCount": 400
   },
   {
     "recruitYear": 2019,
@@ -5034,7 +5252,8 @@
     "birthDate": "2018-04-22",
     "damParity": 9,
     "damProduceCount": 13,
-    "damGapBeforeYears": 1
+    "damGapBeforeYears": 1,
+    "shareCount": 400
   },
   {
     "recruitYear": 2019,
@@ -5057,7 +5276,8 @@
     "birthDate": "2018-02-07",
     "damParity": 4,
     "damProduceCount": 9,
-    "damGapBeforeYears": 2
+    "damGapBeforeYears": 2,
+    "shareCount": 400
   },
   {
     "recruitYear": 2019,
@@ -5080,7 +5300,8 @@
     "birthDate": "2018-04-28",
     "damParity": 7,
     "damProduceCount": 12,
-    "damGapBeforeYears": 1
+    "damGapBeforeYears": 1,
+    "shareCount": 400
   },
   {
     "recruitYear": 2019,
@@ -5103,7 +5324,8 @@
     "birthDate": "2018-05-02",
     "damParity": 3,
     "damProduceCount": 8,
-    "damGapBeforeYears": 1
+    "damGapBeforeYears": 1,
+    "shareCount": 400
   },
   {
     "recruitYear": 2019,
@@ -5126,7 +5348,8 @@
     "birthDate": "2018-01-21",
     "damParity": 2,
     "damProduceCount": 8,
-    "damGapBeforeYears": 1
+    "damGapBeforeYears": 1,
+    "shareCount": null
   },
   {
     "recruitYear": 2019,
@@ -5149,7 +5372,8 @@
     "birthDate": "2018-01-27",
     "damParity": 3,
     "damProduceCount": 9,
-    "damGapBeforeYears": 1
+    "damGapBeforeYears": 1,
+    "shareCount": 400
   },
   {
     "recruitYear": 2019,
@@ -5172,7 +5396,8 @@
     "birthDate": "2018-02-01",
     "damParity": 6,
     "damProduceCount": 12,
-    "damGapBeforeYears": 1
+    "damGapBeforeYears": 1,
+    "shareCount": null
   },
   {
     "recruitYear": 2019,
@@ -5195,7 +5420,8 @@
     "birthDate": "2018-04-23",
     "damParity": 1,
     "damProduceCount": 5,
-    "damGapBeforeYears": null
+    "damGapBeforeYears": null,
+    "shareCount": 400
   },
   {
     "recruitYear": 2019,
@@ -5218,7 +5444,8 @@
     "birthDate": "2018-02-28",
     "damParity": 1,
     "damProduceCount": 7,
-    "damGapBeforeYears": null
+    "damGapBeforeYears": null,
+    "shareCount": 400
   },
   {
     "recruitYear": 2019,
@@ -5241,7 +5468,8 @@
     "birthDate": "2018-03-19",
     "damParity": 8,
     "damProduceCount": 10,
-    "damGapBeforeYears": 1
+    "damGapBeforeYears": 1,
+    "shareCount": 400
   },
   {
     "recruitYear": 2019,
@@ -5264,7 +5492,8 @@
     "birthDate": "2018-02-16",
     "damParity": 2,
     "damProduceCount": 5,
-    "damGapBeforeYears": 1
+    "damGapBeforeYears": 1,
+    "shareCount": 400
   },
   {
     "recruitYear": 2019,
@@ -5287,7 +5516,8 @@
     "birthDate": "2018-01-21",
     "damParity": 1,
     "damProduceCount": 7,
-    "damGapBeforeYears": null
+    "damGapBeforeYears": null,
+    "shareCount": 400
   },
   {
     "recruitYear": 2019,
@@ -5310,7 +5540,8 @@
     "birthDate": "2018-01-24",
     "damParity": 2,
     "damProduceCount": 9,
-    "damGapBeforeYears": 1
+    "damGapBeforeYears": 1,
+    "shareCount": 400
   },
   {
     "recruitYear": 2019,
@@ -5333,7 +5564,8 @@
     "birthDate": "2018-04-28",
     "damParity": 11,
     "damProduceCount": 12,
-    "damGapBeforeYears": 1
+    "damGapBeforeYears": 1,
+    "shareCount": 400
   },
   {
     "recruitYear": 2019,
@@ -5356,7 +5588,8 @@
     "birthDate": "2018-02-06",
     "damParity": 1,
     "damProduceCount": 8,
-    "damGapBeforeYears": null
+    "damGapBeforeYears": null,
+    "shareCount": 400
   },
   {
     "recruitYear": 2019,
@@ -5379,7 +5612,8 @@
     "birthDate": "2018-03-26",
     "damParity": 6,
     "damProduceCount": 11,
-    "damGapBeforeYears": 1
+    "damGapBeforeYears": 1,
+    "shareCount": 400
   },
   {
     "recruitYear": 2019,
@@ -5402,7 +5636,8 @@
     "birthDate": "2018-01-29",
     "damParity": 9,
     "damProduceCount": 10,
-    "damGapBeforeYears": 1
+    "damGapBeforeYears": 1,
+    "shareCount": null
   },
   {
     "recruitYear": 2019,
@@ -5425,7 +5660,8 @@
     "birthDate": "2018-02-09",
     "damParity": 3,
     "damProduceCount": 9,
-    "damGapBeforeYears": 2
+    "damGapBeforeYears": 2,
+    "shareCount": null
   },
   {
     "recruitYear": 2019,
@@ -5448,7 +5684,8 @@
     "birthDate": "2018-05-06",
     "damParity": 8,
     "damProduceCount": 8,
-    "damGapBeforeYears": 2
+    "damGapBeforeYears": 2,
+    "shareCount": 400
   },
   {
     "recruitYear": 2019,
@@ -5471,7 +5708,8 @@
     "birthDate": "2018-03-14",
     "damParity": 2,
     "damProduceCount": 3,
-    "damGapBeforeYears": 1
+    "damGapBeforeYears": 1,
+    "shareCount": null
   },
   {
     "recruitYear": 2019,
@@ -5494,7 +5732,8 @@
     "birthDate": "2018-03-31",
     "damParity": 6,
     "damProduceCount": 10,
-    "damGapBeforeYears": 1
+    "damGapBeforeYears": 1,
+    "shareCount": 400
   },
   {
     "recruitYear": 2019,
@@ -5517,7 +5756,8 @@
     "birthDate": "2018-03-25",
     "damParity": 2,
     "damProduceCount": 5,
-    "damGapBeforeYears": 1
+    "damGapBeforeYears": 1,
+    "shareCount": 400
   },
   {
     "recruitYear": 2019,
@@ -5540,7 +5780,8 @@
     "birthDate": "2018-04-04",
     "damParity": 2,
     "damProduceCount": 8,
-    "damGapBeforeYears": 1
+    "damGapBeforeYears": 1,
+    "shareCount": 400
   },
   {
     "recruitYear": 2019,
@@ -5563,7 +5804,8 @@
     "birthDate": "2018-04-14",
     "damParity": 3,
     "damProduceCount": 8,
-    "damGapBeforeYears": 1
+    "damGapBeforeYears": 1,
+    "shareCount": 400
   },
   {
     "recruitYear": 2019,
@@ -5586,7 +5828,8 @@
     "birthDate": "2018-02-18",
     "damParity": 5,
     "damProduceCount": 9,
-    "damGapBeforeYears": 1
+    "damGapBeforeYears": 1,
+    "shareCount": 400
   },
   {
     "recruitYear": 2019,
@@ -5609,7 +5852,8 @@
     "birthDate": "2018-05-16",
     "damParity": 1,
     "damProduceCount": 7,
-    "damGapBeforeYears": null
+    "damGapBeforeYears": null,
+    "shareCount": 400
   },
   {
     "recruitYear": 2019,
@@ -5632,7 +5876,8 @@
     "birthDate": "2018-05-03",
     "damParity": 4,
     "damProduceCount": 8,
-    "damGapBeforeYears": 1
+    "damGapBeforeYears": 1,
+    "shareCount": null
   },
   {
     "recruitYear": 2019,
@@ -5655,7 +5900,8 @@
     "birthDate": "2018-02-22",
     "damParity": 4,
     "damProduceCount": 8,
-    "damGapBeforeYears": 3
+    "damGapBeforeYears": 3,
+    "shareCount": 400
   },
   {
     "recruitYear": 2019,
@@ -5678,7 +5924,8 @@
     "birthDate": "2018-02-06",
     "damParity": 2,
     "damProduceCount": 9,
-    "damGapBeforeYears": 1
+    "damGapBeforeYears": 1,
+    "shareCount": null
   },
   {
     "recruitYear": 2019,
@@ -5701,7 +5948,8 @@
     "birthDate": "2018-04-07",
     "damParity": 6,
     "damProduceCount": 11,
-    "damGapBeforeYears": 1
+    "damGapBeforeYears": 1,
+    "shareCount": null
   },
   {
     "recruitYear": 2019,
@@ -5724,7 +5972,8 @@
     "birthDate": "2018-03-06",
     "damParity": 7,
     "damProduceCount": 8,
-    "damGapBeforeYears": 1
+    "damGapBeforeYears": 1,
+    "shareCount": 400
   },
   {
     "recruitYear": 2019,
@@ -5747,7 +5996,8 @@
     "birthDate": "2018-05-19",
     "damParity": 11,
     "damProduceCount": 12,
-    "damGapBeforeYears": 1
+    "damGapBeforeYears": 1,
+    "shareCount": 400
   },
   {
     "recruitYear": 2019,
@@ -5770,7 +6020,8 @@
     "birthDate": "2018-04-11",
     "damParity": 4,
     "damProduceCount": 7,
-    "damGapBeforeYears": 1
+    "damGapBeforeYears": 1,
+    "shareCount": null
   },
   {
     "recruitYear": 2019,
@@ -5793,7 +6044,8 @@
     "birthDate": "2018-02-06",
     "damParity": 1,
     "damProduceCount": 7,
-    "damGapBeforeYears": null
+    "damGapBeforeYears": null,
+    "shareCount": 400
   },
   {
     "recruitYear": 2019,
@@ -5816,7 +6068,8 @@
     "birthDate": "2018-04-06",
     "damParity": 12,
     "damProduceCount": 12,
-    "damGapBeforeYears": 1
+    "damGapBeforeYears": 1,
+    "shareCount": 100
   },
   {
     "recruitYear": 2019,
@@ -5839,7 +6092,8 @@
     "birthDate": "2018-04-04",
     "damParity": 15,
     "damProduceCount": 15,
-    "damGapBeforeYears": 1
+    "damGapBeforeYears": 1,
+    "shareCount": 100
   },
   {
     "recruitYear": 2019,
@@ -5862,7 +6116,8 @@
     "birthDate": "2018-05-05",
     "damParity": 9,
     "damProduceCount": 12,
-    "damGapBeforeYears": 1
+    "damGapBeforeYears": 1,
+    "shareCount": 100
   },
   {
     "recruitYear": 2019,
@@ -5885,7 +6140,8 @@
     "birthDate": "2018-02-09",
     "damParity": 1,
     "damProduceCount": 7,
-    "damGapBeforeYears": null
+    "damGapBeforeYears": null,
+    "shareCount": 100
   },
   {
     "recruitYear": 2020,
@@ -5908,7 +6164,8 @@
     "birthDate": "2019-02-10",
     "damParity": 1,
     "damProduceCount": 7,
-    "damGapBeforeYears": null
+    "damGapBeforeYears": null,
+    "shareCount": 400
   },
   {
     "recruitYear": 2020,
@@ -5931,7 +6188,8 @@
     "birthDate": "2019-02-27",
     "damParity": 7,
     "damProduceCount": 13,
-    "damGapBeforeYears": 1
+    "damGapBeforeYears": 1,
+    "shareCount": 400
   },
   {
     "recruitYear": 2020,
@@ -5954,7 +6212,8 @@
     "birthDate": "2019-05-27",
     "damParity": 2,
     "damProduceCount": 7,
-    "damGapBeforeYears": 1
+    "damGapBeforeYears": 1,
+    "shareCount": 400
   },
   {
     "recruitYear": 2020,
@@ -5977,7 +6236,8 @@
     "birthDate": "2019-05-09",
     "damParity": 2,
     "damProduceCount": 6,
-    "damGapBeforeYears": 1
+    "damGapBeforeYears": 1,
+    "shareCount": 400
   },
   {
     "recruitYear": 2020,
@@ -6000,7 +6260,8 @@
     "birthDate": "2019-01-27",
     "damParity": 5,
     "damProduceCount": 10,
-    "damGapBeforeYears": 1
+    "damGapBeforeYears": 1,
+    "shareCount": 400
   },
   {
     "recruitYear": 2020,
@@ -6023,7 +6284,8 @@
     "birthDate": "2019-04-09",
     "damParity": 2,
     "damProduceCount": 4,
-    "damGapBeforeYears": 3
+    "damGapBeforeYears": 3,
+    "shareCount": 400
   },
   {
     "recruitYear": 2020,
@@ -6046,7 +6308,8 @@
     "birthDate": "2019-03-07",
     "damParity": 1,
     "damProduceCount": 5,
-    "damGapBeforeYears": null
+    "damGapBeforeYears": null,
+    "shareCount": 400
   },
   {
     "recruitYear": 2020,
@@ -6069,7 +6332,8 @@
     "birthDate": "2019-05-06",
     "damParity": 5,
     "damProduceCount": 7,
-    "damGapBeforeYears": 1
+    "damGapBeforeYears": 1,
+    "shareCount": 400
   },
   {
     "recruitYear": 2020,
@@ -6092,7 +6356,8 @@
     "birthDate": "2019-02-05",
     "damParity": 1,
     "damProduceCount": 4,
-    "damGapBeforeYears": null
+    "damGapBeforeYears": null,
+    "shareCount": 400
   },
   {
     "recruitYear": 2020,
@@ -6115,7 +6380,8 @@
     "birthDate": "2019-05-16",
     "damParity": 8,
     "damProduceCount": 9,
-    "damGapBeforeYears": 1
+    "damGapBeforeYears": 1,
+    "shareCount": 400
   },
   {
     "recruitYear": 2020,
@@ -6138,7 +6404,8 @@
     "birthDate": "2019-02-06",
     "damParity": 5,
     "damProduceCount": 11,
-    "damGapBeforeYears": 1
+    "damGapBeforeYears": 1,
+    "shareCount": 400
   },
   {
     "recruitYear": 2020,
@@ -6161,7 +6428,8 @@
     "birthDate": "2019-02-28",
     "damParity": 10,
     "damProduceCount": 12,
-    "damGapBeforeYears": 1
+    "damGapBeforeYears": 1,
+    "shareCount": 400
   },
   {
     "recruitYear": 2020,
@@ -6184,7 +6452,8 @@
     "birthDate": "2019-03-15",
     "damParity": 5,
     "damProduceCount": 9,
-    "damGapBeforeYears": 1
+    "damGapBeforeYears": 1,
+    "shareCount": 400
   },
   {
     "recruitYear": 2020,
@@ -6207,7 +6476,8 @@
     "birthDate": "2019-01-31",
     "damParity": 3,
     "damProduceCount": 6,
-    "damGapBeforeYears": 1
+    "damGapBeforeYears": 1,
+    "shareCount": 400
   },
   {
     "recruitYear": 2020,
@@ -6230,7 +6500,8 @@
     "birthDate": "2019-03-11",
     "damParity": 2,
     "damProduceCount": 8,
-    "damGapBeforeYears": 1
+    "damGapBeforeYears": 1,
+    "shareCount": 400
   },
   {
     "recruitYear": 2020,
@@ -6253,7 +6524,8 @@
     "birthDate": "2019-03-05",
     "damParity": 2,
     "damProduceCount": 8,
-    "damGapBeforeYears": 1
+    "damGapBeforeYears": 1,
+    "shareCount": 400
   },
   {
     "recruitYear": 2020,
@@ -6276,7 +6548,8 @@
     "birthDate": "2019-03-09",
     "damParity": 3,
     "damProduceCount": 3,
-    "damGapBeforeYears": 1
+    "damGapBeforeYears": 1,
+    "shareCount": 400
   },
   {
     "recruitYear": 2020,
@@ -6299,7 +6572,8 @@
     "birthDate": "2019-01-28",
     "damParity": 1,
     "damProduceCount": 6,
-    "damGapBeforeYears": null
+    "damGapBeforeYears": null,
+    "shareCount": null
   },
   {
     "recruitYear": 2020,
@@ -6322,7 +6596,8 @@
     "birthDate": "2019-04-21",
     "damParity": 3,
     "damProduceCount": 5,
-    "damGapBeforeYears": 1
+    "damGapBeforeYears": 1,
+    "shareCount": 400
   },
   {
     "recruitYear": 2020,
@@ -6345,7 +6620,8 @@
     "birthDate": "2019-05-02",
     "damParity": 9,
     "damProduceCount": 12,
-    "damGapBeforeYears": 1
+    "damGapBeforeYears": 1,
+    "shareCount": 400
   },
   {
     "recruitYear": 2020,
@@ -6368,7 +6644,8 @@
     "birthDate": "2019-03-30",
     "damParity": 3,
     "damProduceCount": 8,
-    "damGapBeforeYears": 1
+    "damGapBeforeYears": 1,
+    "shareCount": null
   },
   {
     "recruitYear": 2020,
@@ -6391,7 +6668,8 @@
     "birthDate": "2019-03-31",
     "damParity": 3,
     "damProduceCount": 7,
-    "damGapBeforeYears": 1
+    "damGapBeforeYears": 1,
+    "shareCount": 400
   },
   {
     "recruitYear": 2020,
@@ -6414,7 +6692,8 @@
     "birthDate": "2019-05-01",
     "damParity": 1,
     "damProduceCount": 6,
-    "damGapBeforeYears": null
+    "damGapBeforeYears": null,
+    "shareCount": 400
   },
   {
     "recruitYear": 2020,
@@ -6437,7 +6716,8 @@
     "birthDate": "2019-04-19",
     "damParity": 2,
     "damProduceCount": 7,
-    "damGapBeforeYears": 1
+    "damGapBeforeYears": 1,
+    "shareCount": null
   },
   {
     "recruitYear": 2020,
@@ -6460,7 +6740,8 @@
     "birthDate": "2019-01-21",
     "damParity": 2,
     "damProduceCount": 7,
-    "damGapBeforeYears": 1
+    "damGapBeforeYears": 1,
+    "shareCount": 400
   },
   {
     "recruitYear": 2020,
@@ -6483,7 +6764,8 @@
     "birthDate": "2019-03-10",
     "damParity": 1,
     "damProduceCount": 8,
-    "damGapBeforeYears": null
+    "damGapBeforeYears": null,
+    "shareCount": 400
   },
   {
     "recruitYear": 2020,
@@ -6506,7 +6788,8 @@
     "birthDate": "2019-02-04",
     "damParity": 1,
     "damProduceCount": 5,
-    "damGapBeforeYears": null
+    "damGapBeforeYears": null,
+    "shareCount": 400
   },
   {
     "recruitYear": 2020,
@@ -6529,7 +6812,8 @@
     "birthDate": "2019-04-11",
     "damParity": 14,
     "damProduceCount": 18,
-    "damGapBeforeYears": 1
+    "damGapBeforeYears": 1,
+    "shareCount": 400
   },
   {
     "recruitYear": 2020,
@@ -6552,7 +6836,8 @@
     "birthDate": "2019-01-27",
     "damParity": 5,
     "damProduceCount": 11,
-    "damGapBeforeYears": 1
+    "damGapBeforeYears": 1,
+    "shareCount": null
   },
   {
     "recruitYear": 2020,
@@ -6575,7 +6860,8 @@
     "birthDate": "2019-02-18",
     "damParity": 8,
     "damProduceCount": 8,
-    "damGapBeforeYears": 1
+    "damGapBeforeYears": 1,
+    "shareCount": 400
   },
   {
     "recruitYear": 2020,
@@ -6598,7 +6884,8 @@
     "birthDate": "2019-04-09",
     "damParity": 4,
     "damProduceCount": 9,
-    "damGapBeforeYears": 1
+    "damGapBeforeYears": 1,
+    "shareCount": null
   },
   {
     "recruitYear": 2020,
@@ -6621,7 +6908,8 @@
     "birthDate": "2019-04-03",
     "damParity": 5,
     "damProduceCount": 8,
-    "damGapBeforeYears": 1
+    "damGapBeforeYears": 1,
+    "shareCount": null
   },
   {
     "recruitYear": 2020,
@@ -6644,7 +6932,8 @@
     "birthDate": "2019-01-22",
     "damParity": 1,
     "damProduceCount": 6,
-    "damGapBeforeYears": null
+    "damGapBeforeYears": null,
+    "shareCount": 400
   },
   {
     "recruitYear": 2020,
@@ -6667,7 +6956,8 @@
     "birthDate": "2019-01-12",
     "damParity": 1,
     "damProduceCount": 7,
-    "damGapBeforeYears": null
+    "damGapBeforeYears": null,
+    "shareCount": null
   },
   {
     "recruitYear": 2020,
@@ -6690,7 +6980,8 @@
     "birthDate": "2019-05-10",
     "damParity": 5,
     "damProduceCount": 8,
-    "damGapBeforeYears": 1
+    "damGapBeforeYears": 1,
+    "shareCount": null
   },
   {
     "recruitYear": 2020,
@@ -6713,7 +7004,8 @@
     "birthDate": "2019-03-11",
     "damParity": 4,
     "damProduceCount": 9,
-    "damGapBeforeYears": 2
+    "damGapBeforeYears": 2,
+    "shareCount": null
   },
   {
     "recruitYear": 2020,
@@ -6736,7 +7028,8 @@
     "birthDate": "2019-02-28",
     "damParity": 3,
     "damProduceCount": 6,
-    "damGapBeforeYears": 1
+    "damGapBeforeYears": 1,
+    "shareCount": 400
   },
   {
     "recruitYear": 2020,
@@ -6759,7 +7052,8 @@
     "birthDate": "2019-04-15",
     "damParity": 8,
     "damProduceCount": 12,
-    "damGapBeforeYears": 1
+    "damGapBeforeYears": 1,
+    "shareCount": null
   },
   {
     "recruitYear": 2020,
@@ -6782,7 +7076,8 @@
     "birthDate": "2019-02-09",
     "damParity": 3,
     "damProduceCount": 8,
-    "damGapBeforeYears": 2
+    "damGapBeforeYears": 2,
+    "shareCount": 400
   },
   {
     "recruitYear": 2020,
@@ -6805,7 +7100,8 @@
     "birthDate": "2019-04-29",
     "damParity": 7,
     "damProduceCount": 11,
-    "damGapBeforeYears": 1
+    "damGapBeforeYears": 1,
+    "shareCount": null
   },
   {
     "recruitYear": 2020,
@@ -6828,7 +7124,8 @@
     "birthDate": "2019-03-13",
     "damParity": 1,
     "damProduceCount": 7,
-    "damGapBeforeYears": null
+    "damGapBeforeYears": null,
+    "shareCount": null
   },
   {
     "recruitYear": 2020,
@@ -6851,7 +7148,8 @@
     "birthDate": "2019-02-15",
     "damParity": 4,
     "damProduceCount": 10,
-    "damGapBeforeYears": 1
+    "damGapBeforeYears": 1,
+    "shareCount": 400
   },
   {
     "recruitYear": 2020,
@@ -6874,7 +7172,8 @@
     "birthDate": "2019-05-10",
     "damParity": 10,
     "damProduceCount": 12,
-    "damGapBeforeYears": 1
+    "damGapBeforeYears": 1,
+    "shareCount": 400
   },
   {
     "recruitYear": 2020,
@@ -6897,7 +7196,8 @@
     "birthDate": "2019-02-18",
     "damParity": 2,
     "damProduceCount": 5,
-    "damGapBeforeYears": 1
+    "damGapBeforeYears": 1,
+    "shareCount": 400
   },
   {
     "recruitYear": 2020,
@@ -6920,7 +7220,8 @@
     "birthDate": "2019-05-15",
     "damParity": 2,
     "damProduceCount": 7,
-    "damGapBeforeYears": 1
+    "damGapBeforeYears": 1,
+    "shareCount": 400
   },
   {
     "recruitYear": 2020,
@@ -6943,7 +7244,8 @@
     "birthDate": "2019-01-27",
     "damParity": 5,
     "damProduceCount": 10,
-    "damGapBeforeYears": 2
+    "damGapBeforeYears": 2,
+    "shareCount": 400
   },
   {
     "recruitYear": 2020,
@@ -6966,7 +7268,8 @@
     "birthDate": "2019-01-16",
     "damParity": 2,
     "damProduceCount": 5,
-    "damGapBeforeYears": 2
+    "damGapBeforeYears": 2,
+    "shareCount": 400
   },
   {
     "recruitYear": 2020,
@@ -6989,7 +7292,8 @@
     "birthDate": "2019-02-04",
     "damParity": 2,
     "damProduceCount": 7,
-    "damGapBeforeYears": 1
+    "damGapBeforeYears": 1,
+    "shareCount": 400
   },
   {
     "recruitYear": 2020,
@@ -7012,7 +7316,8 @@
     "birthDate": "2019-04-05",
     "damParity": 3,
     "damProduceCount": 8,
-    "damGapBeforeYears": 1
+    "damGapBeforeYears": 1,
+    "shareCount": 400
   },
   {
     "recruitYear": 2020,
@@ -7035,7 +7340,8 @@
     "birthDate": "2019-04-04",
     "damParity": 11,
     "damProduceCount": 14,
-    "damGapBeforeYears": 2
+    "damGapBeforeYears": 2,
+    "shareCount": 400
   },
   {
     "recruitYear": 2020,
@@ -7058,7 +7364,8 @@
     "birthDate": "2019-02-19",
     "damParity": 3,
     "damProduceCount": 7,
-    "damGapBeforeYears": 2
+    "damGapBeforeYears": 2,
+    "shareCount": 400
   },
   {
     "recruitYear": 2020,
@@ -7081,7 +7388,8 @@
     "birthDate": "2019-03-29",
     "damParity": 7,
     "damProduceCount": 10,
-    "damGapBeforeYears": 1
+    "damGapBeforeYears": 1,
+    "shareCount": null
   },
   {
     "recruitYear": 2020,
@@ -7104,7 +7412,8 @@
     "birthDate": "2019-04-22",
     "damParity": 3,
     "damProduceCount": 7,
-    "damGapBeforeYears": 1
+    "damGapBeforeYears": 1,
+    "shareCount": 400
   },
   {
     "recruitYear": 2020,
@@ -7127,7 +7436,8 @@
     "birthDate": "2019-02-07",
     "damParity": 11,
     "damProduceCount": 16,
-    "damGapBeforeYears": 1
+    "damGapBeforeYears": 1,
+    "shareCount": null
   },
   {
     "recruitYear": 2020,
@@ -7150,7 +7460,8 @@
     "birthDate": "2019-04-04",
     "damParity": 9,
     "damProduceCount": 11,
-    "damGapBeforeYears": 1
+    "damGapBeforeYears": 1,
+    "shareCount": 400
   },
   {
     "recruitYear": 2020,
@@ -7173,7 +7484,8 @@
     "birthDate": "2019-02-25",
     "damParity": 1,
     "damProduceCount": 6,
-    "damGapBeforeYears": null
+    "damGapBeforeYears": null,
+    "shareCount": 400
   },
   {
     "recruitYear": 2020,
@@ -7196,7 +7508,8 @@
     "birthDate": "2019-02-03",
     "damParity": 6,
     "damProduceCount": 6,
-    "damGapBeforeYears": 1
+    "damGapBeforeYears": 1,
+    "shareCount": 400
   },
   {
     "recruitYear": 2020,
@@ -7219,7 +7532,8 @@
     "birthDate": "2019-03-20",
     "damParity": 12,
     "damProduceCount": 13,
-    "damGapBeforeYears": 2
+    "damGapBeforeYears": 2,
+    "shareCount": 400
   },
   {
     "recruitYear": 2020,
@@ -7242,7 +7556,8 @@
     "birthDate": "2019-05-24",
     "damParity": 4,
     "damProduceCount": 4,
-    "damGapBeforeYears": 1
+    "damGapBeforeYears": 1,
+    "shareCount": 400
   },
   {
     "recruitYear": 2020,
@@ -7265,7 +7580,8 @@
     "birthDate": "2019-03-11",
     "damParity": 10,
     "damProduceCount": 13,
-    "damGapBeforeYears": 1
+    "damGapBeforeYears": 1,
+    "shareCount": 400
   },
   {
     "recruitYear": 2020,
@@ -7288,7 +7604,8 @@
     "birthDate": "2019-03-23",
     "damParity": 1,
     "damProduceCount": 7,
-    "damGapBeforeYears": null
+    "damGapBeforeYears": null,
+    "shareCount": 400
   },
   {
     "recruitYear": 2020,
@@ -7311,7 +7628,8 @@
     "birthDate": "2019-04-18",
     "damParity": 1,
     "damProduceCount": 1,
-    "damGapBeforeYears": null
+    "damGapBeforeYears": null,
+    "shareCount": 400
   },
   {
     "recruitYear": 2020,
@@ -7334,7 +7652,8 @@
     "birthDate": "2019-02-11",
     "damParity": 2,
     "damProduceCount": 8,
-    "damGapBeforeYears": 1
+    "damGapBeforeYears": 1,
+    "shareCount": 400
   },
   {
     "recruitYear": 2020,
@@ -7357,7 +7676,8 @@
     "birthDate": "2019-03-09",
     "damParity": 3,
     "damProduceCount": 5,
-    "damGapBeforeYears": 1
+    "damGapBeforeYears": 1,
+    "shareCount": null
   },
   {
     "recruitYear": 2020,
@@ -7380,7 +7700,8 @@
     "birthDate": "2019-03-13",
     "damParity": 11,
     "damProduceCount": 12,
-    "damGapBeforeYears": 1
+    "damGapBeforeYears": 1,
+    "shareCount": 400
   },
   {
     "recruitYear": 2020,
@@ -7403,7 +7724,8 @@
     "birthDate": "2019-03-15",
     "damParity": 7,
     "damProduceCount": 11,
-    "damGapBeforeYears": 1
+    "damGapBeforeYears": 1,
+    "shareCount": null
   },
   {
     "recruitYear": 2020,
@@ -7426,7 +7748,8 @@
     "birthDate": "2019-03-02",
     "damParity": 3,
     "damProduceCount": 7,
-    "damGapBeforeYears": 1
+    "damGapBeforeYears": 1,
+    "shareCount": 400
   },
   {
     "recruitYear": 2020,
@@ -7449,7 +7772,8 @@
     "birthDate": "2019-03-29",
     "damParity": 1,
     "damProduceCount": 3,
-    "damGapBeforeYears": null
+    "damGapBeforeYears": null,
+    "shareCount": 400
   },
   {
     "recruitYear": 2020,
@@ -7472,7 +7796,8 @@
     "birthDate": "2019-02-28",
     "damParity": 1,
     "damProduceCount": 6,
-    "damGapBeforeYears": null
+    "damGapBeforeYears": null,
+    "shareCount": 400
   },
   {
     "recruitYear": 2020,
@@ -7495,7 +7820,8 @@
     "birthDate": "2019-05-06",
     "damParity": 1,
     "damProduceCount": 5,
-    "damGapBeforeYears": null
+    "damGapBeforeYears": null,
+    "shareCount": null
   },
   {
     "recruitYear": 2020,
@@ -7518,7 +7844,8 @@
     "birthDate": "2019-03-15",
     "damParity": 6,
     "damProduceCount": 12,
-    "damGapBeforeYears": 1
+    "damGapBeforeYears": 1,
+    "shareCount": 400
   },
   {
     "recruitYear": 2020,
@@ -7541,7 +7868,8 @@
     "birthDate": "2019-05-05",
     "damParity": 9,
     "damProduceCount": 9,
-    "damGapBeforeYears": 2
+    "damGapBeforeYears": 2,
+    "shareCount": 400
   },
   {
     "recruitYear": 2020,
@@ -7564,7 +7892,8 @@
     "birthDate": "2019-01-27",
     "damParity": 5,
     "damProduceCount": 8,
-    "damGapBeforeYears": 1
+    "damGapBeforeYears": 1,
+    "shareCount": 400
   },
   {
     "recruitYear": 2020,
@@ -7587,7 +7916,8 @@
     "birthDate": "2019-02-09",
     "damParity": 1,
     "damProduceCount": 7,
-    "damGapBeforeYears": null
+    "damGapBeforeYears": null,
+    "shareCount": 400
   },
   {
     "recruitYear": 2020,
@@ -7610,7 +7940,8 @@
     "birthDate": "2019-02-15",
     "damParity": 2,
     "damProduceCount": 7,
-    "damGapBeforeYears": 1
+    "damGapBeforeYears": 1,
+    "shareCount": 400
   },
   {
     "recruitYear": 2020,
@@ -7633,7 +7964,8 @@
     "birthDate": "2019-02-26",
     "damParity": 7,
     "damProduceCount": 11,
-    "damGapBeforeYears": 1
+    "damGapBeforeYears": 1,
+    "shareCount": 400
   },
   {
     "recruitYear": 2020,
@@ -7656,7 +7988,8 @@
     "birthDate": "2019-03-21",
     "damParity": 4,
     "damProduceCount": 11,
-    "damGapBeforeYears": 1
+    "damGapBeforeYears": 1,
+    "shareCount": 400
   },
   {
     "recruitYear": 2020,
@@ -7679,7 +8012,8 @@
     "birthDate": "2019-02-04",
     "damParity": 7,
     "damProduceCount": 9,
-    "damGapBeforeYears": 2
+    "damGapBeforeYears": 2,
+    "shareCount": 400
   },
   {
     "recruitYear": 2020,
@@ -7702,7 +8036,8 @@
     "birthDate": "2019-03-25",
     "damParity": 6,
     "damProduceCount": 9,
-    "damGapBeforeYears": 3
+    "damGapBeforeYears": 3,
+    "shareCount": null
   },
   {
     "recruitYear": 2020,
@@ -7725,7 +8060,8 @@
     "birthDate": "2019-03-07",
     "damParity": 4,
     "damProduceCount": 9,
-    "damGapBeforeYears": 1
+    "damGapBeforeYears": 1,
+    "shareCount": null
   },
   {
     "recruitYear": 2020,
@@ -7748,7 +8084,8 @@
     "birthDate": "2019-03-05",
     "damParity": 1,
     "damProduceCount": 1,
-    "damGapBeforeYears": null
+    "damGapBeforeYears": null,
+    "shareCount": null
   },
   {
     "recruitYear": 2020,
@@ -7771,7 +8108,8 @@
     "birthDate": "2019-01-31",
     "damParity": 2,
     "damProduceCount": 6,
-    "damGapBeforeYears": 1
+    "damGapBeforeYears": 1,
+    "shareCount": 400
   },
   {
     "recruitYear": 2020,
@@ -7794,7 +8132,8 @@
     "birthDate": "2019-05-08",
     "damParity": 4,
     "damProduceCount": 8,
-    "damGapBeforeYears": 1
+    "damGapBeforeYears": 1,
+    "shareCount": 400
   },
   {
     "recruitYear": 2020,
@@ -7817,7 +8156,8 @@
     "birthDate": "2019-02-15",
     "damParity": 4,
     "damProduceCount": 7,
-    "damGapBeforeYears": 3
+    "damGapBeforeYears": 3,
+    "shareCount": 400
   },
   {
     "recruitYear": 2020,
@@ -7840,7 +8180,8 @@
     "birthDate": "2019-02-28",
     "damParity": 10,
     "damProduceCount": 13,
-    "damGapBeforeYears": 2
+    "damGapBeforeYears": 2,
+    "shareCount": 400
   },
   {
     "recruitYear": 2020,
@@ -7863,7 +8204,8 @@
     "birthDate": "2019-03-23",
     "damParity": 2,
     "damProduceCount": 7,
-    "damGapBeforeYears": 1
+    "damGapBeforeYears": 1,
+    "shareCount": null
   },
   {
     "recruitYear": 2020,
@@ -7886,7 +8228,8 @@
     "birthDate": "2019-04-09",
     "damParity": 1,
     "damProduceCount": 5,
-    "damGapBeforeYears": null
+    "damGapBeforeYears": null,
+    "shareCount": null
   },
   {
     "recruitYear": 2020,
@@ -7909,7 +8252,8 @@
     "birthDate": "2019-04-14",
     "damParity": 5,
     "damProduceCount": 10,
-    "damGapBeforeYears": 1
+    "damGapBeforeYears": 1,
+    "shareCount": 100
   },
   {
     "recruitYear": 2020,
@@ -7932,7 +8276,8 @@
     "birthDate": "2019-04-12",
     "damParity": 9,
     "damProduceCount": 13,
-    "damGapBeforeYears": 1
+    "damGapBeforeYears": 1,
+    "shareCount": 100
   },
   {
     "recruitYear": 2020,
@@ -7955,7 +8300,8 @@
     "birthDate": "2019-04-26",
     "damParity": 4,
     "damProduceCount": 8,
-    "damGapBeforeYears": 1
+    "damGapBeforeYears": 1,
+    "shareCount": null
   },
   {
     "recruitYear": 2020,
@@ -7978,7 +8324,8 @@
     "birthDate": "2019-03-17",
     "damParity": 1,
     "damProduceCount": 4,
-    "damGapBeforeYears": null
+    "damGapBeforeYears": null,
+    "shareCount": 100
   },
   {
     "recruitYear": 2020,
@@ -8001,7 +8348,8 @@
     "birthDate": "2019-04-07",
     "damParity": 12,
     "damProduceCount": 12,
-    "damGapBeforeYears": 1
+    "damGapBeforeYears": 1,
+    "shareCount": null
   },
   {
     "recruitYear": 2021,
@@ -8029,7 +8377,8 @@
     "damUrl": "https://db.netkeiba.com/horse/2007100331/",
     "damParity": 9,
     "damProduceCount": 14,
-    "damGapBeforeYears": 1
+    "damGapBeforeYears": 1,
+    "shareCount": null
   },
   {
     "recruitYear": 2021,
@@ -8057,7 +8406,8 @@
     "damUrl": "https://db.netkeiba.com/horse/000a011d05/",
     "damParity": 6,
     "damProduceCount": 10,
-    "damGapBeforeYears": 1
+    "damGapBeforeYears": 1,
+    "shareCount": null
   },
   {
     "recruitYear": 2021,
@@ -8085,7 +8435,8 @@
     "damUrl": "https://db.netkeiba.com/horse/2006103419/",
     "damParity": 7,
     "damProduceCount": 11,
-    "damGapBeforeYears": 2
+    "damGapBeforeYears": 2,
+    "shareCount": 400
   },
   {
     "recruitYear": 2021,
@@ -8113,7 +8464,8 @@
     "damUrl": "https://db.netkeiba.com/horse/2002100844/",
     "damParity": 12,
     "damProduceCount": 12,
-    "damGapBeforeYears": 2
+    "damGapBeforeYears": 2,
+    "shareCount": 400
   },
   {
     "recruitYear": 2021,
@@ -8141,7 +8493,8 @@
     "damUrl": "https://db.netkeiba.com/horse/2013106072/",
     "damParity": 1,
     "damProduceCount": 6,
-    "damGapBeforeYears": null
+    "damGapBeforeYears": null,
+    "shareCount": null
   },
   {
     "recruitYear": 2021,
@@ -8169,7 +8522,8 @@
     "damUrl": "https://db.netkeiba.com/horse/2009110123/",
     "damParity": 6,
     "damProduceCount": 8,
-    "damGapBeforeYears": 1
+    "damGapBeforeYears": 1,
+    "shareCount": null
   },
   {
     "recruitYear": 2021,
@@ -8197,7 +8551,8 @@
     "damUrl": "https://db.netkeiba.com/horse/000a014417/",
     "damParity": 2,
     "damProduceCount": 4,
-    "damGapBeforeYears": 1
+    "damGapBeforeYears": 1,
+    "shareCount": 400
   },
   {
     "recruitYear": 2021,
@@ -8225,7 +8580,8 @@
     "damUrl": "https://db.netkeiba.com/horse/2010104200/",
     "damParity": 3,
     "damProduceCount": 7,
-    "damGapBeforeYears": 2
+    "damGapBeforeYears": 2,
+    "shareCount": 400
   },
   {
     "recruitYear": 2021,
@@ -8253,7 +8609,8 @@
     "damUrl": "https://db.netkeiba.com/horse/2011104105/",
     "damParity": 3,
     "damProduceCount": 8,
-    "damGapBeforeYears": 1
+    "damGapBeforeYears": 1,
+    "shareCount": null
   },
   {
     "recruitYear": 2021,
@@ -8281,7 +8638,8 @@
     "damUrl": "https://db.netkeiba.com/horse/2012104913/",
     "damParity": 2,
     "damProduceCount": 7,
-    "damGapBeforeYears": 1
+    "damGapBeforeYears": 1,
+    "shareCount": 400
   },
   {
     "recruitYear": 2021,
@@ -8309,7 +8667,8 @@
     "damUrl": "https://db.netkeiba.com/horse/000a01295d/",
     "damParity": 4,
     "damProduceCount": 7,
-    "damGapBeforeYears": 1
+    "damGapBeforeYears": 1,
+    "shareCount": 400
   },
   {
     "recruitYear": 2021,
@@ -8337,7 +8696,8 @@
     "damUrl": "https://db.netkeiba.com/horse/000a012f07/",
     "damParity": 4,
     "damProduceCount": 9,
-    "damGapBeforeYears": 1
+    "damGapBeforeYears": 1,
+    "shareCount": 400
   },
   {
     "recruitYear": 2021,
@@ -8365,7 +8725,8 @@
     "damUrl": "https://db.netkeiba.com/horse/2013106057/",
     "damParity": 1,
     "damProduceCount": 5,
-    "damGapBeforeYears": null
+    "damGapBeforeYears": null,
+    "shareCount": null
   },
   {
     "recruitYear": 2021,
@@ -8393,7 +8754,8 @@
     "damUrl": "https://db.netkeiba.com/horse/2012104669/",
     "damParity": 2,
     "damProduceCount": 5,
-    "damGapBeforeYears": 1
+    "damGapBeforeYears": 1,
+    "shareCount": 400
   },
   {
     "recruitYear": 2021,
@@ -8421,7 +8783,8 @@
     "damUrl": "https://db.netkeiba.com/horse/2009106142/",
     "damParity": 4,
     "damProduceCount": 8,
-    "damGapBeforeYears": 1
+    "damGapBeforeYears": 1,
+    "shareCount": 400
   },
   {
     "recruitYear": 2021,
@@ -8449,7 +8812,8 @@
     "damUrl": "https://db.netkeiba.com/horse/2009105812/",
     "damParity": 4,
     "damProduceCount": 8,
-    "damGapBeforeYears": 2
+    "damGapBeforeYears": 2,
+    "shareCount": null
   },
   {
     "recruitYear": 2021,
@@ -8477,7 +8841,8 @@
     "damUrl": "https://db.netkeiba.com/horse/2009106063/",
     "damParity": 7,
     "damProduceCount": 9,
-    "damGapBeforeYears": 1
+    "damGapBeforeYears": 1,
+    "shareCount": 400
   },
   {
     "recruitYear": 2021,
@@ -8505,7 +8870,8 @@
     "damUrl": "https://db.netkeiba.com/horse/2006102828/",
     "damParity": 5,
     "damProduceCount": 9,
-    "damGapBeforeYears": 2
+    "damGapBeforeYears": 2,
+    "shareCount": null
   },
   {
     "recruitYear": 2021,
@@ -8533,7 +8899,8 @@
     "damUrl": "https://db.netkeiba.com/horse/2006102673/",
     "damParity": 6,
     "damProduceCount": 9,
-    "damGapBeforeYears": 2
+    "damGapBeforeYears": 2,
+    "shareCount": 400
   },
   {
     "recruitYear": 2021,
@@ -8561,7 +8928,8 @@
     "damUrl": "https://db.netkeiba.com/horse/000a0124c1/",
     "damParity": 6,
     "damProduceCount": 9,
-    "damGapBeforeYears": 1
+    "damGapBeforeYears": 1,
+    "shareCount": null
   },
   {
     "recruitYear": 2021,
@@ -8589,7 +8957,8 @@
     "damUrl": "https://db.netkeiba.com/horse/2012104080/",
     "damParity": 2,
     "damProduceCount": 7,
-    "damGapBeforeYears": 1
+    "damGapBeforeYears": 1,
+    "shareCount": 400
   },
   {
     "recruitYear": 2021,
@@ -8617,7 +8986,8 @@
     "damUrl": "https://db.netkeiba.com/horse/2006103249/",
     "damParity": 8,
     "damProduceCount": 11,
-    "damGapBeforeYears": 2
+    "damGapBeforeYears": 2,
+    "shareCount": 400
   },
   {
     "recruitYear": 2021,
@@ -8645,7 +9015,8 @@
     "damUrl": "https://db.netkeiba.com/horse/2014106109/",
     "damParity": 1,
     "damProduceCount": 6,
-    "damGapBeforeYears": null
+    "damGapBeforeYears": null,
+    "shareCount": 400
   },
   {
     "recruitYear": 2021,
@@ -8673,7 +9044,8 @@
     "damUrl": "https://db.netkeiba.com/horse/2011103783/",
     "damParity": 3,
     "damProduceCount": 5,
-    "damGapBeforeYears": 1
+    "damGapBeforeYears": 1,
+    "shareCount": 400
   },
   {
     "recruitYear": 2021,
@@ -8701,7 +9073,8 @@
     "damUrl": "https://db.netkeiba.com/horse/2010104152/",
     "damParity": 5,
     "damProduceCount": 11,
-    "damGapBeforeYears": 1
+    "damGapBeforeYears": 1,
+    "shareCount": 400
   },
   {
     "recruitYear": 2021,
@@ -8729,7 +9102,8 @@
     "damUrl": "https://db.netkeiba.com/horse/2004102760/",
     "damParity": 9,
     "damProduceCount": 13,
-    "damGapBeforeYears": 1
+    "damGapBeforeYears": 1,
+    "shareCount": 400
   },
   {
     "recruitYear": 2021,
@@ -8757,7 +9131,8 @@
     "damUrl": "https://db.netkeiba.com/horse/2001103297/",
     "damParity": 10,
     "damProduceCount": 12,
-    "damGapBeforeYears": 2
+    "damGapBeforeYears": 2,
+    "shareCount": null
   },
   {
     "recruitYear": 2021,
@@ -8785,7 +9160,8 @@
     "damUrl": "https://db.netkeiba.com/horse/2011104013/",
     "damParity": 1,
     "damProduceCount": 6,
-    "damGapBeforeYears": null
+    "damGapBeforeYears": null,
+    "shareCount": null
   },
   {
     "recruitYear": 2021,
@@ -8813,7 +9189,8 @@
     "damUrl": "https://db.netkeiba.com/horse/2006103313/",
     "damParity": 9,
     "damProduceCount": 12,
-    "damGapBeforeYears": 1
+    "damGapBeforeYears": 1,
+    "shareCount": 400
   },
   {
     "recruitYear": 2021,
@@ -8841,7 +9218,8 @@
     "damUrl": "https://db.netkeiba.com/horse/2013105871/",
     "damParity": 1,
     "damProduceCount": 5,
-    "damGapBeforeYears": null
+    "damGapBeforeYears": null,
+    "shareCount": null
   },
   {
     "recruitYear": 2021,
@@ -8869,7 +9247,8 @@
     "damUrl": "https://db.netkeiba.com/horse/2008103376/",
     "damParity": 6,
     "damProduceCount": 10,
-    "damGapBeforeYears": 1
+    "damGapBeforeYears": 1,
+    "shareCount": 400
   },
   {
     "recruitYear": 2021,
@@ -8897,7 +9276,8 @@
     "damUrl": "https://db.netkeiba.com/horse/2014106097/",
     "damParity": 1,
     "damProduceCount": 4,
-    "damGapBeforeYears": null
+    "damGapBeforeYears": null,
+    "shareCount": 400
   },
   {
     "recruitYear": 2021,
@@ -8925,7 +9305,8 @@
     "damUrl": "https://db.netkeiba.com/horse/2005102704/",
     "damParity": 8,
     "damProduceCount": 10,
-    "damGapBeforeYears": 1
+    "damGapBeforeYears": 1,
+    "shareCount": null
   },
   {
     "recruitYear": 2021,
@@ -8953,7 +9334,8 @@
     "damUrl": "https://db.netkeiba.com/horse/2008103176/",
     "damParity": 8,
     "damProduceCount": 12,
-    "damGapBeforeYears": 1
+    "damGapBeforeYears": 1,
+    "shareCount": 400
   },
   {
     "recruitYear": 2021,
@@ -8981,7 +9363,8 @@
     "damUrl": "https://db.netkeiba.com/horse/2012104690/",
     "damParity": 1,
     "damProduceCount": 6,
-    "damGapBeforeYears": null
+    "damGapBeforeYears": null,
+    "shareCount": null
   },
   {
     "recruitYear": 2021,
@@ -9009,7 +9392,8 @@
     "damUrl": "https://db.netkeiba.com/horse/2005102655/",
     "damParity": 8,
     "damProduceCount": 12,
-    "damGapBeforeYears": 1
+    "damGapBeforeYears": 1,
+    "shareCount": null
   },
   {
     "recruitYear": 2021,
@@ -9037,7 +9421,8 @@
     "damUrl": "https://db.netkeiba.com/horse/2009110091/",
     "damParity": 5,
     "damProduceCount": 8,
-    "damGapBeforeYears": 1
+    "damGapBeforeYears": 1,
+    "shareCount": 400
   },
   {
     "recruitYear": 2021,
@@ -9065,7 +9450,8 @@
     "damUrl": "https://db.netkeiba.com/horse/2012104768/",
     "damParity": 2,
     "damProduceCount": 7,
-    "damGapBeforeYears": 1
+    "damGapBeforeYears": 1,
+    "shareCount": null
   },
   {
     "recruitYear": 2021,
@@ -9093,7 +9479,8 @@
     "damUrl": "https://db.netkeiba.com/horse/2012104535/",
     "damParity": 2,
     "damProduceCount": 5,
-    "damGapBeforeYears": 1
+    "damGapBeforeYears": 1,
+    "shareCount": 400
   },
   {
     "recruitYear": 2021,
@@ -9121,7 +9508,8 @@
     "damUrl": "https://db.netkeiba.com/horse/2015104964/",
     "damParity": 1,
     "damProduceCount": 5,
-    "damGapBeforeYears": null
+    "damGapBeforeYears": null,
+    "shareCount": 400
   },
   {
     "recruitYear": 2021,
@@ -9149,7 +9537,8 @@
     "damUrl": "https://db.netkeiba.com/horse/2013105764/",
     "damParity": 1,
     "damProduceCount": 6,
-    "damGapBeforeYears": null
+    "damGapBeforeYears": null,
+    "shareCount": 400
   },
   {
     "recruitYear": 2021,
@@ -9177,7 +9566,8 @@
     "damUrl": "https://db.netkeiba.com/horse/000a01560b/",
     "damParity": 1,
     "damProduceCount": 6,
-    "damGapBeforeYears": null
+    "damGapBeforeYears": null,
+    "shareCount": 400
   },
   {
     "recruitYear": 2021,
@@ -9205,7 +9595,8 @@
     "damUrl": "https://db.netkeiba.com/horse/000a015604/",
     "damParity": 1,
     "damProduceCount": 6,
-    "damGapBeforeYears": null
+    "damGapBeforeYears": null,
+    "shareCount": 400
   },
   {
     "recruitYear": 2021,
@@ -9233,7 +9624,8 @@
     "damUrl": "https://db.netkeiba.com/horse/2008103078/",
     "damParity": 5,
     "damProduceCount": 9,
-    "damGapBeforeYears": 2
+    "damGapBeforeYears": 2,
+    "shareCount": null
   },
   {
     "recruitYear": 2021,
@@ -9261,7 +9653,8 @@
     "damUrl": "https://db.netkeiba.com/horse/000a011a9f/",
     "damParity": 7,
     "damProduceCount": 11,
-    "damGapBeforeYears": 2
+    "damGapBeforeYears": 2,
+    "shareCount": 400
   },
   {
     "recruitYear": 2021,
@@ -9289,7 +9682,8 @@
     "damUrl": "https://db.netkeiba.com/horse/2010104347/",
     "damParity": 4,
     "damProduceCount": 8,
-    "damGapBeforeYears": 1
+    "damGapBeforeYears": 1,
+    "shareCount": 400
   },
   {
     "recruitYear": 2021,
@@ -9317,7 +9711,8 @@
     "damUrl": "https://db.netkeiba.com/horse/000a011de6/",
     "damParity": 7,
     "damProduceCount": 11,
-    "damGapBeforeYears": 1
+    "damGapBeforeYears": 1,
+    "shareCount": 400
   },
   {
     "recruitYear": 2021,
@@ -9345,7 +9740,8 @@
     "damUrl": "https://db.netkeiba.com/horse/2005110076/",
     "damParity": 7,
     "damProduceCount": 9,
-    "damGapBeforeYears": 2
+    "damGapBeforeYears": 2,
+    "shareCount": null
   },
   {
     "recruitYear": 2021,
@@ -9373,7 +9769,8 @@
     "damUrl": "https://db.netkeiba.com/horse/000a01387c/",
     "damParity": 2,
     "damProduceCount": 5,
-    "damGapBeforeYears": 2
+    "damGapBeforeYears": 2,
+    "shareCount": 400
   },
   {
     "recruitYear": 2021,
@@ -9401,7 +9798,8 @@
     "damUrl": "https://db.netkeiba.com/horse/000a013895/",
     "damParity": 3,
     "damProduceCount": 6,
-    "damGapBeforeYears": 2
+    "damGapBeforeYears": 2,
+    "shareCount": 400
   },
   {
     "recruitYear": 2021,
@@ -9429,7 +9827,8 @@
     "damUrl": "https://db.netkeiba.com/horse/2012104599/",
     "damParity": 4,
     "damProduceCount": 7,
-    "damGapBeforeYears": 1
+    "damGapBeforeYears": 1,
+    "shareCount": 400
   },
   {
     "recruitYear": 2021,
@@ -9457,7 +9856,8 @@
     "damUrl": "https://db.netkeiba.com/horse/2013106181/",
     "damParity": 2,
     "damProduceCount": 6,
-    "damGapBeforeYears": 1
+    "damGapBeforeYears": 1,
+    "shareCount": null
   },
   {
     "recruitYear": 2021,
@@ -9485,7 +9885,8 @@
     "damUrl": "https://db.netkeiba.com/horse/2013106154/",
     "damParity": 1,
     "damProduceCount": 5,
-    "damGapBeforeYears": null
+    "damGapBeforeYears": null,
+    "shareCount": 400
   },
   {
     "recruitYear": 2021,
@@ -9513,7 +9914,8 @@
     "damUrl": "https://db.netkeiba.com/horse/2011110003/",
     "damParity": 3,
     "damProduceCount": 6,
-    "damGapBeforeYears": 1
+    "damGapBeforeYears": 1,
+    "shareCount": 400
   },
   {
     "recruitYear": 2021,
@@ -9541,7 +9943,8 @@
     "damUrl": "https://db.netkeiba.com/horse/000a014419/",
     "damParity": 3,
     "damProduceCount": 7,
-    "damGapBeforeYears": 1
+    "damGapBeforeYears": 1,
+    "shareCount": 400
   },
   {
     "recruitYear": 2021,
@@ -9569,7 +9972,8 @@
     "damUrl": "https://db.netkeiba.com/horse/2013105816/",
     "damParity": 1,
     "damProduceCount": 5,
-    "damGapBeforeYears": null
+    "damGapBeforeYears": null,
+    "shareCount": 400
   },
   {
     "recruitYear": 2021,
@@ -9597,7 +10001,8 @@
     "damUrl": "https://db.netkeiba.com/horse/2010104264/",
     "damParity": 4,
     "damProduceCount": 8,
-    "damGapBeforeYears": 1
+    "damGapBeforeYears": 1,
+    "shareCount": null
   },
   {
     "recruitYear": 2021,
@@ -9625,7 +10030,8 @@
     "damUrl": "https://db.netkeiba.com/horse/2010104242/",
     "damParity": 4,
     "damProduceCount": 9,
-    "damGapBeforeYears": 1
+    "damGapBeforeYears": 1,
+    "shareCount": null
   },
   {
     "recruitYear": 2021,
@@ -9653,7 +10059,8 @@
     "damUrl": "https://db.netkeiba.com/horse/2010104460/",
     "damParity": 4,
     "damProduceCount": 5,
-    "damGapBeforeYears": 1
+    "damGapBeforeYears": 1,
+    "shareCount": null
   },
   {
     "recruitYear": 2021,
@@ -9681,7 +10088,8 @@
     "damUrl": "https://db.netkeiba.com/horse/2013106153/",
     "damParity": 1,
     "damProduceCount": 5,
-    "damGapBeforeYears": null
+    "damGapBeforeYears": null,
+    "shareCount": 400
   },
   {
     "recruitYear": 2021,
@@ -9709,7 +10117,8 @@
     "damUrl": "https://db.netkeiba.com/horse/2007103007/",
     "damParity": 5,
     "damProduceCount": 9,
-    "damGapBeforeYears": 1
+    "damGapBeforeYears": 1,
+    "shareCount": 400
   },
   {
     "recruitYear": 2021,
@@ -9737,7 +10146,8 @@
     "damUrl": "https://db.netkeiba.com/horse/2002100954/",
     "damParity": 12,
     "damProduceCount": 12,
-    "damGapBeforeYears": 1
+    "damGapBeforeYears": 1,
+    "shareCount": 400
   },
   {
     "recruitYear": 2021,
@@ -9765,7 +10175,8 @@
     "damUrl": "https://db.netkeiba.com/horse/000a011523/",
     "damParity": 9,
     "damProduceCount": 13,
-    "damGapBeforeYears": 2
+    "damGapBeforeYears": 2,
+    "shareCount": null
   },
   {
     "recruitYear": 2021,
@@ -9793,7 +10204,8 @@
     "damUrl": "https://db.netkeiba.com/horse/2013110052/",
     "damParity": 2,
     "damProduceCount": 6,
-    "damGapBeforeYears": 1
+    "damGapBeforeYears": 1,
+    "shareCount": null
   },
   {
     "recruitYear": 2021,
@@ -9821,7 +10233,8 @@
     "damUrl": "https://db.netkeiba.com/horse/2010104050/",
     "damParity": 4,
     "damProduceCount": 7,
-    "damGapBeforeYears": 1
+    "damGapBeforeYears": 1,
+    "shareCount": 400
   },
   {
     "recruitYear": 2021,
@@ -9849,7 +10262,8 @@
     "damUrl": "https://db.netkeiba.com/horse/2011104092/",
     "damParity": 3,
     "damProduceCount": 7,
-    "damGapBeforeYears": 1
+    "damGapBeforeYears": 1,
+    "shareCount": null
   },
   {
     "recruitYear": 2021,
@@ -9877,7 +10291,8 @@
     "damUrl": "https://db.netkeiba.com/horse/2006103166/",
     "damParity": 3,
     "damProduceCount": 8,
-    "damGapBeforeYears": 2
+    "damGapBeforeYears": 2,
+    "shareCount": 400
   },
   {
     "recruitYear": 2021,
@@ -9905,7 +10320,8 @@
     "damUrl": "https://db.netkeiba.com/horse/2006103297/",
     "damParity": 8,
     "damProduceCount": 12,
-    "damGapBeforeYears": 1
+    "damGapBeforeYears": 1,
+    "shareCount": 400
   },
   {
     "recruitYear": 2021,
@@ -9933,7 +10349,8 @@
     "damUrl": "https://db.netkeiba.com/horse/2013105820/",
     "damParity": 2,
     "damProduceCount": 8,
-    "damGapBeforeYears": 1
+    "damGapBeforeYears": 1,
+    "shareCount": 400
   },
   {
     "recruitYear": 2021,
@@ -9961,7 +10378,8 @@
     "damUrl": "https://db.netkeiba.com/horse/2009106088/",
     "damParity": 4,
     "damProduceCount": 9,
-    "damGapBeforeYears": 2
+    "damGapBeforeYears": 2,
+    "shareCount": 400
   },
   {
     "recruitYear": 2021,
@@ -9989,7 +10407,8 @@
     "damUrl": "https://db.netkeiba.com/horse/2006103316/",
     "damParity": 8,
     "damProduceCount": 11,
-    "damGapBeforeYears": 1
+    "damGapBeforeYears": 1,
+    "shareCount": null
   },
   {
     "recruitYear": 2021,
@@ -10017,7 +10436,8 @@
     "damUrl": "https://db.netkeiba.com/horse/2003102840/",
     "damParity": 9,
     "damProduceCount": 11,
-    "damGapBeforeYears": 2
+    "damGapBeforeYears": 2,
+    "shareCount": 400
   },
   {
     "recruitYear": 2021,
@@ -10045,7 +10465,8 @@
     "damUrl": "https://db.netkeiba.com/horse/2008103279/",
     "damParity": 6,
     "damProduceCount": 11,
-    "damGapBeforeYears": 1
+    "damGapBeforeYears": 1,
+    "shareCount": null
   },
   {
     "recruitYear": 2021,
@@ -10073,7 +10494,8 @@
     "damUrl": "https://db.netkeiba.com/horse/2002100942/",
     "damParity": 7,
     "damProduceCount": 9,
-    "damGapBeforeYears": 2
+    "damGapBeforeYears": 2,
+    "shareCount": null
   },
   {
     "recruitYear": 2021,
@@ -10101,7 +10523,8 @@
     "damUrl": "https://db.netkeiba.com/horse/2012104914/",
     "damParity": 2,
     "damProduceCount": 6,
-    "damGapBeforeYears": 1
+    "damGapBeforeYears": 1,
+    "shareCount": null
   },
   {
     "recruitYear": 2021,
@@ -10129,7 +10552,8 @@
     "damUrl": "https://db.netkeiba.com/horse/2013105321/",
     "damParity": 1,
     "damProduceCount": 6,
-    "damGapBeforeYears": null
+    "damGapBeforeYears": null,
+    "shareCount": 400
   },
   {
     "recruitYear": 2021,
@@ -10157,7 +10581,8 @@
     "damUrl": "https://db.netkeiba.com/horse/2005102526/",
     "damParity": 8,
     "damProduceCount": 12,
-    "damGapBeforeYears": 2
+    "damGapBeforeYears": 2,
+    "shareCount": 400
   },
   {
     "recruitYear": 2021,
@@ -10185,7 +10610,8 @@
     "damUrl": "https://db.netkeiba.com/horse/2007103297/",
     "damParity": 8,
     "damProduceCount": 11,
-    "damGapBeforeYears": 1
+    "damGapBeforeYears": 1,
+    "shareCount": 400
   },
   {
     "recruitYear": 2021,
@@ -10213,7 +10639,8 @@
     "damUrl": "https://db.netkeiba.com/horse/2008103359/",
     "damParity": 6,
     "damProduceCount": 10,
-    "damGapBeforeYears": 1
+    "damGapBeforeYears": 1,
+    "shareCount": null
   },
   {
     "recruitYear": 2021,
@@ -10241,7 +10668,8 @@
     "damUrl": "https://db.netkeiba.com/horse/2003102823/",
     "damParity": 11,
     "damProduceCount": 12,
-    "damGapBeforeYears": 1
+    "damGapBeforeYears": 1,
+    "shareCount": 400
   },
   {
     "recruitYear": 2021,
@@ -10269,7 +10697,8 @@
     "damUrl": "https://db.netkeiba.com/horse/2013106008/",
     "damParity": 2,
     "damProduceCount": 4,
-    "damGapBeforeYears": 2
+    "damGapBeforeYears": 2,
+    "shareCount": 400
   },
   {
     "recruitYear": 2021,
@@ -10297,7 +10726,8 @@
     "damUrl": "https://db.netkeiba.com/horse/2011103818/",
     "damParity": 4,
     "damProduceCount": 8,
-    "damGapBeforeYears": 3
+    "damGapBeforeYears": 3,
+    "shareCount": 400
   },
   {
     "recruitYear": 2021,
@@ -10325,7 +10755,8 @@
     "damUrl": "https://db.netkeiba.com/horse/2005102167/",
     "damParity": 12,
     "damProduceCount": 12,
-    "damGapBeforeYears": 1
+    "damGapBeforeYears": 1,
+    "shareCount": 400
   },
   {
     "recruitYear": 2021,
@@ -10353,7 +10784,8 @@
     "damUrl": "https://db.netkeiba.com/horse/2012104858/",
     "damParity": 2,
     "damProduceCount": 7,
-    "damGapBeforeYears": 1
+    "damGapBeforeYears": 1,
+    "shareCount": null
   },
   {
     "recruitYear": 2021,
@@ -10381,7 +10813,8 @@
     "damUrl": "https://db.netkeiba.com/horse/000a01199b/",
     "damParity": 8,
     "damProduceCount": 11,
-    "damGapBeforeYears": 1
+    "damGapBeforeYears": 1,
+    "shareCount": null
   },
   {
     "recruitYear": 2021,
@@ -10409,7 +10842,8 @@
     "damUrl": "https://db.netkeiba.com/horse/000a011191/",
     "damParity": 11,
     "damProduceCount": 13,
-    "damGapBeforeYears": 1
+    "damGapBeforeYears": 1,
+    "shareCount": 400
   },
   {
     "recruitYear": 2021,
@@ -10437,7 +10871,8 @@
     "damUrl": "https://db.netkeiba.com/horse/000a01560a/",
     "damParity": 1,
     "damProduceCount": 5,
-    "damGapBeforeYears": null
+    "damGapBeforeYears": null,
+    "shareCount": 400
   },
   {
     "recruitYear": 2021,
@@ -10465,7 +10900,8 @@
     "damUrl": "https://db.netkeiba.com/horse/000a015984/",
     "damParity": 1,
     "damProduceCount": 4,
-    "damGapBeforeYears": null
+    "damGapBeforeYears": null,
+    "shareCount": 400
   },
   {
     "recruitYear": 2021,
@@ -10493,7 +10929,8 @@
     "damUrl": "https://db.netkeiba.com/horse/2004101213/",
     "damParity": 7,
     "damProduceCount": 9,
-    "damGapBeforeYears": 1
+    "damGapBeforeYears": 1,
+    "shareCount": 100
   },
   {
     "recruitYear": 2021,
@@ -10521,7 +10958,8 @@
     "damUrl": "https://db.netkeiba.com/horse/2000101535/",
     "damParity": 13,
     "damProduceCount": 14,
-    "damGapBeforeYears": 1
+    "damGapBeforeYears": 1,
+    "shareCount": 100
   },
   {
     "recruitYear": 2021,
@@ -10549,7 +10987,8 @@
     "damUrl": "https://db.netkeiba.com/horse/2014105942/",
     "damParity": 1,
     "damProduceCount": 5,
-    "damGapBeforeYears": null
+    "damGapBeforeYears": null,
+    "shareCount": null
   },
   {
     "recruitYear": 2022,
@@ -10577,7 +11016,8 @@
     "damUrl": "https://db.netkeiba.com/horse/2014105951/",
     "damParity": 1,
     "damProduceCount": 4,
-    "damGapBeforeYears": null
+    "damGapBeforeYears": null,
+    "shareCount": null
   },
   {
     "recruitYear": 2022,
@@ -10605,7 +11045,8 @@
     "damUrl": "https://db.netkeiba.com/horse/000a015942/",
     "damParity": 1,
     "damProduceCount": 1,
-    "damGapBeforeYears": null
+    "damGapBeforeYears": null,
+    "shareCount": null
   },
   {
     "recruitYear": 2022,
@@ -10633,7 +11074,8 @@
     "damUrl": "https://db.netkeiba.com/horse/000a011de2/",
     "damParity": 9,
     "damProduceCount": 13,
-    "damGapBeforeYears": 1
+    "damGapBeforeYears": 1,
+    "shareCount": 400
   },
   {
     "recruitYear": 2022,
@@ -10661,7 +11103,8 @@
     "damUrl": "https://db.netkeiba.com/horse/2007103195/",
     "damParity": 8,
     "damProduceCount": 9,
-    "damGapBeforeYears": 1
+    "damGapBeforeYears": 1,
+    "shareCount": 400
   },
   {
     "recruitYear": 2022,
@@ -10689,7 +11132,8 @@
     "damUrl": "https://db.netkeiba.com/horse/000a013db1/",
     "damParity": 3,
     "damProduceCount": 7,
-    "damGapBeforeYears": 2
+    "damGapBeforeYears": 2,
+    "shareCount": 400
   },
   {
     "recruitYear": 2022,
@@ -10717,7 +11161,8 @@
     "damUrl": "https://db.netkeiba.com/horse/2010104050/",
     "damParity": 5,
     "damProduceCount": 7,
-    "damGapBeforeYears": 1
+    "damGapBeforeYears": 1,
+    "shareCount": 400
   },
   {
     "recruitYear": 2022,
@@ -10745,7 +11190,8 @@
     "damUrl": "https://db.netkeiba.com/horse/2012104065/",
     "damParity": 2,
     "damProduceCount": 3,
-    "damGapBeforeYears": 2
+    "damGapBeforeYears": 2,
+    "shareCount": 400
   },
   {
     "recruitYear": 2022,
@@ -10773,7 +11219,8 @@
     "damUrl": "https://db.netkeiba.com/horse/000a014412/",
     "damParity": 1,
     "damProduceCount": 3,
-    "damGapBeforeYears": null
+    "damGapBeforeYears": null,
+    "shareCount": 400
   },
   {
     "recruitYear": 2022,
@@ -10801,7 +11248,8 @@
     "damUrl": "https://db.netkeiba.com/horse/000a012061/",
     "damParity": 8,
     "damProduceCount": 11,
-    "damGapBeforeYears": 1
+    "damGapBeforeYears": 1,
+    "shareCount": 400
   },
   {
     "recruitYear": 2022,
@@ -10829,7 +11277,8 @@
     "damUrl": "https://db.netkeiba.com/horse/2011103783/",
     "damParity": 4,
     "damProduceCount": 5,
-    "damGapBeforeYears": 1
+    "damGapBeforeYears": 1,
+    "shareCount": 400
   },
   {
     "recruitYear": 2022,
@@ -10857,7 +11306,8 @@
     "damUrl": "https://db.netkeiba.com/horse/2012104535/",
     "damParity": 3,
     "damProduceCount": 5,
-    "damGapBeforeYears": 1
+    "damGapBeforeYears": 1,
+    "shareCount": 400
   },
   {
     "recruitYear": 2022,
@@ -10885,7 +11335,8 @@
     "damUrl": "https://db.netkeiba.com/horse/2010104347/",
     "damParity": 5,
     "damProduceCount": 8,
-    "damGapBeforeYears": 1
+    "damGapBeforeYears": 1,
+    "shareCount": 400
   },
   {
     "recruitYear": 2022,
@@ -10913,7 +11364,8 @@
     "damUrl": "https://db.netkeiba.com/horse/000a014417/",
     "damParity": 3,
     "damProduceCount": 4,
-    "damGapBeforeYears": 1
+    "damGapBeforeYears": 1,
+    "shareCount": 400
   },
   {
     "recruitYear": 2022,
@@ -10941,7 +11393,8 @@
     "damUrl": "https://db.netkeiba.com/horse/2003102993/",
     "damParity": 10,
     "damProduceCount": 12,
-    "damGapBeforeYears": 2
+    "damGapBeforeYears": 2,
+    "shareCount": 400
   },
   {
     "recruitYear": 2022,
@@ -10969,7 +11422,8 @@
     "damUrl": "https://db.netkeiba.com/horse/2014105854/",
     "damParity": 1,
     "damProduceCount": 5,
-    "damGapBeforeYears": null
+    "damGapBeforeYears": null,
+    "shareCount": 400
   },
   {
     "recruitYear": 2022,
@@ -10997,7 +11451,8 @@
     "damUrl": "https://db.netkeiba.com/horse/2014106203/",
     "damParity": 1,
     "damProduceCount": 3,
-    "damGapBeforeYears": null
+    "damGapBeforeYears": null,
+    "shareCount": null
   },
   {
     "recruitYear": 2022,
@@ -11025,7 +11480,8 @@
     "damUrl": "https://db.netkeiba.com/horse/2008103279/",
     "damParity": 7,
     "damProduceCount": 11,
-    "damGapBeforeYears": 1
+    "damGapBeforeYears": 1,
+    "shareCount": null
   },
   {
     "recruitYear": 2022,
@@ -11053,7 +11509,8 @@
     "damUrl": "https://db.netkeiba.com/horse/2016104283/",
     "damParity": 1,
     "damProduceCount": 4,
-    "damGapBeforeYears": null
+    "damGapBeforeYears": null,
+    "shareCount": 400
   },
   {
     "recruitYear": 2022,
@@ -11081,7 +11538,8 @@
     "damUrl": "https://db.netkeiba.com/horse/2011103811/",
     "damParity": 4,
     "damProduceCount": 8,
-    "damGapBeforeYears": 1
+    "damGapBeforeYears": 1,
+    "shareCount": 400
   },
   {
     "recruitYear": 2022,
@@ -11109,7 +11567,8 @@
     "damUrl": "https://db.netkeiba.com/horse/2000102044/",
     "damParity": 14,
     "damProduceCount": 15,
-    "damGapBeforeYears": 1
+    "damGapBeforeYears": 1,
+    "shareCount": 400
   },
   {
     "recruitYear": 2022,
@@ -11137,7 +11596,8 @@
     "damUrl": "https://db.netkeiba.com/horse/2010104242/",
     "damParity": 5,
     "damProduceCount": 9,
-    "damGapBeforeYears": 1
+    "damGapBeforeYears": 1,
+    "shareCount": 400
   },
   {
     "recruitYear": 2022,
@@ -11165,7 +11625,8 @@
     "damUrl": "https://db.netkeiba.com/horse/2014105958/",
     "damParity": 2,
     "damProduceCount": 4,
-    "damGapBeforeYears": 1
+    "damGapBeforeYears": 1,
+    "shareCount": null
   },
   {
     "recruitYear": 2022,
@@ -11193,7 +11654,8 @@
     "damUrl": "https://db.netkeiba.com/horse/2013105321/",
     "damParity": 2,
     "damProduceCount": 6,
-    "damGapBeforeYears": 1
+    "damGapBeforeYears": 1,
+    "shareCount": 400
   },
   {
     "recruitYear": 2022,
@@ -11221,7 +11683,8 @@
     "damUrl": "https://db.netkeiba.com/horse/2014106097/",
     "damParity": 2,
     "damProduceCount": 4,
-    "damGapBeforeYears": 1
+    "damGapBeforeYears": 1,
+    "shareCount": 400
   },
   {
     "recruitYear": 2022,
@@ -11249,7 +11712,8 @@
     "damUrl": "https://db.netkeiba.com/horse/2004103199/",
     "damParity": 7,
     "damProduceCount": 8,
-    "damGapBeforeYears": 2
+    "damGapBeforeYears": 2,
+    "shareCount": 400
   },
   {
     "recruitYear": 2022,
@@ -11277,7 +11741,8 @@
     "damUrl": "https://db.netkeiba.com/horse/2009106142/",
     "damParity": 5,
     "damProduceCount": 8,
-    "damGapBeforeYears": 1
+    "damGapBeforeYears": 1,
+    "shareCount": null
   },
   {
     "recruitYear": 2022,
@@ -11305,7 +11770,8 @@
     "damUrl": "https://db.netkeiba.com/horse/2012104913/",
     "damParity": 3,
     "damProduceCount": 7,
-    "damGapBeforeYears": 1
+    "damGapBeforeYears": 1,
+    "shareCount": 400
   },
   {
     "recruitYear": 2022,
@@ -11333,7 +11799,8 @@
     "damUrl": "https://db.netkeiba.com/horse/2004102760/",
     "damParity": 10,
     "damProduceCount": 13,
-    "damGapBeforeYears": 1
+    "damGapBeforeYears": 1,
+    "shareCount": 400
   },
   {
     "recruitYear": 2022,
@@ -11361,7 +11828,8 @@
     "damUrl": "https://db.netkeiba.com/horse/000a011d05/",
     "damParity": 7,
     "damProduceCount": 10,
-    "damGapBeforeYears": 1
+    "damGapBeforeYears": 1,
+    "shareCount": 400
   },
   {
     "recruitYear": 2022,
@@ -11389,7 +11857,8 @@
     "damUrl": "https://db.netkeiba.com/horse/000a01441a/",
     "damParity": 2,
     "damProduceCount": 6,
-    "damGapBeforeYears": 1
+    "damGapBeforeYears": 1,
+    "shareCount": 400
   },
   {
     "recruitYear": 2022,
@@ -11417,7 +11886,8 @@
     "damUrl": "https://db.netkeiba.com/horse/2011103832/",
     "damParity": 3,
     "damProduceCount": 6,
-    "damGapBeforeYears": 2
+    "damGapBeforeYears": 2,
+    "shareCount": 400
   },
   {
     "recruitYear": 2022,
@@ -11445,7 +11915,8 @@
     "damUrl": "https://db.netkeiba.com/horse/2014105930/",
     "damParity": 1,
     "damProduceCount": 3,
-    "damGapBeforeYears": null
+    "damGapBeforeYears": null,
+    "shareCount": null
   },
   {
     "recruitYear": 2022,
@@ -11473,7 +11944,8 @@
     "damUrl": "https://db.netkeiba.com/horse/2010104036/",
     "damParity": 5,
     "damProduceCount": 8,
-    "damGapBeforeYears": 1
+    "damGapBeforeYears": 1,
+    "shareCount": 400
   },
   {
     "recruitYear": 2022,
@@ -11501,7 +11973,8 @@
     "damUrl": "https://db.netkeiba.com/horse/2014110088/",
     "damParity": 1,
     "damProduceCount": 4,
-    "damGapBeforeYears": null
+    "damGapBeforeYears": null,
+    "shareCount": 400
   },
   {
     "recruitYear": 2022,
@@ -11529,7 +12002,8 @@
     "damUrl": "https://db.netkeiba.com/horse/2004102891/",
     "damParity": 11,
     "damProduceCount": 11,
-    "damGapBeforeYears": 2
+    "damGapBeforeYears": 2,
+    "shareCount": 400
   },
   {
     "recruitYear": 2022,
@@ -11557,7 +12031,8 @@
     "damUrl": "https://db.netkeiba.com/horse/000a0117a0/",
     "damParity": 10,
     "damProduceCount": 11,
-    "damGapBeforeYears": 2
+    "damGapBeforeYears": 2,
+    "shareCount": 400
   },
   {
     "recruitYear": 2022,
@@ -11585,7 +12060,8 @@
     "damUrl": "https://db.netkeiba.com/horse/000a011e13/",
     "damParity": 9,
     "damProduceCount": 9,
-    "damGapBeforeYears": 1
+    "damGapBeforeYears": 1,
+    "shareCount": 400
   },
   {
     "recruitYear": 2022,
@@ -11613,7 +12089,8 @@
     "damUrl": "https://db.netkeiba.com/horse/000a0163e8/",
     "damParity": 1,
     "damProduceCount": 5,
-    "damGapBeforeYears": null
+    "damGapBeforeYears": null,
+    "shareCount": 400
   },
   {
     "recruitYear": 2022,
@@ -11641,7 +12118,8 @@
     "damUrl": "https://db.netkeiba.com/horse/2015110003/",
     "damParity": 3,
     "damProduceCount": 6,
-    "damGapBeforeYears": 1
+    "damGapBeforeYears": 1,
+    "shareCount": 400
   },
   {
     "recruitYear": 2022,
@@ -11669,7 +12147,8 @@
     "damUrl": "https://db.netkeiba.com/horse/000a01560e/",
     "damParity": 1,
     "damProduceCount": 4,
-    "damGapBeforeYears": null
+    "damGapBeforeYears": null,
+    "shareCount": 400
   },
   {
     "recruitYear": 2022,
@@ -11697,7 +12176,8 @@
     "damUrl": "https://db.netkeiba.com/horse/000a01295d/",
     "damParity": 5,
     "damProduceCount": 7,
-    "damGapBeforeYears": 1
+    "damGapBeforeYears": 1,
+    "shareCount": 400
   },
   {
     "recruitYear": 2022,
@@ -11725,7 +12205,8 @@
     "damUrl": "https://db.netkeiba.com/horse/2012104690/",
     "damParity": 2,
     "damProduceCount": 6,
-    "damGapBeforeYears": 1
+    "damGapBeforeYears": 1,
+    "shareCount": 400
   },
   {
     "recruitYear": 2022,
@@ -11753,7 +12234,8 @@
     "damUrl": "https://db.netkeiba.com/horse/2008102899/",
     "damParity": 4,
     "damProduceCount": 6,
-    "damGapBeforeYears": 5
+    "damGapBeforeYears": 5,
+    "shareCount": 400
   },
   {
     "recruitYear": 2022,
@@ -11781,7 +12263,8 @@
     "damUrl": "https://db.netkeiba.com/horse/2013105816/",
     "damParity": 2,
     "damProduceCount": 5,
-    "damGapBeforeYears": 1
+    "damGapBeforeYears": 1,
+    "shareCount": 400
   },
   {
     "recruitYear": 2022,
@@ -11809,7 +12292,8 @@
     "damUrl": "https://db.netkeiba.com/horse/2006103166/",
     "damParity": 4,
     "damProduceCount": 8,
-    "damGapBeforeYears": 1
+    "damGapBeforeYears": 1,
+    "shareCount": 400
   },
   {
     "recruitYear": 2022,
@@ -11837,7 +12321,8 @@
     "damUrl": "https://db.netkeiba.com/horse/2012104717/",
     "damParity": 3,
     "damProduceCount": 6,
-    "damGapBeforeYears": 1
+    "damGapBeforeYears": 1,
+    "shareCount": null
   },
   {
     "recruitYear": 2022,
@@ -11865,7 +12350,8 @@
     "damUrl": "https://db.netkeiba.com/horse/2006102828/",
     "damParity": 6,
     "damProduceCount": 9,
-    "damGapBeforeYears": 1
+    "damGapBeforeYears": 1,
+    "shareCount": null
   },
   {
     "recruitYear": 2022,
@@ -11893,7 +12379,8 @@
     "damUrl": "https://db.netkeiba.com/horse/2013106014/",
     "damParity": 2,
     "damProduceCount": 5,
-    "damGapBeforeYears": 1
+    "damGapBeforeYears": 1,
+    "shareCount": 400
   },
   {
     "recruitYear": 2022,
@@ -11921,7 +12408,8 @@
     "damUrl": "https://db.netkeiba.com/horse/000a01bdb0/",
     "damParity": 1,
     "damProduceCount": 5,
-    "damGapBeforeYears": null
+    "damGapBeforeYears": null,
+    "shareCount": 400
   },
   {
     "recruitYear": 2022,
@@ -11949,7 +12437,8 @@
     "damUrl": "https://db.netkeiba.com/horse/2011103890/",
     "damParity": 4,
     "damProduceCount": 8,
-    "damGapBeforeYears": 1
+    "damGapBeforeYears": 1,
+    "shareCount": 400
   },
   {
     "recruitYear": 2022,
@@ -11977,7 +12466,8 @@
     "damUrl": "https://db.netkeiba.com/horse/2014105975/",
     "damParity": 1,
     "damProduceCount": 3,
-    "damGapBeforeYears": null
+    "damGapBeforeYears": null,
+    "shareCount": null
   },
   {
     "recruitYear": 2022,
@@ -12005,7 +12495,8 @@
     "damUrl": "https://db.netkeiba.com/horse/2011104105/",
     "damParity": 4,
     "damProduceCount": 8,
-    "damGapBeforeYears": 1
+    "damGapBeforeYears": 1,
+    "shareCount": 400
   },
   {
     "recruitYear": 2022,
@@ -12033,7 +12524,8 @@
     "damUrl": "https://db.netkeiba.com/horse/2011110003/",
     "damParity": 4,
     "damProduceCount": 6,
-    "damGapBeforeYears": 1
+    "damGapBeforeYears": 1,
+    "shareCount": 400
   },
   {
     "recruitYear": 2022,
@@ -12061,7 +12553,8 @@
     "damUrl": "https://db.netkeiba.com/horse/000a011a19/",
     "damParity": 9,
     "damProduceCount": 13,
-    "damGapBeforeYears": 1
+    "damGapBeforeYears": 1,
+    "shareCount": 400
   },
   {
     "recruitYear": 2022,
@@ -12089,7 +12582,8 @@
     "damUrl": "https://db.netkeiba.com/horse/000a014416/",
     "damParity": 3,
     "damProduceCount": 6,
-    "damGapBeforeYears": 1
+    "damGapBeforeYears": 1,
+    "shareCount": 400
   },
   {
     "recruitYear": 2022,
@@ -12117,7 +12611,8 @@
     "damUrl": "https://db.netkeiba.com/horse/2013106106/",
     "damParity": 2,
     "damProduceCount": 5,
-    "damGapBeforeYears": 1
+    "damGapBeforeYears": 1,
+    "shareCount": 400
   },
   {
     "recruitYear": 2022,
@@ -12145,7 +12640,8 @@
     "damUrl": "https://db.netkeiba.com/horse/2016104675/",
     "damParity": 1,
     "damProduceCount": 5,
-    "damGapBeforeYears": null
+    "damGapBeforeYears": null,
+    "shareCount": null
   },
   {
     "recruitYear": 2022,
@@ -12173,7 +12669,8 @@
     "damUrl": "https://db.netkeiba.com/horse/000a011191/",
     "damParity": 12,
     "damProduceCount": 13,
-    "damGapBeforeYears": 1
+    "damGapBeforeYears": 1,
+    "shareCount": null
   },
   {
     "recruitYear": 2022,
@@ -12201,7 +12698,8 @@
     "damUrl": "https://db.netkeiba.com/horse/000a012f86/",
     "damParity": 7,
     "damProduceCount": 10,
-    "damGapBeforeYears": 1
+    "damGapBeforeYears": 1,
+    "shareCount": 400
   },
   {
     "recruitYear": 2022,
@@ -12229,7 +12727,8 @@
     "damUrl": "https://db.netkeiba.com/horse/000a011a9f/",
     "damParity": 8,
     "damProduceCount": 11,
-    "damGapBeforeYears": 1
+    "damGapBeforeYears": 1,
+    "shareCount": 400
   },
   {
     "recruitYear": 2022,
@@ -12257,7 +12756,8 @@
     "damUrl": "https://db.netkeiba.com/horse/2014106144/",
     "damParity": 1,
     "damProduceCount": 3,
-    "damGapBeforeYears": null
+    "damGapBeforeYears": null,
+    "shareCount": 400
   },
   {
     "recruitYear": 2022,
@@ -12285,7 +12785,8 @@
     "damUrl": "https://db.netkeiba.com/horse/000a011501/",
     "damParity": 8,
     "damProduceCount": 9,
-    "damGapBeforeYears": 2
+    "damGapBeforeYears": 2,
+    "shareCount": 400
   },
   {
     "recruitYear": 2022,
@@ -12313,7 +12814,8 @@
     "damUrl": "https://db.netkeiba.com/horse/2005102526/",
     "damParity": 9,
     "damProduceCount": 12,
-    "damGapBeforeYears": 1
+    "damGapBeforeYears": 1,
+    "shareCount": 400
   },
   {
     "recruitYear": 2022,
@@ -12341,7 +12843,8 @@
     "damUrl": "https://db.netkeiba.com/horse/2014105794/",
     "damParity": 1,
     "damProduceCount": 4,
-    "damGapBeforeYears": null
+    "damGapBeforeYears": null,
+    "shareCount": null
   },
   {
     "recruitYear": 2022,
@@ -12369,7 +12872,8 @@
     "damUrl": "https://db.netkeiba.com/horse/2014106220/",
     "damParity": 1,
     "damProduceCount": 4,
-    "damGapBeforeYears": null
+    "damGapBeforeYears": null,
+    "shareCount": 400
   },
   {
     "recruitYear": 2022,
@@ -12397,7 +12901,8 @@
     "damUrl": "https://db.netkeiba.com/horse/2010104211/",
     "damParity": 5,
     "damProduceCount": 6,
-    "damGapBeforeYears": 1
+    "damGapBeforeYears": 1,
+    "shareCount": 400
   },
   {
     "recruitYear": 2022,
@@ -12425,7 +12930,8 @@
     "damUrl": "https://db.netkeiba.com/horse/2008103309/",
     "damParity": 6,
     "damProduceCount": 9,
-    "damGapBeforeYears": 1
+    "damGapBeforeYears": 1,
+    "shareCount": 400
   },
   {
     "recruitYear": 2022,
@@ -12453,7 +12959,8 @@
     "damUrl": "https://db.netkeiba.com/horse/2010104041/",
     "damParity": 5,
     "damProduceCount": 9,
-    "damGapBeforeYears": 1
+    "damGapBeforeYears": 1,
+    "shareCount": 400
   },
   {
     "recruitYear": 2022,
@@ -12481,7 +12988,8 @@
     "damUrl": "https://db.netkeiba.com/horse/2005102704/",
     "damParity": 9,
     "damProduceCount": 10,
-    "damGapBeforeYears": 1
+    "damGapBeforeYears": 1,
+    "shareCount": null
   },
   {
     "recruitYear": 2022,
@@ -12509,7 +13017,8 @@
     "damUrl": "https://db.netkeiba.com/horse/2012104858/",
     "damParity": 3,
     "damProduceCount": 7,
-    "damGapBeforeYears": 1
+    "damGapBeforeYears": 1,
+    "shareCount": 400
   },
   {
     "recruitYear": 2022,
@@ -12537,7 +13046,8 @@
     "damUrl": "https://db.netkeiba.com/horse/2014105833/",
     "damParity": 1,
     "damProduceCount": 4,
-    "damGapBeforeYears": null
+    "damGapBeforeYears": null,
+    "shareCount": 400
   },
   {
     "recruitYear": 2022,
@@ -12565,7 +13075,8 @@
     "damUrl": "https://db.netkeiba.com/horse/2011103810/",
     "damParity": 5,
     "damProduceCount": 6,
-    "damGapBeforeYears": 1
+    "damGapBeforeYears": 1,
+    "shareCount": 400
   },
   {
     "recruitYear": 2022,
@@ -12593,7 +13104,8 @@
     "damUrl": "https://db.netkeiba.com/horse/2014106061/",
     "damParity": 1,
     "damProduceCount": 3,
-    "damGapBeforeYears": null
+    "damGapBeforeYears": null,
+    "shareCount": null
   },
   {
     "recruitYear": 2022,
@@ -12621,7 +13133,8 @@
     "damUrl": "https://db.netkeiba.com/horse/2014105970/",
     "damParity": 1,
     "damProduceCount": 4,
-    "damGapBeforeYears": null
+    "damGapBeforeYears": null,
+    "shareCount": null
   },
   {
     "recruitYear": 2022,
@@ -12649,7 +13162,8 @@
     "damUrl": "https://db.netkeiba.com/horse/2013106154/",
     "damParity": 2,
     "damProduceCount": 5,
-    "damGapBeforeYears": 1
+    "damGapBeforeYears": 1,
+    "shareCount": 400
   },
   {
     "recruitYear": 2022,
@@ -12677,7 +13191,8 @@
     "damUrl": "https://db.netkeiba.com/horse/2002100843/",
     "damParity": 9,
     "damProduceCount": 10,
-    "damGapBeforeYears": 3
+    "damGapBeforeYears": 3,
+    "shareCount": 400
   },
   {
     "recruitYear": 2022,
@@ -12705,7 +13220,8 @@
     "damUrl": "https://db.netkeiba.com/horse/000a011531/",
     "damParity": 13,
     "damProduceCount": 13,
-    "damGapBeforeYears": 2
+    "damGapBeforeYears": 2,
+    "shareCount": 400
   },
   {
     "recruitYear": 2022,
@@ -12733,7 +13249,8 @@
     "damUrl": "https://db.netkeiba.com/horse/2005102664/",
     "damParity": 9,
     "damProduceCount": 9,
-    "damGapBeforeYears": 2
+    "damGapBeforeYears": 2,
+    "shareCount": 400
   },
   {
     "recruitYear": 2022,
@@ -12761,7 +13278,8 @@
     "damUrl": "https://db.netkeiba.com/horse/2003102952/",
     "damParity": 10,
     "damProduceCount": 12,
-    "damGapBeforeYears": 1
+    "damGapBeforeYears": 1,
+    "shareCount": 400
   },
   {
     "recruitYear": 2022,
@@ -12789,7 +13307,8 @@
     "damUrl": "https://db.netkeiba.com/horse/000a011523/",
     "damParity": 10,
     "damProduceCount": 13,
-    "damGapBeforeYears": 1
+    "damGapBeforeYears": 1,
+    "shareCount": 400
   },
   {
     "recruitYear": 2022,
@@ -12817,7 +13336,8 @@
     "damUrl": "https://db.netkeiba.com/horse/2010104312/",
     "damParity": 4,
     "damProduceCount": 7,
-    "damGapBeforeYears": 1
+    "damGapBeforeYears": 1,
+    "shareCount": 400
   },
   {
     "recruitYear": 2022,
@@ -12845,7 +13365,8 @@
     "damUrl": "https://db.netkeiba.com/horse/000a011504/",
     "damParity": 10,
     "damProduceCount": 11,
-    "damGapBeforeYears": 1
+    "damGapBeforeYears": 1,
+    "shareCount": 400
   },
   {
     "recruitYear": 2022,
@@ -12873,7 +13394,8 @@
     "damUrl": "https://db.netkeiba.com/horse/000a012f7f/",
     "damParity": 7,
     "damProduceCount": 10,
-    "damGapBeforeYears": 1
+    "damGapBeforeYears": 1,
+    "shareCount": 400
   },
   {
     "recruitYear": 2022,
@@ -12901,7 +13423,8 @@
     "damUrl": "https://db.netkeiba.com/horse/000a013e76/",
     "damParity": 3,
     "damProduceCount": 6,
-    "damGapBeforeYears": 1
+    "damGapBeforeYears": 1,
+    "shareCount": null
   },
   {
     "recruitYear": 2022,
@@ -12929,7 +13452,8 @@
     "damUrl": "https://db.netkeiba.com/horse/2009106088/",
     "damParity": 5,
     "damProduceCount": 9,
-    "damGapBeforeYears": 1
+    "damGapBeforeYears": 1,
+    "shareCount": null
   },
   {
     "recruitYear": 2022,
@@ -12957,7 +13481,8 @@
     "damUrl": "https://db.netkeiba.com/horse/2011103644/",
     "damParity": 3,
     "damProduceCount": 5,
-    "damGapBeforeYears": 2
+    "damGapBeforeYears": 2,
+    "shareCount": 400
   },
   {
     "recruitYear": 2022,
@@ -12985,7 +13510,8 @@
     "damUrl": "https://db.netkeiba.com/horse/2002100942/",
     "damParity": 8,
     "damProduceCount": 9,
-    "damGapBeforeYears": 1
+    "damGapBeforeYears": 1,
+    "shareCount": 400
   },
   {
     "recruitYear": 2022,
@@ -13013,7 +13539,8 @@
     "damUrl": "https://db.netkeiba.com/horse/000a010bf2/",
     "damParity": 13,
     "damProduceCount": 14,
-    "damGapBeforeYears": 2
+    "damGapBeforeYears": 2,
+    "shareCount": null
   },
   {
     "recruitYear": 2022,
@@ -13041,7 +13568,8 @@
     "damUrl": "https://db.netkeiba.com/horse/000a013897/",
     "damParity": 5,
     "damProduceCount": 8,
-    "damGapBeforeYears": 1
+    "damGapBeforeYears": 1,
+    "shareCount": null
   },
   {
     "recruitYear": 2022,
@@ -13069,7 +13597,8 @@
     "damUrl": "https://db.netkeiba.com/horse/2004101213/",
     "damParity": 8,
     "damProduceCount": 9,
-    "damGapBeforeYears": 1
+    "damGapBeforeYears": 1,
+    "shareCount": null
   },
   {
     "recruitYear": 2022,
@@ -13097,7 +13626,8 @@
     "damUrl": "https://db.netkeiba.com/horse/2013105871/",
     "damParity": 2,
     "damProduceCount": 5,
-    "damGapBeforeYears": 1
+    "damGapBeforeYears": 1,
+    "shareCount": null
   },
   {
     "recruitYear": 2022,
@@ -13125,7 +13655,8 @@
     "damUrl": "https://db.netkeiba.com/horse/2013106120/",
     "damParity": 1,
     "damProduceCount": 4,
-    "damGapBeforeYears": null
+    "damGapBeforeYears": null,
+    "shareCount": 100
   },
   {
     "recruitYear": 2022,
@@ -13153,7 +13684,8 @@
     "damUrl": "https://db.netkeiba.com/horse/2013110081/",
     "damParity": 1,
     "damProduceCount": 4,
-    "damGapBeforeYears": null
+    "damGapBeforeYears": null,
+    "shareCount": null
   },
   {
     "recruitYear": 2022,
@@ -13181,7 +13713,8 @@
     "damUrl": "https://db.netkeiba.com/horse/000a011de4/",
     "damParity": 9,
     "damProduceCount": 10,
-    "damGapBeforeYears": 1
+    "damGapBeforeYears": 1,
+    "shareCount": null
   },
   {
     "recruitYear": 2023,
@@ -13209,7 +13742,8 @@
     "damUrl": "https://db.netkeiba.com/horse/2011103832/",
     "damParity": 4,
     "damProduceCount": 6,
-    "damGapBeforeYears": 1
+    "damGapBeforeYears": 1,
+    "shareCount": 400
   },
   {
     "recruitYear": 2023,
@@ -13237,7 +13771,8 @@
     "damUrl": "https://db.netkeiba.com/horse/000a012061/",
     "damParity": 9,
     "damProduceCount": 11,
-    "damGapBeforeYears": 1
+    "damGapBeforeYears": 1,
+    "shareCount": 400
   },
   {
     "recruitYear": 2023,
@@ -13265,7 +13800,8 @@
     "damUrl": "https://db.netkeiba.com/horse/2014106114/",
     "damParity": 1,
     "damProduceCount": 3,
-    "damGapBeforeYears": null
+    "damGapBeforeYears": null,
+    "shareCount": 400
   },
   {
     "recruitYear": 2023,
@@ -13293,7 +13829,8 @@
     "damUrl": "https://db.netkeiba.com/horse/2006103419/",
     "damParity": 8,
     "damProduceCount": 11,
-    "damGapBeforeYears": 2
+    "damGapBeforeYears": 2,
+    "shareCount": 400
   },
   {
     "recruitYear": 2023,
@@ -13321,7 +13858,8 @@
     "damUrl": "https://db.netkeiba.com/horse/2008103078/",
     "damParity": 7,
     "damProduceCount": 9,
-    "damGapBeforeYears": 1
+    "damGapBeforeYears": 1,
+    "shareCount": 400
   },
   {
     "recruitYear": 2023,
@@ -13349,7 +13887,8 @@
     "damUrl": "https://db.netkeiba.com/horse/2008103077/",
     "damParity": 7,
     "damProduceCount": 9,
-    "damGapBeforeYears": 1
+    "damGapBeforeYears": 1,
+    "shareCount": 400
   },
   {
     "recruitYear": 2023,
@@ -13377,7 +13916,8 @@
     "damUrl": "https://db.netkeiba.com/horse/2015104702/",
     "damParity": 1,
     "damProduceCount": 1,
-    "damGapBeforeYears": null
+    "damGapBeforeYears": null,
+    "shareCount": 400
   },
   {
     "recruitYear": 2023,
@@ -13405,7 +13945,8 @@
     "damUrl": "https://db.netkeiba.com/horse/2008103279/",
     "damParity": 8,
     "damProduceCount": 11,
-    "damGapBeforeYears": 1
+    "damGapBeforeYears": 1,
+    "shareCount": 400
   },
   {
     "recruitYear": 2023,
@@ -13433,7 +13974,8 @@
     "damUrl": "https://db.netkeiba.com/horse/2016104357/",
     "damParity": 2,
     "damProduceCount": 4,
-    "damGapBeforeYears": 1
+    "damGapBeforeYears": 1,
+    "shareCount": 400
   },
   {
     "recruitYear": 2023,
@@ -13461,7 +14003,8 @@
     "damUrl": "https://db.netkeiba.com/horse/2012104599/",
     "damParity": 5,
     "damProduceCount": 7,
-    "damGapBeforeYears": 2
+    "damGapBeforeYears": 2,
+    "shareCount": 400
   },
   {
     "recruitYear": 2023,
@@ -13489,7 +14032,8 @@
     "damUrl": "https://db.netkeiba.com/horse/2015104159/",
     "damParity": 1,
     "damProduceCount": 3,
-    "damGapBeforeYears": null
+    "damGapBeforeYears": null,
+    "shareCount": null
   },
   {
     "recruitYear": 2023,
@@ -13517,7 +14061,8 @@
     "damUrl": "https://db.netkeiba.com/horse/000a01256c/",
     "damParity": 4,
     "damProduceCount": 6,
-    "damGapBeforeYears": 1
+    "damGapBeforeYears": 1,
+    "shareCount": 400
   },
   {
     "recruitYear": 2023,
@@ -13545,7 +14090,8 @@
     "damUrl": "https://db.netkeiba.com/horse/2012104768/",
     "damParity": 4,
     "damProduceCount": 7,
-    "damGapBeforeYears": 1
+    "damGapBeforeYears": 1,
+    "shareCount": 400
   },
   {
     "recruitYear": 2023,
@@ -13573,7 +14119,8 @@
     "damUrl": "https://db.netkeiba.com/horse/000a01438a/",
     "damParity": 3,
     "damProduceCount": 6,
-    "damGapBeforeYears": 1
+    "damGapBeforeYears": 1,
+    "shareCount": 400
   },
   {
     "recruitYear": 2023,
@@ -13601,7 +14148,8 @@
     "damUrl": "https://db.netkeiba.com/horse/2014105951/",
     "damParity": 2,
     "damProduceCount": 4,
-    "damGapBeforeYears": 1
+    "damGapBeforeYears": 1,
+    "shareCount": 400
   },
   {
     "recruitYear": 2023,
@@ -13629,7 +14177,8 @@
     "damUrl": "https://db.netkeiba.com/horse/2015104720/",
     "damParity": 1,
     "damProduceCount": 4,
-    "damGapBeforeYears": null
+    "damGapBeforeYears": null,
+    "shareCount": 400
   },
   {
     "recruitYear": 2023,
@@ -13657,7 +14206,8 @@
     "damUrl": "https://db.netkeiba.com/horse/2014106218/",
     "damParity": 2,
     "damProduceCount": 3,
-    "damGapBeforeYears": 1
+    "damGapBeforeYears": 1,
+    "shareCount": 400
   },
   {
     "recruitYear": 2023,
@@ -13685,7 +14235,8 @@
     "damUrl": "https://db.netkeiba.com/horse/2011103890/",
     "damParity": 5,
     "damProduceCount": 8,
-    "damGapBeforeYears": 1
+    "damGapBeforeYears": 1,
+    "shareCount": 400
   },
   {
     "recruitYear": 2023,
@@ -13713,7 +14264,8 @@
     "damUrl": "https://db.netkeiba.com/horse/2012104760/",
     "damParity": 4,
     "damProduceCount": 6,
-    "damGapBeforeYears": 1
+    "damGapBeforeYears": 1,
+    "shareCount": 400
   },
   {
     "recruitYear": 2023,
@@ -13741,7 +14293,8 @@
     "damUrl": "https://db.netkeiba.com/horse/2013106181/",
     "damParity": 3,
     "damProduceCount": 6,
-    "damGapBeforeYears": 2
+    "damGapBeforeYears": 2,
+    "shareCount": null
   },
   {
     "recruitYear": 2023,
@@ -13769,7 +14322,8 @@
     "damUrl": "https://db.netkeiba.com/horse/2009106289/",
     "damParity": 8,
     "damProduceCount": 10,
-    "damGapBeforeYears": 1
+    "damGapBeforeYears": 1,
+    "shareCount": 400
   },
   {
     "recruitYear": 2023,
@@ -13797,7 +14351,8 @@
     "damUrl": "https://db.netkeiba.com/horse/2012104858/",
     "damParity": 4,
     "damProduceCount": 7,
-    "damGapBeforeYears": 1
+    "damGapBeforeYears": 1,
+    "shareCount": 400
   },
   {
     "recruitYear": 2023,
@@ -13825,7 +14380,8 @@
     "damUrl": "https://db.netkeiba.com/horse/2010104211/",
     "damParity": 6,
     "damProduceCount": 6,
-    "damGapBeforeYears": 1
+    "damGapBeforeYears": 1,
+    "shareCount": 400
   },
   {
     "recruitYear": 2023,
@@ -13853,7 +14409,8 @@
     "damUrl": "https://db.netkeiba.com/horse/2017105211/",
     "damParity": 1,
     "damProduceCount": 3,
-    "damGapBeforeYears": null
+    "damGapBeforeYears": null,
+    "shareCount": 400
   },
   {
     "recruitYear": 2023,
@@ -13881,7 +14438,8 @@
     "damUrl": "https://db.netkeiba.com/horse/000a01b837/",
     "damParity": 2,
     "damProduceCount": 4,
-    "damGapBeforeYears": 1
+    "damGapBeforeYears": 1,
+    "shareCount": 400
   },
   {
     "recruitYear": 2023,
@@ -13909,7 +14467,8 @@
     "damUrl": "https://db.netkeiba.com/horse/000a015984/",
     "damParity": 2,
     "damProduceCount": 4,
-    "damGapBeforeYears": 2
+    "damGapBeforeYears": 2,
+    "shareCount": 400
   },
   {
     "recruitYear": 2023,
@@ -13937,7 +14496,8 @@
     "damUrl": "https://db.netkeiba.com/horse/000a015921/",
     "damParity": 2,
     "damProduceCount": 5,
-    "damGapBeforeYears": 1
+    "damGapBeforeYears": 1,
+    "shareCount": 400
   },
   {
     "recruitYear": 2023,
@@ -13965,7 +14525,8 @@
     "damUrl": "https://db.netkeiba.com/horse/2014106109/",
     "damParity": 3,
     "damProduceCount": 6,
-    "damGapBeforeYears": 1
+    "damGapBeforeYears": 1,
+    "shareCount": 400
   },
   {
     "recruitYear": 2023,
@@ -13993,7 +14554,8 @@
     "damUrl": "https://db.netkeiba.com/horse/2017110003/",
     "damParity": 2,
     "damProduceCount": 5,
-    "damGapBeforeYears": 1
+    "damGapBeforeYears": 1,
+    "shareCount": 400
   },
   {
     "recruitYear": 2023,
@@ -14021,7 +14583,8 @@
     "damUrl": "https://db.netkeiba.com/horse/2003102840/",
     "damParity": 10,
     "damProduceCount": 11,
-    "damGapBeforeYears": 2
+    "damGapBeforeYears": 2,
+    "shareCount": 400
   },
   {
     "recruitYear": 2023,
@@ -14049,7 +14612,8 @@
     "damUrl": "https://db.netkeiba.com/horse/2012104080/",
     "damParity": 4,
     "damProduceCount": 7,
-    "damGapBeforeYears": 1
+    "damGapBeforeYears": 1,
+    "shareCount": null
   },
   {
     "recruitYear": 2023,
@@ -14077,7 +14641,8 @@
     "damUrl": "https://db.netkeiba.com/horse/2012104717/",
     "damParity": 4,
     "damProduceCount": 6,
-    "damGapBeforeYears": 1
+    "damGapBeforeYears": 1,
+    "shareCount": null
   },
   {
     "recruitYear": 2023,
@@ -14105,7 +14670,8 @@
     "damUrl": "https://db.netkeiba.com/horse/2015104758/",
     "damParity": 1,
     "damProduceCount": 4,
-    "damGapBeforeYears": null
+    "damGapBeforeYears": null,
+    "shareCount": 400
   },
   {
     "recruitYear": 2023,
@@ -14133,7 +14699,8 @@
     "damUrl": "https://db.netkeiba.com/horse/2015104952/",
     "damParity": 1,
     "damProduceCount": 3,
-    "damGapBeforeYears": null
+    "damGapBeforeYears": null,
+    "shareCount": 400
   },
   {
     "recruitYear": 2023,
@@ -14161,7 +14728,8 @@
     "damUrl": "https://db.netkeiba.com/horse/2014106110/",
     "damParity": 2,
     "damProduceCount": 6,
-    "damGapBeforeYears": 1
+    "damGapBeforeYears": 1,
+    "shareCount": 400
   },
   {
     "recruitYear": 2023,
@@ -14189,7 +14757,8 @@
     "damUrl": "https://db.netkeiba.com/horse/2006103166/",
     "damParity": 5,
     "damProduceCount": 8,
-    "damGapBeforeYears": 1
+    "damGapBeforeYears": 1,
+    "shareCount": 400
   },
   {
     "recruitYear": 2023,
@@ -14217,7 +14786,8 @@
     "damUrl": "https://db.netkeiba.com/horse/2007103297/",
     "damParity": 9,
     "damProduceCount": 11,
-    "damGapBeforeYears": 2
+    "damGapBeforeYears": 2,
+    "shareCount": null
   },
   {
     "recruitYear": 2023,
@@ -14245,7 +14815,8 @@
     "damUrl": "https://db.netkeiba.com/horse/2003102846/",
     "damParity": 9,
     "damProduceCount": 9,
-    "damGapBeforeYears": 1
+    "damGapBeforeYears": 1,
+    "shareCount": null
   },
   {
     "recruitYear": 2023,
@@ -14273,7 +14844,8 @@
     "damUrl": "https://db.netkeiba.com/horse/2010104050/",
     "damParity": 6,
     "damProduceCount": 7,
-    "damGapBeforeYears": 1
+    "damGapBeforeYears": 1,
+    "shareCount": 400
   },
   {
     "recruitYear": 2023,
@@ -14301,7 +14873,8 @@
     "damUrl": "https://db.netkeiba.com/horse/2004102857/",
     "damParity": 12,
     "damProduceCount": 13,
-    "damGapBeforeYears": 1
+    "damGapBeforeYears": 1,
+    "shareCount": 400
   },
   {
     "recruitYear": 2023,
@@ -14329,7 +14902,8 @@
     "damUrl": "https://db.netkeiba.com/horse/000a0163e8/",
     "damParity": 2,
     "damProduceCount": 5,
-    "damGapBeforeYears": 1
+    "damGapBeforeYears": 1,
+    "shareCount": null
   },
   {
     "recruitYear": 2023,
@@ -14357,7 +14931,8 @@
     "damUrl": "https://db.netkeiba.com/horse/000a014475/",
     "damParity": 3,
     "damProduceCount": 5,
-    "damGapBeforeYears": 2
+    "damGapBeforeYears": 2,
+    "shareCount": 400
   },
   {
     "recruitYear": 2023,
@@ -14385,7 +14960,8 @@
     "damUrl": "https://db.netkeiba.com/horse/2005102526/",
     "damParity": 10,
     "damProduceCount": 12,
-    "damGapBeforeYears": 1
+    "damGapBeforeYears": 1,
+    "shareCount": 400
   },
   {
     "recruitYear": 2023,
@@ -14413,7 +14989,8 @@
     "damUrl": "https://db.netkeiba.com/horse/2011103811/",
     "damParity": 5,
     "damProduceCount": 8,
-    "damGapBeforeYears": 1
+    "damGapBeforeYears": 1,
+    "shareCount": 400
   },
   {
     "recruitYear": 2023,
@@ -14441,7 +15018,8 @@
     "damUrl": "https://db.netkeiba.com/horse/2006103313/",
     "damParity": 11,
     "damProduceCount": 12,
-    "damGapBeforeYears": 1
+    "damGapBeforeYears": 1,
+    "shareCount": 400
   },
   {
     "recruitYear": 2023,
@@ -14469,7 +15047,8 @@
     "damUrl": "https://db.netkeiba.com/horse/000a010bf2/",
     "damParity": 14,
     "damProduceCount": 14,
-    "damGapBeforeYears": 1
+    "damGapBeforeYears": 1,
+    "shareCount": 400
   },
   {
     "recruitYear": 2023,
@@ -14497,7 +15076,8 @@
     "damUrl": "https://db.netkeiba.com/horse/2010104242/",
     "damParity": 6,
     "damProduceCount": 9,
-    "damGapBeforeYears": 1
+    "damGapBeforeYears": 1,
+    "shareCount": null
   },
   {
     "recruitYear": 2023,
@@ -14525,7 +15105,8 @@
     "damUrl": "https://db.netkeiba.com/horse/2009106088/",
     "damParity": 6,
     "damProduceCount": 9,
-    "damGapBeforeYears": 1
+    "damGapBeforeYears": 1,
+    "shareCount": null
   },
   {
     "recruitYear": 2023,
@@ -14553,7 +15134,8 @@
     "damUrl": "https://db.netkeiba.com/horse/000a01d921/",
     "damParity": 1,
     "damProduceCount": 1,
-    "damGapBeforeYears": null
+    "damGapBeforeYears": null,
+    "shareCount": 400
   },
   {
     "recruitYear": 2023,
@@ -14581,7 +15163,8 @@
     "damUrl": "https://db.netkeiba.com/horse/000a01be50/",
     "damParity": 1,
     "damProduceCount": 4,
-    "damGapBeforeYears": null
+    "damGapBeforeYears": null,
+    "shareCount": null
   },
   {
     "recruitYear": 2023,
@@ -14609,7 +15192,8 @@
     "damUrl": "https://db.netkeiba.com/horse/2014106073/",
     "damParity": 3,
     "damProduceCount": 4,
-    "damGapBeforeYears": 2
+    "damGapBeforeYears": 2,
+    "shareCount": 400
   },
   {
     "recruitYear": 2023,
@@ -14637,7 +15221,8 @@
     "damUrl": "https://db.netkeiba.com/horse/2014105532/",
     "damParity": 3,
     "damProduceCount": 5,
-    "damGapBeforeYears": 1
+    "damGapBeforeYears": 1,
+    "shareCount": 400
   },
   {
     "recruitYear": 2023,
@@ -14665,7 +15250,8 @@
     "damUrl": "https://db.netkeiba.com/horse/000a01388c/",
     "damParity": 3,
     "damProduceCount": 5,
-    "damGapBeforeYears": 2
+    "damGapBeforeYears": 2,
+    "shareCount": 400
   },
   {
     "recruitYear": 2023,
@@ -14693,7 +15279,8 @@
     "damUrl": "https://db.netkeiba.com/horse/000a0120f6/",
     "damParity": 9,
     "damProduceCount": 12,
-    "damGapBeforeYears": 1
+    "damGapBeforeYears": 1,
+    "shareCount": 400
   },
   {
     "recruitYear": 2023,
@@ -14721,7 +15308,8 @@
     "damUrl": "https://db.netkeiba.com/horse/000a011a9f/",
     "damParity": 9,
     "damProduceCount": 11,
-    "damGapBeforeYears": 1
+    "damGapBeforeYears": 1,
+    "shareCount": 400
   },
   {
     "recruitYear": 2023,
@@ -14749,7 +15337,8 @@
     "damUrl": "https://db.netkeiba.com/horse/2013110080/",
     "damParity": 3,
     "damProduceCount": 7,
-    "damGapBeforeYears": 1
+    "damGapBeforeYears": 1,
+    "shareCount": 400
   },
   {
     "recruitYear": 2023,
@@ -14777,7 +15366,8 @@
     "damUrl": "https://db.netkeiba.com/horse/2011104000/",
     "damParity": 3,
     "damProduceCount": 4,
-    "damGapBeforeYears": 3
+    "damGapBeforeYears": 3,
+    "shareCount": null
   },
   {
     "recruitYear": 2023,
@@ -14805,7 +15395,8 @@
     "damUrl": "https://db.netkeiba.com/horse/2012103476/",
     "damParity": 3,
     "damProduceCount": 5,
-    "damGapBeforeYears": 1
+    "damGapBeforeYears": 1,
+    "shareCount": null
   },
   {
     "recruitYear": 2023,
@@ -14833,7 +15424,8 @@
     "damUrl": "https://db.netkeiba.com/horse/2014105854/",
     "damParity": 2,
     "damProduceCount": 5,
-    "damGapBeforeYears": 1
+    "damGapBeforeYears": 1,
+    "shareCount": 400
   },
   {
     "recruitYear": 2023,
@@ -14861,7 +15453,8 @@
     "damUrl": "https://db.netkeiba.com/horse/000a01205f/",
     "damParity": 7,
     "damProduceCount": 10,
-    "damGapBeforeYears": 2
+    "damGapBeforeYears": 2,
+    "shareCount": 400
   },
   {
     "recruitYear": 2023,
@@ -14889,7 +15482,8 @@
     "damUrl": "https://db.netkeiba.com/horse/000a01560b/",
     "damParity": 3,
     "damProduceCount": 6,
-    "damGapBeforeYears": 1
+    "damGapBeforeYears": 1,
+    "shareCount": 400
   },
   {
     "recruitYear": 2023,
@@ -14917,7 +15511,8 @@
     "damUrl": "https://db.netkeiba.com/horse/000a012b0b/",
     "damParity": 6,
     "damProduceCount": 8,
-    "damGapBeforeYears": 2
+    "damGapBeforeYears": 2,
+    "shareCount": 400
   },
   {
     "recruitYear": 2023,
@@ -14945,7 +15540,8 @@
     "damUrl": "https://db.netkeiba.com/horse/2014105975/",
     "damParity": 2,
     "damProduceCount": 3,
-    "damGapBeforeYears": 1
+    "damGapBeforeYears": 1,
+    "shareCount": 400
   },
   {
     "recruitYear": 2023,
@@ -14973,7 +15569,8 @@
     "damUrl": "https://db.netkeiba.com/horse/2015104779/",
     "damParity": 1,
     "damProduceCount": 4,
-    "damGapBeforeYears": null
+    "damGapBeforeYears": null,
+    "shareCount": 400
   },
   {
     "recruitYear": 2023,
@@ -15001,7 +15598,8 @@
     "damUrl": "https://db.netkeiba.com/horse/2010104200/",
     "damParity": 5,
     "damProduceCount": 7,
-    "damGapBeforeYears": 1
+    "damGapBeforeYears": 1,
+    "shareCount": 400
   },
   {
     "recruitYear": 2023,
@@ -15029,7 +15627,8 @@
     "damUrl": "https://db.netkeiba.com/horse/2014105970/",
     "damParity": 2,
     "damProduceCount": 4,
-    "damGapBeforeYears": 1
+    "damGapBeforeYears": 1,
+    "shareCount": 400
   },
   {
     "recruitYear": 2023,
@@ -15057,7 +15656,8 @@
     "damUrl": "https://db.netkeiba.com/horse/2012104913/",
     "damParity": 4,
     "damProduceCount": 7,
-    "damGapBeforeYears": 1
+    "damGapBeforeYears": 1,
+    "shareCount": 400
   },
   {
     "recruitYear": 2023,
@@ -15085,7 +15685,8 @@
     "damUrl": "https://db.netkeiba.com/horse/2014106144/",
     "damParity": 2,
     "damProduceCount": 3,
-    "damGapBeforeYears": 1
+    "damGapBeforeYears": 1,
+    "shareCount": 400
   },
   {
     "recruitYear": 2023,
@@ -15113,7 +15714,8 @@
     "damUrl": "https://db.netkeiba.com/horse/000a01293e/",
     "damParity": 8,
     "damProduceCount": 10,
-    "damGapBeforeYears": 2
+    "damGapBeforeYears": 2,
+    "shareCount": 400
   },
   {
     "recruitYear": 2023,
@@ -15141,7 +15743,8 @@
     "damUrl": "https://db.netkeiba.com/horse/2013105250/",
     "damParity": 2,
     "damProduceCount": 5,
-    "damGapBeforeYears": 2
+    "damGapBeforeYears": 2,
+    "shareCount": 400
   },
   {
     "recruitYear": 2023,
@@ -15169,7 +15772,8 @@
     "damUrl": "https://db.netkeiba.com/horse/2013105321/",
     "damParity": 3,
     "damProduceCount": 6,
-    "damGapBeforeYears": 1
+    "damGapBeforeYears": 1,
+    "shareCount": 400
   },
   {
     "recruitYear": 2023,
@@ -15197,7 +15801,8 @@
     "damUrl": "https://db.netkeiba.com/horse/2010104312/",
     "damParity": 5,
     "damProduceCount": 7,
-    "damGapBeforeYears": 1
+    "damGapBeforeYears": 1,
+    "shareCount": 400
   },
   {
     "recruitYear": 2023,
@@ -15225,7 +15830,8 @@
     "damUrl": "https://db.netkeiba.com/horse/2013105764/",
     "damParity": 3,
     "damProduceCount": 6,
-    "damGapBeforeYears": 1
+    "damGapBeforeYears": 1,
+    "shareCount": 400
   },
   {
     "recruitYear": 2023,
@@ -15253,7 +15859,8 @@
     "damUrl": "https://db.netkeiba.com/horse/2003102993/",
     "damParity": 11,
     "damProduceCount": 12,
-    "damGapBeforeYears": 1
+    "damGapBeforeYears": 1,
+    "shareCount": 400
   },
   {
     "recruitYear": 2023,
@@ -15281,7 +15888,8 @@
     "damUrl": "https://db.netkeiba.com/horse/000a011191/",
     "damParity": 13,
     "damProduceCount": 13,
-    "damGapBeforeYears": 1
+    "damGapBeforeYears": 1,
+    "shareCount": 400
   },
   {
     "recruitYear": 2023,
@@ -15309,7 +15917,8 @@
     "damUrl": "https://db.netkeiba.com/horse/2010104041/",
     "damParity": 6,
     "damProduceCount": 9,
-    "damGapBeforeYears": 1
+    "damGapBeforeYears": 1,
+    "shareCount": 400
   },
   {
     "recruitYear": 2023,
@@ -15337,7 +15946,8 @@
     "damUrl": "https://db.netkeiba.com/horse/000a011a43/",
     "damParity": 6,
     "damProduceCount": 7,
-    "damGapBeforeYears": 5
+    "damGapBeforeYears": 5,
+    "shareCount": 400
   },
   {
     "recruitYear": 2023,
@@ -15365,7 +15975,8 @@
     "damUrl": "https://db.netkeiba.com/horse/000a01435c/",
     "damParity": 3,
     "damProduceCount": 5,
-    "damGapBeforeYears": 1
+    "damGapBeforeYears": 1,
+    "shareCount": null
   },
   {
     "recruitYear": 2023,
@@ -15393,7 +16004,8 @@
     "damUrl": "https://db.netkeiba.com/horse/2003102952/",
     "damParity": 11,
     "damProduceCount": 12,
-    "damGapBeforeYears": 1
+    "damGapBeforeYears": 1,
+    "shareCount": null
   },
   {
     "recruitYear": 2023,
@@ -15421,7 +16033,8 @@
     "damUrl": "https://db.netkeiba.com/horse/2010104460/",
     "damParity": 5,
     "damProduceCount": 5,
-    "damGapBeforeYears": 2
+    "damGapBeforeYears": 2,
+    "shareCount": 400
   },
   {
     "recruitYear": 2023,
@@ -15449,7 +16062,8 @@
     "damUrl": "https://db.netkeiba.com/horse/000a011811/",
     "damParity": 9,
     "damProduceCount": 9,
-    "damGapBeforeYears": 2
+    "damGapBeforeYears": 2,
+    "shareCount": null
   },
   {
     "recruitYear": 2023,
@@ -15477,7 +16091,8 @@
     "damUrl": "https://db.netkeiba.com/horse/2014105930/",
     "damParity": 2,
     "damProduceCount": 3,
-    "damGapBeforeYears": 1
+    "damGapBeforeYears": 1,
+    "shareCount": 400
   },
   {
     "recruitYear": 2023,
@@ -15505,7 +16120,8 @@
     "damUrl": "https://db.netkeiba.com/horse/000a013da7/",
     "damParity": 5,
     "damProduceCount": 8,
-    "damGapBeforeYears": 1
+    "damGapBeforeYears": 1,
+    "shareCount": null
   },
   {
     "recruitYear": 2023,
@@ -15533,7 +16149,8 @@
     "damUrl": "https://db.netkeiba.com/horse/2013105644/",
     "damParity": 1,
     "damProduceCount": 2,
-    "damGapBeforeYears": null
+    "damGapBeforeYears": null,
+    "shareCount": 400
   },
   {
     "recruitYear": 2023,
@@ -15561,7 +16178,8 @@
     "damUrl": "https://db.netkeiba.com/horse/2015104972/",
     "damParity": 1,
     "damProduceCount": 4,
-    "damGapBeforeYears": null
+    "damGapBeforeYears": null,
+    "shareCount": null
   },
   {
     "recruitYear": 2023,
@@ -15589,7 +16207,8 @@
     "damUrl": "https://db.netkeiba.com/horse/000a013925/",
     "damParity": 3,
     "damProduceCount": 6,
-    "damGapBeforeYears": 1
+    "damGapBeforeYears": 1,
+    "shareCount": 400
   },
   {
     "recruitYear": 2023,
@@ -15617,7 +16236,8 @@
     "damUrl": "https://db.netkeiba.com/horse/2002100843/",
     "damParity": 10,
     "damProduceCount": 10,
-    "damGapBeforeYears": 1
+    "damGapBeforeYears": 1,
+    "shareCount": 400
   },
   {
     "recruitYear": 2023,
@@ -15645,7 +16265,8 @@
     "damUrl": "https://db.netkeiba.com/horse/2008103309/",
     "damParity": 7,
     "damProduceCount": 9,
-    "damGapBeforeYears": 1
+    "damGapBeforeYears": 1,
+    "shareCount": null
   },
   {
     "recruitYear": 2023,
@@ -15673,7 +16294,8 @@
     "damUrl": "https://db.netkeiba.com/horse/2017105207/",
     "damParity": 1,
     "damProduceCount": 4,
-    "damGapBeforeYears": null
+    "damGapBeforeYears": null,
+    "shareCount": 400
   },
   {
     "recruitYear": 2023,
@@ -15701,7 +16323,8 @@
     "damUrl": "https://db.netkeiba.com/horse/2012104690/",
     "damParity": 3,
     "damProduceCount": 6,
-    "damGapBeforeYears": 1
+    "damGapBeforeYears": 1,
+    "shareCount": 400
   },
   {
     "recruitYear": 2023,
@@ -15729,7 +16352,8 @@
     "damUrl": "https://db.netkeiba.com/horse/000a01bdae/",
     "damParity": 2,
     "damProduceCount": 4,
-    "damGapBeforeYears": 1
+    "damGapBeforeYears": 1,
+    "shareCount": 400
   },
   {
     "recruitYear": 2023,
@@ -15757,7 +16381,8 @@
     "damUrl": "https://db.netkeiba.com/horse/000a01beae/",
     "damParity": 1,
     "damProduceCount": 4,
-    "damGapBeforeYears": null
+    "damGapBeforeYears": null,
+    "shareCount": 400
   },
   {
     "recruitYear": 2023,
@@ -15785,7 +16410,8 @@
     "damUrl": "https://db.netkeiba.com/horse/2003103019/",
     "damParity": 11,
     "damProduceCount": 13,
-    "damGapBeforeYears": 2
+    "damGapBeforeYears": 2,
+    "shareCount": 100
   },
   {
     "recruitYear": 2023,
@@ -15813,7 +16439,8 @@
     "damUrl": "https://db.netkeiba.com/horse/2002106230/",
     "damParity": 13,
     "damProduceCount": 14,
-    "damGapBeforeYears": 1
+    "damGapBeforeYears": 1,
+    "shareCount": 100
   },
   {
     "recruitYear": 2023,
@@ -15841,7 +16468,8 @@
     "damUrl": "https://db.netkeiba.com/horse/2013110082/",
     "damParity": 4,
     "damProduceCount": 7,
-    "damGapBeforeYears": 1
+    "damGapBeforeYears": 1,
+    "shareCount": null
   },
   {
     "recruitYear": 2023,
@@ -15869,7 +16497,8 @@
     "damUrl": "https://db.netkeiba.com/horse/2015104856/",
     "damParity": 1,
     "damProduceCount": 3,
-    "damGapBeforeYears": null
+    "damGapBeforeYears": null,
+    "shareCount": 100
   },
   {
     "recruitYear": 2024,
@@ -15897,7 +16526,8 @@
     "damUrl": "https://db.sp.netkeiba.com/horse/000a014418/",
     "damParity": 3,
     "damProduceCount": 4,
-    "damGapBeforeYears": 1
+    "damGapBeforeYears": 1,
+    "shareCount": 400
   },
   {
     "recruitYear": 2024,
@@ -15925,7 +16555,8 @@
     "damUrl": "https://db.sp.netkeiba.com/horse/000a01bf33/",
     "damParity": 2,
     "damProduceCount": 3,
-    "damGapBeforeYears": 1
+    "damGapBeforeYears": 1,
+    "shareCount": 400
   },
   {
     "recruitYear": 2024,
@@ -15953,7 +16584,8 @@
     "damUrl": "https://db.sp.netkeiba.com/horse/2009106142/",
     "damParity": 7,
     "damProduceCount": 8,
-    "damGapBeforeYears": 1
+    "damGapBeforeYears": 1,
+    "shareCount": 400
   },
   {
     "recruitYear": 2024,
@@ -15981,7 +16613,8 @@
     "damUrl": "https://db.sp.netkeiba.com/horse/2010104347/",
     "damParity": 7,
     "damProduceCount": 8,
-    "damGapBeforeYears": 1
+    "damGapBeforeYears": 1,
+    "shareCount": 400
   },
   {
     "recruitYear": 2024,
@@ -16009,7 +16642,8 @@
     "damUrl": "https://db.sp.netkeiba.com/horse/2012104535/",
     "damParity": 4,
     "damProduceCount": 5,
-    "damGapBeforeYears": 2
+    "damGapBeforeYears": 2,
+    "shareCount": 400
   },
   {
     "recruitYear": 2024,
@@ -16037,7 +16671,8 @@
     "damUrl": "https://db.sp.netkeiba.com/horse/2015104671/",
     "damParity": 2,
     "damProduceCount": 4,
-    "damGapBeforeYears": 1
+    "damGapBeforeYears": 1,
+    "shareCount": 400
   },
   {
     "recruitYear": 2024,
@@ -16065,7 +16700,8 @@
     "damUrl": "https://db.sp.netkeiba.com/horse/000a01b819/",
     "damParity": 2,
     "damProduceCount": 4,
-    "damGapBeforeYears": 1
+    "damGapBeforeYears": 1,
+    "shareCount": 400
   },
   {
     "recruitYear": 2024,
@@ -16093,7 +16729,8 @@
     "damUrl": "https://db.sp.netkeiba.com/horse/000a01beb0/",
     "damParity": 2,
     "damProduceCount": 3,
-    "damGapBeforeYears": 1
+    "damGapBeforeYears": 1,
+    "shareCount": 400
   },
   {
     "recruitYear": 2024,
@@ -16121,7 +16758,8 @@
     "damUrl": "https://db.sp.netkeiba.com/horse/2006103419/",
     "damParity": 9,
     "damProduceCount": 11,
-    "damGapBeforeYears": 1
+    "damGapBeforeYears": 1,
+    "shareCount": 400
   },
   {
     "recruitYear": 2024,
@@ -16149,7 +16787,8 @@
     "damUrl": "https://db.sp.netkeiba.com/horse/000a013614/",
     "damParity": 6,
     "damProduceCount": 8,
-    "damGapBeforeYears": 1
+    "damGapBeforeYears": 1,
+    "shareCount": 400
   },
   {
     "recruitYear": 2024,
@@ -16177,7 +16816,8 @@
     "damUrl": "https://db.sp.netkeiba.com/horse/2016104880/",
     "damParity": 1,
     "damProduceCount": 1,
-    "damGapBeforeYears": null
+    "damGapBeforeYears": null,
+    "shareCount": 400
   },
   {
     "recruitYear": 2024,
@@ -16205,7 +16845,8 @@
     "damUrl": "https://db.sp.netkeiba.com/horse/2006103313/",
     "damParity": 12,
     "damProduceCount": 12,
-    "damGapBeforeYears": 1
+    "damGapBeforeYears": 1,
+    "shareCount": 400
   },
   {
     "recruitYear": 2024,
@@ -16233,7 +16874,8 @@
     "damUrl": "https://db.sp.netkeiba.com/horse/2011104105/",
     "damParity": 6,
     "damProduceCount": 8,
-    "damGapBeforeYears": 1
+    "damGapBeforeYears": 1,
+    "shareCount": 400
   },
   {
     "recruitYear": 2024,
@@ -16261,7 +16903,8 @@
     "damUrl": "https://db.sp.netkeiba.com/horse/000a013db3/",
     "damParity": 5,
     "damProduceCount": 5,
-    "damGapBeforeYears": 1
+    "damGapBeforeYears": 1,
+    "shareCount": 400
   },
   {
     "recruitYear": 2024,
@@ -16289,7 +16932,8 @@
     "damUrl": "https://db.sp.netkeiba.com/horse/2015104823/",
     "damParity": 2,
     "damProduceCount": 4,
-    "damGapBeforeYears": 1
+    "damGapBeforeYears": 1,
+    "shareCount": 400
   },
   {
     "recruitYear": 2024,
@@ -16317,7 +16961,8 @@
     "damUrl": "https://db.sp.netkeiba.com/horse/2016104795/",
     "damParity": 1,
     "damProduceCount": 3,
-    "damGapBeforeYears": null
+    "damGapBeforeYears": null,
+    "shareCount": 400
   },
   {
     "recruitYear": 2024,
@@ -16345,7 +16990,8 @@
     "damUrl": "https://db.sp.netkeiba.com/horse/2011103832/",
     "damParity": 5,
     "damProduceCount": 6,
-    "damGapBeforeYears": 1
+    "damGapBeforeYears": 1,
+    "shareCount": 400
   },
   {
     "recruitYear": 2024,
@@ -16373,7 +17019,8 @@
     "damUrl": "https://db.sp.netkeiba.com/horse/2012104669/",
     "damParity": 4,
     "damProduceCount": 5,
-    "damGapBeforeYears": 1
+    "damGapBeforeYears": 1,
+    "shareCount": 400
   },
   {
     "recruitYear": 2024,
@@ -16401,7 +17048,8 @@
     "damUrl": "https://db.sp.netkeiba.com/horse/2014105970/",
     "damParity": 3,
     "damProduceCount": 4,
-    "damGapBeforeYears": 1
+    "damGapBeforeYears": 1,
+    "shareCount": 400
   },
   {
     "recruitYear": 2024,
@@ -16429,7 +17077,8 @@
     "damUrl": "https://db.sp.netkeiba.com/horse/000a011a9f/",
     "damParity": 10,
     "damProduceCount": 11,
-    "damGapBeforeYears": 1
+    "damGapBeforeYears": 1,
+    "shareCount": 400
   },
   {
     "recruitYear": 2024,
@@ -16457,7 +17106,8 @@
     "damUrl": "https://db.sp.netkeiba.com/horse/2014106144/",
     "damParity": 3,
     "damProduceCount": 3,
-    "damGapBeforeYears": 1
+    "damGapBeforeYears": 1,
+    "shareCount": 400
   },
   {
     "recruitYear": 2024,
@@ -16485,7 +17135,8 @@
     "damUrl": "https://db.sp.netkeiba.com/horse/2006103163/",
     "damParity": 11,
     "damProduceCount": 11,
-    "damGapBeforeYears": 2
+    "damGapBeforeYears": 2,
+    "shareCount": 400
   },
   {
     "recruitYear": 2024,
@@ -16513,7 +17164,8 @@
     "damUrl": "https://db.sp.netkeiba.com/horse/000a012104/",
     "damParity": 10,
     "damProduceCount": 10,
-    "damGapBeforeYears": 1
+    "damGapBeforeYears": 1,
+    "shareCount": 400
   },
   {
     "recruitYear": 2024,
@@ -16541,7 +17193,8 @@
     "damUrl": "https://db.sp.netkeiba.com/horse/2006103166/",
     "damParity": 6,
     "damProduceCount": 8,
-    "damGapBeforeYears": 1
+    "damGapBeforeYears": 1,
+    "shareCount": 400
   },
   {
     "recruitYear": 2024,
@@ -16569,7 +17222,8 @@
     "damUrl": "https://db.sp.netkeiba.com/horse/2016110112/",
     "damParity": 4,
     "damProduceCount": 6,
-    "damGapBeforeYears": 1
+    "damGapBeforeYears": 1,
+    "shareCount": 400
   },
   {
     "recruitYear": 2024,
@@ -16597,7 +17251,8 @@
     "damUrl": "https://db.sp.netkeiba.com/horse/2007103297/",
     "damParity": 10,
     "damProduceCount": 11,
-    "damGapBeforeYears": 1
+    "damGapBeforeYears": 1,
+    "shareCount": 400
   },
   {
     "recruitYear": 2024,
@@ -16625,7 +17280,8 @@
     "damUrl": "https://db.sp.netkeiba.com/horse/2017110003/",
     "damParity": 3,
     "damProduceCount": 5,
-    "damGapBeforeYears": 1
+    "damGapBeforeYears": 1,
+    "shareCount": 400
   },
   {
     "recruitYear": 2024,
@@ -16653,7 +17309,8 @@
     "damUrl": "https://db.sp.netkeiba.com/horse/2010104312/",
     "damParity": 6,
     "damProduceCount": 7,
-    "damGapBeforeYears": 1
+    "damGapBeforeYears": 1,
+    "shareCount": 400
   },
   {
     "recruitYear": 2024,
@@ -16681,7 +17338,8 @@
     "damUrl": "https://db.sp.netkeiba.com/horse/2015105303/",
     "damParity": 3,
     "damProduceCount": 6,
-    "damGapBeforeYears": 1
+    "damGapBeforeYears": 1,
+    "shareCount": 400
   },
   {
     "recruitYear": 2024,
@@ -16709,7 +17367,8 @@
     "damUrl": "https://db.sp.netkeiba.com/horse/2016104348/",
     "damParity": 1,
     "damProduceCount": 2,
-    "damGapBeforeYears": null
+    "damGapBeforeYears": null,
+    "shareCount": 400
   },
   {
     "recruitYear": 2024,
@@ -16737,7 +17396,8 @@
     "damUrl": "https://db.sp.netkeiba.com/horse/2009106063/",
     "damParity": 8,
     "damProduceCount": 9,
-    "damGapBeforeYears": 3
+    "damGapBeforeYears": 3,
+    "shareCount": 400
   },
   {
     "recruitYear": 2024,
@@ -16765,7 +17425,8 @@
     "damUrl": "https://db.sp.netkeiba.com/horse/2008103176/",
     "damParity": 10,
     "damProduceCount": 12,
-    "damGapBeforeYears": 1
+    "damGapBeforeYears": 1,
+    "shareCount": 400
   },
   {
     "recruitYear": 2024,
@@ -16793,7 +17454,8 @@
     "damUrl": "https://db.sp.netkeiba.com/horse/2011103811/",
     "damParity": 6,
     "damProduceCount": 8,
-    "damGapBeforeYears": 1
+    "damGapBeforeYears": 1,
+    "shareCount": 400
   },
   {
     "recruitYear": 2024,
@@ -16821,7 +17483,8 @@
     "damUrl": "https://db.sp.netkeiba.com/horse/000a014271/",
     "damParity": 4,
     "damProduceCount": 6,
-    "damGapBeforeYears": 1
+    "damGapBeforeYears": 1,
+    "shareCount": 400
   },
   {
     "recruitYear": 2024,
@@ -16849,7 +17512,8 @@
     "damUrl": "https://db.sp.netkeiba.com/horse/2011103890/",
     "damParity": 6,
     "damProduceCount": 8,
-    "damGapBeforeYears": 1
+    "damGapBeforeYears": 1,
+    "shareCount": 400
   },
   {
     "recruitYear": 2024,
@@ -16877,7 +17541,8 @@
     "damUrl": "https://db.sp.netkeiba.com/horse/2015104758/",
     "damParity": 2,
     "damProduceCount": 4,
-    "damGapBeforeYears": 1
+    "damGapBeforeYears": 1,
+    "shareCount": 400
   },
   {
     "recruitYear": 2024,
@@ -16905,7 +17570,8 @@
     "damUrl": "https://db.sp.netkeiba.com/horse/2013106057/",
     "damParity": 4,
     "damProduceCount": 5,
-    "damGapBeforeYears": 1
+    "damGapBeforeYears": 1,
+    "shareCount": 400
   },
   {
     "recruitYear": 2024,
@@ -16933,7 +17599,8 @@
     "damUrl": "https://db.sp.netkeiba.com/horse/2010104200/",
     "damParity": 6,
     "damProduceCount": 7,
-    "damGapBeforeYears": 1
+    "damGapBeforeYears": 1,
+    "shareCount": 400
   },
   {
     "recruitYear": 2024,
@@ -16961,7 +17628,8 @@
     "damUrl": "https://db.sp.netkeiba.com/horse/000a01256c/",
     "damParity": 5,
     "damProduceCount": 6,
-    "damGapBeforeYears": 1
+    "damGapBeforeYears": 1,
+    "shareCount": 400
   },
   {
     "recruitYear": 2024,
@@ -16989,7 +17657,8 @@
     "damUrl": "https://db.sp.netkeiba.com/horse/2014105942/",
     "damParity": 3,
     "damProduceCount": 5,
-    "damGapBeforeYears": 2
+    "damGapBeforeYears": 2,
+    "shareCount": 400
   },
   {
     "recruitYear": 2024,
@@ -17017,7 +17686,8 @@
     "damUrl": "https://db.sp.netkeiba.com/horse/2015104952/",
     "damParity": 2,
     "damProduceCount": 3,
-    "damGapBeforeYears": 1
+    "damGapBeforeYears": 1,
+    "shareCount": null
   },
   {
     "recruitYear": 2024,
@@ -17045,7 +17715,8 @@
     "damUrl": "https://db.sp.netkeiba.com/horse/2018104930/",
     "damParity": 1,
     "damProduceCount": 3,
-    "damGapBeforeYears": null
+    "damGapBeforeYears": null,
+    "shareCount": 400
   },
   {
     "recruitYear": 2024,
@@ -17073,7 +17744,8 @@
     "damUrl": "https://db.sp.netkeiba.com/horse/000a01460f/",
     "damParity": 3,
     "damProduceCount": 5,
-    "damGapBeforeYears": 2
+    "damGapBeforeYears": 2,
+    "shareCount": 400
   },
   {
     "recruitYear": 2024,
@@ -17101,7 +17773,8 @@
     "damUrl": "https://db.sp.netkeiba.com/horse/2011104092/",
     "damParity": 5,
     "damProduceCount": 7,
-    "damGapBeforeYears": 1
+    "damGapBeforeYears": 1,
+    "shareCount": 400
   },
   {
     "recruitYear": 2024,
@@ -17129,7 +17802,8 @@
     "damUrl": "https://db.sp.netkeiba.com/horse/2009106088/",
     "damParity": 7,
     "damProduceCount": 9,
-    "damGapBeforeYears": 1
+    "damGapBeforeYears": 1,
+    "shareCount": 400
   },
   {
     "recruitYear": 2024,
@@ -17157,7 +17831,8 @@
     "damUrl": "https://db.sp.netkeiba.com/horse/2017105207/",
     "damParity": 2,
     "damProduceCount": 4,
-    "damGapBeforeYears": 1
+    "damGapBeforeYears": 1,
+    "shareCount": null
   },
   {
     "recruitYear": 2024,
@@ -17185,7 +17860,8 @@
     "damUrl": "https://db.sp.netkeiba.com/horse/2016104585/",
     "damParity": 1,
     "damProduceCount": 3,
-    "damGapBeforeYears": null
+    "damGapBeforeYears": null,
+    "shareCount": 400
   },
   {
     "recruitYear": 2024,
@@ -17213,7 +17889,8 @@
     "damUrl": "https://db.sp.netkeiba.com/horse/2016104515/",
     "damParity": 1,
     "damProduceCount": 4,
-    "damGapBeforeYears": null
+    "damGapBeforeYears": null,
+    "shareCount": 400
   },
   {
     "recruitYear": 2024,
@@ -17241,7 +17918,8 @@
     "damUrl": "https://db.sp.netkeiba.com/horse/2016104262/",
     "damParity": 1,
     "damProduceCount": 1,
-    "damGapBeforeYears": null
+    "damGapBeforeYears": null,
+    "shareCount": 400
   },
   {
     "recruitYear": 2024,
@@ -17269,7 +17947,8 @@
     "damUrl": "https://db.sp.netkeiba.com/horse/000a01fc6e/",
     "damParity": 1,
     "damProduceCount": 1,
-    "damGapBeforeYears": null
+    "damGapBeforeYears": null,
+    "shareCount": 400
   },
   {
     "recruitYear": 2024,
@@ -17297,7 +17976,8 @@
     "damUrl": "https://db.sp.netkeiba.com/horse/000a01f522/",
     "damParity": 3,
     "damProduceCount": 4,
-    "damGapBeforeYears": 1
+    "damGapBeforeYears": 1,
+    "shareCount": 400
   },
   {
     "recruitYear": 2024,
@@ -17325,7 +18005,8 @@
     "damUrl": "https://db.sp.netkeiba.com/horse/2016104864/",
     "damParity": 1,
     "damProduceCount": 2,
-    "damGapBeforeYears": null
+    "damGapBeforeYears": null,
+    "shareCount": 400
   },
   {
     "recruitYear": 2024,
@@ -17353,7 +18034,8 @@
     "damUrl": "https://db.sp.netkeiba.com/horse/2018105191/",
     "damParity": 1,
     "damProduceCount": 3,
-    "damGapBeforeYears": null
+    "damGapBeforeYears": null,
+    "shareCount": 400
   },
   {
     "recruitYear": 2024,
@@ -17381,7 +18063,8 @@
     "damUrl": "https://db.sp.netkeiba.com/horse/2017110137/",
     "damParity": 1,
     "damProduceCount": 3,
-    "damGapBeforeYears": null
+    "damGapBeforeYears": null,
+    "shareCount": 400
   },
   {
     "recruitYear": 2024,
@@ -17409,7 +18092,8 @@
     "damUrl": "https://db.sp.netkeiba.com/horse/000a0188be/",
     "damParity": 1,
     "damProduceCount": 3,
-    "damGapBeforeYears": null
+    "damGapBeforeYears": null,
+    "shareCount": 400
   },
   {
     "recruitYear": 2024,
@@ -17437,7 +18121,8 @@
     "damUrl": "https://db.sp.netkeiba.com/horse/2013105906/",
     "damParity": 5,
     "damProduceCount": 7,
-    "damGapBeforeYears": 2
+    "damGapBeforeYears": 2,
+    "shareCount": 400
   },
   {
     "recruitYear": 2024,
@@ -17465,7 +18150,8 @@
     "damUrl": "https://db.sp.netkeiba.com/horse/2014106220/",
     "damParity": 2,
     "damProduceCount": 4,
-    "damGapBeforeYears": 2
+    "damGapBeforeYears": 2,
+    "shareCount": 400
   },
   {
     "recruitYear": 2024,
@@ -17493,7 +18179,8 @@
     "damUrl": "https://db.sp.netkeiba.com/horse/000a01389d/",
     "damParity": 6,
     "damProduceCount": 8,
-    "damGapBeforeYears": 1
+    "damGapBeforeYears": 1,
+    "shareCount": 400
   },
   {
     "recruitYear": 2024,
@@ -17521,7 +18208,8 @@
     "damUrl": "https://db.sp.netkeiba.com/horse/000a012b0b/",
     "damParity": 7,
     "damProduceCount": 8,
-    "damGapBeforeYears": 1
+    "damGapBeforeYears": 1,
+    "shareCount": 400
   },
   {
     "recruitYear": 2024,
@@ -17549,7 +18237,8 @@
     "damUrl": "https://db.sp.netkeiba.com/horse/2016104460/",
     "damParity": 2,
     "damProduceCount": 4,
-    "damGapBeforeYears": 1
+    "damGapBeforeYears": 1,
+    "shareCount": 400
   },
   {
     "recruitYear": 2024,
@@ -17577,7 +18266,8 @@
     "damUrl": "https://db.sp.netkeiba.com/horse/2013105871/",
     "damParity": 4,
     "damProduceCount": 5,
-    "damGapBeforeYears": 1
+    "damGapBeforeYears": 1,
+    "shareCount": 400
   },
   {
     "recruitYear": 2024,
@@ -17605,7 +18295,8 @@
     "damUrl": "https://db.sp.netkeiba.com/horse/2014105951/",
     "damParity": 3,
     "damProduceCount": 4,
-    "damGapBeforeYears": 1
+    "damGapBeforeYears": 1,
+    "shareCount": 400
   },
   {
     "recruitYear": 2024,
@@ -17633,7 +18324,8 @@
     "damUrl": "https://db.sp.netkeiba.com/horse/2014105854/",
     "damParity": 3,
     "damProduceCount": 5,
-    "damGapBeforeYears": 1
+    "damGapBeforeYears": 1,
+    "shareCount": 400
   },
   {
     "recruitYear": 2024,
@@ -17661,7 +18353,8 @@
     "damUrl": "https://db.sp.netkeiba.com/horse/2012104760/",
     "damParity": 5,
     "damProduceCount": 6,
-    "damGapBeforeYears": 1
+    "damGapBeforeYears": 1,
+    "shareCount": 400
   },
   {
     "recruitYear": 2024,
@@ -17689,7 +18382,8 @@
     "damUrl": "https://db.sp.netkeiba.com/horse/2014105975/",
     "damParity": 3,
     "damProduceCount": 3,
-    "damGapBeforeYears": 1
+    "damGapBeforeYears": 1,
+    "shareCount": 400
   },
   {
     "recruitYear": 2024,
@@ -17717,7 +18411,8 @@
     "damUrl": "https://db.sp.netkeiba.com/horse/2016104426/",
     "damParity": 1,
     "damProduceCount": 3,
-    "damGapBeforeYears": null
+    "damGapBeforeYears": null,
+    "shareCount": 400
   },
   {
     "recruitYear": 2024,
@@ -17745,7 +18440,8 @@
     "damUrl": "https://db.sp.netkeiba.com/horse/2013106120/",
     "damParity": 3,
     "damProduceCount": 4,
-    "damGapBeforeYears": 1
+    "damGapBeforeYears": 1,
+    "shareCount": null
   },
   {
     "recruitYear": 2024,
@@ -17773,7 +18469,8 @@
     "damUrl": "https://db.sp.netkeiba.com/horse/2016104637/",
     "damParity": 3,
     "damProduceCount": 4,
-    "damGapBeforeYears": 1
+    "damGapBeforeYears": 1,
+    "shareCount": 400
   },
   {
     "recruitYear": 2024,
@@ -17801,7 +18498,8 @@
     "damUrl": "https://db.sp.netkeiba.com/horse/2014106114/",
     "damParity": 2,
     "damProduceCount": 3,
-    "damGapBeforeYears": 1
+    "damGapBeforeYears": 1,
+    "shareCount": null
   },
   {
     "recruitYear": 2024,
@@ -17829,7 +18527,8 @@
     "damUrl": "https://db.sp.netkeiba.com/horse/2016104755/",
     "damParity": 1,
     "damProduceCount": 3,
-    "damGapBeforeYears": null
+    "damGapBeforeYears": null,
+    "shareCount": 400
   },
   {
     "recruitYear": 2024,
@@ -17857,7 +18556,8 @@
     "damUrl": "https://db.sp.netkeiba.com/horse/2011103535/",
     "damParity": 6,
     "damProduceCount": 7,
-    "damGapBeforeYears": 1
+    "damGapBeforeYears": 1,
+    "shareCount": 400
   },
   {
     "recruitYear": 2024,
@@ -17885,7 +18585,8 @@
     "damUrl": "https://db.sp.netkeiba.com/horse/2015104972/",
     "damParity": 2,
     "damProduceCount": 4,
-    "damGapBeforeYears": 1
+    "damGapBeforeYears": 1,
+    "shareCount": 400
   },
   {
     "recruitYear": 2024,
@@ -17913,7 +18614,8 @@
     "damUrl": "https://db.sp.netkeiba.com/horse/000a013e40/",
     "damParity": 5,
     "damProduceCount": 7,
-    "damGapBeforeYears": 1
+    "damGapBeforeYears": 1,
+    "shareCount": 400
   },
   {
     "recruitYear": 2024,
@@ -17941,7 +18643,8 @@
     "damUrl": "https://db.sp.netkeiba.com/horse/2016104622/",
     "damParity": 1,
     "damProduceCount": 3,
-    "damGapBeforeYears": null
+    "damGapBeforeYears": null,
+    "shareCount": 400
   },
   {
     "recruitYear": 2024,
@@ -17969,7 +18672,8 @@
     "damUrl": "https://db.sp.netkeiba.com/horse/2014105833/",
     "damParity": 2,
     "damProduceCount": 4,
-    "damGapBeforeYears": 2
+    "damGapBeforeYears": 2,
+    "shareCount": 400
   },
   {
     "recruitYear": 2024,
@@ -17997,7 +18701,8 @@
     "damUrl": "https://db.sp.netkeiba.com/horse/2004102760/",
     "damParity": 12,
     "damProduceCount": 13,
-    "damGapBeforeYears": 1
+    "damGapBeforeYears": 1,
+    "shareCount": 400
   },
   {
     "recruitYear": 2024,
@@ -18025,7 +18730,8 @@
     "damUrl": "https://db.sp.netkeiba.com/horse/2015105019/",
     "damParity": 4,
     "damProduceCount": 6,
-    "damGapBeforeYears": 1
+    "damGapBeforeYears": 1,
+    "shareCount": 400
   },
   {
     "recruitYear": 2024,
@@ -18053,7 +18759,8 @@
     "damUrl": "https://db.sp.netkeiba.com/horse/2010104242/",
     "damParity": 7,
     "damProduceCount": 9,
-    "damGapBeforeYears": 1
+    "damGapBeforeYears": 1,
+    "shareCount": 400
   },
   {
     "recruitYear": 2024,
@@ -18081,7 +18788,8 @@
     "damUrl": "https://db.sp.netkeiba.com/horse/2012104858/",
     "damParity": 5,
     "damProduceCount": 7,
-    "damGapBeforeYears": 1
+    "damGapBeforeYears": 1,
+    "shareCount": 400
   },
   {
     "recruitYear": 2024,
@@ -18109,7 +18817,8 @@
     "damUrl": "https://db.sp.netkeiba.com/horse/2013110123/",
     "damParity": 5,
     "damProduceCount": 6,
-    "damGapBeforeYears": 2
+    "damGapBeforeYears": 2,
+    "shareCount": 400
   },
   {
     "recruitYear": 2024,
@@ -18137,7 +18846,8 @@
     "damUrl": "https://db.sp.netkeiba.com/horse/2013105816/",
     "damParity": 3,
     "damProduceCount": 5,
-    "damGapBeforeYears": 2
+    "damGapBeforeYears": 2,
+    "shareCount": 400
   },
   {
     "recruitYear": 2024,
@@ -18165,7 +18875,8 @@
     "damUrl": "https://db.sp.netkeiba.com/horse/000a015970/",
     "damParity": 3,
     "damProduceCount": 5,
-    "damGapBeforeYears": 1
+    "damGapBeforeYears": 1,
+    "shareCount": 400
   },
   {
     "recruitYear": 2024,
@@ -18193,7 +18904,8 @@
     "damUrl": "https://db.sp.netkeiba.com/horse/2013105764/",
     "damParity": 4,
     "damProduceCount": 6,
-    "damGapBeforeYears": 1
+    "damGapBeforeYears": 1,
+    "shareCount": null
   },
   {
     "recruitYear": 2024,
@@ -18221,7 +18933,8 @@
     "damUrl": "https://db.sp.netkeiba.com/horse/2013106153/",
     "damParity": 4,
     "damProduceCount": 5,
-    "damGapBeforeYears": 1
+    "damGapBeforeYears": 1,
+    "shareCount": 400
   },
   {
     "recruitYear": 2024,
@@ -18249,7 +18962,8 @@
     "damUrl": "https://db.sp.netkeiba.com/horse/2012104913/",
     "damParity": 5,
     "damProduceCount": 7,
-    "damGapBeforeYears": 1
+    "damGapBeforeYears": 1,
+    "shareCount": 400
   },
   {
     "recruitYear": 2024,
@@ -18277,7 +18991,8 @@
     "damUrl": "https://db.sp.netkeiba.com/horse/2013106181/",
     "damParity": 4,
     "damProduceCount": 6,
-    "damGapBeforeYears": 1
+    "damGapBeforeYears": 1,
+    "shareCount": 400
   },
   {
     "recruitYear": 2024,
@@ -18305,7 +19020,8 @@
     "damUrl": "https://db.sp.netkeiba.com/horse/000a013897/",
     "damParity": 7,
     "damProduceCount": 8,
-    "damGapBeforeYears": 1
+    "damGapBeforeYears": 1,
+    "shareCount": 400
   },
   {
     "recruitYear": 2024,
@@ -18333,7 +19049,8 @@
     "damUrl": "https://db.sp.netkeiba.com/horse/2012104717/",
     "damParity": 5,
     "damProduceCount": 6,
-    "damGapBeforeYears": 1
+    "damGapBeforeYears": 1,
+    "shareCount": 400
   },
   {
     "recruitYear": 2024,
@@ -18361,7 +19078,8 @@
     "damUrl": "https://db.sp.netkeiba.com/horse/2012104768/",
     "damParity": 5,
     "damProduceCount": 7,
-    "damGapBeforeYears": 1
+    "damGapBeforeYears": 1,
+    "shareCount": 400
   },
   {
     "recruitYear": 2024,
@@ -18389,7 +19107,8 @@
     "damUrl": "https://db.sp.netkeiba.com/horse/2008105782/",
     "damParity": 3,
     "damProduceCount": 3,
-    "damGapBeforeYears": 6
+    "damGapBeforeYears": 6,
+    "shareCount": 400
   },
   {
     "recruitYear": 2024,
@@ -18417,7 +19136,8 @@
     "damUrl": "https://db.sp.netkeiba.com/horse/000a01d5a9/",
     "damParity": 1,
     "damProduceCount": 4,
-    "damGapBeforeYears": null
+    "damGapBeforeYears": null,
+    "shareCount": 400
   },
   {
     "recruitYear": 2024,
@@ -18445,7 +19165,8 @@
     "damUrl": "https://db.sp.netkeiba.com/horse/000a01da1e/",
     "damParity": 1,
     "damProduceCount": 2,
-    "damGapBeforeYears": null
+    "damGapBeforeYears": null,
+    "shareCount": 400
   },
   {
     "recruitYear": 2024,
@@ -18473,7 +19194,8 @@
     "damUrl": "https://db.sp.netkeiba.com/horse/2013110081/",
     "damParity": 2,
     "damProduceCount": 4,
-    "damGapBeforeYears": 2
+    "damGapBeforeYears": 2,
+    "shareCount": 100
   },
   {
     "recruitYear": 2024,
@@ -18501,7 +19223,8 @@
     "damUrl": "https://db.sp.netkeiba.com/horse/2013110082/",
     "damParity": 5,
     "damProduceCount": 7,
-    "damGapBeforeYears": 1
+    "damGapBeforeYears": 1,
+    "shareCount": 100
   },
   {
     "recruitYear": 2024,
@@ -18529,7 +19252,8 @@
     "damUrl": "https://db.sp.netkeiba.com/horse/2006102828/",
     "damParity": 7,
     "damProduceCount": 9,
-    "damGapBeforeYears": 2
+    "damGapBeforeYears": 2,
+    "shareCount": 100
   },
   {
     "recruitYear": 2024,
@@ -18557,7 +19281,8 @@
     "damUrl": "https://db.sp.netkeiba.com/horse/2008103302/",
     "damParity": 8,
     "damProduceCount": 9,
-    "damGapBeforeYears": 1
+    "damGapBeforeYears": 1,
+    "shareCount": 100
   },
   {
     "recruitYear": 2025,
@@ -18585,7 +19310,8 @@
     "damUrl": "https://db.sp.netkeiba.com/horse/2007103297/",
     "damParity": 11,
     "damProduceCount": 11,
-    "damGapBeforeYears": 1
+    "damGapBeforeYears": 1,
+    "shareCount": 400
   },
   {
     "recruitYear": 2025,
@@ -18613,7 +19339,8 @@
     "damUrl": "https://db.sp.netkeiba.com/horse/000a01294d/",
     "damParity": 9,
     "damProduceCount": 9,
-    "damGapBeforeYears": 1
+    "damGapBeforeYears": 1,
+    "shareCount": 400
   },
   {
     "recruitYear": 2025,
@@ -18641,7 +19368,8 @@
     "damUrl": "https://db.sp.netkeiba.com/horse/000a01438a/",
     "damParity": 5,
     "damProduceCount": 6,
-    "damGapBeforeYears": 1
+    "damGapBeforeYears": 1,
+    "shareCount": 400
   },
   {
     "recruitYear": 2025,
@@ -18669,7 +19397,8 @@
     "damUrl": "https://db.sp.netkeiba.com/horse/2014105854/",
     "damParity": 4,
     "damProduceCount": 5,
-    "damGapBeforeYears": 1
+    "damGapBeforeYears": 1,
+    "shareCount": 400
   },
   {
     "recruitYear": 2025,
@@ -18697,7 +19426,8 @@
     "damUrl": "https://db.sp.netkeiba.com/horse/000a01bd03/",
     "damParity": 4,
     "damProduceCount": 5,
-    "damGapBeforeYears": 1
+    "damGapBeforeYears": 1,
+    "shareCount": 400
   },
   {
     "recruitYear": 2025,
@@ -18725,7 +19455,8 @@
     "damUrl": "https://db.sp.netkeiba.com/horse/000a01da1d/",
     "damParity": 2,
     "damProduceCount": 3,
-    "damGapBeforeYears": 1
+    "damGapBeforeYears": 1,
+    "shareCount": 400
   },
   {
     "recruitYear": 2025,
@@ -18753,7 +19484,8 @@
     "damUrl": "https://db.sp.netkeiba.com/horse/2016104604/",
     "damParity": 2,
     "damProduceCount": 3,
-    "damGapBeforeYears": 1
+    "damGapBeforeYears": 1,
+    "shareCount": 400
   },
   {
     "recruitYear": 2025,
@@ -18781,7 +19513,8 @@
     "damUrl": "https://db.sp.netkeiba.com/horse/2016104807/",
     "damParity": 2,
     "damProduceCount": 3,
-    "damGapBeforeYears": 1
+    "damGapBeforeYears": 1,
+    "shareCount": 400
   },
   {
     "recruitYear": 2025,
@@ -18809,7 +19542,8 @@
     "damUrl": "https://db.sp.netkeiba.com/horse/2017105485/",
     "damParity": 1,
     "damProduceCount": 2,
-    "damGapBeforeYears": null
+    "damGapBeforeYears": null,
+    "shareCount": 400
   },
   {
     "recruitYear": 2025,
@@ -18837,7 +19571,8 @@
     "damUrl": "https://db.sp.netkeiba.com/horse/000a01205f/",
     "damParity": 9,
     "damProduceCount": 10,
-    "damGapBeforeYears": 1
+    "damGapBeforeYears": 1,
+    "shareCount": 400
   },
   {
     "recruitYear": 2025,
@@ -18865,7 +19600,8 @@
     "damUrl": "https://db.sp.netkeiba.com/horse/000a01b941/",
     "damParity": 4,
     "damProduceCount": 5,
-    "damGapBeforeYears": 1
+    "damGapBeforeYears": 1,
+    "shareCount": 400
   },
   {
     "recruitYear": 2025,
@@ -18893,7 +19629,8 @@
     "damUrl": "https://db.sp.netkeiba.com/horse/2010104329/",
     "damParity": 9,
     "damProduceCount": 9,
-    "damGapBeforeYears": 1
+    "damGapBeforeYears": 1,
+    "shareCount": 400
   },
   {
     "recruitYear": 2025,
@@ -18921,7 +19658,8 @@
     "damUrl": "https://db.sp.netkeiba.com/horse/2013106020/",
     "damParity": 6,
     "damProduceCount": 7,
-    "damGapBeforeYears": 1
+    "damGapBeforeYears": 1,
+    "shareCount": 400
   },
   {
     "recruitYear": 2025,
@@ -18949,7 +19687,8 @@
     "damUrl": "https://db.sp.netkeiba.com/horse/2013105321/",
     "damParity": 5,
     "damProduceCount": 6,
-    "damGapBeforeYears": 1
+    "damGapBeforeYears": 1,
+    "shareCount": 400
   },
   {
     "recruitYear": 2025,
@@ -18977,7 +19716,8 @@
     "damUrl": "https://db.sp.netkeiba.com/horse/2017105413/",
     "damParity": 1,
     "damProduceCount": 2,
-    "damGapBeforeYears": null
+    "damGapBeforeYears": null,
+    "shareCount": 400
   },
   {
     "recruitYear": 2025,
@@ -19005,7 +19745,8 @@
     "damUrl": "https://db.sp.netkeiba.com/horse/2009106142/",
     "damParity": 8,
     "damProduceCount": 8,
-    "damGapBeforeYears": 1
+    "damGapBeforeYears": 1,
+    "shareCount": 400
   },
   {
     "recruitYear": 2025,
@@ -19033,7 +19774,8 @@
     "damUrl": "https://db.sp.netkeiba.com/horse/2012104599/",
     "damParity": 6,
     "damProduceCount": 7,
-    "damGapBeforeYears": 2
+    "damGapBeforeYears": 2,
+    "shareCount": 400
   },
   {
     "recruitYear": 2025,
@@ -19061,7 +19803,8 @@
     "damUrl": "https://db.sp.netkeiba.com/horse/2011103832/",
     "damParity": 6,
     "damProduceCount": 6,
-    "damGapBeforeYears": 1
+    "damGapBeforeYears": 1,
+    "shareCount": 400
   },
   {
     "recruitYear": 2025,
@@ -19089,7 +19832,8 @@
     "damUrl": "https://db.sp.netkeiba.com/horse/2015104758/",
     "damParity": 3,
     "damProduceCount": 4,
-    "damGapBeforeYears": 1
+    "damGapBeforeYears": 1,
+    "shareCount": 400
   },
   {
     "recruitYear": 2025,
@@ -19117,7 +19861,8 @@
     "damUrl": "https://db.sp.netkeiba.com/horse/2011104105/",
     "damParity": 7,
     "damProduceCount": 8,
-    "damGapBeforeYears": 1
+    "damGapBeforeYears": 1,
+    "shareCount": 400
   },
   {
     "recruitYear": 2025,
@@ -19145,7 +19890,8 @@
     "damUrl": "https://db.sp.netkeiba.com/horse/2011103749/",
     "damParity": 8,
     "damProduceCount": 8,
-    "damGapBeforeYears": 1
+    "damGapBeforeYears": 1,
+    "shareCount": 400
   },
   {
     "recruitYear": 2025,
@@ -19173,7 +19919,8 @@
     "damUrl": "https://db.sp.netkeiba.com/horse/000a0121b2/",
     "damParity": 9,
     "damProduceCount": 10,
-    "damGapBeforeYears": 2
+    "damGapBeforeYears": 2,
+    "shareCount": 400
   },
   {
     "recruitYear": 2025,
@@ -19201,7 +19948,8 @@
     "damUrl": "https://db.sp.netkeiba.com/horse/2017105483/",
     "damParity": 1,
     "damProduceCount": 2,
-    "damGapBeforeYears": null
+    "damGapBeforeYears": null,
+    "shareCount": 400
   },
   {
     "recruitYear": 2025,
@@ -19229,7 +19977,8 @@
     "damUrl": "https://db.sp.netkeiba.com/horse/2015102591/",
     "damParity": 3,
     "damProduceCount": 4,
-    "damGapBeforeYears": 1
+    "damGapBeforeYears": 1,
+    "shareCount": 400
   },
   {
     "recruitYear": 2025,
@@ -19257,7 +20006,8 @@
     "damUrl": "https://db.sp.netkeiba.com/horse/2016104423/",
     "damParity": 2,
     "damProduceCount": 3,
-    "damGapBeforeYears": 1
+    "damGapBeforeYears": 1,
+    "shareCount": 400
   },
   {
     "recruitYear": 2025,
@@ -19285,7 +20035,8 @@
     "damUrl": "https://db.sp.netkeiba.com/horse/2008103279/",
     "damParity": 9,
     "damProduceCount": 11,
-    "damGapBeforeYears": 2
+    "damGapBeforeYears": 2,
+    "shareCount": 400
   },
   {
     "recruitYear": 2025,
@@ -19313,7 +20064,8 @@
     "damUrl": "https://db.sp.netkeiba.com/horse/2009106088/",
     "damParity": 8,
     "damProduceCount": 9,
-    "damGapBeforeYears": 1
+    "damGapBeforeYears": 1,
+    "shareCount": 400
   },
   {
     "recruitYear": 2025,
@@ -19341,7 +20093,8 @@
     "damUrl": "https://db.sp.netkeiba.com/horse/2008103336/",
     "damParity": 9,
     "damProduceCount": 10,
-    "damGapBeforeYears": 1
+    "damGapBeforeYears": 1,
+    "shareCount": 400
   },
   {
     "recruitYear": 2025,
@@ -19369,7 +20122,8 @@
     "damUrl": "https://db.sp.netkeiba.com/horse/2017105498/",
     "damParity": 1,
     "damProduceCount": 2,
-    "damGapBeforeYears": null
+    "damGapBeforeYears": null,
+    "shareCount": 400
   },
   {
     "recruitYear": 2025,
@@ -19397,7 +20151,8 @@
     "damUrl": "https://db.sp.netkeiba.com/horse/2012104768/",
     "damParity": 6,
     "damProduceCount": 7,
-    "damGapBeforeYears": 1
+    "damGapBeforeYears": 1,
+    "shareCount": 400
   },
   {
     "recruitYear": 2025,
@@ -19425,7 +20180,8 @@
     "damUrl": "https://db.sp.netkeiba.com/horse/2017105207/",
     "damParity": 3,
     "damProduceCount": 4,
-    "damGapBeforeYears": 1
+    "damGapBeforeYears": 1,
+    "shareCount": 400
   },
   {
     "recruitYear": 2025,
@@ -19453,7 +20209,8 @@
     "damUrl": "https://db.sp.netkeiba.com/horse/2017105366/",
     "damParity": 1,
     "damProduceCount": 2,
-    "damGapBeforeYears": null
+    "damGapBeforeYears": null,
+    "shareCount": 400
   },
   {
     "recruitYear": 2025,
@@ -19481,7 +20238,8 @@
     "damUrl": "https://db.sp.netkeiba.com/horse/2008103374/",
     "damParity": 9,
     "damProduceCount": 10,
-    "damGapBeforeYears": 1
+    "damGapBeforeYears": 1,
+    "shareCount": 400
   },
   {
     "recruitYear": 2025,
@@ -19509,7 +20267,8 @@
     "damUrl": "https://db.sp.netkeiba.com/horse/2011104052/",
     "damParity": 6,
     "damProduceCount": 7,
-    "damGapBeforeYears": 1
+    "damGapBeforeYears": 1,
+    "shareCount": 400
   },
   {
     "recruitYear": 2025,
@@ -19537,7 +20296,8 @@
     "damUrl": "https://db.sp.netkeiba.com/horse/2015104662/",
     "damParity": 4,
     "damProduceCount": 5,
-    "damGapBeforeYears": 1
+    "damGapBeforeYears": 1,
+    "shareCount": 400
   },
   {
     "recruitYear": 2025,
@@ -19565,7 +20325,8 @@
     "damUrl": "https://db.sp.netkeiba.com/horse/2014105833/",
     "damParity": 3,
     "damProduceCount": 4,
-    "damGapBeforeYears": 1
+    "damGapBeforeYears": 1,
+    "shareCount": 400
   },
   {
     "recruitYear": 2025,
@@ -19593,7 +20354,8 @@
     "damUrl": "https://db.sp.netkeiba.com/horse/000a011523/",
     "damParity": 13,
     "damProduceCount": 13,
-    "damGapBeforeYears": 1
+    "damGapBeforeYears": 1,
+    "shareCount": 400
   },
   {
     "recruitYear": 2025,
@@ -19621,7 +20383,8 @@
     "damUrl": "https://db.sp.netkeiba.com/horse/2014105942/",
     "damParity": 4,
     "damProduceCount": 5,
-    "damGapBeforeYears": 1
+    "damGapBeforeYears": 1,
+    "shareCount": 400
   },
   {
     "recruitYear": 2025,
@@ -19649,7 +20412,8 @@
     "damUrl": "https://db.sp.netkeiba.com/horse/2017110137/",
     "damParity": 2,
     "damProduceCount": 3,
-    "damGapBeforeYears": 1
+    "damGapBeforeYears": 1,
+    "shareCount": 400
   },
   {
     "recruitYear": 2025,
@@ -19677,7 +20441,8 @@
     "damUrl": "https://db.sp.netkeiba.com/horse/2017105502/",
     "damParity": 1,
     "damProduceCount": 1,
-    "damGapBeforeYears": null
+    "damGapBeforeYears": null,
+    "shareCount": 400
   },
   {
     "recruitYear": 2025,
@@ -19705,7 +20470,8 @@
     "damUrl": "https://db.sp.netkeiba.com/horse/2006103249/",
     "damParity": 11,
     "damProduceCount": 11,
-    "damGapBeforeYears": 2
+    "damGapBeforeYears": 2,
+    "shareCount": 400
   },
   {
     "recruitYear": 2025,
@@ -19733,7 +20499,8 @@
     "damUrl": "https://db.sp.netkeiba.com/horse/2018104970/",
     "damParity": 1,
     "damProduceCount": 2,
-    "damGapBeforeYears": null
+    "damGapBeforeYears": null,
+    "shareCount": 400
   },
   {
     "recruitYear": 2025,
@@ -19761,7 +20528,8 @@
     "damUrl": "https://db.sp.netkeiba.com/horse/2012104760/",
     "damParity": 6,
     "damProduceCount": 6,
-    "damGapBeforeYears": 1
+    "damGapBeforeYears": 1,
+    "shareCount": 400
   },
   {
     "recruitYear": 2025,
@@ -19789,7 +20557,8 @@
     "damUrl": "https://db.sp.netkeiba.com/horse/2017105203/",
     "damParity": 1,
     "damProduceCount": 2,
-    "damGapBeforeYears": null
+    "damGapBeforeYears": null,
+    "shareCount": 400
   },
   {
     "recruitYear": 2025,
@@ -19817,7 +20586,8 @@
     "damUrl": "https://db.sp.netkeiba.com/horse/000a013897/",
     "damParity": 8,
     "damProduceCount": 8,
-    "damGapBeforeYears": 1
+    "damGapBeforeYears": 1,
+    "shareCount": 400
   },
   {
     "recruitYear": 2025,
@@ -19845,7 +20615,8 @@
     "damUrl": "https://db.sp.netkeiba.com/horse/000a01fc9f/",
     "damParity": 1,
     "damProduceCount": 2,
-    "damGapBeforeYears": null
+    "damGapBeforeYears": null,
+    "shareCount": 400
   },
   {
     "recruitYear": 2025,
@@ -19873,7 +20644,8 @@
     "damUrl": "https://db.sp.netkeiba.com/horse/000a011de2/",
     "damParity": 11,
     "damProduceCount": 13,
-    "damGapBeforeYears": 2
+    "damGapBeforeYears": 2,
+    "shareCount": 400
   },
   {
     "recruitYear": 2025,
@@ -19901,7 +20673,8 @@
     "damUrl": "https://db.sp.netkeiba.com/horse/2016104426/",
     "damParity": 2,
     "damProduceCount": 3,
-    "damGapBeforeYears": 1
+    "damGapBeforeYears": 1,
+    "shareCount": 400
   },
   {
     "recruitYear": 2025,
@@ -19929,7 +20702,8 @@
     "damUrl": "https://db.sp.netkeiba.com/horse/000a014dd1/",
     "damParity": 2,
     "damProduceCount": 3,
-    "damGapBeforeYears": 1
+    "damGapBeforeYears": 1,
+    "shareCount": 400
   },
   {
     "recruitYear": 2025,
@@ -19957,7 +20731,8 @@
     "damUrl": "https://db.sp.netkeiba.com/horse/000a01da19/",
     "damParity": 1,
     "damProduceCount": 1,
-    "damGapBeforeYears": null
+    "damGapBeforeYears": null,
+    "shareCount": 400
   },
   {
     "recruitYear": 2025,
@@ -19985,7 +20760,8 @@
     "damUrl": "https://db.sp.netkeiba.com/horse/2015104779/",
     "damParity": 3,
     "damProduceCount": 4,
-    "damGapBeforeYears": 1
+    "damGapBeforeYears": 1,
+    "shareCount": 400
   },
   {
     "recruitYear": 2025,
@@ -20013,7 +20789,8 @@
     "damUrl": "https://db.sp.netkeiba.com/horse/2016104795/",
     "damParity": 2,
     "damProduceCount": 3,
-    "damGapBeforeYears": 1
+    "damGapBeforeYears": 1,
+    "shareCount": 400
   },
   {
     "recruitYear": 2025,
@@ -20041,7 +20818,8 @@
     "damUrl": "https://db.sp.netkeiba.com/horse/2012104913/",
     "damParity": 6,
     "damProduceCount": 7,
-    "damGapBeforeYears": 1
+    "damGapBeforeYears": 1,
+    "shareCount": 400
   },
   {
     "recruitYear": 2025,
@@ -20069,7 +20847,8 @@
     "damUrl": "https://db.sp.netkeiba.com/horse/2017106724/",
     "damParity": 2,
     "damProduceCount": 2,
-    "damGapBeforeYears": 1
+    "damGapBeforeYears": 1,
+    "shareCount": 400
   },
   {
     "recruitYear": 2025,
@@ -20097,7 +20876,8 @@
     "damUrl": "https://db.sp.netkeiba.com/horse/2013105906/",
     "damParity": 6,
     "damProduceCount": 7,
-    "damGapBeforeYears": 1
+    "damGapBeforeYears": 1,
+    "shareCount": 400
   },
   {
     "recruitYear": 2025,
@@ -20125,7 +20905,8 @@
     "damUrl": "https://db.sp.netkeiba.com/horse/2014106220/",
     "damParity": 3,
     "damProduceCount": 4,
-    "damGapBeforeYears": 1
+    "damGapBeforeYears": 1,
+    "shareCount": 400
   },
   {
     "recruitYear": 2025,
@@ -20153,7 +20934,8 @@
     "damUrl": "https://db.sp.netkeiba.com/horse/000a0124ce/",
     "damParity": 9,
     "damProduceCount": 9,
-    "damGapBeforeYears": 1
+    "damGapBeforeYears": 1,
+    "shareCount": 400
   },
   {
     "recruitYear": 2025,
@@ -20181,7 +20963,8 @@
     "damUrl": "https://db.sp.netkeiba.com/horse/000a0140b9/",
     "damParity": 2,
     "damProduceCount": 3,
-    "damGapBeforeYears": 2
+    "damGapBeforeYears": 2,
+    "shareCount": 400
   },
   {
     "recruitYear": 2025,
@@ -20209,7 +20992,8 @@
     "damUrl": "https://db.sp.netkeiba.com/horse/2015104947/",
     "damParity": 2,
     "damProduceCount": 3,
-    "damGapBeforeYears": 1
+    "damGapBeforeYears": 1,
+    "shareCount": 400
   },
   {
     "recruitYear": 2025,
@@ -20237,7 +21021,8 @@
     "damUrl": "https://db.sp.netkeiba.com/horse/2017104934/",
     "damParity": 3,
     "damProduceCount": 4,
-    "damGapBeforeYears": 1
+    "damGapBeforeYears": 1,
+    "shareCount": 400
   },
   {
     "recruitYear": 2025,
@@ -20265,7 +21050,8 @@
     "damUrl": "https://db.sp.netkeiba.com/horse/2017105280/",
     "damParity": 1,
     "damProduceCount": 2,
-    "damGapBeforeYears": null
+    "damGapBeforeYears": null,
+    "shareCount": 400
   },
   {
     "recruitYear": 2025,
@@ -20293,7 +21079,8 @@
     "damUrl": "https://db.sp.netkeiba.com/horse/2017105563/",
     "damParity": 1,
     "damProduceCount": 2,
-    "damGapBeforeYears": null
+    "damGapBeforeYears": null,
+    "shareCount": 400
   },
   {
     "recruitYear": 2025,
@@ -20321,7 +21108,8 @@
     "damUrl": "https://db.sp.netkeiba.com/horse/2012104065/",
     "damParity": 3,
     "damProduceCount": 3,
-    "damGapBeforeYears": 3
+    "damGapBeforeYears": 3,
+    "shareCount": 400
   },
   {
     "recruitYear": 2025,
@@ -20349,7 +21137,8 @@
     "damUrl": "https://db.sp.netkeiba.com/horse/2019105249/",
     "damParity": 1,
     "damProduceCount": 2,
-    "damGapBeforeYears": null
+    "damGapBeforeYears": null,
+    "shareCount": 400
   },
   {
     "recruitYear": 2025,
@@ -20377,7 +21166,8 @@
     "damUrl": "https://db.sp.netkeiba.com/horse/2013106072/",
     "damParity": 5,
     "damProduceCount": 6,
-    "damGapBeforeYears": 1
+    "damGapBeforeYears": 1,
+    "shareCount": 400
   },
   {
     "recruitYear": 2025,
@@ -20405,7 +21195,8 @@
     "damUrl": "https://db.sp.netkeiba.com/horse/2013105816/",
     "damParity": 4,
     "damProduceCount": 5,
-    "damGapBeforeYears": 1
+    "damGapBeforeYears": 1,
+    "shareCount": 400
   },
   {
     "recruitYear": 2025,
@@ -20433,7 +21224,8 @@
     "damUrl": "https://db.sp.netkeiba.com/horse/2012104858/",
     "damParity": 6,
     "damProduceCount": 7,
-    "damGapBeforeYears": 1
+    "damGapBeforeYears": 1,
+    "shareCount": 400
   },
   {
     "recruitYear": 2025,
@@ -20461,7 +21253,8 @@
     "damUrl": "https://db.sp.netkeiba.com/horse/2006103166/",
     "damParity": 7,
     "damProduceCount": 8,
-    "damGapBeforeYears": 1
+    "damGapBeforeYears": 1,
+    "shareCount": 400
   },
   {
     "recruitYear": 2025,
@@ -20489,7 +21282,8 @@
     "damUrl": "https://db.sp.netkeiba.com/horse/2018104930/",
     "damParity": 2,
     "damProduceCount": 3,
-    "damGapBeforeYears": 1
+    "damGapBeforeYears": 1,
+    "shareCount": 400
   },
   {
     "recruitYear": 2025,
@@ -20517,7 +21311,8 @@
     "damUrl": "https://db.sp.netkeiba.com/horse/2015104823/",
     "damParity": 3,
     "damProduceCount": 4,
-    "damGapBeforeYears": 1
+    "damGapBeforeYears": 1,
+    "shareCount": 400
   },
   {
     "recruitYear": 2025,
@@ -20545,7 +21340,8 @@
     "damUrl": "https://db.sp.netkeiba.com/horse/000a01a8f1/",
     "damParity": 4,
     "damProduceCount": 5,
-    "damGapBeforeYears": 1
+    "damGapBeforeYears": 1,
+    "shareCount": 400
   },
   {
     "recruitYear": 2025,
@@ -20573,7 +21369,8 @@
     "damUrl": "https://db.sp.netkeiba.com/horse/2013106059/",
     "damParity": 5,
     "damProduceCount": 6,
-    "damGapBeforeYears": 1
+    "damGapBeforeYears": 1,
+    "shareCount": 400
   },
   {
     "recruitYear": 2025,
@@ -20601,7 +21398,8 @@
     "damUrl": "https://db.sp.netkeiba.com/horse/000a01a8df/",
     "damParity": 5,
     "damProduceCount": 6,
-    "damGapBeforeYears": 1
+    "damGapBeforeYears": 1,
+    "shareCount": 400
   },
   {
     "recruitYear": 2025,
@@ -20629,7 +21427,8 @@
     "damUrl": "https://db.sp.netkeiba.com/horse/2009110091/",
     "damParity": 8,
     "damProduceCount": 8,
-    "damGapBeforeYears": 1
+    "damGapBeforeYears": 1,
+    "shareCount": 400
   },
   {
     "recruitYear": 2025,
@@ -20657,7 +21456,8 @@
     "damUrl": "https://db.sp.netkeiba.com/horse/2013105871/",
     "damParity": 5,
     "damProduceCount": 5,
-    "damGapBeforeYears": 1
+    "damGapBeforeYears": 1,
+    "shareCount": 400
   },
   {
     "recruitYear": 2025,
@@ -20685,7 +21485,8 @@
     "damUrl": "https://db.sp.netkeiba.com/horse/2016104622/",
     "damParity": 2,
     "damProduceCount": 3,
-    "damGapBeforeYears": 1
+    "damGapBeforeYears": 1,
+    "shareCount": 400
   },
   {
     "recruitYear": 2025,
@@ -20713,7 +21514,8 @@
     "damUrl": "https://db.sp.netkeiba.com/horse/2013106181/",
     "damParity": 5,
     "damProduceCount": 6,
-    "damGapBeforeYears": 1
+    "damGapBeforeYears": 1,
+    "shareCount": 400
   },
   {
     "recruitYear": 2025,
@@ -20741,7 +21543,8 @@
     "damUrl": "https://db.sp.netkeiba.com/horse/2017105373/",
     "damParity": 1,
     "damProduceCount": 2,
-    "damGapBeforeYears": null
+    "damGapBeforeYears": null,
+    "shareCount": 400
   },
   {
     "recruitYear": 2025,
@@ -20769,7 +21572,8 @@
     "damUrl": "https://db.sp.netkeiba.com/horse/2006102828/",
     "damParity": 8,
     "damProduceCount": 9,
-    "damGapBeforeYears": 1
+    "damGapBeforeYears": 1,
+    "shareCount": 400
   },
   {
     "recruitYear": 2025,
@@ -20797,7 +21601,8 @@
     "damUrl": "https://db.sp.netkeiba.com/horse/2015104972/",
     "damParity": 3,
     "damProduceCount": 4,
-    "damGapBeforeYears": 1
+    "damGapBeforeYears": 1,
+    "shareCount": 400
   },
   {
     "recruitYear": 2025,
@@ -20825,7 +21630,8 @@
     "damUrl": "https://db.sp.netkeiba.com/horse/2019105557/",
     "damParity": 1,
     "damProduceCount": 2,
-    "damGapBeforeYears": null
+    "damGapBeforeYears": null,
+    "shareCount": 400
   },
   {
     "recruitYear": 2025,
@@ -20853,7 +21659,8 @@
     "damUrl": "https://db.sp.netkeiba.com/horse/2019104612/",
     "damParity": 1,
     "damProduceCount": 2,
-    "damGapBeforeYears": null
+    "damGapBeforeYears": null,
+    "shareCount": 400
   },
   {
     "recruitYear": 2025,
@@ -20881,7 +21688,8 @@
     "damUrl": "https://db.sp.netkeiba.com/horse/000a011a9f/",
     "damParity": 11,
     "damProduceCount": 11,
-    "damGapBeforeYears": 1
+    "damGapBeforeYears": 1,
+    "shareCount": 400
   },
   {
     "recruitYear": 2025,
@@ -20909,7 +21717,8 @@
     "damUrl": "https://db.sp.netkeiba.com/horse/2014105970/",
     "damParity": 4,
     "damProduceCount": 4,
-    "damGapBeforeYears": 1
+    "damGapBeforeYears": 1,
+    "shareCount": 400
   },
   {
     "recruitYear": 2025,
@@ -20937,7 +21746,8 @@
     "damUrl": "https://db.sp.netkeiba.com/horse/2010104312/",
     "damParity": 7,
     "damProduceCount": 7,
-    "damGapBeforeYears": 1
+    "damGapBeforeYears": 1,
+    "shareCount": 400
   },
   {
     "recruitYear": 2025,
@@ -20965,7 +21775,8 @@
     "damUrl": "https://db.sp.netkeiba.com/horse/000a01fcd0/",
     "damParity": 1,
     "damProduceCount": 1,
-    "damGapBeforeYears": null
+    "damGapBeforeYears": null,
+    "shareCount": 400
   },
   {
     "recruitYear": 2025,
@@ -20993,7 +21804,8 @@
     "damUrl": "https://db.sp.netkeiba.com/horse/000a01fb7a/",
     "damParity": 2,
     "damProduceCount": 3,
-    "damGapBeforeYears": 1
+    "damGapBeforeYears": 1,
+    "shareCount": 400
   },
   {
     "recruitYear": 2025,
@@ -21021,7 +21833,8 @@
     "damUrl": "https://db.sp.netkeiba.com/horse/000a01fcce/",
     "damParity": 1,
     "damProduceCount": 2,
-    "damGapBeforeYears": null
+    "damGapBeforeYears": null,
+    "shareCount": 400
   },
   {
     "recruitYear": 2025,
@@ -21049,7 +21862,8 @@
     "damUrl": "https://db.sp.netkeiba.com/horse/2012104547/",
     "damParity": 5,
     "damProduceCount": 6,
-    "damGapBeforeYears": 1
+    "damGapBeforeYears": 1,
+    "shareCount": 100
   },
   {
     "recruitYear": 2025,
@@ -21077,7 +21891,8 @@
     "damUrl": "https://db.sp.netkeiba.com/horse/2006103398/",
     "damParity": 6,
     "damProduceCount": 7,
-    "damGapBeforeYears": 6
+    "damGapBeforeYears": 6,
+    "shareCount": 100
   },
   {
     "recruitYear": 2025,
@@ -21105,7 +21920,8 @@
     "damUrl": "https://db.sp.netkeiba.com/horse/2011103811/",
     "damParity": 7,
     "damProduceCount": 8,
-    "damGapBeforeYears": 1
+    "damGapBeforeYears": 1,
+    "shareCount": 100
   },
   {
     "recruitYear": 2025,
@@ -21133,7 +21949,8 @@
     "damUrl": "https://db.sp.netkeiba.com/horse/2017105211/",
     "damParity": 3,
     "damProduceCount": 3,
-    "damGapBeforeYears": 1
+    "damGapBeforeYears": 1,
+    "shareCount": 100
   },
   {
     "recruitYear": 2025,
@@ -21161,6 +21978,7 @@
     "damUrl": "https://db.sp.netkeiba.com/horse/2012104717/",
     "damParity": 6,
     "damProduceCount": 6,
-    "damGapBeforeYears": 1
+    "damGapBeforeYears": 1,
+    "shareCount": 100
   }
 ]

@@ -49,11 +49,24 @@ export interface Recruit {
   /** 生年月日（YYYY-MM-DD）。個体ページから取得できなかった場合はnull。 */
   birthDate: string | null;
   pricePerShare: number | null;
+  /**
+   * 募集口数（一口の値段ではなく総口数）。大半は400口、一部100口、高額馬は40口など。
+   * netkeibaの「募集情報」欄（`OwnerUnitPrice`の`<span>N口</span>`）から取得
+   * （`scripts/enrich-share-count.mjs`）。現在の馬主がクラブ名義でない馬などnetkeibaに
+   * 募集情報が載っていない馬は null（回収率の計算では既定の400口として扱う）。
+   */
+  shareCount: number | null;
   height: number | null;
   chestGirth: number | null;
   caretGirth: number | null;
   weight: number | null;
 }
+
+/**
+ * 募集口数が取れなかった馬を回収率の計算に含めるときに使う既定値。
+ * 口数が判明している642頭のうち96%（616頭）が400口なので、不明分はこの値で近似する。
+ */
+export const DEFAULT_SHARE_COUNT = 400;
 
 export interface RaceResult {
   netkeibaUrl: string;
@@ -90,6 +103,13 @@ export interface RecruitWithResult
   displayName: string;
   /** 中央獲得賞金＋地方獲得賞金の合計（万円）。どちらもnullなら0扱い。 */
   totalPrizeManYen: number;
+  /**
+   * 募集総額（万円）＝ 一口価格 × 口数。口数が不明な馬は `DEFAULT_SHARE_COUNT` で近似する。
+   * 一口価格が無い馬は null。
+   */
+  offeringTotalManYen: number | null;
+  /** 募集口数が実データで判明しているか（false＝`DEFAULT_SHARE_COUNT`で近似）。 */
+  shareCountKnown: boolean;
 }
 
 /** 成績（賞金・勝ち数）を取得した時点。「いつ時点の成績か」を画面に出すのに使う。 */
@@ -129,6 +149,11 @@ export function loadRecruitsWithResults(): RecruitWithResult[] {
       others: r?.others ?? null,
       mainWins: r?.mainWins ?? [],
       gradeWins: r?.gradeWins ?? [],
+      offeringTotalManYen:
+        h.pricePerShare != null
+          ? h.pricePerShare * (h.shareCount ?? DEFAULT_SHARE_COUNT)
+          : null,
+      shareCountKnown: h.shareCount != null,
     };
   });
   return cache;

@@ -11,10 +11,11 @@
  * 胸囲記事（chest-girth.astro）のために追加（2026-08-25）。他の記事（height.astro・
  * dam-age.astro・birth-month.astro）にも同じ表を使っているので、そちらにも自動的に反映される。
  *
- * 回収率列（＝獲得賞金合計÷一口価格）は`showRoi`がtrueの時だけ出す（既定false）。
- * この倍率は実際の会員配当額ではなく規模感の目安に過ぎず、その注記は胸囲記事の本文にしか
- * 無いため、注記の無い他記事にまで数字だけ出ると出資リターンと誤読されうる
- * （reviewerサブエージェントの指摘・2026-08-25）。胸囲記事だけが`showRoi`を渡す。
+ * 回収率列（＝獲得賞金合計 ÷ 募集総額）は`showRoi`がtrueの時だけ出す（既定false）。
+ * この比率は賞金の額面ベースで、管理費・維持費・引退時の売却額を差し引いた実際の会員配当額
+ * ではなく規模感の目安に過ぎず、その注記は胸囲記事の本文にしか無いため、注記の無い他記事に
+ * まで数字だけ出ると出資リターンと誤読されうる（reviewerサブエージェントの指摘・2026-08-25）。
+ * 胸囲記事だけが`showRoi`を渡す。
  *
  * 産次列（＝母の何番目の仔か）も同じ理由で`showParity`がtrueの時だけ出す（既定false）。
  * 「3番仔」という数字だけが注記なしに他記事へ出ると、空胎年を挟んでいても連産でも同じ
@@ -77,8 +78,8 @@ const { rows, showRoi = false, showParity = false } = Astro.props;
             <td>{formatManYen(h.totalPrizeManYen)}万円</td>
             {showRoi && (
               <td>
-                {h.pricePerShare !== null && h.pricePerShare > 0
-                  ? `${Math.round(h.totalPrizeManYen / h.pricePerShare)}倍`
+                {h.offeringTotalManYen !== null && h.offeringTotalManYen > 0
+                  ? `${Math.round((h.totalPrizeManYen / h.offeringTotalManYen) * 100)}%`
                   : '—'}
               </td>
             )}
