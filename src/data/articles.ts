@@ -15,7 +15,7 @@ export interface AnalysisArticle {
 export const analysisArticles: AnalysisArticle[] = [
   {
     href: '/articles/club-siblings/',
-    title: '母がサンデーレーシング出身の募集馬は走っているのか',
+    title: '母がサンデー出身の募集馬は活躍しているか？',
     description:
       '「先に取られた残りが回ってくる」という説を検証。出走率はむしろ高く、同じ母の兄姉と中位の成績も互角。ただし重賞級だけが向こうに出ていた。',
     image: '/og-article-club-siblings-v1.png',

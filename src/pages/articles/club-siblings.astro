@@ -30,6 +30,8 @@ import BarChart from '../../components/charts/BarChart.astro';
 import ChartTooltip from '../../components/charts/ChartTooltip.astro';
 import StatTiles from '../../components/charts/StatTiles.astro';
 import AdSlot from '../../components/AdSlot.astro';
+import DamSplitTable from '../../components/DamSplitTable.astro';
+import ArticleToc from '../../components/ArticleToc.astro';
 import damSiblingsJson from '../../../analysis/data/dam-siblings.json';
 import { horses2026 } from '../../data/horses2026.ts';
 import { formatResultsAsOf } from '../../lib/sibling-recruits.ts';
@@ -57,8 +59,13 @@ const results = file.results;
 const resultsAsOf = formatResultsAsOf(file.fetchedAt);
 
 const CURRENT_RECRUIT_YEAR = 2026;
-/** 集計対象＝この生年以前（それより後はまだ走る時間が無い）。 */
-const MATURE = 2021;
+/**
+ * 集計対象＝この生年以前。それより後の世代を混ぜると、まだ賞金を積む途中の馬が入って
+ * 両群の中央値が揃って下がり、差が実際より小さく見える（2023年産まで入れると賞金差の
+ * p値が0.03→0.07に緩む）。逆に古く切りすぎると頭数が減るので、
+ * 「デビューして一通り走り終えた世代」の下限としてここを採っている。
+ */
+const MATURE = 2022;
 
 // ---- 群1: 母の出身クラブ別 --------------------------------------------------
 const groups = groupByDamOrigin(results, MATURE);
@@ -68,6 +75,22 @@ const allStats = groups.allStats;
 /** サンデー・シルク出身以外の全キャロット募集馬（比較の相手）。 */
 const restFoals = groups.all.filter((f) => !ss.includes(f));
 const restStats = summarize(restFoals);
+
+/**
+ * サンデー出身・シルク出身それぞれの内訳（本文で数の偏りを正直に書くため）。
+ * タイトルを「サンデー出身」としているのは、該当馬の大半がサンデー側で、
+ * 母内比較表に入る母も全部サンデー出身だから。シルク側も傾向は同じなので集計はまとめている。
+ */
+const sundayOnlyStats = summarize(
+  results
+    .filter((d) => d.damClub === 'sunday')
+    .flatMap((d) => d.foals.filter((f) => f.isCarrotRecruit && f.year <= MATURE)),
+);
+const silkOnlyStats = summarize(
+  results
+    .filter((d) => d.damClub === 'silk')
+    .flatMap((d) => d.foals.filter((f) => f.isCarrotRecruit && f.year <= MATURE)),
+);
 
 const ssPrizes = ss.filter(hasRaced).map((f) => f.totalPrizeManYen ?? 0);
 const restPrizes = restFoals.filter(hasRaced).map((f) => f.totalPrizeManYen ?? 0);
@@ -128,15 +151,29 @@ const splitPrizeTest = mannWhitney(
 const SPLIT_VISIBLE = 8;
 const splitTop = split.splits.slice(0, SPLIT_VISIBLE);
 const splitRest = split.splits.slice(SPLIT_VISIBLE);
+/** 比較表の母の出身クラブ内訳（シルク出身が入っているかを本文で正確に言うため）。 */
+const splitDamClubs = [...new Set(split.splits.map((s) => s.dam.damClub))];
+const splitIsAllSunday = splitDamClubs.length === 1 && splitDamClubs[0] === 'sunday';
+/**
+ * 賞金バーの基準。表の全馬で共通の最大値にして、1頭だけ突き抜けている様子
+ * （＝この記事の結論そのもの）がそのまま見えるようにする。
+ */
+const splitBarMax = Math.max(
+  1,
+  ...[...split.stayedAll, ...split.cameAll].map((f) => f.totalPrizeManYen ?? 0),
+);
+/** 0円でも棒があると分かるよう最低幅を持たせる。 */
+const barWidth = (prize: number | null, max: number) =>
+  `${Math.max(1.5, ((prize ?? 0) / max) * 100).toFixed(1)}%`;
 
 // ---- 群3: 兄姉がサンデー・シルクで重賞を勝っている母 --------------------------
 const gradeCases = buildGradeSiblingCases(results);
 const gradeCaseCarrotFoals = gradeCases.flatMap((c) => c.carrotFoals);
-/** 走る時間が十分あった仔だけで成績を見る。 */
-const gradeCaseRaced = gradeCaseCarrotFoals.filter((f) => f.starts != null && f.year <= 2022);
+/** 走る時間が十分あった仔だけで成績を見る（他の集計と同じ足切り）。 */
+const gradeCaseRaced = gradeCaseCarrotFoals.filter((f) => f.starts != null && f.year <= MATURE);
 const gradeCaseStats = summarize(gradeCaseRaced);
-/** まだデビュー前（直近の募集）の仔＝これから走る馬。 */
-const gradeCaseUpcoming = gradeCaseCarrotFoals.filter((f) => f.year >= 2023);
+/** まだデビュー前後（直近の募集）の仔＝これから走る馬。 */
+const gradeCaseUpcoming = gradeCaseCarrotFoals.filter((f) => f.year > MATURE);
 
 // ---- 今年度の募集 -----------------------------------------------------------
 const currentRecruits = currentYearSundaySilkRecruits(results, CURRENT_RECRUIT_YEAR);
@@ -238,22 +275,22 @@ const AD_SP_RECT = '24e3e1a24f40d88ee1a0ca315c54a7b9';
 const AD_PC_WIDE_A = 'f0efb5bd6ae3e164bb584a4dbb846f48';
 const AD_PC_WIDE_B = '0a525f6469ec1f40642b4550e53d39cc';
 
-const description = `【非公式】「サンデーレーシング・シルクレーシングが先に取った残りがキャロットに回ってくる」という説を、母自身がその2クラブの現役馬だった募集馬${ssStats.n}頭で検証。出走率・獲得賞金・重賞馬を、同じ母から向こうで募集された兄姉と比べた独自集計。`;
+const description = `【非公式】母がサンデーレーシングの現役馬だった募集馬は活躍しているのか。出走率・獲得賞金・重賞馬を、同じ母から向こうで募集された兄姉と比べた独自集計。`;
 ---
 
 <BaseLayout
-  title="母がサンデーレーシング出身の募集馬は走っているのか"
+  title="母がサンデー出身の募集馬は活躍しているか？"
   description={description}
   breadcrumb={[
     { label: '分析記事', href: '/articles/' },
-    { label: '母がサンデーレーシング出身の募集馬', href: '/articles/club-siblings/' },
+    { label: '母がサンデー出身の募集馬', href: '/articles/club-siblings/' },
   ]}
   showHeaderNotices={false}
   ogImage="/og-article-club-siblings-v1.png"
-  ogImageAlt="分析記事「母がサンデーレーシング出身の募集馬は走っているのか」のカード画像（【非公式】キャロットクラブ出資馬検討ツール）"
+  ogImageAlt="分析記事「母がサンデー出身の募集馬は活躍しているか？」のカード画像（【非公式】キャロットクラブ出資馬検討ツール）"
 >
   <article>
-    <h1>母がサンデーレーシング出身の募集馬は走っているのか</h1>
+    <h1>母がサンデー出身の募集馬は活躍しているか？</h1>
 
     <blockquote class="post-quote">
       <p>ただ、サンデー仔がキャロに来たときって走らないイメージなんだよなぁ...</p>
@@ -272,11 +309,11 @@ const description = `【非公式】「サンデーレーシング・シルク�
     </p>
 
     <p>
-      背景にあるのはよく聞く見立てで、<strong
-        >サンデーレーシングとシルクレーシングはキャロットより募集が早い。良い馬は先に
-        向こうが押さえて、残りがキャロットに回ってくる</strong
-      >というもの。だとすれば「向こうの馬だった母から生まれて、キャロットに来た仔」は
-      いわば持ち込みの訳あり物件で、走らなくても不思議はない ―― そういう理屈になる。
+      引っかかるのはこういうところだ。母が向こうのクラブで走って、引退して繁殖に上がった。
+      その仔が向こうではなくキャロットに出てくる。<strong
+        >なぜこの馬はこっちに来たんだろう</strong
+      >と、つい勘ぐってしまう。何か身体に不安があるのか、評価が低かったのか ――
+      そう思い始めると、良く見えていた馬体まで疑わしく見えてくる。
     </p>
 
     <p>
@@ -314,6 +351,8 @@ const description = `【非公式】「サンデーレーシング・シルク�
         },
       ]}
     />
+
+    <ArticleToc />
 
     <AdSlot sp={AD_SP_WIDE_A} pc={AD_PC_WIDE_A} />
 
@@ -396,23 +435,20 @@ const description = `【非公式】「サンデーレーシング・シルク�
 
     <AdSlot sp={AD_SP_WIDE_B} pc={AD_PC_WIDE_B} />
 
-    <h2>どういう馬を「回ってきた馬」と呼ぶか</h2>
+    <h2>どういう馬を数えたか</h2>
     <p>
-      検証に入る前に線引きをはっきりさせておく。この記事で見るのは
+      この記事で見るのは
       <strong>母自身がサンデーレーシング、またはシルクレーシングの現役馬だった募集馬</strong>だ。
-      母が向こうのクラブで走り、引退して繁殖に上がった。その仔なら本来の行き先は向こうのはずで、
-      それがキャロットに来ているなら「回ってきた」と呼んでいい。
+      過去の募集馬{groups.all.length}頭（{MATURE}年までに生まれた仔）の母をこの基準で分けると、
+      該当する母は{groups.sundaySilkDamCount}頭で、そこから来た募集馬は{ssStats.n}頭だった。
+      多くはないが、傾向を見るには足りる。
     </p>
     <p>
-      逆に、<strong>母がキャロットの馬だった場合は対象から外している</strong>。
-      母がキャロットの繁殖なら仔がキャロットで募集されるのは当たり前で、
-      むしろ向こうに出た仔のほうが例外だからだ。「同じ母の仔が両方のクラブにいる」という
-      だけで数えてしまうと、この向きの違いが消えてしまう。
-    </p>
-    <p>
-      過去の募集馬{groups.all.length}頭（{MATURE}年までに生まれた仔）の母をこの基準で分類すると、
-      サンデー・シルク出身の母は{groups.sundaySilkDamCount}頭で、そこから来た募集馬は
-      {ssStats.n}頭だった。多くはないが、傾向を見るには足りる。
+      内訳は<strong>サンデーレーシング出身の母から{sundayOnlyStats.n}頭、シルクレーシング出身の母から
+      {silkOnlyStats.n}頭</strong>。数の上ではほぼサンデーの話で、シルクは母自体が
+      {results.filter((d) => d.damClub === 'silk').length}頭と少ない。ただし
+      {silkOnlyStats.n}頭の出走率・獲得賞金・重賞の出方はサンデー側と同じ傾向だったので、
+      以下ではまとめて「向こう」として扱う。
     </p>
 
     <h2>まず、走ってはいる</h2>
@@ -490,123 +526,30 @@ const description = `【非公式】「サンデーレーシング・シルク�
     </p>
     <p>
       両方に仔がいる母は{split.splits.length}頭いた。向こうに残った仔が{split.stayedStats.n}頭、
-      キャロットに来た仔が{split.cameStats.n}頭になる。
+      キャロットに来た仔が{split.cameStats.n}頭になる。棒の長さは獲得賞金で、
+      左右どちらの表でも同じ物差し（いちばん稼いだ
+      {fmtMan(splitBarMax)}が最大）にしてある。
     </p>
 
-    <div class="table-scroll">
-      <table class="data-table">
-        <thead>
-          <tr>
-            <th>母</th>
-            <th>向こうで募集された仔</th>
-            <th>キャロットに来た仔</th>
-          </tr>
-        </thead>
-        <tbody>
-          {
-            splitTop.map((s) => (
-              <tr>
-                <td>
-                  <strong>{s.dam.damName}</strong>
-                  <span class="dam-meta">{CLUB_JP[s.dam.damClub]}</span>
-                </td>
-                <td>
-                  <ul class="foal-list">
-                    {s.stayed.map((f) => (
-                      <li>
-                        {f.name}
-                        <span class="foal-meta">
-                          {f.year}年産・{recordText(f)}・{fmtMan(f.totalPrizeManYen ?? 0)}
-                        </span>
-                        {f.gradeWins.length > 0 && (
-                          <span class="grade-tag">{f.gradeWins.map(shortGradeName).join('、')}</span>
-                        )}
-                      </li>
-                    ))}
-                  </ul>
-                </td>
-                <td>
-                  <ul class="foal-list">
-                    {s.came.map((f) => (
-                      <li>
-                        {f.name}
-                        <span class="foal-meta">
-                          {f.year}年産・{recordText(f)}・{fmtMan(f.totalPrizeManYen ?? 0)}
-                        </span>
-                        {f.gradeWins.length > 0 && (
-                          <span class="grade-tag">{f.gradeWins.map(shortGradeName).join('、')}</span>
-                        )}
-                      </li>
-                    ))}
-                  </ul>
-                </td>
-              </tr>
-            ))
-          }
-        </tbody>
-      </table>
-    </div>
+    <DamSplitTable splits={splitTop} barMax={splitBarMax} />
 
     {
       splitRest.length > 0 && (
         <details class="more-rows">
           <summary>残り{splitRest.length}頭の母も見る</summary>
-          <div class="table-scroll">
-            <table class="data-table">
-              <thead>
-                <tr>
-                  <th>母</th>
-                  <th>向こうで募集された仔</th>
-                  <th>キャロットに来た仔</th>
-                </tr>
-              </thead>
-              <tbody>
-                {splitRest.map((s) => (
-                  <tr>
-                    <td>
-                      <strong>{s.dam.damName}</strong>
-                      <span class="dam-meta">{CLUB_JP[s.dam.damClub]}</span>
-                    </td>
-                    <td>
-                      <ul class="foal-list">
-                        {s.stayed.map((f) => (
-                          <li>
-                            {f.name}
-                            <span class="foal-meta">
-                              {f.year}年産・{recordText(f)}・{fmtMan(f.totalPrizeManYen ?? 0)}
-                            </span>
-                            {f.gradeWins.length > 0 && (
-                              <span class="grade-tag">
-                                {f.gradeWins.map(shortGradeName).join('、')}
-                              </span>
-                            )}
-                          </li>
-                        ))}
-                      </ul>
-                    </td>
-                    <td>
-                      <ul class="foal-list">
-                        {s.came.map((f) => (
-                          <li>
-                            {f.name}
-                            <span class="foal-meta">
-                              {f.year}年産・{recordText(f)}・{fmtMan(f.totalPrizeManYen ?? 0)}
-                            </span>
-                            {f.gradeWins.length > 0 && (
-                              <span class="grade-tag">
-                                {f.gradeWins.map(shortGradeName).join('、')}
-                              </span>
-                            )}
-                          </li>
-                        ))}
-                      </ul>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+          <DamSplitTable splits={splitRest} barMax={splitBarMax} />
         </details>
+      )
+    }
+
+    {
+      splitIsAllSunday && (
+        <p class="table-note">
+          ここに並んだ{split.splits.length}母はすべてサンデーレーシング出身だった。
+          シルクレーシング出身の母は{results.filter((d) => d.damClub === 'silk').length}頭と
+          そもそも少なく、繁殖に上がったのが新しいため、両方に「走る時間が足りた世代」の仔が
+          揃っている母がまだ無い。
+        </p>
       )
     }
 
@@ -692,7 +635,7 @@ const description = `【非公式】「サンデーレーシング・シルク�
         <thead>
           <tr>
             <th>母</th>
-            <th>向こうで重賞を勝った兄姉</th>
+            <th>向こうで募集された兄姉</th>
             <th>キャロットに来た仔</th>
           </tr>
         </thead>
@@ -700,17 +643,22 @@ const description = `【非公式】「サンデーレーシング・シルク�
           {
             gradeCases.map((c) => (
               <tr>
-                <td>
-                  <strong>{c.dam.damName}</strong>
-                </td>
+                <th scope="row">{c.dam.damName}</th>
                 <td>
                   <ul class="foal-list">
-                    {c.gradeSiblings.map((f) => (
+                    {c.sundaySilkFoals.map((f) => (
                       <li>
-                        <strong>{f.name}</strong>
-                        <span class="grade-tag">{f.gradeWins.map(shortGradeName).join('、')}</span>
+                        <span class={f.gradeWins.length > 0 ? 'foal-name is-grade' : 'foal-name'}>
+                          {f.name}
+                        </span>
+                        {f.gradeWins.length > 0 && (
+                          <span class="grade-tag">{f.gradeWins.map(shortGradeName).join('、')}</span>
+                        )}
                         <span class="foal-meta">
-                          {CLUB_JP[f.club]}・{recordText(f)}・{fmtMan(f.totalPrizeManYen ?? 0)}
+                          {f.year}年産・{CLUB_JP[f.club]}・
+                          {f.starts == null || f.starts === 0
+                            ? 'まだ出走なし'
+                            : `${recordText(f)}・${fmtMan(f.totalPrizeManYen ?? 0)}`}
                         </span>
                       </li>
                     ))}
@@ -720,16 +668,16 @@ const description = `【非公式】「サンデーレーシング・シルク�
                   <ul class="foal-list">
                     {c.carrotFoals.map((f) => (
                       <li>
-                        {f.name}
+                        <span class="foal-name">{f.name}</span>
+                        {f.gradeWins.length > 0 && (
+                          <span class="grade-tag">{f.gradeWins.map(shortGradeName).join('、')}</span>
+                        )}
                         <span class="foal-meta">
                           {f.year}年産・
                           {f.starts == null || f.starts === 0
                             ? 'まだ出走なし'
                             : `${recordText(f)}・${fmtMan(f.totalPrizeManYen ?? 0)}`}
                         </span>
-                        {f.gradeWins.length > 0 && (
-                          <span class="grade-tag">{f.gradeWins.map(shortGradeName).join('、')}</span>
-                        )}
                       </li>
                     ))}
                   </ul>
@@ -740,6 +688,10 @@ const description = `【非公式】「サンデーレーシング・シルク�
         </tbody>
       </table>
     </div>
+    <p class="table-note">
+      向こうで募集された兄姉は重賞を勝った馬だけでなく全頭を並べている。向こう側にも
+      走らなかった仔はいるので、重賞馬だけを抜き出すと比較にならないため。
+    </p>
 
     <p>
       走る時間が十分あった{gradeCaseStats.n}頭を集計すると、
@@ -785,10 +737,14 @@ const description = `【非公式】「サンデーレーシング・シルク�
         すでに出ているので、ここが主因とは考えにくい。
       </li>
       <li>
-        <strong>いちばん効いていそうなのは頭数。</strong>{ssStats.n}頭というのは、
-        重賞馬のような滅多に起きない出来事を語るには小さい。0頭という結果も
-        {fmtPct(zeroGradeChance)}の確率で偶然起こりうる。ここは今後データが増えてから
-        もう一度見たい。
+        <strong>頭数は少ない。ただし向きは一貫している。</strong>{ssStats.n}頭というのは、
+        重賞馬のような滅多に起きない出来事を語るには小さく、0頭という結果も
+        {fmtPct(zeroGradeChance)}の確率で偶然起こりうる。それでも
+        <strong
+          >全体の賞金・同じ母の中での上振れ・重賞兄姉を持つ仔、どの切り口で見ても
+          「活躍度合いは低め」の側に転んでいる</strong
+        >。1つ2つなら偶然で片づけられるが、これだけ揃うと、少なくとも
+        「向こうと同じくらい大物が出る」と思って上乗せするのは分が悪そうだ。
       </li>
     </ul>
 
@@ -832,12 +788,7 @@ const description = `【非公式】「サンデーレーシング・シルク�
 
     <h2>データについて</h2>
     <p>
-      母がどのクラブの馬だったかは、母の競走馬としての登録情報（所属と募集口数）から
-      判定している。引退後に個人名義へ変わっている母は拾えない可能性があるが、
-      募集情報が残っている馬で突き合わせた限り、取りこぼしは見つからなかった。
       海外で走った母や、クラブを通さずに繁殖入りした母は「海外・その他」に含まれる。
-    </p>
-    <p>
       集計対象は{MATURE}年までに生まれた仔に限っている（それより後はまだ走る時間が足りない）。
       競走成績は{resultsAsOf}時点のスナップショットで、獲得賞金は中央（JRA）・地方（NAR）の合計。
       海外レースの賞金は含んでいない。同じ母の兄姉のうち、向こうのクラブで募集された仔として

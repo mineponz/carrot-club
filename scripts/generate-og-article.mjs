@@ -109,7 +109,7 @@ const ARTICLES = {
   },
   'club-siblings': {
     out: 'og-article-club-siblings-v1.png',
-    headline: ['母がサンデー出身の', '募集馬は走っているのか'],
+    headline: ['母がサンデー出身の', '募集馬は活躍しているか？'],
     lead: 'キャロットクラブ 2017〜2025年募集の募集時データ × 現在の競走成績',
     yearRangePlaceholder: '2017〜2025年',
     chips: ['出走率・獲得賞金で検証', '同じ母の兄姉と比較', '重賞馬の下の成績も'],

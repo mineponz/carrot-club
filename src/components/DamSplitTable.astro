@@ -1,0 +1,183 @@
+---
+/**
+ * 分析記事「母がサンデー/シルク出身の募集馬は活躍しているか？」の中心になる比較表。
+ *
+ * 同じ母から生まれた仔を「向こう（サンデー/シルク）で募集された仔」と
+ * 「キャロットに来た仔」に分けて左右に並べる。母が同じなら血統の地力は揃っているので、
+ * 違いが出るなら「どちらに行ったか」の差ということになる。
+ *
+ * 数字を読ませるだけだと1頭だけ突き抜けている構図が伝わらないため、獲得賞金は
+ * **表の全馬で共通の最大値**を基準にした横棒で見せる。1頭の重賞馬の棒が他を圧倒する形が
+ * そのまま記事の結論（差は平均の実力ではなく上振れに出る）になる。
+ *
+ * 表の行の作りをここに1つだけ置くのは `GradeWinnerTable.astro` と同じ理由で、
+ * 呼び出し側（本編と「残りn頭」の折りたたみ）に2回書くと片方だけ直して表がずれるため。
+ */
+import type { DamSplit } from '../lib/dam-siblings.ts';
+import { recordText, shortGradeName, CLUB_JP } from '../lib/dam-siblings.ts';
+
+interface Props {
+  splits: DamSplit[];
+  /** 棒の基準になる獲得賞金（万円）。表をまたいで同じ値を渡す。 */
+  barMax: number;
+}
+
+const { splits, barMax } = Astro.props;
+
+const fmtMan = (v: number | null) => `${Math.round(v ?? 0).toLocaleString()}万円`;
+/** 0円でも棒があると分かるよう最低幅を持たせる。 */
+const barWidth = (prize: number | null) =>
+  `${Math.max(1.5, ((prize ?? 0) / barMax) * 100).toFixed(1)}%`;
+---
+
+<div class="table-scroll">
+  <table class="split-table">
+    <thead>
+      <tr>
+        <th>母</th>
+        <th>向こうで募集された仔</th>
+        <th>キャロットに来た仔</th>
+      </tr>
+    </thead>
+    <tbody>
+      {
+        splits.map((s) => (
+          <tr>
+            <th scope="row">
+              {s.dam.damName}
+              <span class="dam-meta">{CLUB_JP[s.dam.damClub]}</span>
+              {s.dam.damStarts !== null && (
+                <span class="dam-meta">
+                  現役時 {s.dam.damStarts}戦{s.dam.damWins ?? 0}勝
+                </span>
+              )}
+            </th>
+            {[s.stayed, s.came].map((foals, side) => (
+              <td>
+                <ul class="foal-list">
+                  {foals.map((f) => (
+                    <li>
+                      <div class="foal-head">
+                        <span class="foal-name">{f.name}</span>
+                        {f.gradeWins.length > 0 && (
+                          <span class="grade-tag">
+                            {f.gradeWins.map(shortGradeName).join('、')}
+                          </span>
+                        )}
+                      </div>
+                      <div class="prize-row">
+                        <span class={`prize-bar ${side === 1 ? 'is-carrot' : ''}`}>
+                          <span style={`width:${barWidth(f.totalPrizeManYen)}`} />
+                        </span>
+                        <span class="prize-value">{fmtMan(f.totalPrizeManYen)}</span>
+                      </div>
+                      <div class="foal-meta">
+                        {f.year}年産・{recordText(f)}
+                      </div>
+                    </li>
+                  ))}
+                </ul>
+              </td>
+            ))}
+          </tr>
+        ))
+      }
+    </tbody>
+  </table>
+</div>
+
+<style>
+  .table-scroll {
+    overflow-x: auto;
+    margin: 1rem 0;
+  }
+  table.split-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.875rem;
+  }
+  table.split-table th,
+  table.split-table td {
+    padding: 0.6rem 0.7rem;
+    border-bottom: 1px solid var(--border);
+    text-align: left;
+    vertical-align: top;
+  }
+  table.split-table thead th {
+    color: var(--muted);
+    font-weight: 600;
+    white-space: nowrap;
+  }
+  /* 母の列。狭い画面でも母名で行を見失わないよう最小幅を確保する */
+  table.split-table tbody th {
+    font-weight: 700;
+    min-width: 7.5rem;
+  }
+  /* 左右の仔の列は同じ幅にして、棒の長さを目で比べられるようにする */
+  table.split-table td {
+    width: 42%;
+    min-width: 13rem;
+  }
+  .dam-meta,
+  .foal-meta {
+    display: block;
+    font-size: 0.75rem;
+    font-weight: 400;
+    color: var(--muted);
+  }
+  .foal-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+  }
+  .foal-list li + li {
+    margin-top: 0.7rem;
+  }
+  .foal-head {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: 0.35rem;
+  }
+  .foal-name {
+    font-weight: 600;
+  }
+  .grade-tag {
+    padding: 0.05rem 0.4rem;
+    font-size: 0.7rem;
+    font-weight: 700;
+    color: var(--accent);
+    background: var(--accent-weak);
+    border-radius: 4px;
+  }
+  .prize-row {
+    display: flex;
+    align-items: center;
+    gap: 0.45rem;
+    margin: 0.2rem 0 0.1rem;
+  }
+  .prize-bar {
+    flex: 1;
+    min-width: 0;
+    height: 8px;
+    background: var(--border);
+    border-radius: 999px;
+    overflow: hidden;
+  }
+  .prize-bar > span {
+    display: block;
+    height: 100%;
+    background: var(--muted);
+    border-radius: 999px;
+  }
+  /* キャロット側だけアクセント色にして、左右どちらの棒か色でも分かるようにする */
+  .prize-bar.is-carrot > span {
+    background: var(--accent);
+  }
+  .prize-value {
+    flex: none;
+    font-variant-numeric: tabular-nums;
+    font-size: 0.8125rem;
+    color: var(--muted);
+  }
+</style>

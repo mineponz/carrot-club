@@ -255,7 +255,13 @@ export function buildDamSplits(
 
 export interface GradeSiblingCase {
   dam: RawDam;
-  /** サンデー/シルクで募集され、重賞を勝った兄姉。 */
+  /**
+   * サンデー/シルクで募集された兄姉**全頭**（生年昇順）。重賞を勝っていない仔も含む。
+   * 重賞馬だけを出すと「向こうは走る馬ばかり」に見えてしまい比較として不公平になるため
+   * （例: ライジングクロスはクロワデュノールだけでなくチャリングクロスもいる）。
+   */
+  sundaySilkFoals: RawFoal[];
+  /** うち重賞を勝った兄姉。 */
   gradeSiblings: RawFoal[];
   /** 同じ母からキャロットに来た仔（生年昇順）。 */
   carrotFoals: RawFoal[];
@@ -263,18 +269,19 @@ export interface GradeSiblingCase {
 
 /**
  * 「向こうで重賞馬が出ている母なのに、この仔はキャロットに来た」ケース。
- * **母がキャロット出身の馬は除く** ―― 母がキャロットの繁殖なら産駒がキャロットに来るのが
- * 自然で、「回ってきた」に当たらないため。
+ * 母がキャロット出身の馬は除く（母がキャロットの繁殖なら産駒がキャロットに来るのが
+ * 自然で、「回ってきた」に当たらないため）。
  * 表示順は重賞兄姉の獲得賞金降順（話題性の大きい順）。
  */
 export function buildGradeSiblingCases(results: readonly RawDam[]): GradeSiblingCase[] {
   const cases: GradeSiblingCase[] = [];
   for (const dam of results) {
     if (dam.damClub === 'carrot') continue;
-    const gradeSiblings = dam.foals.filter((f) => isSundaySilkFoal(f) && f.gradeWins.length > 0);
-    const carrotFoals = dam.foals.filter((f) => f.club === 'carrot');
+    const sundaySilkFoals = dam.foals.filter(isSundaySilkFoal).sort((a, b) => a.year - b.year);
+    const gradeSiblings = sundaySilkFoals.filter((f) => f.gradeWins.length > 0);
+    const carrotFoals = dam.foals.filter((f) => f.club === 'carrot').sort((a, b) => a.year - b.year);
     if (!gradeSiblings.length || !carrotFoals.length) continue;
-    cases.push({ dam, gradeSiblings, carrotFoals });
+    cases.push({ dam, sundaySilkFoals, gradeSiblings, carrotFoals });
   }
   cases.sort(
     (a, b) =>
