@@ -107,6 +107,14 @@ const ARTICLES = {
     chips: ['3つの俗説を検証', '牡馬・牝馬で比較', '重賞勝ち馬を全掲載'],
     buildChart: birthOrderChart,
   },
+  'club-siblings': {
+    out: 'og-article-club-siblings-v1.png',
+    headline: ['母がサンデー出身の', '募集馬は走っているのか'],
+    lead: 'キャロットクラブ 2017〜2025年募集の募集時データ × 現在の競走成績',
+    yearRangePlaceholder: '2017〜2025年',
+    chips: ['出走率・獲得賞金で検証', '同じ母の兄姉と比較', '重賞馬の下の成績も'],
+    buildChart: clubSiblingsChart,
+  },
 };
 
 const slug = process.argv[2];
@@ -281,6 +289,45 @@ function chestGirthChart() {
     yearRangeLabel,
     html: `<div class="mini-chart">${bars}</div>`,
     caption: '胸囲の分布（3cm刻み）',
+  };
+}
+
+/**
+ * 記事と同じ「母の出身クラブ別 獲得賞金の中央値」をミニ棒グラフのHTMLにする
+ * （club-siblings.astro の medianPrizeBars と同じ並び・同じ集計）。
+ * 1本目がサンデー・シルク出身で、そこだけ低いのがカードで一目で分かる。
+ */
+function clubSiblingsChart() {
+  const file = JSON.parse(readFileSync(join(repoRoot, 'analysis', 'data', 'dam-siblings.json'), 'utf8'));
+  const MATURE = 2021;
+  const originKey = (damClub) => {
+    if (damClub === 'sunday' || damClub === 'silk') return 'sundaySilk';
+    if (damClub === 'carrot') return 'carrot';
+    if (damClub === 'private') return 'private';
+    if (damClub === 'unknown' || damClub === 'fetch-failed') return 'unknown';
+    return 'other';
+  };
+  const order = ['sundaySilk', 'carrot', 'private', 'unknown', 'other'];
+  const buckets = Object.fromEntries(order.map((k) => [k, []]));
+  let total = 0;
+  for (const d of file.results) {
+    for (const f of d.foals) {
+      if (!f.isCarrotRecruit || f.year > MATURE) continue;
+      total++;
+      if ((f.starts ?? 0) > 0) buckets[originKey(d.damClub)].push(f.totalPrizeManYen ?? 0);
+    }
+  }
+  const med = (xs) => {
+    if (!xs.length) return 0;
+    const s = [...xs].sort((a, b) => a - b);
+    const m = s.length >> 1;
+    return s.length % 2 ? s[m] : (s[m - 1] + s[m]) / 2;
+  };
+  return {
+    total,
+    yearRangeLabel: '2017〜2025年',
+    html: barsHtml(order.map((k) => Math.round(med(buckets[k])))),
+    caption: '母の所属クラブ別 獲得賞金の中央値',
   };
 }
 
