@@ -1,0 +1,263 @@
+---
+/**
+ * 系列つきの縦棒チャート（グループ棒）。1つの分類軸の中を、さらに2系列以上に割って
+ * 並べて比べる用（例: 誕生タイミング×体高の4グループを、さらに牡・牝で割る）。
+ * 1系列だけを比べるなら`BarChart.astro`を使う。
+ *
+ * dataviz playbook準拠: 棒は角丸4px・隣り合う棒の間に2pxの余白、値はキャップ上に直接ラベル、
+ * 2系列以上なので凡例を必ず出す（色だけに意味を持たせない）、ホバー/フォーカスで
+ * 詳細ツールチップ（本文の共有スクリプトが `.viz-hit[data-tip]` を拾う）。
+ * 系列の色は`ScatterChart.astro`と同じ`--series-1`/`--series-2`を使い、サイト内で
+ * 「牡＝青・牝＝赤」の対応がページをまたいでも変わらないようにしている。
+ *
+ * 値ラベルは1グループに系列数ぶん並ぶので、単位まで入れると隣とぶつかる。単位は
+ * `valueLabel`（タイトル脇）に出し、棒の上は数字だけにしてある。
+ */
+interface SeriesDef {
+  key: string;
+  label: string;
+  /** CSS変数名。例: '--series-1' */
+  colorVar: string;
+}
+
+interface GroupValue {
+  seriesKey: string;
+  value: number;
+  /** 棒の上に出す表示文字列。単位は入れない（隣の系列とぶつかるため）。 */
+  displayValue: string;
+  /** ツールチップと軸下の注記に出す母数。 */
+  n: number;
+}
+
+interface Group {
+  label: string;
+  values: GroupValue[];
+}
+
+interface Props {
+  title: string;
+  series: SeriesDef[];
+  groups: Group[];
+  /** ツールチップの値の行ラベル（例: "平均総賞金"）。単位もここに入れる。 */
+  valueLabel: string;
+  /** ツールチップで `n` に付ける行ラベル。 */
+  nLabel?: string;
+  height?: number;
+}
+
+const { title, series, groups, valueLabel, nLabel = '頭数', height = 300 } = Astro.props;
+
+const width = 640;
+const marginTop = 26;
+// 軸ラベルの下に系列ごとの母数を1行入れるぶん、下余白を広げる
+const marginBottom = 58;
+const marginLeft = 8;
+const marginRight = 8;
+const plotWidth = width - marginLeft - marginRight;
+const plotHeight = height - marginTop - marginBottom;
+
+const allValues = groups.flatMap((g) => g.values.map((v) => v.value));
+const maxValue = Math.max(1, ...allValues);
+const niceMax = Math.ceil(maxValue / 10) * 10 || 1;
+
+const step = plotWidth / groups.length;
+/** 隣り合う棒の間に置く余白。地の色が2px見えることで棒の境目が分かる（dataviz playbook）。 */
+const BAR_GAP = 2;
+const barWidth = Math.max(
+  6,
+  Math.min(30, (step - 36) / series.length - BAR_GAP)
+);
+const groupWidth = barWidth * series.length + BAR_GAP * (series.length - 1);
+
+function yFor(value: number) {
+  return marginTop + plotHeight * (1 - value / niceMax);
+}
+
+const gridLines = [0, 0.25, 0.5, 0.75, 1].map((t) => ({
+  y: marginTop + plotHeight * (1 - t),
+}));
+
+const seriesByKey = new Map(series.map((s) => [s.key, s]));
+/** 軸ラベルの下に出す母数の注記（例: "牡127・牝115"）。 */
+function noteFor(group: Group): string {
+  return group.values.map((v) => `${seriesByKey.get(v.seriesKey)?.label ?? v.seriesKey}${v.n}`).join('・');
+}
+---
+
+<div class="viz-root">
+  <div class="viz-header">
+    <p class="viz-title">{title}</p>
+    <ul class="viz-legend">
+      {series.map((s) => (
+        <li>
+          <span class="viz-swatch" style={`background: var(${s.colorVar})`}></span>
+          {s.label}
+        </li>
+      ))}
+    </ul>
+  </div>
+  <svg viewBox={`0 0 ${width} ${height}`} role="img" aria-label={title} class="viz-svg">
+    {gridLines.map((g) => (
+      <line x1={marginLeft} x2={width - marginRight} y1={g.y} y2={g.y} class="viz-grid" />
+    ))}
+    {groups.map((group, gi) => {
+      const groupCenter = marginLeft + step * gi + step / 2;
+      const groupLeft = groupCenter - groupWidth / 2;
+      return (
+        <g>
+          {group.values.map((v, si) => {
+            const s = seriesByKey.get(v.seriesKey);
+            const x = groupLeft + si * (barWidth + BAR_GAP);
+            const y = yFor(v.value);
+            const barHeight = marginTop + plotHeight - y;
+            const tip = JSON.stringify({
+              title: `${group.label}（${s?.label ?? v.seriesKey}）`,
+              rows: [
+                [valueLabel, v.displayValue],
+                [nLabel, `${v.n}頭`],
+              ] as [string, string][],
+            });
+            return (
+              <g>
+                <rect
+                  class="viz-hit viz-bar"
+                  x={x}
+                  y={y}
+                  width={barWidth}
+                  height={Math.max(0, barHeight)}
+                  rx="4"
+                  ry="4"
+                  tabindex="0"
+                  style={`fill: var(${s?.colorVar ?? '--series-1'})`}
+                  data-tip={tip}
+                />
+                <text x={x + barWidth / 2} y={y - 6} class="viz-bar-label" text-anchor="middle">
+                  {v.displayValue}
+                </text>
+              </g>
+            );
+          })}
+          <text x={groupCenter} y={height - marginBottom + 18} class="viz-axis-label" text-anchor="middle">
+            {group.label}
+          </text>
+          <text x={groupCenter} y={height - marginBottom + 33} class="viz-axis-note" text-anchor="middle">
+            {noteFor(group)}
+          </text>
+        </g>
+      );
+    })}
+    <line
+      x1={marginLeft}
+      x2={width - marginRight}
+      y1={marginTop + plotHeight}
+      y2={marginTop + plotHeight}
+      class="viz-baseline"
+    />
+  </svg>
+  <p class="visually-hidden">
+    {title}: {groups
+      .map(
+        (g) =>
+          `${g.label}は` +
+          g.values
+            .map(
+              (v) =>
+                `${seriesByKey.get(v.seriesKey)?.label ?? v.seriesKey}が${valueLabel}${v.displayValue}` +
+                `（${nLabel}${v.n}頭）`
+            )
+            .join('、')
+      )
+      .join('。 ')}
+  </p>
+</div>
+
+<style>
+  .viz-root {
+    /* 系列の色はScatterChartと同じ。サイト内で「牡＝青・牝＝赤」の対応を揃えるため、
+       ここで独自の色を作らない。 */
+    --series-1: #2a78d6;
+    --series-1-dark: #3987e5;
+    --series-2: #eb6834;
+    --series-2-dark: #d95926;
+    position: relative;
+    margin: 1.25rem 0;
+  }
+  @media (prefers-color-scheme: dark) {
+    .viz-root {
+      --series-1: var(--series-1-dark);
+      --series-2: var(--series-2-dark);
+    }
+  }
+  .viz-header {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 0.5rem 1rem;
+    margin-bottom: 0.5rem;
+  }
+  .viz-title {
+    margin: 0;
+    font-weight: 600;
+    font-size: 0.9375rem;
+    color: var(--text);
+  }
+  .viz-legend {
+    display: flex;
+    gap: 1rem;
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    font-size: 0.8125rem;
+    color: var(--muted);
+  }
+  .viz-legend li {
+    display: flex;
+    align-items: center;
+    gap: 0.35rem;
+  }
+  .viz-swatch {
+    width: 10px;
+    height: 10px;
+    border-radius: 2px;
+    display: inline-block;
+  }
+  .viz-svg { width: 100%; height: auto; display: block; overflow: visible; }
+  .viz-grid { stroke: var(--border); stroke-width: 1; }
+  .viz-baseline { stroke: var(--muted); stroke-width: 1; }
+  .viz-bar {
+    cursor: pointer;
+    transition: opacity 0.1s ease;
+  }
+  .viz-bar:hover,
+  .viz-bar:focus-visible {
+    opacity: 0.75;
+    outline: none;
+  }
+  .viz-bar-label {
+    font-size: 10px;
+    font-weight: 600;
+    fill: var(--text);
+  }
+  .viz-axis-label {
+    font-size: 11px;
+    fill: var(--muted);
+  }
+  .viz-axis-note {
+    font-size: 9.5px;
+    fill: var(--muted);
+  }
+  /*
+   * 読み上げ用テキストを画面上は隠す。BaseLayout.astro等にも同名クラスがあるが、Astroの
+   * scoped CSSはファイルをまたいで効かないため、ここに定義が無いと上の<p>がそのまま
+   * 素のテキストで表示されてしまう（2026-08-23にBarChartで発覚した不具合と同じ）。
+   */
+  .visually-hidden {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+  }
+</style>

@@ -20,6 +20,10 @@
  * 産次列（＝母の何番目の仔か）も同じ理由で`showParity`がtrueの時だけ出す（既定false）。
  * 「3番仔」という数字だけが注記なしに他記事へ出ると、空胎年を挟んでいても連産でも同じ
  * 数え方をしている点が伝わらない。産次記事（birth-order.astro）だけが`showParity`を渡す。
+ *
+ * グループ列（＝その馬が記事内のどの分類に入るか）も同じ扱いで、`groupFor`を渡した記事に
+ * だけ出る（既定undefined＝列なし）。「大きい/小さい」のような分類の定義は記事ごとに
+ * 違うので、判定そのものは呼び出し側の関数に任せる。誕生月記事（birth-month.astro）だけが渡す。
  */
 import type { RecruitWithResult } from '../lib/analysis-data.ts';
 import { formatManYen } from '../lib/chart-math.ts';
@@ -28,9 +32,13 @@ interface Props {
   rows: RecruitWithResult[];
   showRoi?: boolean;
   showParity?: boolean;
+  /** 渡すと「グループ」列が増え、各行にこの関数の戻り値が入る。 */
+  groupFor?: (h: RecruitWithResult) => string;
+  /** グループ列の見出し。`groupFor`を渡したときだけ使う。 */
+  groupLabel?: string;
 }
 
-const { rows, showRoi = false, showParity = false } = Astro.props;
+const { rows, showRoi = false, showParity = false, groupFor, groupLabel = 'グループ' } = Astro.props;
 ---
 
 <div class="table-scroll">
@@ -38,6 +46,7 @@ const { rows, showRoi = false, showParity = false } = Astro.props;
     <thead>
       <tr>
         <th>馬名</th>
+        {groupFor && <th>{groupLabel}</th>}
         <th>募集年</th>
         <th>誕生月</th>
         <th>体高</th>
@@ -57,6 +66,7 @@ const { rows, showRoi = false, showParity = false } = Astro.props;
         rows.map((h) => (
           <tr>
             <td>{h.displayName}</td>
+            {groupFor && <td class="group-cell">{groupFor(h)}</td>}
             <td>{h.recruitYear}年</td>
             <td>{h.birthDate ? `${Number(h.birthDate.split('-')[1])}月` : '—'}</td>
             <td>{h.height}cm</td>
@@ -109,6 +119,9 @@ const { rows, showRoi = false, showParity = false } = Astro.props;
   }
   table.grade-winners th {
     color: var(--muted);
+    font-weight: 600;
+  }
+  table.grade-winners .group-cell {
     font-weight: 600;
   }
 </style>

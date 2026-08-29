@@ -31,7 +31,7 @@ export const analysisArticles: AnalysisArticle[] = [
     href: '/articles/birth-month/',
     title: '誕生月と体格・成績の関係',
     description:
-      '「早生まれのほうが大きく出る」は馬にも当てはまるか。誕生日と体高・馬体重の相関、小さい馬を誕生タイミングで分けたときの成績差を検証。',
+      '「早生まれのほうが大きく出る」は馬にも当てはまるか。1月生まれなのに小さい馬と、4月生まれで小さい馬。デビュー率と成績にどれだけ差が出るかを検証。',
     image: '/og-article-birth-month-v1.png',
   },
   {
