@@ -1,9 +1,13 @@
 ---
 /**
- * 分析記事「母がサンデーレーシング出身の募集馬は走っているのか」。
+ * 分析記事「母がサンデー出身の募集馬は活躍しているか？」。
  *
- * 検証する説: サンデーレーシング・シルクレーシングはキャロットより募集が早い。良い馬は
- * 先に向こうが取り、残りがキャロットに回ってくる ―― だから「回ってきた馬」は走らない。
+ * 検証する説: 母が向こう（サンデーレーシング・シルクレーシング）の現役馬だったのに、
+ * その仔がキャロットに出てくる ―― 何か訳ありで走らないのではないか。
+ *
+ * タイトルが「サンデー出身」なのは、該当馬の大半がサンデー側で、母内比較表に入る母も
+ * 全部サンデー出身のため。集計にはシルク出身も含めており、その内訳は本文に明記している
+ * （サンデーだけに絞ると頭数が減って賞金差が有意でなくなる、という事情もある）。
  *
  * ## 切り口の要点（ここを間違えると記事が成立しない）
  * 「母がサンデーにもキャロットにも産駒を出している」という条件は**対称で方向を区別できない**。
@@ -162,9 +166,6 @@ const splitBarMax = Math.max(
   1,
   ...[...split.stayedAll, ...split.cameAll].map((f) => f.totalPrizeManYen ?? 0),
 );
-/** 0円でも棒があると分かるよう最低幅を持たせる。 */
-const barWidth = (prize: number | null, max: number) =>
-  `${Math.max(1.5, ((prize ?? 0) / max) * 100).toFixed(1)}%`;
 
 // ---- 群3: 兄姉がサンデー・シルクで重賞を勝っている母 --------------------------
 const gradeCases = buildGradeSiblingCases(results);
@@ -185,6 +186,7 @@ const currentRows = currentRecruits.map((c) => {
     no: c.no,
     name: c.name,
     damName: c.dam.damName ?? '—',
+    damUrl: c.dam.damUrl,
     damClubJp: CLUB_JP[c.dam.damClub] ?? '—',
     damRecord:
       c.dam.damStarts != null ? `${c.dam.damStarts}戦${c.dam.damWins ?? 0}勝` : '—',
@@ -364,7 +366,7 @@ const description = `【非公式】母がサンデーレーシングの現役�
     </p>
 
     <div class="table-scroll">
-      <table class="data-table">
+      <table class="data-table recruit-table">
         <thead>
           <tr>
             <th>No.</th>
@@ -375,25 +377,45 @@ const description = `【非公式】母がサンデーレーシングの現役�
             <th>母</th>
             <th>母の所属</th>
             <th>母の戦績</th>
-            <th>向こうで走った兄姉</th>
+            <th>向こうの兄姉</th>
           </tr>
         </thead>
         <tbody>
           {
             currentRows.map((r) => (
               <tr>
-                <td>{r.no}</td>
-                <td><strong>{r.name}</strong></td>
-                <td>{r.sex}</td>
-                <td>{r.sire}</td>
-                <td>{r.pricePerShare !== null ? `${r.pricePerShare}万円` : '—'}</td>
-                <td>{r.damName}</td>
-                <td>{r.damClubJp}</td>
-                <td>{r.damRecord}</td>
-                <td>
+                <td data-label="No.">{r.no}</td>
+                <td data-label="募集馬">
+                  <a href={`/horses/${r.no}/`}>
+                    <strong>{r.name}</strong>
+                  </a>
+                </td>
+                <td data-label="牡牝">{r.sex}</td>
+                <td data-label="父">{r.sire}</td>
+                <td data-label="一口">
+                  {r.pricePerShare !== null ? `${r.pricePerShare}万円` : '—'}
+                </td>
+                <td data-label="母">
+                  {r.damUrl ? (
+                    <a href={r.damUrl} target="_blank" rel="noopener">
+                      {r.damName}
+                    </a>
+                  ) : (
+                    r.damName
+                  )}
+                </td>
+                <td data-label="母の所属">{r.damClubJp}</td>
+                <td data-label="母の戦績">{r.damRecord}</td>
+                <td data-label="向こうの兄姉">
                   {r.gradeSibling ? (
                     <span class="grade-sib">
-                      {r.gradeSibling.name}
+                      {r.gradeSibling.url ? (
+                        <a href={r.gradeSibling.url} target="_blank" rel="noopener">
+                          {r.gradeSibling.name}
+                        </a>
+                      ) : (
+                        r.gradeSibling.name
+                      )}
                       <span class="grade-tag">
                         {r.gradeSibling.gradeWins.map(shortGradeName).join('、')}
                       </span>
@@ -411,7 +433,8 @@ const description = `【非公式】母がサンデーレーシングの現役�
       </table>
     </div>
     <p class="table-note">
-      「向こうで走った兄姉」は、同じ母からサンデーレーシング・シルクレーシングで募集された仔。
+      馬名はこのサイトの個別ページへ、母と兄姉はnetkeibaへのリンクになっている。
+      「向こうの兄姉」は、同じ母からサンデーレーシング・シルクレーシングで募集された仔で、
       重賞を勝っている場合はレース名を出している。
     </p>
 
@@ -648,8 +671,14 @@ const description = `【非公式】母がサンデーレーシングの現役�
                   <ul class="foal-list">
                     {c.sundaySilkFoals.map((f) => (
                       <li>
-                        <span class={f.gradeWins.length > 0 ? 'foal-name is-grade' : 'foal-name'}>
-                          {f.name}
+                        <span class="foal-name">
+                          {f.url ? (
+                            <a href={f.url} target="_blank" rel="noopener">
+                              {f.name}
+                            </a>
+                          ) : (
+                            f.name
+                          )}
                         </span>
                         {f.gradeWins.length > 0 && (
                           <span class="grade-tag">{f.gradeWins.map(shortGradeName).join('、')}</span>
@@ -668,7 +697,15 @@ const description = `【非公式】母がサンデーレーシングの現役�
                   <ul class="foal-list">
                     {c.carrotFoals.map((f) => (
                       <li>
-                        <span class="foal-name">{f.name}</span>
+                        <span class="foal-name">
+                          {f.url ? (
+                            <a href={f.url} target="_blank" rel="noopener">
+                              {f.name}
+                            </a>
+                          ) : (
+                            f.name
+                          )}
+                        </span>
                         {f.gradeWins.length > 0 && (
                           <span class="grade-tag">{f.gradeWins.map(shortGradeName).join('、')}</span>
                         )}
@@ -853,6 +890,54 @@ const description = `【非公式】母がサンデーレーシングの現役�
     color: var(--muted);
     font-weight: 600;
     white-space: nowrap;
+  }
+  /* 行見出し（母名）。狭い画面でも1文字ずつ折り返さないよう最小幅を確保する */
+  table.data-table tbody th {
+    color: var(--text);
+    font-weight: 700;
+    min-width: 7rem;
+    white-space: normal;
+  }
+  table.data-table tbody td {
+    min-width: 11rem;
+  }
+
+  /*
+   * 今年の募集馬の表はSP幅（390px）だと9列が1文字ずつ折り返して読めなくなる。
+   * 横スクロールに逃がすより、1頭＝1カードに積み直したほうが読みやすい。
+   * 見出しは `data-label` から出すので、列を足すときは td 側に属性を付け忘れないこと。
+   */
+  @media (max-width: 640px) {
+    .recruit-table thead {
+      display: none;
+    }
+    .recruit-table,
+    .recruit-table tbody,
+    .recruit-table tr,
+    .recruit-table td {
+      display: block;
+      width: auto;
+    }
+    .recruit-table tr {
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 0.6rem 0.85rem;
+      margin-bottom: 0.75rem;
+    }
+    .recruit-table td {
+      border: none;
+      padding: 0.15rem 0;
+      display: flex;
+      gap: 0.6rem;
+      min-width: 0;
+    }
+    .recruit-table td::before {
+      content: attr(data-label);
+      flex: none;
+      width: 6.5rem;
+      color: var(--muted);
+      font-size: 0.8125rem;
+    }
   }
   .foal-list {
     list-style: none;

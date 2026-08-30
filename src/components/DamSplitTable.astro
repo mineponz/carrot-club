@@ -44,7 +44,13 @@ const barWidth = (prize: number | null) =>
         splits.map((s) => (
           <tr>
             <th scope="row">
-              {s.dam.damName}
+              {s.dam.damUrl ? (
+                <a href={s.dam.damUrl} target="_blank" rel="noopener">
+                  {s.dam.damName}
+                </a>
+              ) : (
+                s.dam.damName
+              )}
               <span class="dam-meta">{CLUB_JP[s.dam.damClub]}</span>
               {s.dam.damStarts !== null && (
                 <span class="dam-meta">
@@ -58,7 +64,15 @@ const barWidth = (prize: number | null) =>
                   {foals.map((f) => (
                     <li>
                       <div class="foal-head">
-                        <span class="foal-name">{f.name}</span>
+                        <span class="foal-name">
+                          {f.url ? (
+                            <a href={f.url} target="_blank" rel="noopener">
+                              {f.name}
+                            </a>
+                          ) : (
+                            f.name
+                          )}
+                        </span>
                         {f.gradeWins.length > 0 && (
                           <span class="grade-tag">
                             {f.gradeWins.map(shortGradeName).join('、')}

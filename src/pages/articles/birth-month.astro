@@ -37,6 +37,7 @@ import BarChart from '../../components/charts/BarChart.astro';
 import GroupedBarChart from '../../components/charts/GroupedBarChart.astro';
 import ChartTooltip from '../../components/charts/ChartTooltip.astro';
 import StatTiles from '../../components/charts/StatTiles.astro';
+import ArticleToc from '../../components/ArticleToc.astro';
 import AdSlot from '../../components/AdSlot.astro';
 import GradeWinnerTable from '../../components/GradeWinnerTable.astro';
 import { loadRecruitsWithResults, racedOnly, RACE_RESULTS_FETCHED_AT } from '../../lib/analysis-data.ts';
@@ -384,6 +385,8 @@ const description = `【非公式】キャロットクラブ${yearRangeLabel}${a
         { label: 'デビュー率', value: `${debutRate.toFixed(1)}%`, note: `${matureYearRangeLabel}募集` },
       ]}
     />
+
+    <ArticleToc />
 
     <AdSlot sp={AD_SP_WIDE_A} pc={AD_PC_WIDE_A} />
 
