@@ -8,6 +8,9 @@
  *       将来の別の切り口でも再スクレイプ不要になるよう、募集クラブは全クラブぶんの
  *       ラベルを持たせ、母自身の出身クラブ（damClub）も併せて持たせる。
  *       2026年募集ぶん（horses2026.ts）の母も対象に含む。
+ *       2026-08-30: 個別ページの「きょうだい」表（キャロット以外の産駒も並べる）でも使うため、
+ *       産駒ごとに sex / sire（産駒一覧の性別・父名の列）と birthDate（個体ページの生年月日）を
+ *       持たせた。どちらも取得済みHTMLから読めるので追加アクセスは発生しない。
  *
  * netkeibaアクセス作法は scripts/fetch-birth-order.mjs / fetch-race-results.mjs と同じ:
  *   - 1リクエストごとに 700〜1100ms のウェイト
@@ -108,6 +111,29 @@ function parseDamIdFromPedigree(html) {
   return m ? m[1] : null;
 }
 
+/**
+ * 産駒一覧ページ → horseId ごとの `{sex, sire}`。
+ *
+ * 産駒一覧の1行は「年度・馬名・性別・父名」の4列で、**性別と父名はここにしか無い**
+ * （個体ページには血統表が無く、父を取るには /horse/ped/ を別に叩くことになる）。
+ * 個別ページのきょうだい表で父・牡牝を出すために後から足した（2026-08-30）。
+ * 3321産駒すべてでこの4列パターンが当たることを確認済み。
+ */
+function parseProduceSexSire(html) {
+  const map = new Map();
+  for (const m of html.matchAll(
+    /<td nowrap>(\d{4})<\/td>\s*<td class="txt_l">([\s\S]*?)<\/td>\s*<td nowrap>([^<]*)<\/td>\s*<td class="txt_l"[^>]*>([\s\S]*?)<\/td>/g,
+  )) {
+    const horseId = (m[2].match(/\/horse\/(\w+)\//) || [])[1];
+    if (!horseId) continue;
+    map.set(horseId, {
+      sex: m[3].trim() || null,
+      sire: stripTags(m[4]) || null,
+    });
+  }
+  return map;
+}
+
 /** 産駒一覧ページ → [{year, horseId, name}]（表示は新しい年が先頭）。年で重複排除は呼び出し側。 */
 function parseProduceList(html) {
   const rows = [
@@ -169,6 +195,12 @@ function isSundaySilkCandidate(club, shares) {
 }
 
 function parseHorsePage(html) {
+  // 生年月日は個体ページにしか無い（産駒一覧は生年だけ）。きょうだい表の誕生日列に使う。
+  const birthM = html.match(/生年月日\s*<\/th>\s*<td[^>]*>\s*(\d{4})年(\d{1,2})月(\d{1,2})日/);
+  const birthDate = birthM
+    ? `${birthM[1]}-${String(birthM[2]).padStart(2, '0')}-${String(birthM[3]).padStart(2, '0')}`
+    : null;
+
   const ownerM = html.match(/<th[^>]*>\s*馬主\s*<\/th>\s*<td[^>]*>([\s\S]*?)<\/td>/);
   const ownerRaw = ownerM ? stripTags(ownerM[1]) || null : null;
   const ownerId = ownerM ? (ownerM[1].match(/\/owner\/(?:result\/)?(\w+)/) || [])[1] || null : null;
@@ -212,6 +244,7 @@ function parseHorsePage(html) {
   const club = classifyClub(ownerRaw, shares);
 
   return {
+    birthDate,
     ownerRaw,
     ownerId,
     breederRaw,
@@ -236,6 +269,9 @@ function blankFoal(year, horseId, name, url) {
     horseId: horseId ?? null,
     url: url ?? null,
     name: name || null,
+    sex: null,
+    sire: null,
+    birthDate: null,
     ownerRaw: null,
     ownerId: null,
     club: 'unknown',
@@ -484,6 +520,8 @@ async function main() {
     }
 
     const produceRaw = parseProduceList(mareHtml);
+    // 性別・父名は産駒一覧の列にしか無いので、同じHTMLから horseId 引きの表を作っておく
+    const sexSireById = parseProduceSexSire(mareHtml);
     // 年で重複排除（英名/和名の二重掲載対策）。horseId 付きの行を優先。
     const byYear = new Map();
     for (const p of produceRaw) {
@@ -520,6 +558,7 @@ async function main() {
         continue;
       }
       const p = parseHorsePage(chtml);
+      const sexSire = sexSireById.get(child.horseId) || { sex: null, sire: null };
       // 「億」表記の検算ログ（最初の1件）
       if (okuChecked == null && p.chuoPrizeManYen != null && p.chuoPrizeManYen >= 10000) {
         const raw = (chtml.match(/獲得賞金\s*\(中央\)<\/th>\s*<td>\s*([^<]+?)\s*<\/td>/) || [])[1];
@@ -538,6 +577,8 @@ async function main() {
         horseId: child.horseId,
         url: childUrl,
         name: child.name || null,
+        sex: sexSire.sex,
+        sire: sexSire.sire,
         ...p,
         club: isCarrotRecruit ? 'carrot' : p.club,
         clubByOwner: p.club,

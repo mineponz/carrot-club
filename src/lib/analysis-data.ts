@@ -10,7 +10,9 @@
  */
 import recruitsJson from '../../analysis/data/recruits.json';
 import raceResultsJson from '../../analysis/data/race-results.json';
+import damSiblingsJson from '../../analysis/data/dam-siblings.json';
 import { damNameFromRecruitName, normalizeDamName } from './horse-meta.ts';
+import type { RawDam } from './dam-siblings.ts';
 
 export interface Recruit {
   recruitYear: number;
@@ -162,4 +164,20 @@ export function loadRecruitsWithResults(): RecruitWithResult[] {
 /** 出走実績がある馬（0戦を除く）だけを返す。成績クロス集計はこちらを使う。 */
 export function racedOnly(horses: readonly RecruitWithResult[]): RecruitWithResult[] {
   return horses.filter((h): h is RecruitWithResult & { starts: number } => (h.starts ?? 0) > 0);
+}
+
+/**
+ * 母ごとの全産駒ロスター（`analysis/data/dam-siblings.json`）を母のnetkeiba馬IDで引ける形にする。
+ * 個別ページの「きょうだい」表（キャロット以外の産駒も並べる）で使う。
+ * 486母×平均7頭を毎ページ走査しないよう、Mapはモジュール内で1回だけ作る。
+ */
+let damRosterCache: Map<string, RawDam> | null = null;
+
+export function loadDamRoster(): Map<string, RawDam> {
+  if (damRosterCache) return damRosterCache;
+  const file = damSiblingsJson as unknown as { results: RawDam[] };
+  damRosterCache = new Map(
+    file.results.filter((d): d is RawDam & { damId: string } => d.damId != null).map((d) => [d.damId, d])
+  );
+  return damRosterCache;
 }

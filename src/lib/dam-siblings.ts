@@ -34,6 +34,12 @@ export interface RawFoal {
   horseId: string | null;
   url: string | null;
   name: string | null;
+  /** 牡/牝/セン。母の産駒一覧の性別列から（2026-08-30に追加）。 */
+  sex: string | null;
+  /** 父。母の産駒一覧の父名列から（2026-08-30に追加）。 */
+  sire: string | null;
+  /** 生年月日（YYYY-MM-DD）。個体ページから取れなかった馬は null（2026-08-30に追加）。 */
+  birthDate: string | null;
   ownerRaw: string | null;
   ownerId: string | null;
   breederRaw: string | null;

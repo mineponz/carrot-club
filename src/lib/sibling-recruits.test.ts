@@ -2,14 +2,11 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import type { RecruitWithResult } from './analysis-data.ts';
 import {
-  buildMeasurementRows,
   findSiblingRecruits,
   formatSiblingMeasurements,
   formatSiblingRecord,
   formatResultsAsOf,
   netkeibaHorseId,
-  siblingDetailHref,
-  SELF_ROW_NAME,
 } from './sibling-recruits.ts';
 
 /** 分析用データ1頭ぶんのひな形。テストで見たい列だけ上書きする。 */
@@ -219,83 +216,8 @@ test('formatSiblingMeasurements: 欠けている測尺は飛ばす', () => {
   );
 });
 
-test('siblingDetailHref: 個別ページがある年度だけリンクする（末尾スラッシュ必須）', () => {
-  const sibling = findSiblingRecruits(
-    { name: 'テストメアの25', damUrl: 'https://db.netkeiba.com/horse/2010100001/', sibling: '' },
-    2026,
-    [recruit({ recruitYear: 2025, no: '44' })]
-  )[0];
-  assert.equal(siblingDetailHref(sibling), '/2025/horses/44/');
-  assert.equal(siblingDetailHref({ ...sibling, recruitYear: 2026 }), '/horses/44/');
-  assert.equal(siblingDetailHref({ ...sibling, recruitYear: 2024 }), null);
-});
 
 test('formatResultsAsOf: 成績の取得時点を年月で出す', () => {
   assert.equal(formatResultsAsOf('2026-08-21T22:48:05.011Z'), '2026年8月');
   assert.equal(formatResultsAsOf(''), '');
-});
-
-/** 表に自分の行を作るのに要る値だけのひな形（`Horse` の一部）。 */
-function self(over: Partial<Parameters<typeof buildMeasurementRows>[0]> = {}) {
-  return {
-    id: '5',
-    netkeibaUrl: 'https://db.netkeiba.com/horse/2025100005/',
-    sire: 'イクイノックス',
-    sex: '牡',
-    birthDate: '2025-03-01',
-    height: 152,
-    chestGirth: 175,
-    caretGirth: 20,
-    weight: 440,
-    ...over,
-  };
-}
-
-test('buildMeasurementRows: その馬自身が1行目に来る（兄姉と同じ列で測尺を見比べるため）', () => {
-  const siblings = findSiblingRecruits(
-    { name: 'テストメアの25', damUrl: 'https://db.netkeiba.com/horse/2010100001/', sibling: '' },
-    2026,
-    [recruit({ recruitYear: 2025, no: '44', displayName: 'グルドロッティン', starts: 12, wins: 2 })]
-  );
-  const rows = buildMeasurementRows(self(), 2026, siblings);
-  assert.deepEqual(
-    rows.map((r) => [r.name, r.recruitYear, r.no, r.isSelf]),
-    [
-      [SELF_ROW_NAME, 2026, '5', true],
-      ['グルドロッティン', 2025, '44', false],
-    ]
-  );
-  assert.deepEqual(
-    [rows[0].height, rows[0].chestGirth, rows[0].caretGirth, rows[0].weight],
-    [152, 175, 20, 440]
-  );
-});
-
-test('buildMeasurementRows: 自身の行は募集名ではなく「本馬」（「〇〇の25」で列が伸びないように）', () => {
-  const rows = buildMeasurementRows(self(), 2026, []);
-  assert.equal(rows[0].name, '本馬');
-});
-
-test('buildMeasurementRows: 自身はまだ走っていないので成績・賞金は持たない', () => {
-  const rows = buildMeasurementRows(self(), 2026, []);
-  assert.deepEqual([rows[0].starts, rows[0].wins, rows[0].totalPrizeManYen], [null, null, null]);
-  assert.equal(formatSiblingRecord(rows[0]), null);
-});
-
-test('buildMeasurementRows: 父を各行に持つ（同じ母の産駒なので違いは父に出る）', () => {
-  const siblings = findSiblingRecruits(
-    { name: 'テストメアの25', damUrl: 'https://db.netkeiba.com/horse/2010100001/', sibling: '' },
-    2026,
-    [recruit({ recruitYear: 2025, no: '44', sire: 'キタサンブラック' })]
-  );
-  const rows = buildMeasurementRows(self({ sire: 'イクイノックス' }), 2026, siblings);
-  assert.deepEqual(
-    rows.map((r) => r.sire),
-    ['イクイノックス', 'キタサンブラック']
-  );
-});
-
-test('buildMeasurementRows: netkeibaのURLが無ければ null（空文字のリンクを作らない）', () => {
-  const rows = buildMeasurementRows(self({ netkeibaUrl: '' }), 2026, []);
-  assert.equal(rows[0].netkeibaUrl, null);
 });

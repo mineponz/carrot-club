@@ -18,18 +18,28 @@ import {
   type MeasurementKey,
 } from '../lib/horses.ts';
 import { damNameOf, formatBirthDateLong, horsePhotoUrl, type RecruitYear } from '../lib/horse-meta.ts';
-import { formatBirthDate } from '../lib/horse-row.ts';
 import HorseNav from './HorseNav.astro';
 // メモ欄の上限はサーバー側の検証と同じ値（一覧の horse-row.ts と揃える）
 import { MAX_MEMO_LENGTH } from '../lib/evaluation-api.ts';
-import { loadRecruitsWithResults, RACE_RESULTS_FETCHED_AT } from '../lib/analysis-data.ts';
 import {
-  buildMeasurementRows,
+  loadDamRoster,
+  loadRecruitsWithResults,
+  RACE_RESULTS_FETCHED_AT,
+} from '../lib/analysis-data.ts';
+import {
   findSiblingRecruits,
   formatResultsAsOf,
   formatSiblingRecord,
-  siblingDetailHref,
+  netkeibaHorseId,
 } from '../lib/sibling-recruits.ts';
+import {
+  buildSiblingRoster,
+  formatSiblingOwner,
+  indexMeasurements,
+  hasNonCarrotSibling,
+  type RosterMeasurement,
+} from '../lib/sibling-roster.ts';
+import { horses2026 } from '../data/horses2026.ts';
 import { formatManYen } from '../lib/chart-math.ts';
 
 interface Props {
@@ -65,40 +75,84 @@ const rankNote = (key: MeasurementKey) =>
   formatMeasurementRank(measurementRank(allHorses, key, horse[key]));
 
 /**
- * 同じ母の産駒で、過去にキャロットで募集された馬（＝クラブ内の兄姉）。
- * 兄姉が同じクラブにいれば、募集時の測尺とその後の成績を同じ物差しで見比べられる。
- * 突き合わせ元は分析用の `analysis/data/`（年範囲は年によって増えるため、ハードコードせず
- * 下の`recruitPool`から動的に出す。2026-08-23、2017〜2020年募集分の追加で
- * 「2021〜2025年募集ぶん」という本文の決め打ちが古くなっていたことが判明した）。
+ * 同じ母の産駒（きょうだい）の表。
+ *
+ * 2026-08-30に**キャロット以外のきょうだいも並べる**ようにした（本人の要望）。それまでは
+ * キャロット募集馬だけ（`findSiblingRecruits()`）で、サンデー・シルク・個人馬主に出た産駒が
+ * 丸ごと抜けていた。ロスターは母の産駒一覧から作った `analysis/data/dam-siblings.json`。
+ *
+ * ★測尺（体高・馬体重・胸囲・管囲）はクラブが募集時に公表する数字なので、**キャロット募集馬に
+ * しか入らない**。表では「—」になるが、取りこぼしに見えるので必ず注記を出す（本人指定）。
+ *
+ * 測尺の供給元は年度で分かれている: 2017〜2025年募集は `analysis/data/recruits.json`、
+ * 2026年募集は `src/data/horses2026.ts`。両方を `RosterMeasurement` に均してから渡す
+ * （2025年のページから見た1歳下の弟妹＝2026年募集馬にも測尺を出すため）。
  */
 const recruitPool = loadRecruitsWithResults();
 const siblingRecruits = findSiblingRecruits(horse, recruitYear, recruitPool);
 const poolYears = [...new Set(recruitPool.map((r) => r.recruitYear))].sort((a, b) => a - b);
-const poolYearRangeLabel =
-  poolYears.length > 0 ? `${poolYears[0]}〜${poolYears[poolYears.length - 1]}年` : '';
-const resultsAsOf = formatResultsAsOf(RACE_RESULTS_FETCHED_AT);
-// 兄姉の中で一番稼いでいる馬だけ太字にする（本人希望・2026-08-23）。獲得賞金が取れていない
-// 馬しかいない場合は誰も強調しない（0円と未取得を混同しないよう、nullは比較から除く）。
-// No.は年をまたぐと重複しうるので、キーは「募集年-No.」の組で持つ。
-const siblingKey = (s: { recruitYear: number; no: string }) => `${s.recruitYear}-${s.no}`;
-const topSiblingPrize = Math.max(
-  -1,
-  ...siblingRecruits.map((s) => s.totalPrizeManYen).filter((v): v is number => v != null)
-);
-const topSiblingKey =
-  topSiblingPrize >= 0
-    ? siblingKey(siblingRecruits.find((s) => s.totalPrizeManYen === topSiblingPrize)!)
-    : undefined;
+const measurementSources: RosterMeasurement[] = [
+  ...recruitPool.map((r) => ({
+    netkeibaUrl: r.netkeibaUrl,
+    recruitYear: r.recruitYear,
+    no: r.no,
+    name: r.realName,
+    height: r.height,
+    chestGirth: r.chestGirth,
+    caretGirth: r.caretGirth,
+    weight: r.weight,
+  })),
+  ...horses2026.map((h) => ({
+    netkeibaUrl: h.netkeibaUrl,
+    recruitYear: 2026 as const,
+    no: h.id,
+    // 2026年募集馬はまだ競走馬登録前なので実名は無い（産駒一覧側の「〇〇の2025」を使う）
+    name: null,
+    height: h.height,
+    chestGirth: h.chestGirth,
+    caretGirth: h.caretGirth,
+    weight: h.weight,
+  })),
+];
 /**
- * 表にはその馬自身も1行目として並べる（本人希望・2026-08-23）。上の定義リストと兄姉の表を
- * 目で往復しなくても、同じ列で測尺の大小を追えるようにするため。自身はまだ走っていないので
- * 成績・賞金は空で、`topSiblingKey`（賞金最多）の判定にも入らない。
+ * 母の産駒ロスターは母のnetkeiba馬IDで引く。`src/data/horses2025.ts` には母のURLの列が無い
+ * （2026年募集ぶんにしかない）ので、無ければ分析用データ側の同じ馬から引き直す。
+ * これを入れるまで2025年のページだけキャロット以外のきょうだいが1頭も出なかった。
  */
-const measurementRows = buildMeasurementRows(horse, recruitYear, siblingRecruits);
-// ごく一部（2017〜2020年募集分のうちnetkeiba個体ページを特定できなかった3頭）は父が
-// 取れていない。「—」だけ出ていると取りこぼしに見えるので、そういう兄姉がいるときだけ
-// 理由を注記する（2026-08-23、netkeibaの血統表ページから追加取得して345/348頭は埋めた）。
-const hasUnknownSire = measurementRows.some((row) => !row.sire);
+const selfHorseId = netkeibaHorseId(horse.netkeibaUrl);
+const selfInPool = selfHorseId
+  ? recruitPool.find((r) => netkeibaHorseId(r.netkeibaUrl) === selfHorseId)
+  : undefined;
+const damRosterId = netkeibaHorseId(horse.damUrl) ?? netkeibaHorseId(selfInPool?.damUrl);
+const damRoster = damRosterId ? loadDamRoster().get(damRosterId) : undefined;
+const siblingRows = buildSiblingRoster({
+  self: horse,
+  selfRecruitYear: recruitYear,
+  foals: damRoster?.foals ?? [],
+  carrotSiblings: siblingRecruits,
+  measurements: indexMeasurements(measurementSources),
+});
+// 測尺を持っているのはこの年以降のキャロット募集馬だけ（それ以前は分析用データが無い）
+const measurableFromYear = poolYears.length > 0 ? poolYears[0] : recruitYear;
+const resultsAsOf = formatResultsAsOf(RACE_RESULTS_FETCHED_AT);
+// きょうだいの中で一番稼いでいる馬だけ太字にする（本人希望・2026-08-23）。獲得賞金が取れて
+// いない馬しかいない場合は誰も強調しない（0円と未取得を混同しないよう、nullは比較から除く）。
+// 本馬（まだ走っていない）は比較に入れない。
+const topEarnerIndex = siblingRows.reduce((best, row, i) => {
+  if (row.isSelf || row.totalPrizeManYen == null) return best;
+  const bestPrize = best < 0 ? -1 : (siblingRows[best].totalPrizeManYen ?? -1);
+  return row.totalPrizeManYen > bestPrize ? i : best;
+}, -1);
+// 父が「—」になる馬（産駒一覧に父の列が無かった等）がいるときだけ理由を注記する
+const hasUnknownSire = siblingRows.some((row) => !row.sire);
+const showNonCarrotNote = hasNonCarrotSibling(siblingRows);
+// 古すぎて測尺のデータが無いキャロット馬（2017年より前の募集）がいるときだけ、その断りを出す
+const hasOldCarrotSibling = siblingRows.some(
+  (row) => row.club === 'carrot' && !row.isSelf && row.height == null
+);
+/** 誕生日は年まで出す（きょうだいは生年がばらばらで、MM/DDだけでは何歳か分からない）。 */
+const formatRowBirthDate = (birthDate: string | null, birthYear: number) =>
+  birthDate ? birthDate.replaceAll('-', '/') : `${birthYear}年`;
 
 /**
  * 馬体写真はクラブ公式サイトの命名規則が2026年募集ぶんでしか実アクセス確認できていないため、
@@ -185,14 +239,14 @@ const facts: { term: string; value: string; note?: string }[] = [
   }
 
   {
-    siblingRecruits.length > 0 && (
+    siblingRows.length > 1 && (
       <section class="sibling-recruits">
-        <h2>キャロットにいる兄姉</h2>
+        <h2>きょうだい</h2>
         <p class="note">
-          同じ母の産駒で、過去にキャロットクラブで募集された馬です。募集時の測尺と、
-          {resultsAsOf ? `${resultsAsOf}時点` : '取得時点'}の通算成績・獲得賞金（中央+地方）を出しています。
-          突き合わせているのは{poolYearRangeLabel}募集ぶんなので、それ以前に募集された兄姉は出ません。
-          1行目の「本馬」が{horse.name}自身で、兄姉と同じ列に並べて測尺を見比べられるようにしています。
+          netkeibaの母{dam}の産駒一覧をもとにした、同じ母の産駒（きょうだい）です。
+          キャロット以外のクラブ・個人馬主に出た産駒も並べています。生年の新しい順。
+          表の中の「本馬」の行が{horse.name}自身です。
+          通算成績・獲得賞金（中央+地方）は{resultsAsOf ? `${resultsAsOf}時点` : '取得時点'}のものです。
         </p>
         <div class="table-scroll">
           <table class="sibling-table">
@@ -208,21 +262,20 @@ const facts: { term: string; value: string; note?: string }[] = [
                 <th>管囲</th>
                 <th>通算成績</th>
                 <th>獲得賞金</th>
-                <th>募集年</th>
+                <th>所属</th>
               </tr>
             </thead>
             <tbody>
-              {measurementRows.map((row) => {
-                const href = row.isSelf ? null : siblingDetailHref(row);
+              {siblingRows.map((row, i) => {
                 const record = formatSiblingRecord(row);
-                const isTop = siblingKey(row) === topSiblingKey;
                 return (
-                  <tr class:list={[{ 'top-earner': isTop, self: row.isSelf }]}>
+                  <tr class:list={[{ 'top-earner': i === topEarnerIndex, self: row.isSelf }]}>
                     <td>
-                      {/* 自身の行（「本馬」）は今見ているページなのでリンクにしない */}
-                      {href ? (
-                        <a href={href}>{row.name}</a>
-                      ) : !row.isSelf && row.netkeibaUrl ? (
+                      {/* 自身の行（「本馬」）は今見ているページなのでリンクにしない。
+                          きょうだいはサイト内の個別ページではなくnetkeibaへ飛ばす
+                          （キャロット以外の馬はサイト内にページが無く、行によって飛び先が
+                          変わると分かりにくいため。本人指定・2026-08-30）。 */}
+                      {!row.isSelf && row.netkeibaUrl ? (
                         <a href={row.netkeibaUrl} target="_blank" rel="noopener">
                           {row.name}
                         </a>
@@ -232,24 +285,31 @@ const facts: { term: string; value: string; note?: string }[] = [
                     </td>
                     <td>{row.sire || '—'}</td>
                     <td>{row.sex || '—'}</td>
-                    <td>{row.birthDate == null ? '—' : formatBirthDate(row.birthDate)}</td>
+                    <td>{formatRowBirthDate(row.birthDate, row.birthYear)}</td>
                     <td>{row.height == null ? '—' : `${row.height}cm`}</td>
                     <td>{row.weight == null ? '—' : `${row.weight}kg`}</td>
                     <td>{row.chestGirth == null ? '—' : `${row.chestGirth}cm`}</td>
                     <td>{row.caretGirth == null ? '—' : `${row.caretGirth}cm`}</td>
                     <td>{record ?? '—'}</td>
                     <td>{row.totalPrizeManYen == null ? '—' : `${formatManYen(row.totalPrizeManYen)}万円`}</td>
-                    {/* 募集年は見比べる主役ではない（測尺と成績のほう）ので右端に置く（本人希望） */}
-                    <td>{row.recruitYear}年 No.{row.no}</td>
+                    <td>{formatSiblingOwner(row)}</td>
                   </tr>
                 );
               })}
             </tbody>
           </table>
         </div>
-        {topSiblingKey && <p class="table-note">太字は兄姉の中で獲得賞金が最も多い馬。</p>}
+        {/* 測尺の空欄は取りこぼしではなく「そもそも公表が無い」ことを必ず説明する（本人指定） */}
+        <p class="table-note">
+          測尺（体高・馬体重・胸囲・管囲）は<strong>キャロットが募集時に公表した値</strong>なので、
+          キャロット募集馬の行にだけ入ります。
+          {showNonCarrotNote && '他クラブ・個人馬主の馬は公表が無いため「—」です。'}
+          {hasOldCarrotSibling &&
+            `キャロット募集馬でも${measurableFromYear}年より前に募集された馬は手元にデータが無く「—」です。`}
+        </p>
+        {topEarnerIndex >= 0 && <p class="table-note">太字はきょうだいの中で獲得賞金が最も多い馬。</p>}
         {hasUnknownSire && (
-          <p class="table-note">父が「—」の兄姉は、募集当時の一覧にも個体ページにも父を確認できなかった馬です。</p>
+          <p class="table-note">父が「—」の馬は、netkeibaの産駒一覧にも個体ページにも父を確認できなかった馬です。</p>
         )}
       </section>
     )
@@ -420,9 +480,11 @@ const facts: { term: string; value: string; note?: string }[] = [
     font-size: 0.875rem;
     white-space: nowrap;
   }
+  /* 列は11あるので左右の余白は詰め気味にする。2026-08-30にキャロット以外のきょうだいを
+     足して「所属」列が増えた分、既定の0.6remだとPC幅でも最後の列が画面から出てしまう。 */
   table.sibling-table th,
   table.sibling-table td {
-    padding: 0.4rem 0.6rem;
+    padding: 0.4rem 0.45rem;
     border-bottom: 1px solid var(--border);
     text-align: left;
   }

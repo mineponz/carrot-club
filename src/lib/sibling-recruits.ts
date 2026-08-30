@@ -28,7 +28,9 @@
  *
  * 「兄姉」なので対象は募集年がその馬より前の馬に限る（同年・後年の馬は同じ母から生まれえない）。
  *
- * 個別ページではこの兄姉に**その馬自身**を加えた1つの表にする（`buildMeasurementRows()`）。
+ * 個別ページの表はここで見つけたキャロットの兄姉に、**キャロット以外のきょうだい**と
+ * **その馬自身**を合わせて1つにする（`sibling-roster.ts`）。このモジュールが返すのは
+ * そのうち「キャロットで募集された兄姉＝測尺が公表されている馬」だけ。
  * 兄姉の数字だけ並べても大小の判断に上の定義リストとの往復が要るため。父を列に持つのは、
  * 同じ母の産駒同士の違いが父に出るから。2017〜2020年募集分はクラブ公式の測尺一覧に父の
  * 列が無く、当初はnullのままだったが、2026-08-23にnetkeibaの血統表ページから追加取得して
@@ -65,30 +67,6 @@ export interface SiblingRecruit {
   matchedBy: 'dam' | 'damName' | 'name';
 }
 
-/**
- * 測尺の比較表に並べる1行。兄姉だけでなく**その馬自身**も同じ形にして先頭に置く。
- * 兄姉の数字だけ並べても「この馬はそれと比べて大きいのか小さいのか」を別の場所（上の定義リスト）と
- * 見比べないと分からないため、同じ表・同じ列に入れて目で追えるようにしている。
- */
-export interface MeasurementRow {
-  recruitYear: number;
-  no: string;
-  name: string;
-  netkeibaUrl: string | null;
-  sire: string | null;
-  sex: string | null;
-  birthDate: string | null;
-  height: number | null;
-  chestGirth: number | null;
-  caretGirth: number | null;
-  weight: number | null;
-  starts: number | null;
-  wins: number | null;
-  totalPrizeManYen: number | null;
-  /** その馬自身の行か（兄姉の行と区別して強調し、賞金の比較対象からも外す） */
-  isSelf: boolean;
-}
-
 /** 自分の行を作るのに要る値だけ。`Horse` 全体は受け取らない（個人の評価を持ち込まないため）。 */
 export interface SelfMeasurement {
   /** クラブの募集番号 */
@@ -109,53 +87,6 @@ export interface SelfMeasurement {
  * どの馬のページかは見出し（h1）と本文で分かるため、ここに募集名を再掲する必要はない。
  */
 export const SELF_ROW_NAME = '本馬';
-
-/**
- * その馬自身を先頭に、兄姉（募集年の新しい順）を続けた比較表の行を作る。
- * 自身はまだ走っていないので成績・賞金は持たせない（null＝表では「—」）。
- */
-export function buildMeasurementRows(
-  self: SelfMeasurement,
-  recruitYear: number,
-  siblings: readonly SiblingRecruit[]
-): MeasurementRow[] {
-  return [
-    {
-      recruitYear,
-      no: self.id,
-      name: SELF_ROW_NAME,
-      netkeibaUrl: self.netkeibaUrl || null,
-      sire: self.sire,
-      sex: self.sex,
-      birthDate: self.birthDate,
-      height: self.height,
-      chestGirth: self.chestGirth,
-      caretGirth: self.caretGirth,
-      weight: self.weight,
-      starts: null,
-      wins: null,
-      totalPrizeManYen: null,
-      isSelf: true,
-    },
-    ...siblings.map((sibling) => ({
-      recruitYear: sibling.recruitYear,
-      no: sibling.no,
-      name: sibling.name,
-      netkeibaUrl: sibling.netkeibaUrl,
-      sire: sibling.sire,
-      sex: sibling.sex,
-      birthDate: sibling.birthDate,
-      height: sibling.height,
-      chestGirth: sibling.chestGirth,
-      caretGirth: sibling.caretGirth,
-      weight: sibling.weight,
-      starts: sibling.starts,
-      wins: sibling.wins,
-      totalPrizeManYen: sibling.totalPrizeManYen,
-      isSelf: false,
-    })),
-  ];
-}
 
 /** netkeibaの個体ページURLから馬ID部分を取り出す。外国産の繁殖牝馬は `000a01294d` のような英数字。 */
 export function netkeibaHorseId(url: string | null | undefined): string | null {
@@ -234,7 +165,7 @@ export function findSiblingRecruits(
 
 /**
  * 「12戦2勝」。未出走は「未出走」、成績が取れていなければ null（行に出さない）。
- * 兄姉の行（`SiblingRecruit`）とその馬自身も含む表の行（`MeasurementRow`）の両方から呼ぶので、
+ * 兄姉の行（`SiblingRecruit`）と全きょうだいの表の行（`SiblingRow`）の両方から呼ぶので、
  * 見る列だけを引数の型にしている。
  */
 export function formatSiblingRecord(sibling: Pick<SiblingRecruit, 'starts' | 'wins'>): string | null {
@@ -254,17 +185,6 @@ export function formatSiblingMeasurements(
     sibling.weight == null ? null : `馬体重${sibling.weight}kg`,
   ].filter((p): p is string => p !== null);
   return parts.join(' / ');
-}
-
-/**
- * サイト内に個別ページがある年度なら、その兄姉のページのURLを返す。
- * 個別ページを持つのは2025・2026年募集ぶんだけ（2024年以前は分析用データにしか無い）。
- * `trailingSlash: 'always'` なので末尾スラッシュを必ず付ける。
- */
-export function siblingDetailHref(sibling: Pick<SiblingRecruit, 'recruitYear' | 'no'>): string | null {
-  if (sibling.recruitYear === 2026) return `/horses/${sibling.no}/`;
-  if (sibling.recruitYear === 2025) return `/2025/horses/${sibling.no}/`;
-  return null;
 }
 
 /**
