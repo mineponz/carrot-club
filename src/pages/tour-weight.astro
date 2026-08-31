@@ -12,7 +12,7 @@
  */
 import BaseLayout from '../layouts/BaseLayout.astro';
 import { horses2026 } from '../data/horses2026.ts';
-import { TOUR_WEIGHT_BY_ID } from '../data/tourWeight2026.ts';
+import { TOUR_WEIGHT_AS_OF, TOUR_WEIGHT_BY_ID } from '../data/tourWeight2026.ts';
 import { tourWeightRows, sortTourWeightRows } from '../lib/tour-weight.ts';
 import { TOUR_WEIGHT_COLUMNS, tourWeightRowHtml } from '../lib/tour-weight-row.ts';
 
@@ -30,13 +30,13 @@ const initialRowsHtml = sortTourWeightRows(rows, 'id', 'asc')
   .join('\n');
 
 const title = 'ツアー後馬体重（募集時との比較）';
-const description = `【非公式】キャロットクラブ2026年募集馬${total}頭の募集時馬体重とツアー後馬体重（クラブ公式PDF・8月中旬時点）を並べて見比べ、増減で並べ替えられる非公式ツールです。株式会社キャロットクラブとは関係ありません。`;
+const description = `【非公式】キャロットクラブ2026年募集馬${total}頭の募集時馬体重とツアー後馬体重（クラブ公式PDF・${TOUR_WEIGHT_AS_OF}）を並べて見比べ、増減で並べ替えられる非公式ツールです。株式会社キャロットクラブとは関係ありません。`;
 ---
 
 <BaseLayout title={title} description={description}>
   <h1>{title}</h1>
   <p class="lead">
-    2026年募集馬{total}頭の「募集時馬体重」と、クラブが8月中旬時点で公開した「ツアー後馬体重」を並べて見比べられます。
+    2026年募集馬{total}頭の「募集時馬体重」と、クラブが{TOUR_WEIGHT_AS_OF}で公開した「ツアー後馬体重」を並べて見比べられます。
     見出しをクリックすると並べ替えられます（もう一度押すと昇順・降順が入れ替わります）。馬名から各馬の個別ページに飛べます。
   </p>
   <p class="source-note">
@@ -45,7 +45,7 @@ const description = `【非公式】キャロットクラブ2026年募集馬${to
       href="https://carrotclub.net/upfile/topics/8432/8432-DCMAzAAzBBMBQPMR-1.pdf"
       target="_blank"
       rel="noopener"
-    >キャロットクラブ公式PDF「２０２６年１歳募集馬　馬体重一覧（8月中旬時点）」</a>。
+    >キャロットクラブ公式PDF「２０２６年１歳募集馬　馬体重一覧（{TOUR_WEIGHT_AS_OF}）」</a>。
     {unmeasuredCount > 0 && ` PDF側で馬体重欄が空欄の${unmeasuredCount}頭は「未計測」と表示しています。`}
   </p>
 

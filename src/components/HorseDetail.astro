@@ -46,6 +46,8 @@ import {
   type RosterMeasurement,
 } from '../lib/sibling-roster.ts';
 import { horses2026 } from '../data/horses2026.ts';
+import { TOUR_WEIGHT_AS_OF, TOUR_WEIGHT_BY_ID } from '../data/tourWeight2026.ts';
+import { formatDiff } from '../lib/tour-weight-row.ts';
 import { formatManYen } from '../lib/chart-math.ts';
 
 interface Props {
@@ -167,6 +169,13 @@ const formatRowBirthDate = (birthDate: string | null, birthYear: number) =>
 const photoUrl = recruitYear === 2026 ? horsePhotoUrl(horse) : null;
 
 /**
+ * ツアー後馬体重（クラブ公式PDF・`src/data/tourWeight2026.ts`）。今のところ2026年募集にしか
+ * 情報源が無いので、それ以外の年度では出さない。No.62のようにPDF側が未計測の馬もいる。
+ */
+const tourWeight = recruitYear === 2026 ? (TOUR_WEIGHT_BY_ID[horse.id] ?? null) : null;
+const tourWeightDiff = tourWeight === null ? null : tourWeight - horse.weight;
+
+/**
  * 定義リストに出す項目。値が無いものは出さない（空欄の行を並べても情報にならない）。
  * `note` は値に添える補足（測尺の順位）。値そのものより弱く見せたいので別に持つ。
  */
@@ -183,7 +192,20 @@ const facts: { term: string; value: string; note?: string }[] = [
   { term: '体高', value: `${horse.height}cm`, note: rankNote('height') },
   { term: '胸囲', value: `${horse.chestGirth}cm`, note: rankNote('chestGirth') },
   { term: '管囲', value: `${horse.caretGirth}cm`, note: rankNote('caretGirth') },
-  { term: '馬体重', value: `${horse.weight}kg`, note: rankNote('weight') },
+  { term: '馬体重（募集時）', value: `${horse.weight}kg`, note: rankNote('weight') },
+  ...(recruitYear === 2026
+    ? [
+        {
+          term: 'ツアー後馬体重',
+          value: tourWeight === null ? '未計測' : `${tourWeight}kg`,
+          note: tourWeight === null ? undefined : `（${TOUR_WEIGHT_AS_OF}）`,
+        },
+        {
+          term: '募集時からの増減',
+          value: tourWeightDiff === null ? '未計測' : `${formatDiff(tourWeightDiff)}kg`,
+        },
+      ]
+    : []),
   { term: '兄弟', value: horse.sibling },
   { term: '母優先', value: horse.damPriority ? '対象' : '対象外' },
 ];
@@ -231,6 +253,13 @@ const facts: { term: string; value: string; note?: string }[] = [
       ))
     }
   </dl>
+  {
+    recruitYear === 2026 && (
+      <p class="note tour-weight-link">
+        全頭の募集時馬体重とツアー後馬体重の比較は<a href="/tour-weight/">こちら</a>。
+      </p>
+    )
+  }
 
   {
     horse.surgery && (

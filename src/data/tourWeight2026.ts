@@ -13,7 +13,12 @@
  *
  * このPDFはツアー時点のスナップショットで、以後クラブが新しいPDFを出したら
  * このオブジェクトを手で更新すること（自動取得の手段が無いため）。
+ * `TOUR_WEIGHT_AS_OF` を更新した場合は、こちらの日付も併せて直す。
  */
+
+/** ツアー後馬体重の計測時点の表示（`/tour-weight/` と個別ページで共有する唯一の出所） */
+export const TOUR_WEIGHT_AS_OF = '8月中旬時点';
+
 export const TOUR_WEIGHT_BY_ID: Readonly<Record<string, number | null>> = {
   '1': 430,
   '2': 492,
