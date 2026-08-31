@@ -171,9 +171,35 @@ const description = `【非公式】キャロットクラブ2026年募集馬${to
     #tour-weight-table .sp-no,
     #tour-weight-table .sp-line { display: none; }
 
-    /* ---- 狭い画面（SP）: 一覧ページと同じ考え方で No・父・性を馬名セルに畳む ----
-       残る4列（馬名・募集時・ツアー後・増減）だけなら横スクロール無しで並ぶので、
-       馬体重の比較がその場で見える（本人の指示・2026-08-31）。 */
+    /* 馬名は途切れさせず、長い馬名は折り返す（本人の指示・2026-08-31）。
+       幅を決めておかないと table-layout: auto では折り返さず際限なく伸びるので、
+       9remで折り返す（省略記号にはしない）。 */
+    #tour-weight-table th:nth-child(2),
+    #tour-weight-table td:nth-child(2) {
+      width: 9rem;
+      white-space: normal;
+      overflow-wrap: anywhere;
+    }
+
+    /* ---- 1番左の列は一覧ページ（index.astro）と同じ考え方でスクロールに追従させる ----
+       馬名列は画面幅を問わず常に左端に固定する。表は横スクロールする前提（本人の指示）。 */
+    #tour-weight-table th:nth-child(2),
+    #tour-weight-table td:nth-child(2) {
+      position: sticky;
+      left: 0;
+      background: var(--surface);
+      z-index: 1;
+      /* 固定列とスクロール部分の境目。罫線だと表の他の線と紛れるので、
+         「この下を内容が流れている」ことが分かる弱い影にする */
+      box-shadow: 6px 0 5px -5px rgb(0 0 0 / 0.28);
+    }
+    #tour-weight-table thead th:nth-child(2) {
+      background: var(--accent-weak);
+      z-index: 3;
+    }
+    #tour-weight-table tbody tr:hover td:nth-child(2) { background: var(--accent-weak); }
+
+    /* ---- 狭い画面（SP）: 一覧ページと同じ考え方で No・父・性を馬名セルに畳む ---- */
     @media (max-width: 40rem) {
       #tour-weight-table .sp-no {
         display: inline;
@@ -194,30 +220,30 @@ const description = `【非公式】キャロットクラブ2026年募集馬${to
       #tour-weight-table th:nth-child(4),
       #tour-weight-table td:nth-child(4) { display: none; }
       #tour-weight-table td:nth-child(2) { vertical-align: top; }
-      /* 馬名セルは内容量任せだと長い馬名で幅が伸び、右の馬体重3列が画面外へ押し出されて
-         横スクロールが要ってしまう（本来ここで畳んだのはスクロール無しで馬体重を
-         見せるため）。幅を切ってリンク・sp-lineとも省略記号で収める。 */
-      #tour-weight-table td:nth-child(2) a {
-        display: inline-block;
-        max-width: 8rem;
-        overflow: hidden;
-        text-overflow: ellipsis;
-        white-space: nowrap;
-        vertical-align: bottom;
+    }
+
+    /* 広い画面（40remより広い）では No 列も表示されるので、一覧ページと同じく
+       No・馬名の2列を左端に固定する（No が左端、馬名はNo列の幅ぶん右にずらす）。 */
+    @media (min-width: 40.0625rem) {
+      #tour-weight-table th:nth-child(1),
+      #tour-weight-table td:nth-child(1) {
+        position: sticky;
+        left: 0;
+        width: 3rem;
+        min-width: 3rem;
+        max-width: 3rem;
+        background: var(--surface);
+        z-index: 1;
       }
-      #tour-weight-table .sp-line {
-        max-width: 8rem;
-        overflow: hidden;
-        text-overflow: ellipsis;
-        white-space: nowrap;
+      #tour-weight-table th:nth-child(2),
+      #tour-weight-table td:nth-child(2) {
+        left: 3rem;
       }
-      /* 馬体重3列の左右パディングを詰めて、狭い画面の横幅により収まりやすくする */
-      #tour-weight-table td:nth-child(5),
-      #tour-weight-table td:nth-child(6),
-      #tour-weight-table td:nth-child(7),
-      #tour-weight-table th:nth-child(5),
-      #tour-weight-table th:nth-child(6),
-      #tour-weight-table th:nth-child(7) { padding-inline: 0.35rem; }
+      #tour-weight-table thead th:nth-child(1) {
+        background: var(--accent-weak);
+        z-index: 3;
+      }
+      #tour-weight-table tbody tr:hover td:nth-child(1) { background: var(--accent-weak); }
     }
   </style>
 
