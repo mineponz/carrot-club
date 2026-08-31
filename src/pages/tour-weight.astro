@@ -1,0 +1,276 @@
+---
+/**
+ * ツアー後馬体重ページ（`/tour-weight/`）。
+ *
+ * 2026年募集馬の「募集時馬体重」（`horses2026.ts` の `weight`）と「ツアー後馬体重」
+ * （クラブ公式PDF・8月中旬時点、`src/data/tourWeight2026.ts`）を並べて見比べるための
+ * 単独ページ（本人依頼・2026-08-31）。個別ページ（HorseDetail.astro）への反映は別対応。
+ *
+ * 表の行はビルド時とブラウザ側の両方で `tourWeightRowHtml()` から作る。ビルド時に
+ * 全頭を埋め込んでおかないと、サーバーが返すHTMLに1件もデータが含まれず
+ * （クローラーには空の表しか見えない）検索に載らない。
+ */
+import BaseLayout from '../layouts/BaseLayout.astro';
+import { horses2026 } from '../data/horses2026.ts';
+import { TOUR_WEIGHT_BY_ID } from '../data/tourWeight2026.ts';
+import { tourWeightRows, sortTourWeightRows } from '../lib/tour-weight.ts';
+import { TOUR_WEIGHT_COLUMNS, tourWeightRowHtml } from '../lib/tour-weight-row.ts';
+
+const rows = tourWeightRows(horses2026, TOUR_WEIGHT_BY_ID);
+const total = rows.length;
+const measuredCount = rows.filter((r) => r.tourWeight !== null).length;
+const unmeasuredCount = total - measuredCount;
+const increasedCount = rows.filter((r) => r.diff !== null && r.diff > 0).length;
+const decreasedCount = rows.filter((r) => r.diff !== null && r.diff < 0).length;
+const unchangedCount = rows.filter((r) => r.diff === 0).length;
+
+// 初期表示は募集番号順（並べ替えに評価的な意味を持たせないため。見出しを押せば増減順にもできる）
+const initialRowsHtml = sortTourWeightRows(rows, 'id', 'asc')
+  .map((row) => tourWeightRowHtml(row))
+  .join('\n');
+
+const title = 'ツアー後馬体重（募集時との比較）';
+const description = `【非公式】キャロットクラブ2026年募集馬${total}頭の募集時馬体重とツアー後馬体重（クラブ公式PDF・8月中旬時点）を並べて見比べ、増減で並べ替えられる非公式ツールです。株式会社キャロットクラブとは関係ありません。`;
+---
+
+<BaseLayout title={title} description={description}>
+  <h1>{title}</h1>
+  <p class="lead">
+    2026年募集馬{total}頭の「募集時馬体重」と、クラブが8月中旬時点で公開した「ツアー後馬体重」を並べて見比べられます。
+    見出しをクリックすると並べ替えられます（もう一度押すと昇順・降順が入れ替わります）。馬名から各馬の個別ページに飛べます。
+  </p>
+  <p class="source-note">
+    ツアー後馬体重の出所:{' '}
+    <a
+      href="https://carrotclub.net/upfile/topics/8432/8432-DCMAzAAzBBMBQPMR-1.pdf"
+      target="_blank"
+      rel="noopener"
+    >キャロットクラブ公式PDF「２０２６年１歳募集馬　馬体重一覧（8月中旬時点）」</a>。
+    {unmeasuredCount > 0 && ` PDF側で馬体重欄が空欄の${unmeasuredCount}頭は「未計測」と表示しています。`}
+  </p>
+
+  <p class="year-switch">
+    <a href="/">一覧に戻る</a>
+  </p>
+
+  <p class="result-count">
+    {total}頭中、増加{increasedCount}頭・減少{decreasedCount}頭・変化なし{unchangedCount}頭
+    {unmeasuredCount > 0 && `（未計測${unmeasuredCount}頭）`}
+  </p>
+
+  <div class="table-wrap">
+    <table id="tour-weight-table">
+      <caption class="visually-hidden">
+        2026年募集馬{total}頭の募集時馬体重とツアー後馬体重の一覧
+      </caption>
+      <thead>
+        <tr>
+          {
+            TOUR_WEIGHT_COLUMNS.map((col) => (
+              <th data-col={col.key} class:list={[col.align === 'num' && 'num']}>
+                <button
+                  type="button"
+                  class="sort-btn"
+                  data-sort-key={col.sortKey}
+                  data-sort-key-sp={col.spSortKey}
+                >
+                  {col.label}
+                </button>
+              </th>
+            ))
+          }
+        </tr>
+      </thead>
+      <tbody id="tour-weight-tbody" set:html={initialRowsHtml} />
+    </table>
+  </div>
+
+  <p class="note">
+    データは掲載時点のものです。最新の馬体重や募集条件は必ずクラブ公式でご確認ください。
+  </p>
+
+  <style>
+    .lead { color: var(--muted); margin-top: 0; }
+    .source-note {
+      margin-block: 0 0.5rem;
+      font-size: 0.8125rem;
+      color: var(--muted);
+    }
+    .year-switch { margin-block: 0 0.5rem; font-size: 0.875rem; color: var(--muted); }
+    .result-count {
+      color: var(--muted);
+      font-size: 0.8125rem;
+      margin: 0 0 0.35rem;
+    }
+    .note { color: var(--muted); font-size: 0.875rem; }
+    .table-wrap {
+      overflow: auto;
+      max-height: calc(100vh - 2rem);
+      max-height: calc(100dvh - 2rem);
+      overscroll-behavior: auto;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      background: var(--surface);
+    }
+    .visually-hidden {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      overflow: hidden;
+      clip-path: inset(50%);
+      white-space: nowrap;
+    }
+  </style>
+
+  <!--
+    表の行はクライアント側のscriptがinnerHTMLで描き直すため、Astroのスコープ属性が付かない。
+    一覧ページ（index.astro）と同じ理由で、表まわりだけ is:global にする。
+  -->
+  <style is:global>
+    #tour-weight-table {
+      border-collapse: collapse;
+      width: 100%;
+      font-size: 0.8125rem;
+    }
+    #tour-weight-table th,
+    #tour-weight-table td {
+      padding: 0.4rem 0.6rem;
+      border-bottom: 1px solid var(--border);
+      text-align: left;
+      vertical-align: middle;
+      white-space: nowrap;
+    }
+    #tour-weight-table thead th {
+      background: var(--accent-weak);
+      position: sticky;
+      top: 0;
+      z-index: 2;
+    }
+    #tour-weight-table th.num,
+    #tour-weight-table td.num { text-align: right; }
+    #tour-weight-table tbody tr:hover td { background: var(--accent-weak); }
+
+    #tour-weight-table .sort-btn {
+      font: inherit;
+      font-weight: 700;
+      background: none;
+      border: none;
+      padding: 0;
+      cursor: pointer;
+      color: var(--text);
+    }
+    #tour-weight-table .sort-btn:hover { color: var(--accent); }
+    #tour-weight-table .sort-btn[data-active='true'] { color: var(--accent); }
+
+    /* 増減セルの色分け（増加・減少）。件数の多寡で良し悪しを含意しないよう、
+       あくまで「増えた／減った」を見分けるための色だけにする。 */
+    #tour-weight-table .diff-up { color: var(--danger); }
+    #tour-weight-table .diff-down { color: var(--info); }
+
+    /* 馬名セルに重ねてあるSP用の行は、広い画面では列として並んでいるので出さない */
+    #tour-weight-table .sp-no,
+    #tour-weight-table .sp-line { display: none; }
+
+    /* ---- 狭い画面（SP）: 一覧ページと同じ考え方で No・父・性を馬名セルに畳む ----
+       残る4列（馬名・募集時・ツアー後・増減）だけなら横スクロール無しで並ぶので、
+       馬体重の比較がその場で見える（本人の指示・2026-08-31）。 */
+    @media (max-width: 40rem) {
+      #tour-weight-table .sp-no {
+        display: inline;
+        color: var(--muted);
+        margin-right: 0.2rem;
+      }
+      #tour-weight-table .sp-line {
+        display: block;
+        font-size: 0.6875rem;
+        font-weight: 400;
+        color: var(--muted);
+      }
+      /* 列番号は TOUR_WEIGHT_COLUMNS の並び順（No・馬名・父・性・募集時・ツアー後・増減）に対応する */
+      #tour-weight-table th:nth-child(1),
+      #tour-weight-table td:nth-child(1),
+      #tour-weight-table th:nth-child(3),
+      #tour-weight-table td:nth-child(3),
+      #tour-weight-table th:nth-child(4),
+      #tour-weight-table td:nth-child(4) { display: none; }
+      #tour-weight-table td:nth-child(2) { vertical-align: top; }
+      /* 馬名セルは内容量任せだと長い馬名で幅が伸び、右の馬体重3列が画面外へ押し出されて
+         横スクロールが要ってしまう（本来ここで畳んだのはスクロール無しで馬体重を
+         見せるため）。幅を切ってリンク・sp-lineとも省略記号で収める。 */
+      #tour-weight-table td:nth-child(2) a {
+        display: inline-block;
+        max-width: 8rem;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+        vertical-align: bottom;
+      }
+      #tour-weight-table .sp-line {
+        max-width: 8rem;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+      /* 馬体重3列の左右パディングを詰めて、狭い画面の横幅により収まりやすくする */
+      #tour-weight-table td:nth-child(5),
+      #tour-weight-table td:nth-child(6),
+      #tour-weight-table td:nth-child(7),
+      #tour-weight-table th:nth-child(5),
+      #tour-weight-table th:nth-child(6),
+      #tour-weight-table th:nth-child(7) { padding-inline: 0.35rem; }
+    }
+  </style>
+
+  <script>
+    import { horses2026 } from '../data/horses2026.ts';
+    import { TOUR_WEIGHT_BY_ID } from '../data/tourWeight2026.ts';
+    import {
+      tourWeightRows,
+      sortTourWeightRows,
+      type TourWeightSortKey,
+      type SortDirection,
+    } from '../lib/tour-weight.ts';
+    // 行のマークアップはビルド時と共有する（二重管理にすると初期HTMLとずれる）
+    import { tourWeightRowHtml } from '../lib/tour-weight-row.ts';
+
+    const rows = tourWeightRows(horses2026, TOUR_WEIGHT_BY_ID);
+
+    const tbody = document.getElementById('tour-weight-tbody')!;
+    const sortButtons = document.querySelectorAll<HTMLButtonElement>('.sort-btn');
+
+    let sortKey: TourWeightSortKey = 'id';
+    let sortDirection: SortDirection = 'asc';
+
+    // No列を隠すSP幅（40rem）は上のCSSの境界と必ず同じ値にする（一覧ページと同じ理由）
+    const SP_MEDIA_QUERY = '(max-width: 40rem)';
+    function sortKeyOf(btn: HTMLButtonElement): TourWeightSortKey {
+      const spKey = btn.dataset.sortKeySp;
+      if (spKey && window.matchMedia(SP_MEDIA_QUERY).matches) return spKey as TourWeightSortKey;
+      return btn.dataset.sortKey as TourWeightSortKey;
+    }
+
+    function render() {
+      const sorted = sortTourWeightRows(rows, sortKey, sortDirection);
+      tbody.innerHTML = sorted.map((r) => tourWeightRowHtml(r)).join('');
+      for (const btn of sortButtons) {
+        const active = sortKeyOf(btn) === sortKey;
+        btn.setAttribute('data-active', String(active));
+        const label = btn.textContent!.trim().replace(/\s*[▲▼]$/u, '');
+        btn.textContent = active ? `${label} ${sortDirection === 'asc' ? '▲' : '▼'}` : label;
+      }
+    }
+
+    for (const btn of sortButtons) {
+      btn.addEventListener('click', () => {
+        const key = sortKeyOf(btn);
+        if (sortKey === key) {
+          sortDirection = sortDirection === 'asc' ? 'desc' : 'asc';
+        } else {
+          sortKey = key;
+          sortDirection = 'asc';
+        }
+        render();
+      });
+    }
+  </script>
+</BaseLayout>
