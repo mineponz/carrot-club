@@ -4,6 +4,7 @@ import {
   damNameFromRecruitName,
   damNameOf,
   formatBirthDateLong,
+  googleSearchUrl,
   horseDetailDescription,
   horseDetailTitle,
   normalizeDamName,
@@ -99,4 +100,16 @@ test('horseDetailDescription: 別の馬なら別の文言になる（重複コ�
   const other: Horse = { ...horse, id: '2', name: 'カリプソⅡの25', sire: 'キズナ', weight: 468 };
   assert.notEqual(horseDetailDescription(horse, 2026), horseDetailDescription(other, 2026));
   assert.notEqual(horseDetailTitle(horse), horseDetailTitle(other));
+});
+
+test('googleSearchUrl: 募集馬名をそのまま検索語にする', () => {
+  assert.equal(
+    googleSearchUrl('ハープスターの25'),
+    'https://www.google.com/search?q=%E3%83%8F%E3%83%BC%E3%83%97%E3%82%B9%E3%82%BF%E3%83%BC%E3%81%AE25'
+  );
+});
+
+test('googleSearchUrl: URLで意味を持つ文字が入っていてもエンコードする', () => {
+  // 「カリプソⅡの25」のような外国産馬の母名、「外）」付きの募集名でもリンクが壊れないこと
+  assert.equal(googleSearchUrl('a&b=c 外）'), 'https://www.google.com/search?q=a%26b%3Dc%20%E5%A4%96%EF%BC%89');
 });

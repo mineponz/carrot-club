@@ -17,7 +17,13 @@ import {
   type Horse,
   type MeasurementKey,
 } from '../lib/horses.ts';
-import { damNameOf, formatBirthDateLong, horsePhotoUrl, type RecruitYear } from '../lib/horse-meta.ts';
+import {
+  damNameOf,
+  formatBirthDateLong,
+  googleSearchUrl,
+  horsePhotoUrl,
+  type RecruitYear,
+} from '../lib/horse-meta.ts';
 import HorseNav from './HorseNav.astro';
 // メモ欄の上限はサーバー側の検証と同じ値（一覧の horse-row.ts と揃える）
 import { MAX_MEMO_LENGTH } from '../lib/evaluation-api.ts';
@@ -331,6 +337,12 @@ const facts: { term: string; value: string; note?: string }[] = [
     }
     <li>
       <a href={horse.xSearchUrl} target="_blank" rel="noopener">Xで「{dam}」を検索する</a>
+    </li>
+    {/* 検索語は募集馬名そのまま（「ハープスターの25」）。本人指定・2026-08-31 */}
+    <li>
+      <a href={googleSearchUrl(horse.name)} target="_blank" rel="noopener">
+        Googleで「{horse.name}」を検索する
+      </a>
     </li>
   </ul>
 

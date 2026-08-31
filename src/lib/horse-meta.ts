@@ -82,3 +82,19 @@ export function horsePhotoUrl(horse: Horse): string {
   const code = `${birthYearYY}${horse.id.padStart(3, '0')}`;
   return `https://carrotclub.net/upfile/${code}/bd-${code}.jpg`;
 }
+
+/**
+ * Google検索のURL。個別ページの「この馬を調べる」から、募集馬名でそのまま検索できるように
+ * するためのもの（本人の要望・2026-08-31）。netkeiba・Xだけでは、クラブの公式ページや個人
+ * ブログの見立てなど「どこにあるか分からない情報」に辿り着けないため。
+ *
+ * 検索語は募集馬名をそのまま使う（例:「ハープスターの25」。本人指定）。「キャロット」等を
+ * 足して絞り込まないこと ―― 募集馬名は十分に珍しく、余計な語を足すと逆に取りこぼす。
+ *
+ * `Horse.xSearchUrl` のように生成済みURLをデータ側に持たせないのは、クエリを変えたくなった
+ * ときに全頭ぶんのデータを作り直さずに済ませるため（`src/data/` は客観データだけに保つ）。
+ * 検索語はエンコードして渡す ―― 馬名には「Ⅱ」のようにURLで意味を持ちうる文字が入る。
+ */
+export function googleSearchUrl(query: string): string {
+  return `https://www.google.com/search?q=${encodeURIComponent(query)}`;
+}
