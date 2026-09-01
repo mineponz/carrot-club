@@ -21,6 +21,10 @@
  * 「3番仔」という数字だけが注記なしに他記事へ出ると、空胎年を挟んでいても連産でも同じ
  * 数え方をしている点が伝わらない。産次記事（birth-order.astro）だけが`showParity`を渡す。
  *
+ * 管囲列も同じ扱いで`showCaretGirth`がtrueの時だけ出す（既定false）。管囲は牡と牝で1cm近く
+ * 違う指標（管囲記事）で、その注記が無い他記事に数字だけ出ると馬同士を直接比べられる
+ * 数値だと誤読されうる。管囲記事（caret-girth.astro）だけが渡す。
+ *
  * グループ列（＝その馬が記事内のどの分類に入るか）も同じ扱いで、`groupFor`を渡した記事に
  * だけ出る（既定undefined＝列なし）。「大きい/小さい」のような分類の定義は記事ごとに
  * 違うので、判定そのものは呼び出し側の関数に任せる。誕生月記事（birth-month.astro）だけが渡す。
@@ -32,13 +36,21 @@ interface Props {
   rows: RecruitWithResult[];
   showRoi?: boolean;
   showParity?: boolean;
+  showCaretGirth?: boolean;
   /** 渡すと「グループ」列が増え、各行にこの関数の戻り値が入る。 */
   groupFor?: (h: RecruitWithResult) => string;
   /** グループ列の見出し。`groupFor`を渡したときだけ使う。 */
   groupLabel?: string;
 }
 
-const { rows, showRoi = false, showParity = false, groupFor, groupLabel = 'グループ' } = Astro.props;
+const {
+  rows,
+  showRoi = false,
+  showParity = false,
+  showCaretGirth = false,
+  groupFor,
+  groupLabel = 'グループ',
+} = Astro.props;
 ---
 
 <div class="table-scroll">
@@ -51,6 +63,7 @@ const { rows, showRoi = false, showParity = false, groupFor, groupLabel = 'グ�
         <th>誕生月</th>
         <th>体高</th>
         <th>胸囲</th>
+        {showCaretGirth && <th>管囲</th>}
         <th>馬体重</th>
         <th>母齢</th>
         {showParity && <th>産次</th>}
@@ -71,6 +84,7 @@ const { rows, showRoi = false, showParity = false, groupFor, groupLabel = 'グ�
             <td>{h.birthDate ? `${Number(h.birthDate.split('-')[1])}月` : '—'}</td>
             <td>{h.height}cm</td>
             <td>{h.chestGirth !== null ? `${h.chestGirth}cm` : '—'}</td>
+            {showCaretGirth && <td>{h.caretGirth !== null ? `${h.caretGirth}cm` : '—'}</td>}
             <td>{h.weight !== null ? `${h.weight}kg` : '—'}</td>
             <td>{h.damAge !== null ? `${h.damAge}歳` : '—'}</td>
             {showParity && (

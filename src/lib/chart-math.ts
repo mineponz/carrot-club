@@ -208,6 +208,81 @@ export function mannWhitneyU(a: readonly number[], b: readonly number[]): { z: n
 }
 
 /**
+ * 相関係数が「偶然でも起きうる程度か」を返す（無相関を帰無仮説にしたt検定・両側p値）。
+ *
+ * 分析記事では相関係数の**大きさ**だけ見て「弱いが傾向はある／無い」と書きがちだが、
+ * 母数が違う群（全体685頭 vs 牡324頭）の r をそのまま見比べると、頭数が減ったせいで
+ * 揺らいでいるだけの差を「効果が消えた」と読み違える。r を並べるなら p も並べる。
+ *
+ * t = r * sqrt(n-2) / sqrt(1-r^2) を自由度 n-2 のt分布で評価するのが厳密だが、
+ * ここでの用途（n が数百）では正規近似で十分なため `normCdf` を使う。
+ * n < 3 や |r| >= 1 では null を返す（呼び出し側で「出さない」判断ができるように）。
+ */
+export function correlationPValue(r: number | null, n: number): number | null {
+  if (r === null || n < 3) return null;
+  if (Math.abs(r) >= 1) return 0;
+  const t = (Math.abs(r) * Math.sqrt(n - 2)) / Math.sqrt(1 - r * r);
+  return 2 * (1 - normCdf(t));
+}
+
+/**
+ * 2群からランダムに1頭ずつ取ったとき、b側の方が大きい確率（同値は0.5と数える）。
+ * 統計では「優越確率」やROC曲線のAUCと呼ばれるもので、Mann-WhitneyのU統計量を
+ * n1*n2 で割った値に等しい。
+ *
+ * 中央値の棒グラフだけ見ると「太い方が上」に見えるのに検定が通らない、という状態は
+ * 読者に矛盾と映る。そういうときに「実際に1頭ずつ比べたら太い方が勝つのは51.7%
+ * （コイン投げなら50%）」と出すと、中央値の差が群の重なりの中に埋もれていることが
+ * 直感的に伝わる。p値と違って頭数に左右されず、効果の大きさそのものを表す。
+ *
+ * どちらかが空なら null。
+ */
+export function probabilityOfSuperiority(
+  a: readonly number[],
+  b: readonly number[]
+): number | null {
+  if (a.length === 0 || b.length === 0) return null;
+  const sortedB = [...b].sort((x, y) => x - y);
+  // bを昇順に持っておき、aの各値について「bのうち小さい/等しい個数」を二分探索で数える。
+  const countBelow = (v: number) => {
+    let lo = 0;
+    let hi = sortedB.length;
+    while (lo < hi) {
+      const mid = (lo + hi) >> 1;
+      if (sortedB[mid] < v) lo = mid + 1;
+      else hi = mid;
+    }
+    return lo;
+  };
+  const countAtMost = (v: number) => {
+    let lo = 0;
+    let hi = sortedB.length;
+    while (lo < hi) {
+      const mid = (lo + hi) >> 1;
+      if (sortedB[mid] <= v) lo = mid + 1;
+      else hi = mid;
+    }
+    return lo;
+  };
+  let wins = 0;
+  for (const v of a) {
+    const below = countBelow(v);
+    const ties = countAtMost(v) - below;
+    wins += sortedB.length - below - ties + ties / 2;
+  }
+  return wins / (a.length * sortedB.length);
+}
+
+/**
+ * p値の表示用フォーマット。0.0001未満は「p=0.0000」ではなく「p<0.0001」と出す
+ * （p値がちょうど0になることはないので、0と印字すると読者を混乱させる）。
+ */
+export function formatP(p: number): string {
+  if (!Number.isFinite(p)) return '—';
+  return p < 0.0001 ? 'p<0.0001' : `p=${p.toFixed(4)}`;
+}
+
+/**
  * 2標本の比率の差の検定（正規近似）。重賞馬率のような割合を2群で比べるとき使う。
  * 正規近似は各群の期待成功数（`n * pooled比率`）が目安5未満だと信頼できない
  * （二項分布を正規分布で近似する前提が崩れる）。少数のイベント（重賞馬など）を

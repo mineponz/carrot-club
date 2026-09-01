@@ -26,9 +26,23 @@ interface Props {
   /** `note` を出すグラフで、ツールチップに付ける行ラベル */
   noteLabel?: string;
   height?: number;
+  /**
+   * 縦軸の上限を明示する。2枚のグラフ（牡だけ／牝だけ、等）を並べて高さを見比べさせたい時に、
+   * 両方へ同じ値を渡して物差しを揃える（既定はグラフごとに自前の最大値から決めるので、
+   * 別々の物差しになり「牝の方が高く見える」ような誤読が起きる）。
+   */
+  axisMax?: number;
 }
 
-const { title, bars, valueLabel, nLabel = '頭数', noteLabel = '内訳', height = 260 } = Astro.props;
+const {
+  title,
+  bars,
+  valueLabel,
+  nLabel = '頭数',
+  noteLabel = '内訳',
+  height = 260,
+  axisMax,
+} = Astro.props;
 
 const width = 640;
 const marginTop = 24;
@@ -41,7 +55,8 @@ const plotWidth = width - marginLeft - marginRight;
 const plotHeight = height - marginTop - marginBottom;
 
 const maxValue = Math.max(1, ...bars.map((b) => b.value));
-const niceMax = Math.ceil(maxValue / 10) * 10 || 1;
+// axisMax を渡された時もデータがそれを超えていたら棒が枠外に伸びてしまうので、実データの最大値で下支えする。
+const niceMax = Math.ceil(Math.max(maxValue, axisMax ?? 0) / 10) * 10 || 1;
 
 const barGap = 10;
 const barWidth = Math.min(56, plotWidth / bars.length - barGap);

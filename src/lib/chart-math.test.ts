@@ -13,6 +13,9 @@ import {
   formatManYen,
   mannWhitneyU,
   twoProportionZTest,
+  correlationPValue,
+  formatP,
+  probabilityOfSuperiority,
 } from './chart-math.ts';
 
 test('mean averages values', () => {
@@ -151,4 +154,44 @@ test('twoProportionZTest finds no difference (p close to 1) for identical propor
 test('twoProportionZTest finds a strong difference (small p) for clearly separated proportions with enough n', () => {
   const { p } = twoProportionZTest(5, 200, 100, 200);
   assert.ok(p < 0.001);
+});
+
+test('correlationPValue flags weak correlations in small samples as non-significant', () => {
+  // 全体685頭のr=0.142は有意、同じ強さでも頭数が減ると有意でなくなる、という使い方をする。
+  const strong = correlationPValue(0.142, 685);
+  assert.ok(strong !== null && strong < 0.001);
+  // 管囲の牡だけ（r=0.060 / n=324）は有意ではない
+  const weak = correlationPValue(0.06, 324);
+  assert.ok(weak !== null && weak > 0.2);
+  // 同じr=0.060でも母数が10倍あれば有意になる（pは頭数に依存する、という性質の確認）
+  const weakButMany = correlationPValue(0.06, 3240);
+  assert.ok(weakButMany !== null && weakButMany < 0.001);
+  assert.equal(correlationPValue(null, 100), null);
+  assert.equal(correlationPValue(0.5, 2), null);
+  assert.equal(correlationPValue(1, 100), 0);
+  // 符号は関係ない（両側検定）
+  assert.equal(correlationPValue(-0.142, 685), correlationPValue(0.142, 685));
+});
+
+test('formatP avoids printing p=0.0000', () => {
+  assert.equal(formatP(0.0000001), 'p<0.0001');
+  assert.equal(formatP(0.0073), 'p=0.0073');
+  assert.equal(formatP(0.5), 'p=0.5000');
+  assert.equal(formatP(NaN), '—');
+});
+
+test('probabilityOfSuperiority measures overlap between two groups', () => {
+  // 完全に分かれていれば1、逆なら0
+  assert.equal(probabilityOfSuperiority([1, 2, 3], [4, 5, 6]), 1);
+  assert.equal(probabilityOfSuperiority([4, 5, 6], [1, 2, 3]), 0);
+  // 同じ分布なら0.5（同値は0.5と数える）
+  assert.equal(probabilityOfSuperiority([1, 2, 3], [1, 2, 3]), 0.5);
+  assert.equal(probabilityOfSuperiority([1, 1], [1, 1]), 0.5);
+  // 中央値は大きく違うのに重なりは五分に近い、という状況を表せる
+  const thin = [0, 0, 100, 5000, 9000];
+  const thick = [0, 0, 3000, 100, 9000];
+  const auc = probabilityOfSuperiority(thin, thick);
+  assert.ok(auc !== null && auc > 0.4 && auc < 0.6);
+  assert.equal(probabilityOfSuperiority([], [1]), null);
+  assert.equal(probabilityOfSuperiority([1], []), null);
 });
