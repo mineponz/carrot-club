@@ -1,6 +1,11 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { redirectTarget } from './redirects.ts';
+import {
+  CANONICAL_HOSTNAME,
+  LEGACY_HOSTNAME,
+  redirectTarget,
+  redirectTargetForHost,
+} from './redirects.ts';
 import { horses2026 } from '../data/horses2026.ts';
 
 test('redirectTarget: 年度なしの個別ページは年度付きへ301（末尾スラッシュ付き）', () => {
@@ -61,5 +66,69 @@ test('redirectTarget: 2026年募集馬の全IDが1ホップで正本URLに着く
     assert.equal(target, `/2026/horses/${horse.id}/`);
     // 転送先をもう一度かけても null＝チェーンが伸びない
     assert.equal(redirectTarget(target!), null);
+  }
+});
+
+test('redirectTargetForHost: 旧ドメイン＋旧パスは1ホップで正本ドメイン・正本パスへ', () => {
+  // ここが2段（旧ドメイン→新ドメインの旧パス→正本）になると、ドメイン移行前から
+  // 張られている古い被リンクほど遠回りになる
+  assert.deepEqual(redirectTargetForHost(LEGACY_HOSTNAME, '/horses/1/'), {
+    hostname: CANONICAL_HOSTNAME,
+    pathname: '/2026/horses/1/',
+  });
+  assert.deepEqual(redirectTargetForHost(LEGACY_HOSTNAME, '/tour-weight/'), {
+    hostname: CANONICAL_HOSTNAME,
+    pathname: '/2026/tour-weight/',
+  });
+  assert.deepEqual(redirectTargetForHost(LEGACY_HOSTNAME, '/2026/'), {
+    hostname: CANONICAL_HOSTNAME,
+    pathname: '/',
+  });
+});
+
+test('redirectTargetForHost: 旧ドメインはパスが正本でもホスト名を直すため必ず転送する', () => {
+  assert.deepEqual(redirectTargetForHost(LEGACY_HOSTNAME, '/2026/horses/1/'), {
+    hostname: CANONICAL_HOSTNAME,
+    pathname: '/2026/horses/1/',
+  });
+  assert.deepEqual(redirectTargetForHost(LEGACY_HOSTNAME, '/2025/horses/7/'), {
+    hostname: CANONICAL_HOSTNAME,
+    pathname: '/2025/horses/7/',
+  });
+  assert.deepEqual(redirectTargetForHost(LEGACY_HOSTNAME, '/articles/height/'), {
+    hostname: CANONICAL_HOSTNAME,
+    pathname: '/articles/height/',
+  });
+  // APIも旧ドメイン宛なら新ドメインへ寄せる（パスはそのまま）
+  assert.deepEqual(redirectTargetForHost(LEGACY_HOSTNAME, '/api/evaluations'), {
+    hostname: CANONICAL_HOSTNAME,
+    pathname: '/api/evaluations',
+  });
+});
+
+test('redirectTargetForHost: 正本ドメインでは旧パスだけを見る', () => {
+  assert.deepEqual(redirectTargetForHost(CANONICAL_HOSTNAME, '/horses/1/'), {
+    hostname: CANONICAL_HOSTNAME,
+    pathname: '/2026/horses/1/',
+  });
+  // 正本パスは転送しない＝チェーンを作らない
+  assert.equal(redirectTargetForHost(CANONICAL_HOSTNAME, '/2026/horses/1/'), null);
+  assert.equal(redirectTargetForHost(CANONICAL_HOSTNAME, '/'), null);
+  assert.equal(redirectTargetForHost(CANONICAL_HOSTNAME, '/2025/'), null);
+  assert.equal(redirectTargetForHost(CANONICAL_HOSTNAME, '/articles/height/'), null);
+  // APIを飲み込まない（301を返すとハンドラに届かなくなる）
+  assert.equal(redirectTargetForHost(CANONICAL_HOSTNAME, '/api/evaluations'), null);
+  assert.equal(redirectTargetForHost(CANONICAL_HOSTNAME, '/api/evaluations/summary'), null);
+});
+
+test('redirectTargetForHost: 旧ドメインの全IDが1ホップで正本に着く', () => {
+  for (const horse of horses2026) {
+    const hit = redirectTargetForHost(LEGACY_HOSTNAME, `/horses/${horse.id}/`);
+    assert.deepEqual(hit, {
+      hostname: CANONICAL_HOSTNAME,
+      pathname: `/2026/horses/${horse.id}/`,
+    });
+    // 転送先をもう一度かけても null＝チェーンが伸びない
+    assert.equal(redirectTargetForHost(hit!.hostname, hit!.pathname), null);
   }
 });

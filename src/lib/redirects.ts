@@ -8,6 +8,12 @@
  * 一方 `/`（一覧トップ）の意味は「このサイトの最新募集年度の一覧」で年をまたいでも変わらないので、
  * **一覧は年度なしが正本**。この非対称は意図的。
  *
+ * ## 旧ドメインも同じ関数で扱う
+ * 独自ドメイン移行前の `carrot-club.mineponz.workers.dev` 宛も、**1ホップで正本に着かせる**。
+ * 「旧ドメイン→新ドメインの旧パス→正本」と2段にすると、ドメイン移行前から張られている
+ * （＝いちばん古くて価値のある）被リンクほど遠回りになる。`redirectTargetForHost()` が
+ * ホスト名の付け替えとパスの正本化を1回で済ませる。
+ *
  * ## ここで扱う3本
  * 1. `/horses/{id}/`  → `/2026/horses/{id}/` … 旧URL（2026-08-19〜2026-09-01の正本）からの引き継ぎ。
  * 2. `/tour-weight/`  → `/2026/tour-weight/` … 中身が100%2026年募集馬で年度切替の仕組みが無いため、
@@ -69,4 +75,33 @@ export function redirectTarget(pathname: string): string | null {
   }
 
   return null;
+}
+
+/** 独自ドメイン移行前の本番ホスト名（Cloudflareの無料サブドメイン）。 */
+export const LEGACY_HOSTNAME = 'carrot-club.mineponz.workers.dev';
+
+/** 独自ドメイン移行後の正式な本番ホスト名（`src/consts.ts` の `SITE_URL` と対）。 */
+export const CANONICAL_HOSTNAME = 'carrot.mineponz.com';
+
+/**
+ * ホスト名とパスの両方を見て、301の転送先（ホスト名・パス）を返す。リダイレクト不要なら `null`。
+ *
+ * 旧ドメイン宛のときは**パスの正本化も同時に行う**ので、`/horses/1/` のような旧パスでも
+ * 1ホップで `carrot.mineponz.com/2026/horses/1/` に着く。旧ドメイン宛はパスが正本のままでも
+ * （ホスト名を直すために）必ずリダイレクトする。
+ *
+ * クエリ文字列は呼び出し側（worker）が引き継ぐので、ここでは見ない。
+ */
+export function redirectTargetForHost(
+  hostname: string,
+  pathname: string,
+): { hostname: string; pathname: string } | null {
+  const path = redirectTarget(pathname);
+
+  if (hostname === LEGACY_HOSTNAME) {
+    // パスが正本ならそのまま、旧パスならここで一緒に寄せる（2段にしない）
+    return { hostname: CANONICAL_HOSTNAME, pathname: path ?? pathname };
+  }
+
+  return path === null ? null : { hostname, pathname: path };
 }

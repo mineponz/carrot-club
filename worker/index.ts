@@ -5,7 +5,9 @@
  * **新しいサーバーは立てず**、同じWorkerプロジェクトにD1バインディングとこのファイルを足している。
  *
  * ## ルーティング
- * - 旧ドメイン（`carrot-club.mineponz.workers.dev`）宛のアクセス … 独自ドメインへ301リダイレクト
+ * - 旧URL（旧ドメイン `carrot-club.mineponz.workers.dev` / 年度なしの旧パス） … 301リダイレクト。
+ *   判定は `src/lib/redirects.ts` の `redirectTargetForHost()` に集約し、ホスト名とパスを
+ *   **1回で**正本へ寄せる（2段のリダイレクトチェーンを作らない）
  * - 旧パス（`/horses/{id}/`・`/tour-weight/`・`/2026/`）… 正本URLへ301リダイレクト（src/lib/redirects.ts）
  * - `POST /api/evaluations`          … 自分の評価を1件upsert（rating・メモ・★・消）
  * - `GET  /api/evaluations/summary`  … `?year=` で年度を指定し、馬IDごとのA〜E件数と消の件数を返す
@@ -42,7 +44,7 @@ import {
   type MineRow,
   type SummaryRow,
 } from '../src/lib/evaluation-api.ts';
-import { redirectTarget } from '../src/lib/redirects.ts';
+import { redirectTargetForHost } from '../src/lib/redirects.ts';
 
 /**
  * Workers ランタイムの型は最小限だけ自前で宣言している。
@@ -72,11 +74,6 @@ interface Env {
 const LOG_PREFIX = '[eval-api]';
 /** 301リダイレクトのログ用。集計APIのログ（`[eval-api]`）と混ざらないように分ける */
 const REDIRECT_LOG_PREFIX = '[redirect]';
-
-/** Cloudflareの無料サブドメイン（独自ドメイン移行前の本番URL）。既存の被リンク・検索インデックスを引き継ぐため301で転送し続ける */
-const OLD_HOSTNAME = 'carrot-club.mineponz.workers.dev';
-/** 独自ドメイン移行後の正式な本番ホスト名 */
-const NEW_HOSTNAME = 'carrot.mineponz.com';
 
 /**
  * POSTのbodyの上限。メモ（最大2000文字＝UTF-8で最大6KB）が入るので、
@@ -246,24 +243,20 @@ export default {
   async fetch(request: Request, env: Env): Promise<Response> {
     const url = new URL(request.url);
 
-    // 旧URL（workers.devの無料サブドメイン）は独自ドメインへ301で転送する。
-    // パス・クエリはそのまま引き継ぐ。API/静的アセットどちらの判定より前に置く。
-    if (url.hostname === OLD_HOSTNAME) {
-      url.hostname = NEW_HOSTNAME;
-      return Response.redirect(url.toString(), 301);
-    }
-
     const { pathname } = url;
 
-    // 旧パス → 正本URLの301（規則と「来年やること」は src/lib/redirects.ts のコメント参照）。
-    // これは**最新年度への別名**の付け替えであり、`/` と同じ扱いで恒久的に残すもの。
-    // 旧ドメイン301の直後・APIルーティングより前に置く（APIパスは対象外だが、
-    // 静的アセットへ流す前に必ず通す必要がある）。クエリ文字列はそのまま引き継ぐ。
-    const redirect = redirectTarget(pathname);
+    // 旧URL → 正本URLの301。**旧ドメイン（workers.devの無料サブドメイン）と旧パスを
+    // 1つの関数でまとめて解決する**ので、旧ドメイン宛の旧パスでも1ホップで正本に着く
+    // （2段にすると、ドメイン移行前から張られている古い被リンクほど遠回りになる）。
+    // 規則と「来年の年度切替でやること」は src/lib/redirects.ts のコメント参照。
+    // APIルーティング・静的アセットのどちらより前に置く（APIパスは対象外だが必ず通す）。
+    // クエリ文字列はホスト名・パスだけ差し替えることで自動的に引き継がれる。
+    const redirect = redirectTargetForHost(url.hostname, pathname);
     if (redirect !== null) {
-      const target = new URL(redirect, url);
-      target.search = url.search;
-      console.log(REDIRECT_LOG_PREFIX, `301 ${pathname} -> ${target.pathname}`);
+      const target = new URL(url.toString());
+      target.hostname = redirect.hostname;
+      target.pathname = redirect.pathname;
+      console.log(REDIRECT_LOG_PREFIX, `301 ${url.hostname}${pathname} -> ${target.hostname}${target.pathname}`);
       return Response.redirect(target.toString(), 301);
     }
 
