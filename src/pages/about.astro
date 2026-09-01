@@ -1,0 +1,110 @@
+---
+/**
+ * 運営者紹介ページ（`/about/`）。本人依頼・2026-09-01。
+ *
+ * 全ページのフッターと `/articles/` 一覧から辿れる単独ページ。分析記事の書き手が誰かを
+ * 示す E-E-A-T の裏付けも兼ねる。中身は年度非依存なので `/articles/*` と同じく
+ * 年度プレフィックス（`/2026/`）は付けず、`src/lib/redirects.ts` の対象にもしない。
+ *
+ * 記事本文の「内部経緯・本人の話を書かない」ルールは分析記事向けで、本人紹介が主題の
+ * このページは対象外（note のチラ見せ記事と同じ扱い）。トーンは一人称でよい。
+ * プロフィール文・所有馬リストは本人提供のまま。
+ */
+import BaseLayout from '../layouts/BaseLayout.astro';
+
+const title = '運営者について';
+const description =
+  '【非公式】キャロットクラブ出資馬検討ツールの運営者プロフィール。都内でエンジニア／プロダクトマネージャーをしている一口馬主で、2021年からキャロットクラブに出資しています。株式会社キャロットクラブとは関係ありません。';
+
+// 本人提供（2026-09-01）。産年（募集年ではなく仔の生まれ年）順。
+const ownedHorses: { foalYear: string; names: string }[] = [
+  { foalYear: '20年産', names: 'レイジングウェイブ' },
+  { foalYear: '21年産', names: 'ヴィントシュティレ、ダイオジェナイト' },
+  { foalYear: '22年産', names: 'リバーバレイト' },
+  { foalYear: '23年産', names: 'ロックターミガン、ゾネブルーム、エイル' },
+  { foalYear: '24年産', names: 'スイートリディア（命名馬）、アッサンブラージュ' },
+];
+---
+
+<BaseLayout title={title} description={description}>
+  <h1>運営者について</h1>
+
+  <p class="lead">
+    みねらると申します！都内の自社開発の会社でエンジニアとプロダクトマネージャーをやりながら、2021年からキャロットクラブに出資している一口馬主です。
+  </p>
+  <p>
+    出資馬をスプレッドシートで並べ替えて選んでいたのを、他の会員の方にも使えるようにしたのがこのサイトです。募集馬の比較ツールに加えて、過去の募集馬データとその後の成績を突き合わせた分析記事も少しずつ書いています。
+  </p>
+
+  <h2>これまでの所有馬</h2>
+  <dl class="owned-horses">
+    {ownedHorses.map((h) => (
+      <div class="owned-horses-row">
+        <dt>{h.foalYear}</dt>
+        <dd>{h.names}</dd>
+      </div>
+    ))}
+  </dl>
+
+  <h2>リンク</h2>
+  <ul class="links">
+    <li>
+      <a href="https://x.com/knkktk123" target="_blank" rel="me noopener noreferrer">X（@knkktk123）</a>
+    </li>
+    <li>
+      <a href="https://note.com/ggdkgnfojag" target="_blank" rel="me noopener noreferrer">note</a>
+    </li>
+  </ul>
+
+  <p class="disclaimer">
+    このサイトはいち出資者が個人で運営しているもので、株式会社キャロットクラブおよび関連法人とは一切関係がありません。出資の判断は必ずクラブ公式の情報でご確認ください。
+  </p>
+</BaseLayout>
+
+<style>
+  .lead {
+    font-size: 1.05rem;
+  }
+
+  .owned-horses {
+    margin: 1rem 0 0;
+  }
+  .owned-horses-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.25rem 1rem;
+    padding: 0.5rem 0;
+    border-top: 1px solid var(--border);
+  }
+  .owned-horses-row:last-child {
+    border-bottom: 1px solid var(--border);
+  }
+  .owned-horses dt {
+    flex: 0 0 5rem;
+    font-weight: 700;
+    color: var(--muted);
+  }
+  .owned-horses dd {
+    margin: 0;
+    flex: 1 1 14rem;
+  }
+
+  .links {
+    margin: 1rem 0 0;
+    padding-left: 1.25rem;
+  }
+  .links li {
+    margin: 0.35rem 0;
+  }
+
+  .disclaimer {
+    margin-top: 2.5rem;
+    font-size: 0.8125rem;
+    line-height: 1.6;
+    color: var(--text);
+    background: var(--accent-weak);
+    border-left: 3px solid var(--danger);
+    padding: 0.6rem 0.85rem;
+    border-radius: 0 4px 4px 0;
+  }
+</style>
