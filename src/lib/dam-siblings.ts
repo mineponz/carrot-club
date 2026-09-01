@@ -5,10 +5,13 @@
  * 母ごとに「その母の全産駒がどのクラブで募集されたか・現在の成績」と、
  * **母自身がどのクラブの現役馬だったか**（`damClub`）を持つ。
  *
- * ★切り口の要点: 「サンデー/シルクが先に募集して、残りがキャロットに回ってくる」を検証するには
- * **母自身の出身クラブ**で切る。「母が両クラブに産駒を出している」という条件は対称で方向を
- * 区別できず、母がキャロットの繁殖（産駒がキャロットに来るのが自然で、他クラブに出た1頭の
- * ほうが例外）まで拾ってしまう。
+ * ★切り口の要点: 「サンデー・シルク・G1レーシング（以下まとめて『向こうのクラブ』）が先に
+ * 募集して、残りがキャロットに回ってくる」を検証するには**母自身の出身クラブ**で切る。
+ * 「母が両クラブに産駒を出している」という条件は対称で方向を区別できず、母がキャロットの繁殖
+ * （産駒がキャロットに来るのが自然で、他クラブに出た1頭のほうが例外）まで拾ってしまう。
+ *
+ * G1レーシングもサンデー・シルクと同じく高額少口で先に取るクラブなので同じ群に畳んでいる
+ * （2026-09-01追加）。
  *
  * このモジュールは **JSON を import しない純関数の集まり**（`sibling-recruits.ts` と同じ方針）。
  * `node --test` で検証できるよう、データは呼び出し側（`club-siblings.astro`）から配列で渡す。
@@ -78,11 +81,12 @@ export interface RawDam {
   note?: string;
 }
 
-/** 母がサンデーレーシング or シルクレーシングの現役馬だった。 */
-export const isSundaySilkOrigin = (d: RawDam): boolean =>
-  d.damClub === 'sunday' || d.damClub === 'silk';
-/** 産駒がサンデー/シルクで募集された。 */
-export const isSundaySilkFoal = (f: RawFoal): boolean => f.club === 'sunday' || f.club === 'silk';
+/** 母が向こうのクラブ（サンデー・シルク・G1レーシング）の現役馬だった。 */
+export const isMajorClubOrigin = (d: RawDam): boolean =>
+  d.damClub === 'sunday' || d.damClub === 'silk' || d.damClub === 'g1';
+/** 産駒が向こうのクラブ（サンデー・シルク・G1レーシング）で募集された。 */
+export const isMajorClubFoal = (f: RawFoal): boolean =>
+  f.club === 'sunday' || f.club === 'silk' || f.club === 'g1';
 /** 出走した（0戦引退でない）。成績行が無い外国調教馬は starts=null で対象外。 */
 export const hasRaced = (f: RawFoal): boolean => (f.starts ?? 0) > 0;
 
@@ -144,8 +148,11 @@ export function summarize(foals: readonly RawFoal[]): GroupStats {
 
 // ---- 群1: 母の出身クラブ別に、キャロット募集馬の成績を比べる ------------------
 
-/** 記事で並べる群のキー。`other` は社台RH・G1レーシング等の少数クラブをまとめたもの。 */
-export type DamOriginKey = 'sundaySilk' | 'carrot' | 'private' | 'unknown' | 'other';
+/**
+ * 記事で並べる群のキー。`majorClub` は向こうのクラブ（サンデー・シルク・G1レーシング）、
+ * `other` は社台RH等の少数クラブをまとめたもの。
+ */
+export type DamOriginKey = 'majorClub' | 'carrot' | 'private' | 'unknown' | 'other';
 
 export interface OriginGroups {
   matureBirthYear: number;
@@ -155,12 +162,12 @@ export interface OriginGroups {
   /** 全キャロット募集馬（同世代）。 */
   all: RawFoal[];
   allStats: GroupStats;
-  /** 母がサンデー/シルク出身だった母の数（生年フィルタ前）。 */
-  sundaySilkDamCount: number;
+  /** 母が向こうのクラブ（サンデー・シルク・G1レーシング）出身だった母の数（生年フィルタ前）。 */
+  majorClubDamCount: number;
 }
 
 function originKey(damClub: ClubLabel): DamOriginKey {
-  if (damClub === 'sunday' || damClub === 'silk') return 'sundaySilk';
+  if (damClub === 'sunday' || damClub === 'silk' || damClub === 'g1') return 'majorClub';
   if (damClub === 'carrot') return 'carrot';
   if (damClub === 'private') return 'private';
   if (damClub === 'unknown' || damClub === 'fetch-failed') return 'unknown';
@@ -176,16 +183,16 @@ export function groupByDamOrigin(
   matureBirthYear: number = MATURE_BIRTH_YEAR,
 ): OriginGroups {
   const foals: Record<DamOriginKey, RawFoal[]> = {
-    sundaySilk: [],
+    majorClub: [],
     carrot: [],
     private: [],
     unknown: [],
     other: [],
   };
   const all: RawFoal[] = [];
-  let sundaySilkDamCount = 0;
+  let majorClubDamCount = 0;
   for (const d of results) {
-    if (isSundaySilkOrigin(d)) sundaySilkDamCount++;
+    if (isMajorClubOrigin(d)) majorClubDamCount++;
     const key = originKey(d.damClub);
     for (const f of d.foals) {
       if (!f.isCarrotRecruit || f.year > matureBirthYear) continue;
@@ -202,7 +209,7 @@ export function groupByDamOrigin(
     stats,
     all,
     allStats: summarize(all),
-    sundaySilkDamCount,
+    majorClubDamCount,
   };
 }
 
@@ -210,7 +217,7 @@ export function groupByDamOrigin(
 
 export interface DamSplit {
   dam: RawDam;
-  /** サンデー/シルクで募集された仔（＝母の出身クラブ側に残った仔）。 */
+  /** 向こうのクラブ（サンデー・シルク・G1レーシング）で募集された仔（＝母の出身クラブ側に残った仔）。 */
   stayed: RawFoal[];
   /** キャロットで募集された仔。 */
   came: RawFoal[];
@@ -225,8 +232,9 @@ export interface SplitView {
 }
 
 /**
- * 母がサンデー/シルク出身で、かつ**同じクラブでも募集があった仔とキャロットに来た仔の両方が
- * いる**母だけを取り出し、その母の中で成績を比べる。記事のメイン比較表。
+ * 母が向こうのクラブ（サンデー・シルク・G1レーシング）出身で、かつ**同じクラブでも募集が
+ * あった仔とキャロットに来た仔の両方がいる**母だけを取り出し、その母の中で成績を比べる。
+ * 記事のメイン比較表。
  * 両群とも `maxYear` 以前生まれ・成績が判明しているものに限る。
  * 表示順は「その母の稼ぎ頭の賞金」降順。
  */
@@ -237,8 +245,8 @@ export function buildDamSplits(
   const usable = (f: RawFoal) => f.year <= maxYear && f.starts != null;
   const splits: DamSplit[] = [];
   for (const dam of results) {
-    if (!isSundaySilkOrigin(dam)) continue;
-    const stayed = dam.foals.filter((f) => isSundaySilkFoal(f) && usable(f));
+    if (!isMajorClubOrigin(dam)) continue;
+    const stayed = dam.foals.filter((f) => isMajorClubFoal(f) && usable(f));
     const came = dam.foals.filter((f) => f.club === 'carrot' && usable(f));
     if (!stayed.length || !came.length) continue;
     splits.push({ dam, stayed, came });
@@ -257,16 +265,17 @@ export function buildDamSplits(
   };
 }
 
-// ---- 群3: 兄姉がサンデー/シルクで重賞を勝っているのにキャロットに来た馬 --------
+// ---- 群3: 兄姉が向こうのクラブで重賞を勝っているのにキャロットに来た馬 --------
 
 export interface GradeSiblingCase {
   dam: RawDam;
   /**
-   * サンデー/シルクで募集された兄姉**全頭**（生年昇順）。重賞を勝っていない仔も含む。
-   * 重賞馬だけを出すと「向こうは走る馬ばかり」に見えてしまい比較として不公平になるため
-   * （例: ライジングクロスはクロワデュノールだけでなくチャリングクロスもいる）。
+   * 向こうのクラブ（サンデー・シルク・G1レーシング）で募集された兄姉**全頭**（生年昇順）。
+   * 重賞を勝っていない仔も含む。重賞馬だけを出すと「向こうは走る馬ばかり」に見えてしまい
+   * 比較として不公平になるため（例: ライジングクロスはクロワデュノールだけでなく
+   * チャリングクロスもいる）。
    */
-  sundaySilkFoals: RawFoal[];
+  majorClubFoals: RawFoal[];
   /** うち重賞を勝った兄姉。 */
   gradeSiblings: RawFoal[];
   /** 同じ母からキャロットに来た仔（生年昇順）。 */
@@ -283,11 +292,11 @@ export function buildGradeSiblingCases(results: readonly RawDam[]): GradeSibling
   const cases: GradeSiblingCase[] = [];
   for (const dam of results) {
     if (dam.damClub === 'carrot') continue;
-    const sundaySilkFoals = dam.foals.filter(isSundaySilkFoal).sort((a, b) => a.year - b.year);
-    const gradeSiblings = sundaySilkFoals.filter((f) => f.gradeWins.length > 0);
+    const majorClubFoals = dam.foals.filter(isMajorClubFoal).sort((a, b) => a.year - b.year);
+    const gradeSiblings = majorClubFoals.filter((f) => f.gradeWins.length > 0);
     const carrotFoals = dam.foals.filter((f) => f.club === 'carrot').sort((a, b) => a.year - b.year);
     if (!gradeSiblings.length || !carrotFoals.length) continue;
-    cases.push({ dam, sundaySilkFoals, gradeSiblings, carrotFoals });
+    cases.push({ dam, majorClubFoals, gradeSiblings, carrotFoals });
   }
   cases.sort(
     (a, b) =>
@@ -303,27 +312,31 @@ export interface CurrentRecruit {
   dam: RawDam;
   no: string;
   name: string;
-  /** 同じ母の、サンデー/シルクで募集された仔（＝この馬の兄姉）。生年昇順。 */
-  sundaySilkSiblings: RawFoal[];
+  /**
+   * 同じ母の、向こうのクラブ（サンデー・シルク・G1レーシング）で募集された仔
+   * （＝この馬の兄姉）。生年昇順。
+   */
+  majorClubSiblings: RawFoal[];
 }
 
 /**
- * 指定年度の募集馬のうち、母がサンデー/シルク出身のものを No. 昇順で返す。
+ * 指定年度の募集馬のうち、母が向こうのクラブ（サンデー・シルク・G1レーシング）出身のものを
+ * No. 昇順で返す。
  */
-export function currentYearSundaySilkRecruits(
+export function currentYearMajorClubRecruits(
   results: readonly RawDam[],
   recruitYear: number,
 ): CurrentRecruit[] {
   const out: CurrentRecruit[] = [];
   for (const dam of results) {
-    if (!isSundaySilkOrigin(dam)) continue;
+    if (!isMajorClubOrigin(dam)) continue;
     for (const r of dam.carrotRecruits) {
       if (r.recruitYear !== recruitYear) continue;
       out.push({
         dam,
         no: r.no,
         name: r.name,
-        sundaySilkSiblings: dam.foals.filter(isSundaySilkFoal).sort((a, b) => a.year - b.year),
+        majorClubSiblings: dam.foals.filter(isMajorClubFoal).sort((a, b) => a.year - b.year),
       });
     }
   }
@@ -424,7 +437,7 @@ export const CLUB_JP: Record<string, string> = {
 
 /** 群の日本語ラベル（記事の表・グラフで使う）。 */
 export const ORIGIN_JP: Record<DamOriginKey, string> = {
-  sundaySilk: '母がサンデー・シルク出身',
+  majorClub: '母がサンデー・シルク・G1レーシング出身',
   carrot: '母がキャロット出身',
   private: '母が個人馬主の馬',
   unknown: '母が海外・その他',

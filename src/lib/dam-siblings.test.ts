@@ -4,10 +4,10 @@ import {
   groupByDamOrigin,
   buildDamSplits,
   buildGradeSiblingCases,
-  currentYearSundaySilkRecruits,
+  currentYearMajorClubRecruits,
   summarize,
-  isSundaySilkOrigin,
-  isSundaySilkFoal,
+  isMajorClubOrigin,
+  isMajorClubFoal,
   recordText,
   shortGradeName,
   mannWhitney,
@@ -99,15 +99,21 @@ test('groupByDamOrigin: 母の出身クラブで分け、生年で足切りす�
       damClub: 'shadai-rh',
       foals: [foal({ year: 2016, club: 'carrot' })],
     }),
+    dam({
+      // G1レーシング出身の母もサンデー・シルクと同じ「向こうのクラブ」群に入る（other ではない）
+      damName: 'G1母',
+      damClub: 'g1',
+      foals: [foal({ year: 2018, club: 'carrot' })],
+    }),
   ];
   const g = groupByDamOrigin(results, 2021);
-  assert.equal(g.foals.sundaySilk.length, 2); // サンデー母1 + シルク母1
+  assert.equal(g.foals.majorClub.length, 3); // サンデー母1 + シルク母1 + G1母1
   assert.equal(g.foals.carrot.length, 1);
   assert.equal(g.foals.private.length, 1);
   assert.equal(g.foals.unknown.length, 1);
-  assert.equal(g.foals.other.length, 1); // 社台RH
-  assert.equal(g.all.length, 6);
-  assert.equal(g.sundaySilkDamCount, 2);
+  assert.equal(g.foals.other.length, 1); // 社台RHだけ
+  assert.equal(g.all.length, 7);
+  assert.equal(g.majorClubDamCount, 3);
   // 群の合計は all と一致する（どこにも入らない/二重計上が無い）
   const summed = (Object.values(g.foals) as RawFoal[][]).reduce((s, a) => s + a.length, 0);
   assert.equal(summed, g.all.length);
@@ -141,11 +147,13 @@ test('summarize: 出走率・中央値・勝ち上がり・重賞率', () => {
 test('buildDamSplits: 両群に仔がいる母だけ・稼ぎ頭の降順', () => {
   const results = [
     dam({
+      // G1レーシング出身の母も比較表に入る（isMajorClubOrigin / isMajorClubFoal 経由）
       damName: '両方いる小',
+      damClub: 'g1',
       foals: [
         foal({
           year: 2016,
-          club: 'sunday',
+          club: 'g1',
           isCarrotRecruit: false,
           totalPrizeManYen: 1000,
         }),
@@ -189,6 +197,7 @@ test('buildDamSplits: 両群に仔がいる母だけ・稼ぎ頭の降順', () =
     v.splits.map((s) => s.dam.damName),
     ['両方いる大', '両方いる小'],
   );
+  assert.equal(v.splits.find((s) => s.dam.damName === '両方いる小')?.dam.damClub, 'g1');
   assert.equal(v.stayedAll.length, 2);
   assert.equal(v.cameAll.length, 2);
   assert.equal(v.stayedStats.medianPrize, median([1000, 30000]));
@@ -273,12 +282,13 @@ test('buildGradeSiblingCases: 母がキャロット出身は除外し、重賞�
     ['G1の下', 'G3の下'],
   );
   assert.equal(cases[0].gradeSiblings.length, 1);
+  assert.equal(cases[0].majorClubFoals.length, 1);
   assert.equal(cases[0].carrotFoals.length, 1);
 });
 
 // ---- 最新年度 ---------------------------------------------------------------
 
-test('currentYearSundaySilkRecruits: 該当年度のみ・No.昇順・兄姉つき', () => {
+test('currentYearMajorClubRecruits: 該当年度のみ・No.昇順・兄姉つき', () => {
   const results = [
     dam({
       damName: 'パストフォリア',
@@ -308,13 +318,21 @@ test('currentYearSundaySilkRecruits: 該当年度のみ・No.昇順・兄姉つ�
       carrotRecruits: [{ recruitYear: 2026, no: '2', name: '対象外の25' }],
       foals: [],
     }),
+    dam({
+      // G1レーシング出身の母の募集馬も今年の表に出る（#79 ベデザンジュの25 相当）
+      damName: 'G1母',
+      damClub: 'g1',
+      carrotRecruits: [{ recruitYear: 2026, no: '79', name: 'ベデザンジュの25' }],
+      foals: [foal({ year: 2025, club: 'carrot', isCarrotRecruit: true, starts: null })],
+    }),
   ];
-  const cur = currentYearSundaySilkRecruits(results, 2026);
+  const cur = currentYearMajorClubRecruits(results, 2026);
   assert.deepEqual(
     cur.map((c) => c.no),
-    ['1', '42'],
+    ['1', '42', '79'],
   );
-  assert.equal(cur[1].sundaySilkSiblings[0].name, 'サブライムアンセム');
+  assert.ok(cur.map((c) => c.no).includes('79'));
+  assert.equal(cur[1].majorClubSiblings[0].name, 'サブライムアンセム');
 });
 
 // ---- 検定 -------------------------------------------------------------------
@@ -342,12 +360,16 @@ test('probabilityOfZero: 7.5%が36回起きない確率はおよそ6%', () => {
 
 // ---- ヘルパ -----------------------------------------------------------------
 
-test('recordText / isSundaySilkOrigin / isSundaySilkFoal / shortGradeName', () => {
+test('recordText / isMajorClubOrigin / isMajorClubFoal / shortGradeName', () => {
   assert.equal(recordText(foal({ starts: 7, wins: 2 })), '7戦2勝');
   assert.equal(recordText(foal({ starts: null, wins: null })), '—');
-  assert.equal(isSundaySilkOrigin(dam({ damName: 'a', damClub: 'sunday', foals: [] })), true);
-  assert.equal(isSundaySilkOrigin(dam({ damName: 'a', damClub: 'carrot', foals: [] })), false);
-  assert.equal(isSundaySilkFoal(foal({ club: 'silk' })), true);
-  assert.equal(isSundaySilkFoal(foal({ club: 'carrot' })), false);
+  assert.equal(isMajorClubOrigin(dam({ damName: 'a', damClub: 'sunday', foals: [] })), true);
+  assert.equal(isMajorClubOrigin(dam({ damName: 'a', damClub: 'silk', foals: [] })), true);
+  assert.equal(isMajorClubOrigin(dam({ damName: 'a', damClub: 'g1', foals: [] })), true);
+  assert.equal(isMajorClubOrigin(dam({ damName: 'a', damClub: 'carrot', foals: [] })), false);
+  assert.equal(isMajorClubOrigin(dam({ damName: 'a', damClub: 'shadai-rh', foals: [] })), false);
+  assert.equal(isMajorClubFoal(foal({ club: 'silk' })), true);
+  assert.equal(isMajorClubFoal(foal({ club: 'g1' })), true);
+  assert.equal(isMajorClubFoal(foal({ club: 'carrot' })), false);
   assert.equal(shortGradeName("23'オールカマー(G2)"), 'オールカマー(G2)');
 });

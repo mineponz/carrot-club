@@ -12,6 +12,9 @@ import SyncPanel from '../components/SyncPanel.astro';
 import AdSlot from '../components/AdSlot.astro';
 import { SITE_DESCRIPTION, UNOFFICIAL_NOTICE } from '../consts.ts';
 import { horses2026 } from '../data/horses2026.ts';
+// 募集中止馬は horses2026 に載せない（頭数・絞り込みは確定リスト時点のまま）ので、
+// 注記でだけ触れる。馬名をここに直書きせず単一の真実源から出す。
+import { cancelledRecruits2026 } from '../data/cancelledRecruits2026.ts';
 import {
   sortHorses,
   uniqueSexes,
@@ -553,6 +556,15 @@ const faqJsonLd = {
       }
     </li>
     <li>兄弟欄に記載のない馬は{noSiblingCount}頭</li>
+    {
+      cancelledRecruits2026.length > 0 && (
+        <li>
+          募集確定リスト後に募集中止になった
+          {cancelledRecruits2026.map((r) => `${r.name}（No.${r.no}）`).join('・')}
+          は、この一覧には含めていません
+        </li>
+      )
+    }
   </ul>
   <p class="note">
     データは募集馬確定リスト時点のものです。最新の情報や実際の募集条件は必ずクラブ公式でご確認ください。
