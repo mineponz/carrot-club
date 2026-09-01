@@ -1,6 +1,6 @@
 ---
 /**
- * 1頭ぶんの個別ページ本体。2026年版（`/horses/{id}/`）と2025年版（`/2025/horses/{id}/`）で共有する。
+ * 1頭ぶんの個別ページ本体。2026年版（`/2026/horses/{id}/`）と2025年版（`/2025/horses/{id}/`）で共有する。
  *
  * 年度ごとの違いは props（募集年・一覧のURL）だけに閉じ込めている。ページ側にマークアップを
  * コピーすると、年度が増えるたびに同じ修正を2か所に入れることになるため。
@@ -60,7 +60,7 @@ interface Props {
    * 年度をまたいで混ぜないこと（No.は年ごとに1から振り直され、測尺の比較対象も年で閉じている）。
    */
   allHorses: Horse[];
-  /** その年度の個別ページの接頭辞（`/horses/` または `/2025/horses/`） */
+  /** その年度の個別ページの接頭辞（`/2026/horses/` または `/2025/horses/`） */
   detailBasePath: string;
 }
 
@@ -256,7 +256,7 @@ const facts: { term: string; value: string; note?: string }[] = [
   {
     recruitYear === 2026 && (
       <p class="note tour-weight-link">
-        全頭の募集時馬体重とツアー後馬体重の比較は<a href="/tour-weight/">こちら</a>。
+        全頭の募集時馬体重とツアー後馬体重の比較は<a href="/2026/tour-weight/">こちら</a>。
       </p>
     )
   }

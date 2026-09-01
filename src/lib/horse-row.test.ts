@@ -74,14 +74,14 @@ test('horseRowHtml: 外部リンク（別タブで開くもの）には rel="noo
 });
 
 test('horseDetailHref: 末尾スラッシュ付きのURLを作る（trailingSlash: always に合わせる）', () => {
-  assert.equal(horseDetailHref('7'), '/horses/7/');
+  assert.equal(horseDetailHref('7'), '/2026/horses/7/');
   assert.equal(horseDetailHref('7', '/2025/horses/'), '/2025/horses/7/');
 });
 
 test('horseRowHtml: 馬名セルは個別ページへのリンクになる（同一タブ遷移なので target は付けない）', () => {
   const html = horseRowHtml(horse, DEFAULT_EVALUATION);
   const cell = html.match(/<td data-col="name" class="horse-name">[^]*?<\/td>/)![0];
-  assert.match(cell, /<a href="\/horses\/7\/">フィリアプーラの2024<\/a>/);
+  assert.match(cell, /<a href="\/2026\/horses\/7\/">フィリアプーラの2024<\/a>/);
   assert.ok(!cell.includes('target='));
 });
 

@@ -26,6 +26,12 @@ import { RATINGS } from '../lib/evaluation-api.ts';
 import { COLUMNS, horseRowHtml, toggleableColumns } from '../lib/horse-row.ts';
 import { analysisArticles } from '../data/articles.ts';
 
+// 個別ページは年度ごとに別ルート（`/2026/horses/{id}/`）。一覧トップ（`/`）は「最新募集年度の
+// 一覧」という意味が年をまたいでも変わらないので年度なしのままだが、**個別ページは年度付きが正本**
+// （`id` が年度内の通し番号のため）。既定値まかせにせず年度ごとに明示して、年度切替時の
+// 直し漏れを防ぐ（`/2025/` 側も同じ書き方）。
+const DETAIL_BASE_PATH = '/2026/horses/';
+
 // フィルタの選択肢はビルド時に確定できるのでサーバー側で作る
 const sires = uniqueValues(horses2026, 'sire');
 // 父は複数選べるチェックリストにしてあるので、選択肢ごとの頭数も添える
@@ -58,7 +64,7 @@ const columnOptions = toggleableColumns();
 // 初期表示はクライアント側の既定（id昇順）と揃える。評価は端末ごとの値なので
 // 初期HTMLでは未評価（DEFAULT_EVALUATION）で描き、読み込み後に上書きする。
 const initialRowsHtml = sortHorses(horses2026, 'id', 'asc')
-  .map((horse) => horseRowHtml(horse, DEFAULT_EVALUATION))
+  .map((horse) => horseRowHtml(horse, DEFAULT_EVALUATION, DETAIL_BASE_PATH))
   .join('\n');
 
 const total = horses2026.length;
@@ -199,7 +205,7 @@ const faqJsonLd = {
   </div>
 
   <p class="year-switch">
-    <a href="/tour-weight/">ツアー後馬体重を見る</a>
+    <a href="/2026/tour-weight/">ツアー後馬体重を見る</a>
     ・
     <a href="/2025/">2025年募集馬の一覧</a>
   </p>
@@ -1438,6 +1444,8 @@ const faqJsonLd = {
     const storageKey = storageKeyForYear(2026);
     let evaluations: EvaluationMap = loadEvaluations(window.localStorage, storageKey);
 
+    // frontmatter の定数はクライアント側から参照できないので同じ値をここにも置く
+    const DETAIL_BASE_PATH = '/2026/horses/';
     const RECRUIT_YEAR = 2026;
 
     // 評価・父・性別のチェックボックスは value で見分けるのでidを持たない（群としてまとめて
@@ -1589,7 +1597,7 @@ const faqJsonLd = {
         list.length === 0
           ? `<tr><td colspan="${COLUMNS.length}">条件に一致する馬がいません。</td></tr>`
           : list
-              .map((h) => horseRowHtml(h, getEvaluation(evaluations, h.id)))
+              .map((h) => horseRowHtml(h, getEvaluation(evaluations, h.id), DETAIL_BASE_PATH))
               .join('');
       resultCount.textContent = `${list.length} / ${horses2026.length} 頭`;
       // 行を作り直すとメモ欄の開閉状態も消えるので、一括表示がONのときだけ開き直す

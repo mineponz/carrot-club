@@ -29,7 +29,7 @@ import { DEFAULT_EVALUATION } from '../../lib/evaluations.ts';
 import { RATINGS } from '../../lib/evaluation-api.ts';
 import { COLUMNS, horseRowHtml } from '../../lib/horse-row.ts';
 
-// 個別ページは年度ごとに別ルート（`/2025/horses/{id}/`）。既定はルート年度なので明示的に渡す。
+// 個別ページは年度ごとに別ルート（`/2025/horses/{id}/`）。既定は最新募集年度なので明示的に渡す。
 const DETAIL_BASE_PATH = '/2025/horses/';
 
 // フィルタの選択肢はビルド時に確定できるのでサーバー側で作る

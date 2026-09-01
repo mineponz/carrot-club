@@ -1,16 +1,22 @@
 ---
 /**
- * 2026年募集馬の個別ページ（`/horses/{id}/`）。全94頭ぶんを静的生成する。
+ * 2026年募集馬の個別ページ（`/2026/horses/{id}/`）。全93頭ぶんを静的生成する。
  *
  * 一覧は横スクロールの表なので1行に出せる情報量に限りがある。個別ページを分けることで
  * 馬名でのロングテール検索に載せる（本人の要望 / vault: 20260819-per-horse-detail-pages）。
  * 表示部分は年度共通の `HorseDetail.astro`、文言生成は `horse-meta.ts` に寄せている。
+ *
+ * **個別ページは年度付きURLが正本**。`id` は年度内の通し番号なので、年度なしの
+ * `/horses/{id}/` は募集年度を切り替えた瞬間に別の馬を指してしまう（URLの意味が変わる）。
+ * 一方で一覧トップ（`/`）の意味は「最新募集年度の一覧」で年をまたいでも変わらないため、
+ * そちらは年度なしが正本。**一覧＝年度なし / 個別＝年度付き、という非対称は意図的**。
+ * 旧URL `/horses/{id}/` からの301は `src/lib/redirects.ts` にある。
  */
-import BaseLayout from '../../layouts/BaseLayout.astro';
-import HorseDetail from '../../components/HorseDetail.astro';
-import { horses2026 } from '../../data/horses2026.ts';
-import { horseDetailDescription, horseDetailTitle } from '../../lib/horse-meta.ts';
-import type { Horse } from '../../lib/horses.ts';
+import BaseLayout from '../../../layouts/BaseLayout.astro';
+import HorseDetail from '../../../components/HorseDetail.astro';
+import { horses2026 } from '../../../data/horses2026.ts';
+import { horseDetailDescription, horseDetailTitle } from '../../../lib/horse-meta.ts';
+import type { Horse } from '../../../lib/horses.ts';
 
 export function getStaticPaths() {
   return horses2026.map((horse) => ({ params: { id: horse.id }, props: { horse } }));
@@ -34,6 +40,6 @@ const { horse } = Astro.props as { horse: Horse };
     recruitYear={2026}
     listHref="/"
     allHorses={horses2026}
-    detailBasePath="/horses/"
+    detailBasePath="/2026/horses/"
   />
 </BaseLayout>

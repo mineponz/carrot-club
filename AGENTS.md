@@ -65,6 +65,44 @@ vault: `1-projects/carrot-club/tasks/20260818-import-2026-data.md`。
 
 ## 年度ページの構成
 
+### URL設計（どのページに年度を付けるか）
+
+判断基準は「**そのURLの意味が年をまたいで変わるか**」。変わるものには年度を付ける。
+
+| 正本URL | 年度 | 理由 |
+|---|---|---|
+| `/` | 付けない | 意味は「最新募集年度の一覧」で年をまたいでも変わらない。被リンクと流入が集中する最強のURLなので毎年引っ越さない |
+| `/2026/horses/{id}/` | **付ける** | `id` はクラブの募集番号で年ごとに1から振り直される。年度なしだと切替の瞬間に93本まとめて別の馬のページになる |
+| `/2026/tour-weight/` | **付ける** | 中身が100%その年の募集馬。年度なしだと切替でその年のデータが行き場を失う |
+| `/articles/*` | 付けない | 複数年度を横断する分析記事。特定の年度に紐づかない |
+
+**一覧＝年度なし／個別＝年度付き、という非対称は意図的**（2026-09-01）。
+
+年度なしの旧URLは `src/lib/redirects.ts`（純関数）が301の転送先を決め、`worker/index.ts` が返す。
+`/horses/{id}/` → `/2026/horses/{id}/` ／ `/tour-weight/` → `/2026/tour-weight/` ／ `/2026/` → `/`。
+- これは「**最新年度への別名**」で `/` と同じ扱い。**301は恒久的に残す**（消すと旧URLに付いた
+  被リンク・検索インデックスが切れる）。
+- **チェーンを作らない**（1ホップで正本に着く）。`/2026/…` 側は絶対にリダイレクト対象にしない。
+- **内部リンク・canonical・sitemap は必ず正本を指す。** 301が効いていても、サイト自身が旧URLを
+  指し続けると「どちらが正本か」の信号が濁る。`dist/` に `href="/horses/` や
+  `href="/tour-weight/` が残っていないかをビルド後にgrepで確認すること。
+
+### 年度を切り替えるときにやること
+1. `src/lib/redirects.ts` の `CURRENT_YEAR_PREFIX` を新年度に（**301の向き先はここ1か所だけ**）。
+   これで旧年度の `/2026/` は自動的に別名でなくなり、実ページ（過去年度一覧）へ昇格できる
+2. `src/pages/index.astro` の中身を新年度に。旧年度の一覧は `src/pages/2026/index.astro` へ退避する
+   （`src/pages/2026/horses/[id].astro` と `src/pages/2026/tour-weight.astro` は**動かさない**。
+   過去年度のページはそのURLのまま残るのがこの設計の目的）
+3. 新年度の個別ページ `src/pages/2027/horses/[id].astro` を作る（`src/pages/2026/horses/[id].astro`
+   をコピーしてデータ・`recruitYear`・`detailBasePath` を差し替える）。ツアー後馬体重ページを
+   出すなら `src/pages/2027/tour-weight.astro` も同様に
+4. `src/lib/horse-row.ts` の `DEFAULT_DETAIL_BASE_PATH` を新年度に
+5. `src/consts.ts` の `SITE_TAGLINE` / `SITE_DESCRIPTION` を新年度に。旧年度用に `_2026` 付きの
+   定数を足す（`SITE_TAGLINE_2025` と同じ形）
+6. 記事内の馬リンク（`/2026/horses/…`）は**そのまま**。過去の記事は過去の馬を指したままでよい
+7. `.year-switch`（年度ページ相互リンク）に新年度を足す
+8. `/2026/tour-weight/` を残すか畳むか決める（残す場合、その年のデータを指したまま古くなる点に注意）
+
 - `/`（`src/pages/index.astro`）が**常に最新募集年**。`src/consts.ts` の `SITE_TAGLINE` /
   `SITE_DESCRIPTION` もルート＝最新年度向け。
 - 過去年度は `/2025/`（`src/pages/2025/index.astro`）のように退避する。文言は
@@ -107,8 +145,10 @@ vault: `1-projects/carrot-club/tasks/20260818-import-2026-data.md`。
 
 ### 個別ページ
 
-- 1頭1ページを `/horses/{募集番号}/`（最新年度）と `/2025/horses/{募集番号}/` に静的生成する
-  （`src/pages/horses/[id].astro` / `src/pages/2025/horses/[id].astro` の `getStaticPaths`）。
+- 1頭1ページを `/2026/horses/{募集番号}/` と `/2025/horses/{募集番号}/` に静的生成する
+  （`src/pages/2026/horses/[id].astro` / `src/pages/2025/horses/[id].astro` の `getStaticPaths`）。
+  **個別ページは年度付きが正本**（理由は「URL設計」節）。年度なしの `/horses/{募集番号}/` は
+  301で最新年度へ転送する旧URLで、実体は無い。
   一覧の表は横スクロールで1行に出せる情報量に限りがあるため、馬名でのロングテール検索の
   受け皿を別ページに分けている。
 - 表示は `src/components/HorseDetail.astro`（年度共通）。年度差はprops（募集年・一覧のURL・
@@ -133,8 +173,10 @@ vault: `1-projects/carrot-club/tasks/20260818-import-2026-data.md`。
 - title / description は `src/lib/horse-meta.ts` で馬ごとに機械生成する。似た雛形が187ページ並ぶと
   重複コンテンツになりうるので、馬名・血統・測尺などその馬固有の値を必ず混ぜること。
 - 一覧の馬名セルが個別ページへのリンク。年度ごとのURL接頭辞は `horseRowHtml()` の第3引数
-  （既定 `/horses/`、2025年版は `/2025/horses/`）。**ビルド時とクライアント側の両方**に同じ値を
-  渡すこと（片方だけだと再描画後にリンク先が年度をまたぐ）。
+  （既定 `DEFAULT_DETAIL_BASE_PATH = '/2026/horses/'`、2025年版は `/2025/horses/`）。
+  **ビルド時とクライアント側の両方**に同じ値を渡すこと（片方だけだと再描画後にリンク先が年度をまたぐ）。
+  呼び出し側は既定値まかせにせず**どの年度のページでも明示的に渡す**（2026-09-01にそう揃えた。
+  既定値に頼っている箇所があると年度切替のときに見落とす）。
 - `trailingSlash: 'always'` なので内部リンクは末尾スラッシュ必須（`horseDetailHref()` が付ける）。
 - 「キャロットにいる兄姉」欄（`src/lib/sibling-recruits.ts`）は、その馬と**同じ母の産駒で過去に
   キャロットが募集した馬**の募集時測尺と通算成績・獲得賞金を出す。突き合わせ元は分析用の
