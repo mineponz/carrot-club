@@ -1,0 +1,1272 @@
+---
+/**
+ * 分析記事「管囲が太い馬は走るのか？」。2017〜2025年募集の全頭（`analysis/data/recruits.json`）に
+ * ある管囲（caretGirth）と現在の競走成績（`analysis/data/race-results.json`）をクロス集計する。
+ * 体高・母齢・誕生月・胸囲・産次・クラブに続く7本目。
+ *
+ * ## この記事の主題は「管囲が性別の代理変数になっていること」
+ * 管囲は全頭をまとめて見ると獲得賞金とはっきり結びついて見える（4本の測尺記事で一番強い）。
+ * ところが管囲は牡と牝で中央値が1.13標準偏差ぶんも離れており（体高0.14・胸囲0.00とは桁が違う）、
+ * 太い群＝ほぼ牡・細い群＝ほぼ牝になる。牡は牝より大きく稼ぐので、管囲で並べることは
+ * 事実上、性別で並べることになる。
+ *
+ * ## 「性別を揃えれば全部解決」ではない点に注意して書く（reviewer指摘・2026-08-30）
+ * 性別を揃えると管囲は牡の中で完全に消える（スピアマン0.018・p=0.74）が、牝は0.107・p=0.041で
+ * 向きが残る（ただし21cm以上が16頭しかなく判断材料に乏しい）。また体高も牝では有意でない
+ * （p=0.17）ので、「管囲は消えて体高は残る」という対比は同じ物差しでは支えられない。
+ * **記事が主張できるのは「管囲は性別の差そのものを測っている」までで、
+ * 「性別内で効く測尺はどれか」は今回のデータでは決着しない。** 相関係数を並べるときは
+ * 必ずp値も添えて、母数の違いによる揺らぎを「効果が消えた」と読ませないこと。
+ *
+ * ## 書き方の前提
+ * - 階級の境界は整数（`>= lo && < hi`）。実データは0.1cm刻みなので境界で抜け落ちない。
+ *   階級ごとの合計を母数と突き合わせるアサーションも下に置いてある。
+ * - 本文が置いている前提（性別内では有意でない・体高は性別内でも残る・全体では有意）は
+ *   すべてビルド時アサーションにしてある。データを取り直して前提が崩れたらビルドが落ちる。
+ * - 「太い＝丈夫」の検証では出走数を勝ち上がり有無で層別する。中央の未勝利戦は3歳9月上旬で
+ *   終わり、勝ち上がれなかった馬はほとんどがそこで中央を去る（地方・障害へ行く馬もいる）ため、
+ *   層別しない出走数は丈夫さではなく「勝ち上がれたか」をかなりの部分そのまま映してしまう。
+ */
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import BarChart from '../../components/charts/BarChart.astro';
+import ScatterChart from '../../components/charts/ScatterChart.astro';
+import ChartTooltip from '../../components/charts/ChartTooltip.astro';
+import StatTiles from '../../components/charts/StatTiles.astro';
+import ArticleToc from '../../components/ArticleToc.astro';
+import AdSlot from '../../components/AdSlot.astro';
+import GradeWinnerTable from '../../components/GradeWinnerTable.astro';
+import {
+  loadRecruitsWithResults,
+  racedOnly,
+  RACE_RESULTS_FETCHED_AT,
+  type RecruitWithResult,
+} from '../../lib/analysis-data.ts';
+import { formatResultsAsOf } from '../../lib/sibling-recruits.ts';
+import {
+  histogram,
+  pearsonCorrelation,
+  spearmanCorrelation,
+  mannWhitneyU,
+  twoProportionZTest,
+  bucketMedian,
+  countByBucket,
+  correlationPValue,
+  formatP,
+  probabilityOfSuperiority,
+  mean,
+  median,
+  formatManYen,
+} from '../../lib/chart-math.ts';
+
+const allRecruits = loadRecruitsWithResults();
+const resultsAsOf = formatResultsAsOf(RACE_RESULTS_FETCHED_AT);
+
+// 管囲が取れていない3頭（netkeibaページ自体を特定できなかった馬）は集計対象から外す。
+const all = allRecruits.filter((h) => h.caretGirth !== null);
+const raced = racedOnly(all);
+const unraced = all.length - raced.length;
+
+const males = all.filter((h) => h.sex === '牡');
+const females = all.filter((h) => h.sex === '牝');
+const sexUnknown = all.length - males.length - females.length;
+const racedMales = racedOnly(males);
+const racedFemales = racedOnly(females);
+
+const girths = all.map((h) => h.caretGirth as number);
+const girthMin = Math.min(...girths);
+const girthMax = Math.max(...girths);
+const girthMean = mean(girths);
+const girthMedian = median(girths);
+/** 他の測尺の広がりと比べて「管囲は目盛りが細かい」と書くので、範囲も実データから出す。 */
+function rangeOf(key: 'height' | 'chestGirth') {
+  const v = all.map((h) => h[key]).filter((x): x is number => x !== null);
+  return { min: Math.min(...v), max: Math.max(...v) };
+}
+const heightRange = rangeOf('height');
+const chestRange = rangeOf('chestGirth');
+const maleGirthMedian = median(males.map((h) => h.caretGirth as number));
+const femaleGirthMedian = median(females.map((h) => h.caretGirth as number));
+
+// ---- 分布（0.5cm刻み・牡と牝で同じビン） ----
+const HIST_BIN = 0.5;
+const HIST_MIN = 17.5;
+const HIST_MAX = 23.5;
+function girthBins(rows: RecruitWithResult[]) {
+  return histogram(rows.map((h) => h.caretGirth as number), HIST_BIN, HIST_MIN, HIST_MAX).map((b) => ({
+    label: `${b.binStart}`,
+    value: b.count,
+    displayValue: `${b.count}頭`,
+  }));
+}
+const allBins = girthBins(all);
+const maleBins = girthBins(males);
+const femaleBins = girthBins(females);
+// 牡と牝のヒストグラムは物差しを揃えないと「牝の方が多い」ような誤読が起きる。
+const sexHistAxisMax = Math.max(...maleBins.map((b) => b.value), ...femaleBins.map((b) => b.value));
+
+// ---- 管囲の階級（境界は整数・[lo, hi) で持つ。実データは0.1cm刻み） ----
+const GIRTH_BUCKETS: [string, number, number][] = [
+  ['20cm未満', -Infinity, 20],
+  ['20〜21cm未満', 20, 21],
+  ['21cm以上', 21, Infinity],
+];
+const BUCKET_THIN = GIRTH_BUCKETS[0][0];
+const BUCKET_THICK = GIRTH_BUCKETS[GIRTH_BUCKETS.length - 1][0];
+function bucketLabel(girth: number): string {
+  for (const [label, lo, hiExclusive] of GIRTH_BUCKETS) {
+    if (girth >= lo && girth < hiExclusive) return label;
+  }
+  return '?';
+}
+const bucketOrder = GIRTH_BUCKETS.map(([label]) => label);
+const isThin = (h: RecruitWithResult) => bucketLabel(h.caretGirth as number) === BUCKET_THIN;
+const isThick = (h: RecruitWithResult) => bucketLabel(h.caretGirth as number) === BUCKET_THICK;
+
+/**
+ * 同性の中で細い順に3等分した階級を作る。
+ *
+ * 牡と牝は管囲の中央値が1cm近く違うので、全頭共通の cm 境界（20cm/21cm）を性別内にも
+ * そのまま当てると、牡の細い側39頭・牝の太い側16頭のように片方の端が痩せて比較にならない。
+ * かといって牝だけ境界を1cm下げると、今度は牡牝でラベルが変わって2つのグラフを見比べにくいうえ、
+ * 境界の置き方しだいで検定結果が動く（牝は 19/20cm 区切りだと p=0.01、19.5/20cm だと p=0.08、
+ * 3等分だと p=0.19）。**境界を選ぶ余地が結論を左右する状態は避けたい**ので、
+ * 「同性の中で細い方から1/3」という選びようのない規則で切る。cm範囲はラベル下に併記する。
+ *
+ * 境界は実データの値をそのまま使うので0.1cm刻みに乗り、`>= lo && < hi` で取りこぼしが出ない。
+ */
+function tertileScheme(rows: RecruitWithResult[]) {
+  const sorted = [...rows].map((h) => h.caretGirth as number).sort((a, b) => a - b);
+  const lo = sorted[Math.floor(sorted.length / 3)];
+  const hi = sorted[Math.floor((2 * sorted.length) / 3)];
+  const labels = ['細い1/3', '真ん中', '太い1/3'] as const;
+  const labelOf = (g: number) => (g < lo ? labels[0] : g < hi ? labels[1] : labels[2]);
+  const inGroup = (label: string) => (h: RecruitWithResult) => labelOf(h.caretGirth as number) === label;
+  const rangeOfGroup = (label: string) => {
+    const v = rows.filter(inGroup(label)).map((h) => h.caretGirth as number);
+    return `${Math.min(...v).toFixed(1)}〜${Math.max(...v).toFixed(1)}cm`;
+  };
+  return {
+    lo,
+    hi,
+    order: [...labels],
+    labelOf,
+    thin: inGroup(labels[0]),
+    thick: inGroup(labels[2]),
+    rangeOfGroup,
+  };
+}
+const maleScheme = tertileScheme(males);
+const femaleScheme = tertileScheme(females);
+
+/** 階級別の獲得賞金中央値を、渡した母集団（出走済み）で棒グラフ用に組む。 */
+function prizeBarsFor(rows: RecruitWithResult[], population: RecruitWithResult[]) {
+  const med = bucketMedian(rows, (h) => bucketLabel(h.caretGirth as number), (h) => h.totalPrizeManYen);
+  const counts = countByBucket(population, (h) => bucketLabel(h.caretGirth as number));
+  return bucketOrder
+    .map((label) => {
+      const row = med.find((r) => r.bucket === label);
+      if (!row) return null;
+      return {
+        label,
+        value: Math.round(row.med),
+        displayValue: `${formatManYen(Math.round(row.med))}万`,
+        n: row.n,
+        note: `階級全体${counts.get(label) ?? 0}頭`,
+      };
+    })
+    .filter((b): b is NonNullable<typeof b> => b !== null);
+}
+const prizeBars = prizeBarsFor(raced, all);
+/** 性別内は3分位で組む。ラベルは牡牝で同じにして、cm範囲と頭数はラベル下の注記に出す。 */
+function tertilePrizeBars(rows: RecruitWithResult[], population: RecruitWithResult[], scheme: ReturnType<typeof tertileScheme>) {
+  const med = bucketMedian(rows, (h) => scheme.labelOf(h.caretGirth as number), (h) => h.totalPrizeManYen);
+  const counts = countByBucket(population, (h) => scheme.labelOf(h.caretGirth as number));
+  return scheme.order
+    .map((label) => {
+      const row = med.find((r) => r.bucket === label);
+      if (!row) return null;
+      return {
+        label,
+        value: Math.round(row.med),
+        displayValue: `${formatManYen(Math.round(row.med))}万`,
+        n: row.n,
+        note: `${scheme.rangeOfGroup(label)}・${counts.get(label) ?? 0}頭`,
+      };
+    })
+    .filter((b): b is NonNullable<typeof b> => b !== null);
+}
+const malePrizeBars = tertilePrizeBars(racedMales, males, maleScheme);
+const femalePrizeBars = tertilePrizeBars(racedFemales, females, femaleScheme);
+// 牡・牝のグラフは同じ物差しで並べる（別々だと牝の棒が牡と同じ高さに見えてしまう）。
+const sexPrizeAxisMax = Math.max(...malePrizeBars.map((b) => b.value), ...femalePrizeBars.map((b) => b.value));
+
+// 階級の合計が母数と合うか検算する（境界の取りこぼしはグラフを見ても気づけない）。
+// 記事で階級分けに掛ける母集団はすべて対象にする（出走済みだけ検算しても、勝ち上がり率や
+// 出走数で使う母集団の管囲が壊れていたら素通りしてしまう）。
+for (const [label, rows] of [
+  ['全頭', all],
+  ['牡', males],
+  ['牝', females],
+  ['出走済み全体', raced],
+  ['牡・出走済み', racedMales],
+  ['牝・出走済み', racedFemales],
+] as const) {
+  const sum = bucketOrder.reduce(
+    (acc, b) => acc + rows.filter((h) => bucketLabel(h.caretGirth as number) === b).length,
+    0
+  );
+  if (sum !== rows.length) {
+    throw new Error(`管囲の階級分けで取りこぼしがある（${label}: 階級合計${sum} ≠ 母数${rows.length}）`);
+  }
+}
+// 3分位の方も同じく検算する。境界を実データの値から取っているので、同じ値の馬が境界に
+// たくさん乗ると3等分が大きく崩れうる（管囲は20.0cmなど特定の値に集中している）。
+for (const [label, rows, scheme] of [
+  ['牡', males, maleScheme],
+  ['牝', females, femaleScheme],
+] as const) {
+  const sizes = scheme.order.map((l) => rows.filter((h) => scheme.labelOf(h.caretGirth as number) === l).length);
+  const sum = sizes.reduce((a, b) => a + b, 0);
+  if (sum !== rows.length) {
+    throw new Error(`${label}の3分位で取りこぼしがある（合計${sum} ≠ 母数${rows.length}）`);
+  }
+  if (Math.min(...sizes) < rows.length / 6) {
+    throw new Error(
+      `${label}の3分位が偏りすぎている（${sizes.join('/')}）。同じ管囲の馬が境界に集中している可能性がある。`
+    );
+  }
+}
+
+// ---- 相関 ----
+function girthPrizeR(rows: RecruitWithResult[]) {
+  const pearson = pearsonCorrelation(
+    rows.map((h) => h.caretGirth as number),
+    rows.map((h) => h.totalPrizeManYen)
+  );
+  const spearman = spearmanCorrelation(
+    rows.map((h) => h.caretGirth as number),
+    rows.map((h) => h.totalPrizeManYen)
+  );
+  return {
+    n: rows.length,
+    pearson,
+    spearman,
+    // 母数が違う群のrを見比べるので、pを添えないと「頭数が減って揺らいだ」だけの差を
+    // 「効果が消えた」と読み違える（reviewer指摘・2026-08-30）。
+    pearsonP: correlationPValue(pearson, rows.length),
+    spearmanP: correlationPValue(spearman, rows.length),
+  };
+}
+const rAll = girthPrizeR(raced);
+const rMale = girthPrizeR(racedMales);
+const rFemale = girthPrizeR(racedFemales);
+
+/** 測尺ごとに「全体・牡・牝それぞれでの賞金との相関」と「性別そのものとの相関」を出す。 */
+const MEASURES = [
+  { key: 'caretGirth', label: '管囲' },
+  { key: 'height', label: '体高' },
+  { key: 'weight', label: '馬体重' },
+  { key: 'chestGirth', label: '胸囲' },
+] as const;
+type MeasureKey = (typeof MEASURES)[number]['key'];
+function measureOf(h: RecruitWithResult, key: MeasureKey): number | null {
+  return h[key] as number | null;
+}
+function corrWith(rows: RecruitWithResult[], key: MeasureKey) {
+  const v = rows.filter((h) => measureOf(h, key) !== null);
+  const pearson = pearsonCorrelation(
+    v.map((h) => measureOf(h, key) as number),
+    v.map((h) => h.totalPrizeManYen)
+  );
+  const spearman = spearmanCorrelation(
+    v.map((h) => measureOf(h, key) as number),
+    v.map((h) => h.totalPrizeManYen)
+  );
+  return {
+    n: v.length,
+    pearson,
+    spearman,
+    pearsonP: correlationPValue(pearson, v.length),
+    spearmanP: correlationPValue(spearman, v.length),
+  };
+}
+/** 標本標準偏差。測尺ごとに単位が違うので、性差を「SD何個ぶん」に揃えるのに使う。 */
+function stdev(values: number[]): number {
+  if (values.length < 2) return 0;
+  const m = mean(values);
+  return Math.sqrt(values.reduce((acc, v) => acc + (v - m) * (v - m), 0) / (values.length - 1));
+}
+/**
+ * その測尺が「牡か牝か」をどれだけ言い当てるか（牡=1・牝=0 との相関）と、
+ * 牡牝の中央値の差がその測尺のばらつき（標準偏差）何個ぶんか。
+ * cmとkgを絶対値で比べても大小は言えないので、記事ではSD換算の方を主役にする。
+ */
+function corrWithSex(key: MeasureKey) {
+  const v = all.filter((h) => (h.sex === '牡' || h.sex === '牝') && measureOf(h, key) !== null);
+  const values = v.map((h) => measureOf(h, key) as number);
+  const maleMedian = median(v.filter((h) => h.sex === '牡').map((h) => measureOf(h, key) as number));
+  const femaleMedian = median(v.filter((h) => h.sex === '牝').map((h) => measureOf(h, key) as number));
+  const sd = stdev(values);
+  return {
+    r: pearsonCorrelation(v.map((h) => (h.sex === '牡' ? 1 : 0)), values),
+    maleMedian,
+    femaleMedian,
+    sd,
+    /** 牡牝の中央値差が標準偏差いくつぶんか（0.9cmと11kgを同じ土俵で比べるため）。 */
+    gapInSd: sd > 0 ? (maleMedian - femaleMedian) / sd : 0,
+  };
+}
+const measureRows = MEASURES.map((m) => ({
+  ...m,
+  all: corrWith(raced, m.key),
+  male: corrWith(racedMales, m.key),
+  female: corrWith(racedFemales, m.key),
+  sex: corrWithSex(m.key),
+}));
+const caretRow = measureRows.find((m) => m.key === 'caretGirth')!;
+const heightRow = measureRows.find((m) => m.key === 'height')!;
+const chestRow = measureRows.find((m) => m.key === 'chestGirth')!;
+const weightRow = measureRows.find((m) => m.key === 'weight')!;
+const unit = (key: MeasureKey) => (key === 'weight' ? 'kg' : 'cm');
+
+// ---- 階級の両端どうしの比較（20cm未満 vs 21cm以上） ----
+function endsCompare(
+  rows: RecruitWithResult[],
+  thinOf: (h: RecruitWithResult) => boolean = isThin,
+  thickOf: (h: RecruitWithResult) => boolean = isThick
+) {
+  const thin = rows.filter(thinOf);
+  const thick = rows.filter(thickOf);
+  return {
+    thinN: thin.length,
+    thickN: thick.length,
+    thinMed: median(thin.map((h) => h.totalPrizeManYen)),
+    thickMed: median(thick.map((h) => h.totalPrizeManYen)),
+    mw: mannWhitneyU(thin.map((h) => h.totalPrizeManYen), thick.map((h) => h.totalPrizeManYen)),
+    /**
+     * 細い群・太い群から1頭ずつ取ったとき、太い方が稼いでいる確率。
+     * 中央値の棒は上がっているのに検定が通らない、という見た目の矛盾を解く数字として出す
+     * （50%＝コイン投げと同じ＝まったく差が無い）。
+     */
+    superiority: probabilityOfSuperiority(
+      thin.map((h) => h.totalPrizeManYen),
+      thick.map((h) => h.totalPrizeManYen)
+    ),
+  };
+}
+const endsAll = endsCompare(raced);
+// 性別内は3分位の両端（細い1/3 vs 太い1/3）で比べる。
+const endsMale = endsCompare(racedMales, maleScheme.thin, maleScheme.thick);
+const endsFemale = endsCompare(racedFemales, femaleScheme.thin, femaleScheme.thick);
+
+/**
+ * 階級の両端（20cm未満 / 21cm以上）で「その条件を満たす馬の割合」を比べる。
+ * 比率のz検定は期待度数が5未満だと正規近似が崩れるので、その判定込みで返し、
+ * 表示は必ず `ratePText` を通す（pを直接読ませない。片方の群にだけガードを掛けて
+ * 他は素通し、という片肺運用にしないため・reviewer指摘 2026-08-30）。
+ */
+function rateCompare(
+  rows: RecruitWithResult[],
+  hit: (h: RecruitWithResult) => boolean,
+  thinOf: (h: RecruitWithResult) => boolean = isThin,
+  thickOf: (h: RecruitWithResult) => boolean = isThick
+) {
+  const thin = rows.filter(thinOf);
+  const thick = rows.filter(thickOf);
+  if (thin.length === 0 || thick.length === 0) {
+    throw new Error('管囲の階級が空になった。記事の比較が成り立たないのでデータを確認すること。');
+  }
+  const x1 = thin.filter(hit).length;
+  const x2 = thick.filter(hit).length;
+  const pooled = (x1 + x2) / (thin.length + thick.length);
+  const minExpected = Math.min(
+    pooled * thin.length,
+    pooled * thick.length,
+    (1 - pooled) * thin.length,
+    (1 - pooled) * thick.length
+  );
+  return {
+    thinN: thin.length,
+    thickN: thick.length,
+    thinRate: (100 * x1) / thin.length,
+    thickRate: (100 * x2) / thick.length,
+    test: twoProportionZTest(x1, thin.length, x2, thick.length),
+    /** falseの時はpを読んではいけない（正規近似が成り立たない）。 */
+    usable: minExpected >= 5,
+  };
+}
+/** 比率比較の検定結果を本文に出す形。期待度数が足りない群では数字を出さず、その旨を書く。 */
+function ratePText(r: ReturnType<typeof rateCompare>): string {
+  return r.usable ? formatP(r.test.p) : '頭数が少なく検定に足りない';
+}
+const hasWin = (h: RecruitWithResult) => (h.wins ?? 0) >= 1;
+const hasDebut = (h: RecruitWithResult) => (h.starts ?? 0) > 0;
+const winAll = rateCompare(all, hasWin);
+const winMale = rateCompare(males, hasWin, maleScheme.thin, maleScheme.thick);
+const winFemale = rateCompare(females, hasWin, femaleScheme.thin, femaleScheme.thick);
+
+// ---- 「太いほど牡」を数字で見せる ----
+const thickHorses = all.filter(isThick);
+const thinHorses = all.filter(isThin);
+const thickMaleShare = (100 * thickHorses.filter((h) => h.sex === '牡').length) / thickHorses.length;
+const thinMaleShare = (100 * thinHorses.filter((h) => h.sex === '牡').length) / thinHorses.length;
+
+// ---- 性別そのものの差（比較の基準として出す） ----
+const maleMedianPrize = median(racedMales.map((h) => h.totalPrizeManYen));
+const femaleMedianPrize = median(racedFemales.map((h) => h.totalPrizeManYen));
+const sexMw = mannWhitneyU(
+  racedMales.map((h) => h.totalPrizeManYen),
+  racedFemales.map((h) => h.totalPrizeManYen)
+);
+
+// ---- 「太い＝丈夫」の検証（勝ち上がり有無で層別する） ----
+const debutedNoWin = raced.filter((h) => h.wins === 0);
+const winners = all.filter((h) => (h.wins ?? 0) >= 1);
+// 「未勝利のまま終わった馬は4戦で終わる」を見せる比較。直近の募集組はまだ未勝利戦の期間中で
+// 「終わった」馬ではないため、ここだけは3歳を終えた世代（MATURE_YEAR以前の募集）に絞る
+// （絞らないと現役の若駒が出走数を押し下げ、差を水増しする・reviewer指摘 2026-08-30）。
+const MATURE_YEAR = 2022;
+const matureNoWin = debutedNoWin.filter((h) => h.recruitYear <= MATURE_YEAR);
+const matureWinners = winners.filter((h) => h.recruitYear <= MATURE_YEAR);
+const noWinStartsMedian = median(matureNoWin.map((h) => h.starts as number));
+const winnerStartsMedian = median(matureWinners.map((h) => h.starts as number));
+function startsCompare(
+  rows: RecruitWithResult[],
+  thinOf: (h: RecruitWithResult) => boolean = isThin,
+  thickOf: (h: RecruitWithResult) => boolean = isThick
+) {
+  const thin = rows.filter(thinOf);
+  const thick = rows.filter(thickOf);
+  return {
+    thinN: thin.length,
+    thickN: thick.length,
+    thinMed: median(thin.map((h) => h.starts as number)),
+    thickMed: median(thick.map((h) => h.starts as number)),
+    mw: mannWhitneyU(thin.map((h) => h.starts as number), thick.map((h) => h.starts as number)),
+  };
+}
+const startsRaced = startsCompare(raced);
+const startsWinners = startsCompare(winners);
+const startsWinnersMale = startsCompare(
+  winners.filter((h) => h.sex === '牡'),
+  maleScheme.thin,
+  maleScheme.thick
+);
+const startsWinnersFemale = startsCompare(
+  winners.filter((h) => h.sex === '牝'),
+  femaleScheme.thin,
+  femaleScheme.thick
+);
+const debutAll = rateCompare(all, hasDebut);
+
+// ---- 散布図（性別で色を分ける） ----
+const SCATTER_Y_MAX = 10000;
+function sexSeriesKey(sex: string | null): string {
+  if (sex === '牝') return 'female';
+  if (sex === '牡') return 'male';
+  return 'unknown';
+}
+const scatterPoints = raced
+  .filter((h) => h.totalPrizeManYen < SCATTER_Y_MAX)
+  .map((h) => ({
+    x: h.caretGirth as number,
+    y: h.totalPrizeManYen,
+    seriesKey: sexSeriesKey(h.sex),
+    tipTitle: h.displayName,
+    tipRows: [
+      ['管囲', `${h.caretGirth}cm`],
+      ['性別', h.sex ?? '不明'],
+      ['獲得賞金合計', `${formatManYen(h.totalPrizeManYen)}万円`],
+      ['通算成績', `${h.starts}戦${h.wins}勝`],
+    ] as [string, string][],
+  }));
+const scatterOmitted = raced.length - scatterPoints.length;
+const unknownSexPoints = scatterPoints.filter((p) => p.seriesKey === 'unknown').length;
+const sexSeries = [
+  { key: 'male', label: '牡', colorVar: '--series-1' },
+  { key: 'female', label: '牝', colorVar: '--series-2' },
+  ...(unknownSexPoints > 0 ? [{ key: 'unknown', label: '性別不明', colorVar: '--series-3' }] : []),
+];
+
+// ---- 代表馬（重賞勝ち馬） ----
+const gradeWinners = all
+  .filter((h) => h.gradeWins.length > 0)
+  .sort((a, b) => b.totalPrizeManYen - a.totalPrizeManYen);
+const GRADE_WINNERS_VISIBLE = 10;
+const gradeWinnersTop = gradeWinners.slice(0, GRADE_WINNERS_VISIBLE);
+const gradeWinnersRest = gradeWinners.slice(GRADE_WINNERS_VISIBLE);
+const gradeMales = gradeWinners.filter((h) => h.sex === '牡');
+const gradeFemales = gradeWinners.filter((h) => h.sex === '牝');
+const gradeMaleGirthMedian = median(gradeMales.map((h) => h.caretGirth as number));
+const gradeFemaleGirthMedian = median(gradeFemales.map((h) => h.caretGirth as number));
+// 「重賞馬は同性の平均的な太さから大きく外れていない」と書くので、そのズレ幅も実データから出す。
+const gradeGirthGapMax = Math.max(
+  Math.abs(gradeMaleGirthMedian - maleGirthMedian),
+  Math.abs(gradeFemaleGirthMedian - femaleGirthMedian)
+);
+const gradeGirthMin = Math.min(...gradeWinners.map((h) => h.caretGirth as number));
+const gradeGirthMax = Math.max(...gradeWinners.map((h) => h.caretGirth as number));
+// 「細くても走る」側の実例。牡の中で管囲が細い方（20cm未満）で最も稼いだ馬を挙げる。
+const thinMaleEarners = racedMales
+  .filter(isThin)
+  .sort((a, b) => b.totalPrizeManYen - a.totalPrizeManYen)
+  .slice(0, 3);
+
+// ---- 本文が置いている前提のビルド時アサーション ----
+// 数字は成績スナップショットを取り直すたびに動く。文章側の解釈（「性別内では差が無い」等）は
+// 数字が動いても勝手には直らないので、前提を条件式にして崩れたらビルドを落とす。
+const ALPHA = 0.05;
+const premiseErrors: string[] = [];
+if (!(caretRow.sex.r !== null && caretRow.sex.r >= 0.4)) {
+  premiseErrors.push(
+    `管囲と性別の相関が弱くなった（r=${caretRow.sex.r?.toFixed(3)}）。` +
+      '「管囲だけが極端に性差の大きい測尺」という記事の骨格が成り立たない。'
+  );
+}
+// 「管囲だけが飛び抜けている」は他の3測尺すべてに対して言っているので、全部と比べる。
+for (const other of measureRows.filter((m) => m.key !== 'caretGirth')) {
+  if (!(Math.abs(caretRow.sex.gapInSd) > Math.abs(other.sex.gapInSd) * 2)) {
+    premiseErrors.push(
+      `管囲の性差（${caretRow.sex.gapInSd.toFixed(2)}SD）が${other.label}` +
+        `（${other.sex.gapInSd.toFixed(2)}SD）と比べて突出しなくなった。`
+    );
+  }
+}
+// 「太い階級はほぼ牡・細い階級はほぼ牝」という言い方の根拠。ここが崩れると
+// 「性別で並べているのと同じ」という記事の中心の主張が成り立たない。
+if (!(thickMaleShare >= 70 && thinMaleShare <= 30)) {
+  premiseErrors.push(
+    `階級の牡率が偏らなくなった（${BUCKET_THICK}=${thickMaleShare.toFixed(1)}% / ` +
+      `${BUCKET_THIN}=${thinMaleShare.toFixed(1)}%）。「管囲で並べることは性別で並べること」と書いた本文を見直すこと。`
+  );
+}
+// 「これまで調べた測尺の中で一番強い」（全体で見たとき）の根拠。
+for (const other of measureRows.filter((m) => m.key !== 'caretGirth')) {
+  if (!(caretRow.all.pearson !== null && other.all.pearson !== null && caretRow.all.pearson > other.all.pearson)) {
+    premiseErrors.push(
+      `全頭で見たとき管囲（r=${caretRow.all.pearson?.toFixed(3)}）が${other.label}` +
+        `（r=${other.all.pearson?.toFixed(3)}）を上回らなくなった。「一番強い数字」と書いた本文を書き直すこと。`
+    );
+  }
+}
+if (!(endsAll.mw.p < ALPHA)) {
+  premiseErrors.push(
+    `全頭をまとめた${BUCKET_THIN} vs ${BUCKET_THICK}の差が有意でなくなった（p=${endsAll.mw.p.toFixed(4)}）。` +
+      '「まとめて見ると差がある」という導入から書き直すこと。'
+  );
+}
+for (const [label, ends] of [
+  ['牡', endsMale],
+  ['牝', endsFemale],
+] as const) {
+  if (!(ends.mw.p >= ALPHA)) {
+    premiseErrors.push(
+      `${label}だけで見た${BUCKET_THIN} vs ${BUCKET_THICK}が有意になった（p=${ends.mw.p.toFixed(4)}）。` +
+        '「性別を揃えると有意な差は出ない」と書いた本文を書き直すこと。'
+    );
+  }
+}
+// 「牡の中では完全に消える」は順位相関がゼロ近辺であることに寄りかかっている。
+if (!(rMale.spearmanP !== null && rMale.spearmanP >= 0.5)) {
+  premiseErrors.push(
+    `牡の中の管囲と賞金の順位相関が無視できなくなった（rs=${rMale.spearman?.toFixed(3)} / ` +
+      `p=${rMale.spearmanP?.toFixed(3)}）。「牡の中では完全に消える」と書いた本文を書き直すこと。`
+  );
+}
+// 牝は「太いほど良いのではなく、細い1/3だけが沈んでいる」と書いている。
+// 真ん中と太い1/3が横並びであることが根拠なので、そこが崩れたら書き直す。
+{
+  const femaleMed = (label: string) =>
+    median(racedFemales.filter((h) => femaleScheme.labelOf(h.caretGirth as number) === label).map((h) => h.totalPrizeManYen));
+  const mid = femaleMed('真ん中');
+  const thick = femaleMed('太い1/3');
+  const thin = femaleMed('細い1/3');
+  if (!(thin < mid && Math.abs(mid - thick) < Math.abs(mid - thin))) {
+    premiseErrors.push(
+      `牝の3分位の並びが変わった（細い1/3=${thin} / 真ん中=${mid} / 太い1/3=${thick}万円）。` +
+        '「極端に細い側だけが沈んでいて、真ん中と太い側は横並び」と書いた本文を書き直すこと。'
+    );
+  }
+}
+// 「全頭では五分から離れるのに性別を揃えるとコイン投げに戻る」も本文の主張。
+if (
+  !(
+    endsAll.superiority !== null &&
+    endsMale.superiority !== null &&
+    endsFemale.superiority !== null &&
+    endsAll.superiority > 0.58 &&
+    Math.abs(endsMale.superiority - 0.5) < 0.06 &&
+    Math.abs(endsFemale.superiority - 0.5) < 0.08
+  )
+) {
+  premiseErrors.push(
+    `優越確率の対比が崩れた（全体${endsAll.superiority?.toFixed(3)} / ` +
+      `牡${endsMale.superiority?.toFixed(3)} / 牝${endsFemale.superiority?.toFixed(3)}）。` +
+      '「性別を揃えるとコイン投げに戻る」と書いた本文を書き直すこと。'
+  );
+}
+// 牝の弱い傾向は順位相関に寄りかかっているので、そこも守る。
+if (!(rFemale.spearman !== null && rFemale.spearman > 0)) {
+  premiseErrors.push(
+    `牝の順位相関の向きが変わった（rs=${rFemale.spearman?.toFixed(3)}）。` +
+      '「弱いながら向きが残る」と書いた本文を書き直すこと。'
+  );
+}
+// 「共通のcm境界だと牝の太い側が数十頭しか残らない」＝3分位に切り替えた理由。
+if (!(females.filter(isThick).length < females.length / 10)) {
+  premiseErrors.push(
+    `牝の${BUCKET_THICK}が${females.filter(isThick).length}頭に増えた。` +
+      '3分位に切り替えた理由の説明を見直すこと。'
+  );
+}
+// 勝ち上がり率も「全頭では差・性別内では差なし」と書いているので同じように守る。
+if (!(winAll.usable && winAll.test.p < ALPHA)) {
+  premiseErrors.push(
+    `全頭の勝ち上がり率の差が有意でなくなった（${ratePText(winAll)}）。本文を書き直すこと。`
+  );
+}
+for (const [label, r] of [
+  ['牡', winMale],
+  ['牝', winFemale],
+] as const) {
+  if (r.usable && r.test.p < ALPHA) {
+    premiseErrors.push(
+      `${label}だけで見た勝ち上がり率の差が有意になった（${ratePText(r)}）。本文を書き直すこと。`
+    );
+  }
+}
+// 出走数は「差が無い」だけでなく「細い側の方がむしろ多い」と向きにも言及している。
+if (!(startsWinners.thinMed >= startsWinners.thickMed)) {
+  premiseErrors.push(
+    `勝ち上がり馬の出走数の向きが変わった（${BUCKET_THIN}=${startsWinners.thinMed}戦 / ` +
+      `${BUCKET_THICK}=${startsWinners.thickMed}戦）。「細い側の方がむしろ多い」と書いた本文を直すこと。`
+  );
+}
+// 重賞馬は「同性の中央値から大きく外れない」と書いている。ズレ幅が開いたら文が嘘になる。
+if (!(gradeGirthGapMax <= 0.5)) {
+  premiseErrors.push(
+    `重賞馬の管囲が同性の中央値から${gradeGirthGapMax.toFixed(1)}cm離れた。` +
+      '「偏りではない」と書いた本文を書き直すこと。'
+  );
+}
+if (!(startsWinners.mw.p >= ALPHA)) {
+  premiseErrors.push(
+    `勝ち上がり馬に絞った出走数の差が有意になった（p=${startsWinners.mw.p.toFixed(4)}）。` +
+      '「勝った後に走り続けられる長さに差は無い」と書いた本文を書き直すこと。'
+  );
+}
+// 体高は「全体で見たときの数字が性別を揃えてもほとんど目減りしない」と書いている。
+// 絶対値の下限だけだと半減しても素通りするので、全体との比で守る（reviewer指摘・2026-08-30）。
+if (
+  !(
+    heightRow.male.pearson !== null &&
+    heightRow.all.pearson !== null &&
+    heightRow.male.pearson >= heightRow.all.pearson * 0.7
+  )
+) {
+  premiseErrors.push(
+    `体高が牡の中で目減りした（全体 r=${heightRow.all.pearson?.toFixed(3)} → 牡 r=${heightRow.male.pearson?.toFixed(3)}）。` +
+      '「体高は性別を揃えても数字が落ちない」と書いた本文を書き直すこと。'
+  );
+}
+// 「管囲と体高の落ち方が違う」という対比そのものも条件にする。
+if (
+  !(
+    caretRow.all.pearson !== null &&
+    caretRow.male.pearson !== null &&
+    heightRow.all.pearson !== null &&
+    heightRow.male.pearson !== null &&
+    caretRow.male.pearson / caretRow.all.pearson < heightRow.male.pearson / heightRow.all.pearson
+  )
+) {
+  premiseErrors.push(
+    '性別を揃えたときの目減りが、管囲より体高の方が大きくなった。' +
+      '「落ちるのは管囲の方」という対比を書き直すこと。'
+  );
+}
+// 胸囲は「性別を揃えても揃えなくても薄いまま」と書いている。
+if (!(chestRow.all.pearsonP !== null && chestRow.all.pearsonP >= ALPHA)) {
+  premiseErrors.push(
+    `胸囲が全体で有意になった（${formatP(chestRow.all.pearsonP ?? NaN)}）。` +
+      '「胸囲は元から関係が薄い」と書いた本文を書き直すこと。'
+  );
+}
+if (premiseErrors.length > 0) {
+  throw new Error(`管囲記事の前提が崩れた:\n- ${premiseErrors.join('\n- ')}`);
+}
+
+const RECRUIT_YEARS = [2017, 2018, 2019, 2020, 2021, 2022, 2023, 2024, 2025];
+const yearCounts = RECRUIT_YEARS.map((y) => `${y}年${all.filter((h) => h.recruitYear === y).length}頭`).join('・');
+const yearRangeLabel = `${RECRUIT_YEARS[0]}〜${RECRUIT_YEARS[RECRUIT_YEARS.length - 1]}年`;
+
+// 広告コードは他の記事と同じもの（本人の判断で使い回し。vault: 20260821-article-ad-embed-snippets）
+const AD_SP_WIDE_A = 'f81bbb016a82d6366a0e2f70051b1a0c';
+const AD_SP_WIDE_B = 'b4b7d55c89d5fc92c564979491a16ad1';
+const AD_SP_RECT = '24e3e1a24f40d88ee1a0ca315c54a7b9';
+const AD_PC_WIDE_A = 'f0efb5bd6ae3e164bb584a4dbb846f48';
+const AD_PC_WIDE_B = '0a525f6469ec1f40642b4550e53d39cc';
+
+const description = `【非公式】キャロットクラブ${yearRangeLabel}${all.length}頭の募集時データと現在の競走成績を独自集計。管囲の太さと獲得賞金の関係を調べたら、正体は牡と牝の差だった。測尺を牡牝で分けて見る話。`;
+---
+
+<BaseLayout
+  title="管囲が太い馬は走るのか？"
+  description={description}
+  breadcrumb={[{ label: '分析記事', href: '/articles/' }, { label: '管囲が太い馬は走るのか？', href: '/articles/caret-girth/' }]}
+  showHeaderNotices={false}
+  ogImage="/og-article-caret-girth-v1.png"
+  ogImageAlt={`分析記事「管囲が太い馬は走るのか？」のカード画像（【非公式】キャロットクラブ出資馬検討ツール）`}
+>
+  <article>
+    <h1>管囲が太い馬は走るのか？</h1>
+
+    <p>
+      カタログの測尺欄で、体高・胸囲・馬体重はみんな見るけれど、その右端にある「管囲」まで
+      じっくり見ている人は少ないと思う。前脚の細い部分（管）の周囲で、骨の太さの目安とされる
+      数字だ。「管が太い馬は骨が丈夫で長く走れる」という話も聞くので、
+      <a href="/articles/chest-girth/">胸囲</a>がほぼ無関係だった流れで、今度はこの管囲を
+      調べてみた。{yearRangeLabel}募集（{yearCounts}）に、{resultsAsOf}時点の獲得賞金・
+      通算成績を突き合わせた独自集計。
+    </p>
+    <p>
+      先に言ってしまうと、<strong>管囲は最初「これは効いている」と思わせておいて、
+      正体は牡と牝の差だった</strong>。測尺を見るときの落とし穴の話として読んでもらえたら。
+    </p>
+
+    <StatTiles
+      tiles={[
+        { label: '対象頭数', value: `${all.length}頭`, note: `牡${males.length}頭・牝${females.length}頭` },
+        { label: '出走済み', value: `${raced.length}頭` },
+        { label: '未出走', value: `${unraced}頭`, note: '大半が直近の募集組' },
+        { label: '管囲の範囲', value: `${girthMin}〜${girthMax}cm`, note: `中央値${girthMedian}cm` },
+        {
+          label: '牡と牝の中央値の差',
+          value: `${(maleGirthMedian - femaleGirthMedian).toFixed(1)}cm`,
+          note: `牡${maleGirthMedian}cm / 牝${femaleGirthMedian}cm`,
+        },
+      ]}
+    />
+
+    <ArticleToc />
+
+    <AdSlot sp={AD_SP_WIDE_A} pc={AD_PC_WIDE_A} />
+
+    <h2>管囲の分布</h2>
+    <p>
+      まず母集団から。{all.length}頭の管囲は{girthMin}〜{girthMax}cmに分布していて、
+      平均{girthMean.toFixed(2)}cm・中央値{girthMedian}cm。同じ測尺欄でも体高は
+      {heightRange.min}〜{heightRange.max}cm（幅{(heightRange.max - heightRange.min).toFixed(0)}cm）、
+      胸囲は{chestRange.min}〜{chestRange.max}cm（同{(chestRange.max - chestRange.min).toFixed(0)}cm）に
+      広がるので、<strong>管囲は{(girthMax - girthMin).toFixed(1)}cmの幅にほぼ全頭が収まる、
+      目盛りの細かい指標</strong>ということになる。0.1cm刻みで測られていて、
+      1cmの違いがかなり大きな差になる。
+    </p>
+    <BarChart
+      title={`管囲の分布（全${all.length}頭・0.5cm刻み）`}
+      bars={allBins}
+      valueLabel="頭数"
+    />
+
+    <AdSlot sp={AD_SP_WIDE_B} pc={AD_PC_WIDE_B} />
+
+    <h2>まとめて見ると、太い馬ほど稼いでいる</h2>
+    <p>
+      出走済みの{raced.length}頭を管囲で3階級に分けて、獲得賞金合計（中央+地方、万円）の
+      中央値を取るとこうなった。獲得賞金は一部の大物に大きく引っ張られるので、平均ではなく
+      外れ値に強い中央値で見ている。
+    </p>
+    <BarChart
+      title="管囲階級別 獲得賞金合計の中央値"
+      bars={prizeBars}
+      valueLabel="獲得賞金合計の中央値"
+      nLabel="中央値の母数（出走済み）"
+      noteLabel="階級全体"
+    />
+    <p>
+      きれいに右上がりで、{BUCKET_THIN}（{endsAll.thinN}頭）の{formatManYen(Math.round(endsAll.thinMed))}万円に対して
+      {BUCKET_THICK}（{endsAll.thickN}頭）は{formatManYen(Math.round(endsAll.thickMed))}万円。
+      2群の差の検定（Mann-Whitney）でも {formatP(endsAll.mw.p)} で、はっきり差が出ている。
+      勝ち上がり（1勝以上）の率も{winAll.thinRate.toFixed(1)}%（{winAll.thinN}頭中）に対して
+      {winAll.thickRate.toFixed(1)}%（{winAll.thickN}頭中）で、
+      {formatP(winAll.test.p)}。相関係数もピアソンで r={rAll.pearson?.toFixed(3)}、
+      順位ベースのスピアマンで r={rAll.spearman?.toFixed(3)}と、
+      体高（r={heightRow.all.pearson?.toFixed(3)}）や胸囲（r={chestRow.all.pearson?.toFixed(3)}）を
+      上回る。これまで調べた測尺の中で一番強い数字だ。
+    </p>
+    <ScatterChart
+      title={`管囲 × 獲得賞金合計（出走済み・1億円未満${scatterPoints.length}頭）`}
+      points={scatterPoints}
+      series={sexSeries}
+      xLabel="管囲(cm)"
+      yLabel="獲得賞金合計(万円)"
+      xDomain={[girthMin - 0.3, girthMax + 0.3]}
+      yDomain={[0, SCATTER_Y_MAX]}
+      xTicks={[18, 19, 20, 21, 22, 23]}
+      yTicks={[0, 2500, 5000, 7500, 10000]}
+      formatX={(v) => `${v}`}
+      formatY={(v) => (v === 0 ? '0' : `${v / 1000}k`)}
+    />
+    <p class="table-note">
+      獲得賞金合計が1億円を超える{scatterOmitted}頭はグラフの外に出るため省略した
+      （後述の重賞馬の表を参照）。
+    </p>
+    <p>
+      ……ところが、この散布図の点の色をよく見てほしい。<strong>左側にほとんど牡（青）がいない。</strong>
+    </p>
+
+    <AdSlot sp={AD_SP_WIDE_A} pc={AD_PC_WIDE_A} />
+
+    <h2>管囲は牡と牝でまるで違う</h2>
+    <p>
+      同じ0.5cm刻みで、牡{males.length}頭と牝{females.length}頭を別々にヒストグラムにすると、
+      山の位置がはっきりずれている。中央値は牡{maleGirthMedian}cm・牝{femaleGirthMedian}cmで、
+      その差{(maleGirthMedian - femaleGirthMedian).toFixed(1)}cm。分布の幅が
+      {(girthMax - girthMin).toFixed(1)}cmしかない指標での{(maleGirthMedian - femaleGirthMedian).toFixed(1)}cm差は大きい。
+    </p>
+    <BarChart
+      title={`管囲の分布・牡${males.length}頭（0.5cm刻み）`}
+      bars={maleBins}
+      valueLabel="頭数"
+      axisMax={sexHistAxisMax}
+    />
+    <BarChart
+      title={`管囲の分布・牝${females.length}頭（0.5cm刻み・上のグラフと同じ物差し）`}
+      bars={femaleBins}
+      valueLabel="頭数"
+      axisMax={sexHistAxisMax}
+    />
+    <p>
+      結果として、管囲で並べ替えると事実上「牡から並ぶ」ことになる。
+      {BUCKET_THICK}の{thickHorses.length}頭のうち牡は<strong>{thickMaleShare.toFixed(1)}%</strong>、
+      逆に{BUCKET_THIN}の{thinHorses.length}頭では牡は<strong>{thinMaleShare.toFixed(1)}%</strong>しかいない。
+      さっきの「太い階級と細い階級の比較」は、ほとんど<strong>牡の群と牝の群を比べていた</strong>ことになる。
+    </p>
+    <div class="finding">
+      <p class="finding-lead">そして牡と牝では、稼ぐ額がそもそも違う</p>
+      <p>
+        出走済みで見ると、獲得賞金合計の中央値は牡が{formatManYen(Math.round(maleMedianPrize))}万円
+        （{racedMales.length}頭）、牝が{formatManYen(Math.round(femaleMedianPrize))}万円
+        （{racedFemales.length}頭）で、{formatP(sexMw.p)}。牡牝混合戦が基本で、
+        賞金の高いレースほど牡が出てくることを考えれば当然の差だが、
+        <strong>「太い群 ＝ ほぼ牡の群」が「細い群 ＝ ほぼ牝の群」より稼いでいる</strong>のは、
+        管囲の効果なのか性別の効果なのか、これだけでは区別がつかない。
+      </p>
+    </div>
+
+    <AdSlot sp={AD_SP_WIDE_B} pc={AD_PC_WIDE_B} />
+
+    <h2>性別を揃えて比べ直す</h2>
+    <p>
+      では牡だけ・牝だけで比べ直す。ここで注意がいるのが階級の切り方で、
+      さっきと同じ20cm・21cmで切ると<strong>牝の「21cm以上」は{females.filter(isThick).length}頭しか
+      いない</strong>（牝{females.length}頭の{((100 * females.filter(isThick).length) / females.length).toFixed(1)}%）。
+      これでは比較にならないし、かといって牝だけ境界を1cm下げると、境界の置き方しだいで
+      結果が動いてしまう。そこで<strong>同性の中で細い方から3等分</strong>という、
+      迷いようのない切り方にした。牡と牝で同じラベルになるので、2つのグラフをそのまま
+      見比べられる。実際のcm範囲は各棒の下に書いてある。
+    </p>
+    <BarChart
+      title={`牡だけ・管囲の3分位別 獲得賞金合計の中央値（出走済み${racedMales.length}頭）`}
+      bars={malePrizeBars}
+      valueLabel="獲得賞金合計の中央値"
+      nLabel="中央値の母数（出走済み）"
+      noteLabel="管囲の範囲"
+      axisMax={sexPrizeAxisMax}
+    />
+    <BarChart
+      title={`牝だけ・管囲の3分位別 獲得賞金合計の中央値（出走済み${racedFemales.length}頭・上と同じ物差し）`}
+      bars={femalePrizeBars}
+      valueLabel="獲得賞金合計の中央値"
+      nLabel="中央値の母数（出走済み）"
+      noteLabel="管囲の範囲"
+      axisMax={sexPrizeAxisMax}
+    />
+    <p>
+      棒だけ見ると牡はまだ右上がりに見える。ところが<strong>細い1/3と太い1/3を検定にかけると、
+      牡は{formatP(endsMale.mw.p)}・牝は{formatP(endsFemale.mw.p)}で、どちらも差とは言えない</strong>。
+      中央値は上がっているのに検定が通らないのは、獲得賞金の散らばりが大きく、
+      2つの群がほとんど重なっているからだ。
+    </p>
+    <p>
+      これは「細い群と太い群から1頭ずつ選んで比べたら、太い方が上回るのは何%か」を出すと
+      分かりやすい。まったく差が無ければ50%（コイン投げ）になる数字だ。
+    </p>
+    <StatTiles
+      tiles={[
+        {
+          label: '全頭をまとめたとき',
+          value: `${((endsAll.superiority ?? 0) * 100).toFixed(1)}%`,
+          note: `${BUCKET_THIN} vs ${BUCKET_THICK}`,
+        },
+        {
+          label: '牡だけ',
+          value: `${((endsMale.superiority ?? 0) * 100).toFixed(1)}%`,
+          note: '細い1/3 vs 太い1/3',
+        },
+        {
+          label: '牝だけ',
+          value: `${((endsFemale.superiority ?? 0) * 100).toFixed(1)}%`,
+          note: '細い1/3 vs 太い1/3',
+        },
+        { label: 'まったく差が無いとき', value: '50.0%', note: 'コイン投げと同じ' },
+      ]}
+    />
+    <p>
+      全頭をまとめると{((endsAll.superiority ?? 0) * 100).toFixed(1)}%と五分から離れるのに、
+      性別を揃えると牡{((endsMale.superiority ?? 0) * 100).toFixed(1)}%・
+      牝{((endsFemale.superiority ?? 0) * 100).toFixed(1)}%で、ほぼコイン投げに戻る。
+      勝ち上がり率も同じで、全頭では{winAll.thinRate.toFixed(1)}% →
+      {winAll.thickRate.toFixed(1)}%（{formatP(winAll.test.p)}）と開いていたのに、
+      牡は{winMale.thinRate.toFixed(1)}% → {winMale.thickRate.toFixed(1)}%
+      （{ratePText(winMale)}）、牝は{winFemale.thinRate.toFixed(1)}% →
+      {winFemale.thickRate.toFixed(1)}%（{ratePText(winFemale)}）でほとんど動かない。
+    </p>
+    <p>
+      ただし<strong>牡と牝で中身はけっこう違う</strong>ので、そこは分けて書いておきたい。
+    </p>
+    <ul class="split-note">
+      <li>
+        <strong>牡はきれいに消える。</strong>中央値こそ
+        {formatManYen(Math.round(endsMale.thinMed))}万円 →
+        {formatManYen(Math.round(endsMale.thickMed))}万円と上がるが、
+        1頭ずつ比べれば{((endsMale.superiority ?? 0) * 100).toFixed(1)}%とほぼコイン投げ。
+        階級に頼らない順位相関（スピアマン）で見ても r={rMale.spearman?.toFixed(3)}
+        （{formatP(rMale.spearmanP ?? NaN)}）でほぼ完全にゼロだ。出走済み{racedMales.length}頭という
+        頭数があってこれなので、「少なくて見えない」のではなく
+        <strong>関係そのものが見当たらない</strong>と言ってよさそうだ。
+      </li>
+      <li>
+        <strong>牝は弱い傾向が残る。</strong>グラフを見ると、細い1/3
+        （{femaleScheme.rangeOfGroup('細い1/3')}）だけが{formatManYen(Math.round(endsFemale.thinMed))}万円と低く、
+        真ん中と太い1/3はほぼ横並び。<strong>太いほど良いという単調な関係ではなく、
+        極端に細い側だけが沈んでいる</strong>形だ。両端の検定は{formatP(endsFemale.mw.p)}で通らないが、
+        順位相関では r={rFemale.spearman?.toFixed(3)}（{formatP(rFemale.spearmanP ?? NaN)}）と
+        弱いながら向きが残る。切り方によって見え方が変わる程度の弱さ、と受け取ってほしい。
+      </li>
+    </ul>
+    <p>
+      いずれにせよ、全頭で見えた強い関係（r={rAll.pearson?.toFixed(3)} /
+      スピアマン{rAll.spearman?.toFixed(3)}）ほどのものは、性別を揃えるとどちらにも残らない。
+      <strong>牡と牝を混ぜたことで生まれた見かけの大きさだった</strong>、と考えるのが素直だ。
+    </p>
+
+    <div class="ad-rect">
+      <AdSlot sp={AD_SP_RECT} pc={AD_PC_WIDE_A} />
+    </div>
+
+    <h2>他の測尺はどうなのか</h2>
+    <p>
+      同じことを体高・馬体重・胸囲でもやってみた。まず「その測尺が牡と牝でどれだけ違うか」。
+      cmとkgをそのまま比べても大小は言えないので、<strong>牡牝の中央値の差が、その測尺の
+      ばらつき（標準偏差）何個ぶんか</strong>に換算してある。0.5なら「牡牝の分布が半個ぶんずれている」、
+      0なら「牡も牝も同じ」という読み方になる。
+    </p>
+    <div class="table-scroll">
+      <table class="measures">
+        <thead>
+          <tr>
+            <th>測尺</th>
+            <th>牡の中央値</th>
+            <th>牝の中央値</th>
+            <th>牡牝の差<br />（標準偏差いくつぶん）</th>
+          </tr>
+        </thead>
+        <tbody>
+          {measureRows.map((m) => (
+            <tr class={m.key === 'caretGirth' ? 'highlight' : undefined}>
+              <td>{m.label}</td>
+              <td>{m.sex.maleMedian}{unit(m.key)}</td>
+              <td>{m.sex.femaleMedian}{unit(m.key)}</td>
+              <td>{m.sex.gapInSd.toFixed(2)} SD</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+    <p>
+      <strong>管囲だけが桁違いだ。</strong>{caretRow.sex.gapInSd.toFixed(2)}SDというのは、
+      牡と牝の山がほとんど重ならないくらいずれているということ。馬体重は
+      {weightRow.sex.gapInSd.toFixed(2)}SD、体高は{heightRow.sex.gapInSd.toFixed(2)}SD、
+      胸囲に至っては{chestRow.sex.gapInSd.toFixed(2)}SDで牡も牝も中央値が同じ
+      （どちらも{chestRow.sex.maleMedian}cm）。「牡は牝より大きい」とひとことで言っても、
+      どこが大きくなるかは測尺ごとにまるで違って、<strong>骨の太さの目安とされる管囲に性差が
+      集中している</strong>。だから管囲で並べると性別で並んでしまう。
+    </p>
+    <p>
+      では賞金との相関はどうか。こちらは全体・牡・牝に分けて、相関係数と一緒に
+      「その数字が偶然でも起こりうる程度か」（p値）も並べておく。
+      母数が違う群の相関係数だけを見比べると、頭数が減って揺らいだだけなのを
+      「効果が消えた」と読んでしまうので。
+    </p>
+    <div class="table-scroll">
+      <table class="measures">
+        <thead>
+          <tr>
+            <th>測尺</th>
+            <th>全体（{raced.length}頭）</th>
+            <th>牡だけ（{racedMales.length}頭）</th>
+            <th>牝だけ（{racedFemales.length}頭）</th>
+          </tr>
+        </thead>
+        <tbody>
+          {measureRows.map((m) => (
+            <tr class={m.key === 'caretGirth' ? 'highlight' : undefined}>
+              <td>{m.label}</td>
+              <td>r={m.all.pearson?.toFixed(3)}<br /><span class="sub">{formatP(m.all.pearsonP ?? NaN)}</span></td>
+              <td>r={m.male.pearson?.toFixed(3)}<br /><span class="sub">{formatP(m.male.pearsonP ?? NaN)}</span></td>
+              <td>r={m.female.pearson?.toFixed(3)}<br /><span class="sub">{formatP(m.female.pearsonP ?? NaN)}</span></td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+    <p class="table-note">
+      出走済みのみ。いずれもピアソンの相関係数。
+    </p>
+    <p>
+      正直に書くと、<strong>性別を揃えるとどの測尺も弱くなる</strong>。牡だけで有意なものは
+      体高がぎりぎり（r={heightRow.male.pearson?.toFixed(3)} /
+      {formatP(heightRow.male.pearsonP ?? NaN)}）で、牝だけだとどれも有意にならない。
+      頭数が半分になれば当然そうなりやすいので、この表から
+      「この測尺は効く／効かない」を決めることはできない。
+    </p>
+    <div class="finding">
+      <p class="finding-lead">それでも、落ち方は管囲だけが極端</p>
+      <p>
+        体高は全体 r={heightRow.all.pearson?.toFixed(3)} → 牡 r={heightRow.male.pearson?.toFixed(3)}と、
+        数字そのものはほとんど目減りしない。牡牝を分けても見え方が変わらない、という意味だ。
+        <a href="/articles/height/">体高の記事</a>で見た弱い傾向は、少なくとも性差の影ではない。
+        胸囲は元から全体で r={chestRow.all.pearson?.toFixed(3)}（{formatP(chestRow.all.pearsonP ?? NaN)}）で、
+        揃えても揃えなくても薄いまま（<a href="/articles/chest-girth/">胸囲の記事</a>の結論と変わらない）。
+        対して管囲は全体 r={caretRow.all.pearson?.toFixed(3)} → 牡 r={caretRow.male.pearson?.toFixed(3)}、
+        順位相関にいたっては{rAll.spearman?.toFixed(3)} → {rMale.spearman?.toFixed(3)}とほぼ消える。
+        <strong>混ぜて見たときと分けて見たときで話が変わるのは、管囲だけ</strong>だった。
+      </p>
+    </div>
+
+    <AdSlot sp={AD_SP_WIDE_A} pc={AD_PC_WIDE_A} />
+
+    <h2>「管が太い馬は丈夫」は確かめられるか</h2>
+    <p>
+      もう一つの俗説、「管が太い＝骨が丈夫＝故障せず長く走れる」も見ておきたい。
+      ただ、これを出走数で測ろうとすると落とし穴がある。<strong>中央競馬の未勝利戦は3歳の9月上旬で
+      終わるので、そこまでに勝ち上がれなかった馬はほとんどの場合そこで中央を去ることになる</strong>
+      （地方へ移ったり障害に転じたりして走り続ける馬もいる）。つまり出走数は「丈夫だったか」ではなく
+      「勝ち上がれたか」をかなりの部分そのまま映してしまう。実際、すでに3歳を終えた
+      {MATURE_YEAR}年募集までで見ると、デビューしたのに未勝利で終わった{matureNoWin.length}頭の
+      出走数は中央値{noWinStartsMedian}戦、勝ち上がった{matureWinners.length}頭は
+      中央値{winnerStartsMedian}戦。3歳夏の壁を越えられたかどうかで桁が変わる。
+    </p>
+    <p>
+      そこで勝ち上がり有無で分けて見る。出走済み全体で比べた時点で
+      {BUCKET_THIN}が中央値{startsRaced.thinMed}戦・{BUCKET_THICK}が{startsRaced.thickMed}戦
+      （{formatP(startsRaced.mw.p)}）と差とは言えないのだが、<strong>勝ち上がった馬だけに絞ると
+      {startsWinners.thinMed}戦（{startsWinners.thinN}頭）と{startsWinners.thickMed}戦
+      （{startsWinners.thickN}頭）で、細い側の方がむしろ多い（{formatP(startsWinners.mw.p)}）</strong>。
+      性別ごとに（同性内の細い1/3 vs 太い1/3で）見ても、牡が{startsWinnersMale.thinMed}戦
+      （{startsWinnersMale.thinN}頭）vs {startsWinnersMale.thickMed}戦
+      （{startsWinnersMale.thickN}頭）で{formatP(startsWinnersMale.mw.p)}、
+      牝が{startsWinnersFemale.thinMed}戦（{startsWinnersFemale.thinN}頭）vs
+      {startsWinnersFemale.thickMed}戦（{startsWinnersFemale.thickN}頭）で
+      {formatP(startsWinnersFemale.mw.p)}。
+      育成中に潰れずデビューまで辿り着いた率は{debutAll.thinRate.toFixed(1)}%と
+      {debutAll.thickRate.toFixed(1)}%で、太い側が5ポイントほど高いものの
+      {ratePText(debutAll)}で誤差の範囲に収まる。
+    </p>
+    <p class="table-note">
+      骨折や長期休養そのもののデータは手元に無いので、ここで見ているのは
+      「デビューまで辿り着いたか」「勝った後どれだけ走ったか」という間接的な指標。
+      しかも性別で割ると各群は数十頭まで減るので、<strong>この頭数では中くらいの差があっても
+      検出できない</strong>。「差が無いと確かめられた」ではなく「太い方が丈夫だという証拠は
+      出てこなかった」という程度に受け取ってほしい。
+    </p>
+
+    <div class="ad-rect">
+      <AdSlot sp={AD_SP_RECT} pc={AD_PC_WIDE_B} />
+    </div>
+
+    <h2>重賞を勝った馬の管囲</h2>
+    <p>
+      この{all.length}頭のうち重賞（中央G1〜G3・Jpn1〜3、地方重賞含む）を勝ったのは
+      {gradeWinners.length}頭。管囲は{gradeGirthMin}〜{gradeGirthMax}cmに散らばっている。
+      性別で分けると、牡の重賞馬{gradeMales.length}頭の管囲の中央値は{gradeMaleGirthMedian}cm
+      （牡全体は{maleGirthMedian}cm）、牝の重賞馬{gradeFemales.length}頭は
+      {gradeFemaleGirthMedian}cm（牝全体は{femaleGirthMedian}cm）。
+      <strong>どちらも同性の中央値から{gradeGirthGapMax.toFixed(1)}cm以内に収まっている</strong>ので、
+      「重賞を勝つ馬は管が太い」と言えるような偏りではない。
+    </p>
+    <GradeWinnerTable
+      rows={gradeWinnersTop}
+      showCaretGirth
+      groupFor={(h) => h.sex ?? '不明'}
+      groupLabel="性別"
+    />
+    {gradeWinnersRest.length > 0 && (
+      <details class="more-winners">
+        <summary>残りの{gradeWinnersRest.length}頭も見る（獲得賞金{GRADE_WINNERS_VISIBLE + 1}位以下）</summary>
+        <GradeWinnerTable
+          rows={gradeWinnersRest}
+          showCaretGirth
+          groupFor={(h) => h.sex ?? '不明'}
+          groupLabel="性別"
+        />
+      </details>
+    )}
+    <p class="table-note">
+      上の表と折りたたみを合わせた{gradeWinners.length}頭が、{all.length}頭のうち重賞を勝った馬のすべて。
+    </p>
+    {thinMaleEarners.length > 0 && (
+      <div class="finding">
+        <p class="finding-lead">牡で管が細くても、稼ぐ馬は稼ぐ</p>
+        <p>
+          牡の中で管囲が{BUCKET_THIN}だった{racedMales.filter(isThin).length}頭（出走済み）を
+          稼いだ順に並べると、上から
+          {thinMaleEarners.map((h, i) => (
+            <>
+              {i > 0 && '、'}
+              <strong>{h.displayName}</strong>（{h.caretGirth}cm・{formatManYen(h.totalPrizeManYen)}万円）
+            </>
+          ))}
+          。細い側でもこれだけの馬が出ている。カタログの管囲の欄を見て
+          「この馬は細いから」と外す材料にはならなさそうだ。
+        </p>
+      </div>
+    )}
+
+    <h2>まとめ</h2>
+    <ul class="conclusion">
+      <li>全頭をまとめて見ると、管囲は獲得賞金とはっきり結びついて見える
+        （{BUCKET_THIN} {formatManYen(Math.round(endsAll.thinMed))}万円 vs
+        {BUCKET_THICK} {formatManYen(Math.round(endsAll.thickMed))}万円、{formatP(endsAll.mw.p)}）。
+        これまで調べた測尺の中で一番強い数字だった。</li>
+      <li>ところが管囲は<strong>牡と牝で中央値が{(maleGirthMedian - femaleGirthMedian).toFixed(1)}cm違う</strong>
+        （牡{maleGirthMedian}cm / 牝{femaleGirthMedian}cm、性別との相関 r={caretRow.sex.r?.toFixed(3)}）。
+        {BUCKET_THICK}の{thickMaleShare.toFixed(1)}%が牡、{BUCKET_THIN}では牡は{thinMaleShare.toFixed(1)}%。
+        管囲で並べることは、ほぼ牡牝で並べることだった。</li>
+      <li><strong>牡の中では、管囲と成績の関係は見当たらない</strong>
+        （同性内の細い1/3 vs 太い1/3で{formatP(endsMale.mw.p)}、順位相関も
+        r={rMale.spearman?.toFixed(3)} / {formatP(rMale.spearmanP ?? NaN)}）。
+        出走済み{racedMales.length}頭で見てこれなので、頭数不足ではなく関係そのものが無さそう。</li>
+      <li><strong>牝には弱い傾向が残る</strong>。ただし太いほど良いのではなく、
+        極端に細い側（{femaleScheme.rangeOfGroup('細い1/3')}）だけが沈んでいる形。
+        両端の検定は{formatP(endsFemale.mw.p)}で通らず、順位相関で
+        r={rFemale.spearman?.toFixed(3)}（{formatP(rFemale.spearmanP ?? NaN)}）という程度。</li>
+      <li>「管が太い＝丈夫で長く走れる」も、勝ち上がった馬に絞って出走数を比べると差は出なかった
+        （{formatP(startsWinners.mw.p)}・細い側の方がむしろ多い）。デビューに辿り着く率も誤差の範囲。
+        ただしこちらも各群が数十頭なので、中くらいの差なら見逃している。</li>
+      <li>性別を揃えるとどの測尺も弱くなるので、この記事で
+        「効く測尺／効かない測尺」を決めたわけではない。言えるのは
+        <strong>混ぜて見たときと分けて見たときで話が変わるのは管囲だけ</strong>ということ
+        （体高は全体 r={heightRow.all.pearson?.toFixed(3)} → 牡 r={heightRow.male.pearson?.toFixed(3)}で
+        ほとんど変わらない）。</li>
+      <li>実務的には、<a href="/">募集馬一覧</a>で管囲を並べ替えるときは
+        <strong>先に性別で絞ってから</strong>見るのがおすすめ。混ぜたまま上から見ると、
+        「管が太くて良さそうな馬」を選んでいるつもりで牡を選んでいることになる。</li>
+    </ul>
+
+    <h2>データについて</h2>
+    <p>
+      管囲は募集時にクラブが公表した測尺データが元で、{allRecruits.length}頭中{all.length}頭ぶん揃っている。
+      競走成績は{resultsAsOf}時点のスナップショットで、今後レースを重ねるたびに変わっていく。
+      直近の募集組はまだ大半が未出走〜デビュー間もないため、獲得賞金のクロス集計は出走済みの
+      {raced.length}頭が母数。<strong>勝ち上がり率とデビュー率だけは未出走の馬も分母に入れている</strong>
+      （まだ走っていない馬を「勝てなかった」に数える形になるので、そのぶん率は低めに出る）。
+      獲得賞金は中央（JRA）・地方（NAR）の合計で、海外レースの賞金は含まない。
+      賞金は走った年数ぶん積み上がるので募集年の影響を受けるが、{BUCKET_THICK}と{BUCKET_THIN}の
+      平均募集年は{mean(thickHorses.map((h) => h.recruitYear)).toFixed(1)}年と
+      {mean(thinHorses.map((h) => h.recruitYear)).toFixed(1)}年で、階級間の偏りは小さい。
+      性別は募集時のもの。{sexUnknown > 0 && `性別が取れなかった${sexUnknown}頭は牡牝の比較から除いている。`}
+      階級は、全頭をまとめて見るときは20cm・21cmで、性別ごとに見るときは
+      <strong>その性別の中で細い順に3等分</strong>して切っている
+      （牡と牝で管囲が1cm近く違うため、共通のcm境界だと片方の端が数十頭しか残らない）。
+      相関係数はあくまで線形の関係の強さの目安で、これだけで「管囲が成績に影響しない」と
+      断言できるわけではない。性別で割ってさらに3等分すると各群は100頭前後になるので、
+      <strong>はっきりした差は否定できても、小さな差は見逃しうる</strong>。
+      出資判断の材料というより、あくまで趣味の分析として楽しんでもらえたら。
+    </p>
+
+    <p>
+      <a href="/">募集馬一覧へ戻る</a> ／ <a href="/articles/">分析記事一覧へ</a>
+    </p>
+  </article>
+
+  <ChartTooltip />
+</BaseLayout>
+
+<style>
+  article :global(h2) {
+    margin-top: 2.5rem;
+  }
+  .table-note {
+    font-size: 0.8125rem;
+    color: var(--muted);
+  }
+  .finding {
+    margin: 1.25rem 0;
+    padding: 0.9rem 1.1rem;
+    background: var(--accent-weak);
+    border-left: 3px solid var(--accent);
+    border-radius: 0 6px 6px 0;
+  }
+  .finding-lead {
+    margin: 0 0 0.5rem;
+    font-weight: 700;
+  }
+  .finding p:last-child {
+    margin-bottom: 0;
+  }
+  .ad-rect {
+    display: flex;
+    justify-content: center;
+    margin: 1.75rem 0 0.5rem;
+  }
+  .conclusion {
+    padding-left: 1.2rem;
+  }
+  .conclusion li {
+    margin-bottom: 0.6rem;
+  }
+  .more-winners {
+    margin: 0.5rem 0 1rem;
+  }
+  .more-winners summary {
+    cursor: pointer;
+    font-size: 0.9375rem;
+    color: var(--accent);
+  }
+  .table-scroll {
+    overflow-x: auto;
+    margin: 1rem 0;
+  }
+  table.measures {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.875rem;
+    white-space: nowrap;
+  }
+  table.measures th,
+  table.measures td {
+    padding: 0.4rem 0.6rem;
+    border-bottom: 1px solid var(--border);
+    text-align: left;
+  }
+  table.measures th {
+    color: var(--muted);
+    font-weight: 600;
+  }
+  .split-note {
+    padding-left: 1.2rem;
+  }
+  .split-note li {
+    margin-bottom: 0.6rem;
+  }
+  table.measures .sub {
+    font-size: 0.75rem;
+    color: var(--muted);
+    font-weight: 400;
+  }
+  table.measures tr.highlight td {
+    background: var(--accent-weak);
+    font-weight: 600;
+  }
+</style>

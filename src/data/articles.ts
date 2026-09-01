@@ -14,6 +14,13 @@ export interface AnalysisArticle {
 
 export const analysisArticles: AnalysisArticle[] = [
   {
+    href: '/articles/caret-girth/',
+    title: '管囲が太い馬は走るのか？',
+    description:
+      '測尺の右端にある「管囲」と成績の関係を調べたら、これまでで一番はっきりした差が出た。ところが正体は牡と牝の差だった。測尺は性別を揃えて見ないと危ない、という話。',
+    image: '/og-article-caret-girth-v1.png',
+  },
+  {
     href: '/articles/club-siblings/',
     title: '母がサンデー出身の募集馬は活躍しているか？',
     description:

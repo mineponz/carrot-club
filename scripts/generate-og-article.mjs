@@ -107,6 +107,14 @@ const ARTICLES = {
     chips: ['3つの俗説を検証', '牡馬・牝馬で比較', '重賞勝ち馬を全掲載'],
     buildChart: birthOrderChart,
   },
+  'caret-girth': {
+    out: 'og-article-caret-girth-v1.png',
+    headline: ['管囲が太い馬は', '走るのか？'],
+    lead: 'キャロットクラブ 2017〜2025年募集の募集時データ × 現在の競走成績',
+    yearRangePlaceholder: '2017〜2025年',
+    chips: ['牡と牝に分けて検証', '測尺4種を比較', '重賞勝ち馬を全掲載'],
+    buildChart: caretGirthChart,
+  },
   'club-siblings': {
     out: 'og-article-club-siblings-v1.png',
     headline: ['母がサンデー出身の', '募集馬は活躍しているか？'],
@@ -289,6 +297,24 @@ function chestGirthChart() {
     yearRangeLabel,
     html: `<div class="mini-chart">${bars}</div>`,
     caption: '胸囲の分布（3cm刻み）',
+  };
+}
+
+/**
+ * 記事と同じ管囲分布（0.5cm刻み・17.5〜23.5cm）をミニ棒グラフのHTMLにする
+ * （caret-girth.astro と同じbinning）。12本になるので `barsHtml` で幅を逆算させる。
+ */
+function caretGirthChart() {
+  const recruits = JSON.parse(readFileSync(join(repoRoot, 'analysis', 'data', 'recruits.json'), 'utf8'));
+  const girths = recruits.map((h) => h.caretGirth).filter((v) => typeof v === 'number');
+  const bins = histogram(girths, 0.5, 17.5, 23.5);
+  const years = [...new Set(recruits.map((r) => r.recruitYear))].sort((a, b) => a - b);
+  const yearRangeLabel = years.length > 0 ? `${years[0]}〜${years[years.length - 1]}年` : '';
+  return {
+    total: girths.length,
+    yearRangeLabel,
+    html: barsHtml(bins.map((b) => b.count)),
+    caption: '管囲の分布（0.5cm刻み）',
   };
 }
 
