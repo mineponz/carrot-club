@@ -1,20 +1,27 @@
 ---
 /**
- * ツアー後馬体重ページ（`/tour-weight/`）。
+ * ツアー後馬体重ページ（`/2026/tour-weight/`）。
  *
  * 2026年募集馬の「募集時馬体重」（`horses2026.ts` の `weight`）と「ツアー後馬体重」
  * （クラブ公式PDF・8月中旬時点、`src/data/tourWeight2026.ts`）を並べて見比べるための
  * 単独ページ（本人依頼・2026-08-31）。個別ページ（HorseDetail.astro）への反映は別対応。
  *
+ * **中身が100%2026年募集馬**（`horses2026.ts` + `tourWeight2026.ts`）で年度切替の仕組みが無いため、
+ * 個別ページと同じく**年度付きURLが正本**。年度なしの `/tour-weight/` は `src/lib/redirects.ts` で
+ * 301するだけの別名にしてある（一覧トップ `/` だけが年度なしのまま＝意図的な非対称）。
+ *
  * 表の行はビルド時とブラウザ側の両方で `tourWeightRowHtml()` から作る。ビルド時に
  * 全頭を埋め込んでおかないと、サーバーが返すHTMLに1件もデータが含まれず
  * （クローラーには空の表しか見えない）検索に載らない。
  */
-import BaseLayout from '../layouts/BaseLayout.astro';
-import { horses2026 } from '../data/horses2026.ts';
-import { TOUR_WEIGHT_AS_OF, TOUR_WEIGHT_BY_ID } from '../data/tourWeight2026.ts';
-import { tourWeightRows, sortTourWeightRows } from '../lib/tour-weight.ts';
-import { TOUR_WEIGHT_COLUMNS, tourWeightRowHtml } from '../lib/tour-weight-row.ts';
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import { horses2026 } from '../../data/horses2026.ts';
+import { TOUR_WEIGHT_AS_OF, TOUR_WEIGHT_BY_ID } from '../../data/tourWeight2026.ts';
+import { tourWeightRows, sortTourWeightRows } from '../../lib/tour-weight.ts';
+import { TOUR_WEIGHT_COLUMNS, tourWeightRowHtml } from '../../lib/tour-weight-row.ts';
+
+// 馬名から飛ぶ個別ページも年度付きが正本。既定値まかせにせず年度ごとに明示する（`/2025/` 側と同じ書き方）
+const DETAIL_BASE_PATH = '/2026/horses/';
 
 const rows = tourWeightRows(horses2026, TOUR_WEIGHT_BY_ID);
 const total = rows.length;
@@ -26,7 +33,7 @@ const unchangedCount = rows.filter((r) => r.diff === 0).length;
 
 // 初期表示は募集番号順（並べ替えに評価的な意味を持たせないため。見出しを押せば増減順にもできる）
 const initialRowsHtml = sortTourWeightRows(rows, 'id', 'asc')
-  .map((row) => tourWeightRowHtml(row))
+  .map((row) => tourWeightRowHtml(row, DETAIL_BASE_PATH))
   .join('\n');
 
 const title = 'ツアー後馬体重（募集時との比較）';
@@ -248,16 +255,19 @@ const description = `【非公式】キャロットクラブ2026年募集馬${to
   </style>
 
   <script>
-    import { horses2026 } from '../data/horses2026.ts';
-    import { TOUR_WEIGHT_BY_ID } from '../data/tourWeight2026.ts';
+    import { horses2026 } from '../../data/horses2026.ts';
+    import { TOUR_WEIGHT_BY_ID } from '../../data/tourWeight2026.ts';
     import {
       tourWeightRows,
       sortTourWeightRows,
       type TourWeightSortKey,
       type SortDirection,
-    } from '../lib/tour-weight.ts';
+    } from '../../lib/tour-weight.ts';
     // 行のマークアップはビルド時と共有する（二重管理にすると初期HTMLとずれる）
-    import { tourWeightRowHtml } from '../lib/tour-weight-row.ts';
+    import { tourWeightRowHtml } from '../../lib/tour-weight-row.ts';
+
+    // frontmatter の定数はクライアント側から参照できないので同じ値をここにも置く
+    const DETAIL_BASE_PATH = '/2026/horses/';
 
     const rows = tourWeightRows(horses2026, TOUR_WEIGHT_BY_ID);
 
@@ -277,7 +287,7 @@ const description = `【非公式】キャロットクラブ2026年募集馬${to
 
     function render() {
       const sorted = sortTourWeightRows(rows, sortKey, sortDirection);
-      tbody.innerHTML = sorted.map((r) => tourWeightRowHtml(r)).join('');
+      tbody.innerHTML = sorted.map((r) => tourWeightRowHtml(r, DETAIL_BASE_PATH)).join('');
       for (const btn of sortButtons) {
         const active = sortKeyOf(btn) === sortKey;
         btn.setAttribute('data-active', String(active));

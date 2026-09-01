@@ -16,7 +16,7 @@
  * `TOUR_WEIGHT_AS_OF` を更新した場合は、こちらの日付も併せて直す。
  */
 
-/** ツアー後馬体重の計測時点の表示（`/tour-weight/` と個別ページで共有する唯一の出所） */
+/** ツアー後馬体重の計測時点の表示（`/2026/tour-weight/` と個別ページで共有する唯一の出所） */
 export const TOUR_WEIGHT_AS_OF = '8月中旬時点';
 
 export const TOUR_WEIGHT_BY_ID: Readonly<Record<string, number | null>> = {

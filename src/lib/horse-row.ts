@@ -84,8 +84,15 @@ export function toggleableColumns(): readonly { key: string; label: string }[] {
   return COLUMNS.filter((col) => !ALWAYS_VISIBLE_COLUMN_KEYS.includes(col.key));
 }
 
-/** 個別ページのURL接頭辞の既定（最新年度＝ルート）。過去年度は `/2025/horses/` を渡す。 */
-export const DEFAULT_DETAIL_BASE_PATH = '/horses/';
+/**
+ * 個別ページのURL接頭辞の既定（＝最新募集年度）。過去年度は `/2025/horses/` のように呼び出し側が渡す。
+ *
+ * 個別ページは**年度付きが正本**（`id` が年度内の通し番号なので、年度なしのURLは年度切替で
+ * 別の馬を指してしまう）。一覧トップ `/` だけは「最新年度の一覧」という意味が変わらないので
+ * 年度なしのまま。**年度を切り替えたらここも変える**（併せて `src/lib/redirects.ts` の
+ * 301の向き先と `src/pages/index.astro` が明示的に渡している値も）。
+ */
+export const DEFAULT_DETAIL_BASE_PATH = '/2026/horses/';
 
 export function escapeHtml(value: string): string {
   return value
@@ -107,7 +114,7 @@ export function formatBirthDate(isoDate: string): string {
  */
 /**
  * 個別ページのURL。`trailingSlash: 'always'` なので末尾スラッシュを必ず付ける。
- * 年度によって接頭辞が違う（`/horses/` と `/2025/horses/`）ので呼び出し側が渡す。
+ * 年度によって接頭辞が違う（`/2026/horses/` と `/2025/horses/`）ので呼び出し側が渡す。
  */
 export function horseDetailHref(horseId: string, detailBasePath = DEFAULT_DETAIL_BASE_PATH): string {
   return `${detailBasePath}${encodeURIComponent(horseId)}/`;

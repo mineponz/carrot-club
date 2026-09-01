@@ -29,7 +29,7 @@ test('diffClass: 符号ごとにクラスを返し、nullは空文字', () => {
 test('tourWeightRowHtml: 主要データと個別ページへのリンクを含む', () => {
   const html = tourWeightRowHtml(row);
   assert.match(html, /data-horse-id="7"/);
-  assert.match(html, /href="\/horses\/7\/"/);
+  assert.match(html, /href="\/2026\/horses\/7\/"/);
   assert.match(html, />フィリアプーラの25</);
   assert.match(html, /data-col="weight" class="num">430</);
   assert.match(html, /data-col="tourWeight" class="num">440</);
