@@ -7,7 +7,7 @@
  * ## ルーティング
  * - 旧ドメイン（`carrot-club.mineponz.workers.dev`）宛のアクセス … 独自ドメインへ301リダイレクト
  * - `POST /api/evaluations`          … 自分の評価を1件upsert（rating・メモ・★・消）
- * - `GET  /api/evaluations/summary`  … `?year=` で年度を指定し、馬IDごとのA〜E件数を返す
+ * - `GET  /api/evaluations/summary`  … `?year=` で年度を指定し、馬IDごとのA〜E件数と消の件数を返す
  * - `GET  /api/evaluations/mine`     … `?year=` + `X-Anon-Id`。**そのIDの行だけ**を返す
  * - それ以外                          … `env.ASSETS.fetch(request)` にそのまま流す
  *
@@ -16,9 +16,13 @@
  * サイトの全ページが壊れる。**新しいルートを足すときは必ずこのフォールバックより前に書く。**
  *
  * ## 誰に何が見えるか（ここを崩さないこと）
- * - **他会員に見えるのは summary だけ**。SQLは `rating` を GROUP BY した件数しか SELECT せず、
- *   メモ等の列に触れない。ここに個人の項目を足してはいけない。
- * - メモ・★・消は `mine` でしか返さない。しかも `WHERE anon_id = ?` で本人の行に限る。
+ * - **他会員に見えるのは summary だけ**。SQLが SELECT するのは `rating` ごとの件数と
+ *   `SUM(skip)`（消の人数）だけで、`memo` / `favorite` には触れない。
+ *   ここに個人の項目を足してはいけない。
+ * - 消（skip）の**件数だけ**は 2026-09-01 に summary へ出した（本人の指示。
+ *   「消だけ」の馬が0票に見えるのが実態と違うため。[[20260901-expose-skip-count-in-summary]]）。
+ *   誰が付けたかは出さない。**memo と favorite は引き続き summary に出さない。**
+ * - メモ・★は `mine` でしか返さない。しかも `WHERE anon_id = ?` で本人の行に限る。
  *   匿名IDを知っている人は本人と同じものを読めるので、画面側で「他人に教えない」と明示している。
  * - bodyの検証は src/lib/evaluation-api.ts の `parseSubmissionBody()` に集約。
  *   既知のキー以外は読まずに捨てる。
@@ -209,8 +213,13 @@ async function handleSummary(request: Request, env: Env): Promise<Response> {
   }
 
   try {
+    // rating ごとの件数に加えて、そのグループで消が付いている行数（`SUM(skip)`）を数える。
+    // rating が NULL のグループ（＝A〜Eを付けずに消・★・メモだけ付けた行）も返ってくるが、
+    // summarizeRows() が使うのはその skip_count だけで count は捨てる
+    // （★やメモしか付いていない人数を漏らさないため）。
+    // このグループを拾わないと「消だけ付けられた馬」が集計から丸ごと消える。
     const { results } = await env.DB.prepare(
-      `SELECT horse_id, rating, COUNT(*) AS count
+      `SELECT horse_id, rating, COUNT(*) AS count, SUM(skip) AS skip_count
          FROM evaluations
         WHERE year = ?1
         GROUP BY horse_id, rating`,

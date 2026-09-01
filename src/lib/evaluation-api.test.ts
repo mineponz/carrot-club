@@ -171,8 +171,8 @@ test('summarizeRows: 馬IDごとにA〜Eの件数へ畳む', () => {
     { horse_id: '7', rating: 'E', count: 2 },
   ];
   assert.deepEqual(summarizeRows(rows), {
-    '1': { A: 3, B: 0, C: 1, D: 0, E: 0 },
-    '7': { A: 0, B: 0, C: 0, D: 0, E: 2 },
+    '1': { A: 3, B: 0, C: 1, D: 0, E: 0, skip: 0 },
+    '7': { A: 0, B: 0, C: 0, D: 0, E: 2, skip: 0 },
   });
 });
 
@@ -185,7 +185,37 @@ test('summarizeRows: A〜E以外のratingが紛れ込んでも無視する', () 
     { horse_id: '1', rating: 'A', count: 1 },
     { horse_id: '1', rating: 'S', count: 99 },
   ];
-  assert.deepEqual(summarizeRows(rows), { '1': { A: 1, B: 0, C: 0, D: 0, E: 0 } });
+  assert.deepEqual(summarizeRows(rows), { '1': { A: 1, B: 0, C: 0, D: 0, E: 0, skip: 0 } });
+});
+
+// ---- 消（skip）の集計 ------------------------------------------------------
+//
+// 2026-09-01追加。「消だけ付けた馬」は rating が NULL なので、rating しか数えていなかった
+// 頃は**まだ誰も見ていない馬と区別できなかった**（本人の指摘「消だけというのは
+// なんならEより下」）。
+
+test('summarizeRows: 消だけ付いた馬（ratingがNULL）も集計に現れる', () => {
+  const rows: SummaryRow[] = [{ horse_id: '9', rating: null, count: 4, skip_count: 4 }];
+  // count(=4) は捨てる。★やメモだけ付けた人数まで漏らさないよう、出すのは消の件数だけ
+  assert.deepEqual(summarizeRows(rows), { '9': { A: 0, B: 0, C: 0, D: 0, E: 0, skip: 4 } });
+});
+
+test('summarizeRows: 「Dかつ消」はA〜Eと消の両方に立てる（片方へ繰り込まない）', () => {
+  const rows: SummaryRow[] = [
+    { horse_id: '5', rating: 'D', count: 3, skip_count: 2 },
+    { horse_id: '5', rating: null, count: 1, skip_count: 1 },
+  ];
+  assert.deepEqual(summarizeRows(rows), { '5': { A: 0, B: 0, C: 0, D: 3, E: 0, skip: 3 } });
+});
+
+test('summarizeRows: ratingも消も無いグループ（★・メモだけ）はキーを作らない', () => {
+  const rows: SummaryRow[] = [{ horse_id: '2', rating: null, count: 6, skip_count: 0 }];
+  assert.deepEqual(summarizeRows(rows), {});
+});
+
+test('summarizeRows: skip_count が無い行でも落ちずに0として扱う', () => {
+  const rows: SummaryRow[] = [{ horse_id: '1', rating: 'B', count: 2 }];
+  assert.deepEqual(summarizeRows(rows), { '1': { A: 0, B: 2, C: 0, D: 0, E: 0, skip: 0 } });
 });
 
 test('totalOf: A〜Eの合計票数', () => {
@@ -196,8 +226,18 @@ test('totalOf: A〜Eの合計票数', () => {
 // ---- レスポンスの読み取り（壊れていても落ちない） --------------------------
 
 test('parseSummaryResponse: 正常なレスポンスを読む', () => {
-  const parsed = parseSummaryResponse({ year: 2026, summary: { '3': { A: 2, B: 1 } } });
-  assert.deepEqual(parsed, { '3': { A: 2, B: 1, C: 0, D: 0, E: 0 } });
+  const parsed = parseSummaryResponse({ year: 2026, summary: { '3': { A: 2, B: 1, skip: 4 } } });
+  assert.deepEqual(parsed, { '3': { A: 2, B: 1, C: 0, D: 0, E: 0, skip: 4 } });
+});
+
+test('parseSummaryResponse: 消しか付いていない馬も残す（0票扱いにしない）', () => {
+  const parsed = parseSummaryResponse({ summary: { '9': { skip: 2 } } });
+  assert.deepEqual(parsed, { '9': { A: 0, B: 0, C: 0, D: 0, E: 0, skip: 2 } });
+});
+
+test('parseSummaryResponse: skipを返さない旧デプロイのレスポンスも読める', () => {
+  const parsed = parseSummaryResponse({ summary: { '3': { A: 1 } } });
+  assert.deepEqual(parsed, { '3': { A: 1, B: 0, C: 0, D: 0, E: 0, skip: 0 } });
 });
 
 test('parseSummaryResponse: 壊れていても例外を投げず空を返す', () => {
@@ -211,19 +251,21 @@ test('parseSummaryResponse: 数値でない件数・0件・マイナスは捨て
     summary: { '1': { A: '5', B: 0, C: -3 }, '2': { A: 1 } },
   });
   // '1' はどの評価も有効な件数を持たないのでキーごと落ちる
-  assert.deepEqual(parsed, { '2': { A: 1, B: 0, C: 0, D: 0, E: 0 } });
+  assert.deepEqual(parsed, { '2': { A: 1, B: 0, C: 0, D: 0, E: 0, skip: 0 } });
 });
 
 // ---- 自分のデータ（端末間同期） --------------------------------------------
 
-test('summarizeRows: 他会員に見せる集計にはメモ等が混ざらない', () => {
-  // 集計SQLは rating しか SELECT しないが、万一行に混ざっても外へ出ないことを担保する
+test('summarizeRows: 他会員に見せる集計にはメモ・★が混ざらない', () => {
+  // 集計SQLは rating と SUM(skip) しか SELECT しないが、万一行に混ざっても外へ出ないことを担保する。
+  // 出てよいのは消の**件数**（skip_count）だけで、生の skip 列も memo も favorite も出さない。
   const rows = [
-    { horse_id: '1', rating: 'A', count: 1, memo: MEMO, favorite: 1, skip: 1 },
+    { horse_id: '1', rating: 'A', count: 1, skip_count: 1, memo: MEMO, favorite: 1, skip: 1 },
   ] as unknown as SummaryRow[];
   const summary = summarizeRows(rows);
   assert.equal(JSON.stringify(summary).includes('脚元'), false);
-  assert.deepEqual(summary, { '1': { A: 1, B: 0, C: 0, D: 0, E: 0 } });
+  assert.equal(JSON.stringify(summary).includes('favorite'), false);
+  assert.deepEqual(summary, { '1': { A: 1, B: 0, C: 0, D: 0, E: 0, skip: 1 } });
 });
 
 test('rowsToEvaluationMap: D1の 0/1 を boolean に直して localStorage と同じ形にする', () => {

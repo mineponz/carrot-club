@@ -5,8 +5,8 @@
  * import する。ここに置いてあるのは副作用の無い純粋関数だけなので `node --test` で検証できる。
  *
  * ## 2つの用途をはっきり分ける（この層の一番の仕事）
- * 1. **他会員に見せる集計**（`/api/evaluations/summary`）… A〜Eの**件数だけ**。
- *    `summarizeRows()` が rating 以外を一切見ないので、メモが混ざる経路が無い。
+ * 1. **他会員に見せる集計**（`/api/evaluations/summary`）… A〜Eの件数と**消（skip）の件数だけ**。
+ *    `summarizeRows()` が rating と skip 以外を一切見ないので、メモが混ざる経路が無い。
  * 2. **本人だけが読む同期用データ**（`/api/evaluations/mine`）… 匿名IDに紐づいた
  *    rating・メモ・お気に入り・消。`X-Anon-Id` が一致する行しか返さない。
  *
@@ -15,6 +15,11 @@
  * 本人専用の置き場だけを足している。うっかり混線しないよう、送信の payload は
  * オブジェクトを丸ごと写さず `buildSubmissionBody()` でキーを明示的に組み立て、
  * 受け側の `parseSubmissionBody()` も既知のキーだけを1つずつ読む（スプレッドで写さない）。
+ *
+ * 2026-09-01、**消（skip）の件数だけ**を集計に足した（本人の指示。「消だけというのは
+ * なんならEより下」＝見た上で切った馬が0票として見えないのは実態と違う、という判断）。
+ * 公開が増えたのは skip の件数のみで、**memo と favorite は今まで通り `/mine` 専用**。
+ * ここを緩めるときは必ず [[20260901-expose-skip-count-in-summary]] と同じ手順を踏むこと。
  */
 
 import type { Evaluation, EvaluationMap, Rating } from './evaluations.ts';
@@ -38,8 +43,23 @@ export const RATINGS = ['A', 'B', 'C', 'D', 'E'] as const;
 /** 馬IDごとの A〜E それぞれの件数 */
 export type RatingCounts = Record<Rating, number>;
 
-/** 馬IDごとの集計。1票も入っていない馬はキー自体を持たない */
-export type EvaluationSummary = Record<string, RatingCounts>;
+/**
+ * 馬IDごとの集計の中身。A〜Eの件数に「消」を足したもの。
+ *
+ * **`skip` は A〜E とは独立した値**。同じ人が「Bだけど消」と付けることができる列なので、
+ * `skip` と A〜E の合計は一致しないし、足し合わせても人数にはならない。
+ * 「消をEより下に置く」ような重み付けは**読む側でやる**（APIは生の件数だけを返す）。
+ *
+ * `RatingCounts` を継承した形にしてあるので、A〜Eしか見ない既存の表示関数
+ * （`peer-eval.ts`）にはそのまま渡せる。
+ */
+export interface HorseCounts extends RatingCounts {
+  /** 「消（見送り）」を付けた人数。rating を付けずに消だけ、という行も含む */
+  skip: number;
+}
+
+/** 馬IDごとの集計。A〜Eも消も1件も無い馬はキー自体を持たない */
+export type EvaluationSummary = Record<string, HorseCounts>;
 
 /**
  * POSTのbody。**ここに書いてあるフィールド以外は存在しない**（受け側も読まない）。
@@ -75,6 +95,11 @@ export type ParseResult<T> = { ok: true; value: T } | { ok: false; error: string
 
 export function emptyRatingCounts(): RatingCounts {
   return { A: 0, B: 0, C: 0, D: 0, E: 0 };
+}
+
+/** A〜E＋消のゼロ値。集計（`EvaluationSummary`）に入れる箱はこちらを使う */
+export function emptyHorseCounts(): HorseCounts {
+  return { ...emptyRatingCounts(), skip: 0 };
 }
 
 export function isRating(value: unknown): value is Rating {
@@ -175,23 +200,39 @@ export function parseSubmissionBody(raw: unknown): ParseResult<EvaluationSubmiss
   return { ok: true, value };
 }
 
-/** D1の `GROUP BY horse_id, rating` の結果1行ぶん */
+/**
+ * D1の `GROUP BY horse_id, rating` の結果1行ぶん。
+ *
+ * `rating` は **null がありうる**（A〜Eを付けずに消・★・メモだけ付けた行のグループ）。
+ * そのグループの `count` は使わない（★やメモだけの人数を漏らさないため）が、
+ * `skip_count` は数える。「消だけ」がここに入るので、これを無視すると
+ * **見た上で切られた馬が0票に見える**。
+ */
 export interface SummaryRow {
   horse_id: string;
-  rating: string;
+  rating: string | null;
   count: number;
+  /** そのグループのうち消が付いている行数（D1では `SUM(skip)`） */
+  skip_count?: number | null;
 }
 
 /**
  * 集計クエリの行を馬IDごとのマップに畳む。
- * 1票も無い馬はキーを作らない（94頭ぶんのゼロだけのオブジェクトを毎回返さない）。
+ * A〜Eも消も無い馬はキーを作らない（94頭ぶんのゼロだけのオブジェクトを毎回返さない）。
+ *
+ * **rating と skip は別々に足す。** 同じ行が「Dかつ消」でありうるので、
+ * skip を A〜E のどれかに繰り込んだり、逆にA〜Eから差し引いたりはしない。
  */
 export function summarizeRows(rows: readonly SummaryRow[]): EvaluationSummary {
   const summary: EvaluationSummary = {};
   for (const row of rows) {
-    if (!isRating(row.rating)) continue; // CHECK制約があるので通常来ないが、防御的に無視する
-    const counts = summary[row.horse_id] ?? emptyRatingCounts();
-    counts[row.rating] += Number(row.count) || 0;
+    const skip = Number(row.skip_count) || 0;
+    const rating = isRating(row.rating) ? row.rating : null; // CHECK制約があるので想定外の文字列は来ないが、防御的に無視する
+    if (rating === null && skip === 0) continue;
+
+    const counts = summary[row.horse_id] ?? emptyHorseCounts();
+    if (rating !== null) counts[rating] += Number(row.count) || 0;
+    counts.skip += skip;
     summary[row.horse_id] = counts;
   }
   return summary;
@@ -209,15 +250,18 @@ export function parseSummaryResponse(raw: unknown): EvaluationSummary {
   const result: EvaluationSummary = {};
   for (const [horseId, value] of Object.entries(summary as Record<string, unknown>)) {
     if (typeof value !== 'object' || value === null) continue;
-    const counts = emptyRatingCounts();
+    const counts = emptyHorseCounts();
     let hasAny = false;
-    for (const rating of RATINGS) {
-      const n = (value as Record<string, unknown>)[rating];
+    for (const key of [...RATINGS, 'skip'] as const) {
+      const n = (value as Record<string, unknown>)[key];
       if (typeof n === 'number' && Number.isFinite(n) && n > 0) {
-        counts[rating] = Math.floor(n);
+        counts[key] = Math.floor(n);
         hasAny = true;
       }
     }
+    // skip を返さない古いデプロイのレスポンス（A〜Eだけ）もそのまま読める。
+    // その場合 skip は 0 のままになる（「消が0件」ではなく「まだ数えていない」だが、
+    // 表示は止めてあるので区別しない）。
     if (hasAny) result[horseId] = counts;
   }
   return result;
@@ -304,7 +348,7 @@ export function mergeEvaluationMaps(local: EvaluationMap, remote: EvaluationMap)
   return { ...local, ...remote };
 }
 
-/** A〜Eの合計票数 */
+/** A〜Eの合計票数。**消は含まない**（A〜Eと独立した値なので足すと二重に数える） */
 export function totalOf(counts: RatingCounts): number {
   return RATINGS.reduce((sum, r) => sum + counts[r], 0);
 }
