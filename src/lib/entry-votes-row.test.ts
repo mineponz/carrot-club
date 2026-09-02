@@ -9,14 +9,14 @@ const snapshots: EntryVoteSnapshot[] = [
   { asOf: '9/4', label: '第2回中間発表', byId: {} },
 ];
 
-test('entryVoteColumns: 固定列（No/馬名/牡牝）＋各回列を動的生成する', () => {
+test('entryVoteColumns: 固定列（No/馬名/父/牡牝）＋各回列を動的生成する', () => {
   const cols = entryVoteColumns(snapshots);
-  assert.deepEqual(cols.map((c) => c.key), ['id', 'name', 'sex', 'total:0', 'total:1']);
-  assert.deepEqual(cols.map((c) => c.label), ['No', '馬名', '牡牝', '9/3 票数', '9/4 票数']);
+  assert.deepEqual(cols.map((c) => c.key), ['id', 'name', 'sire', 'sex', 'total:0', 'total:1']);
+  assert.deepEqual(cols.map((c) => c.label), ['No', '馬名', '父', '牡牝', '9/3 票数', '9/4 票数']);
   // 各回列は total:${i} でソート、SP では募集番号順
-  assert.equal(cols[3].sortKey, 'total:0');
-  assert.equal(cols[3].spSortKey, 'id');
-  assert.equal(cols[4].sortKey, 'total:1');
+  assert.equal(cols[4].sortKey, 'total:0');
+  assert.equal(cols[4].spSortKey, 'id');
+  assert.equal(cols[5].sortKey, 'total:1');
   // 馬名の SP ソートキーも id
   assert.equal(cols[1].spSortKey, 'id');
 });
@@ -24,22 +24,24 @@ test('entryVoteColumns: 固定列（No/馬名/牡牝）＋各回列を動的生�
 test('entryVoteColumns: 回が増えれば列も増える', () => {
   const three: EntryVoteSnapshot[] = [...snapshots, { asOf: '9/5', label: '第3回中間発表', byId: {} }];
   const cols = entryVoteColumns(three);
-  assert.deepEqual(cols.map((c) => c.key), ['id', 'name', 'sex', 'total:0', 'total:1', 'total:2']);
+  assert.deepEqual(cols.map((c) => c.key), ['id', 'name', 'sire', 'sex', 'total:0', 'total:1', 'total:2']);
 });
 
 const row: EntryVoteRow = {
   id: '7',
   name: 'フィリアプーラの25',
+  sire: 'エフフォーリア',
   sex: '牡',
   cells: [{ total: 420, damPriority: 58 }, null],
   latestTotal: 420,
 };
 
-test('entryVoteRowHtml: No・馬名・個別ページリンク・牡牝を含む', () => {
+test('entryVoteRowHtml: No・馬名・個別ページリンク・父・牡牝を含む', () => {
   const html = entryVoteRowHtml(row);
   assert.match(html, /data-horse-id="7"/);
   assert.match(html, /href="\/2026\/horses\/7\/"/);
   assert.match(html, />フィリアプーラの25</);
+  assert.match(html, /data-col="sire">エフフォーリア</);
   assert.match(html, /data-col="sex">牡</);
 });
 
@@ -74,8 +76,8 @@ test('entryVoteRowHtml: 別年度の接頭辞を渡すとリンク先が変わ�
   assert.match(html, /href="\/2025\/horses\/7\/"/);
 });
 
-test('entryVoteRowHtml: SP 用に No・牡牝を馬名セルへ畳む（.sp-no / .sp-line）', () => {
+test('entryVoteRowHtml: SP 用に No・父・牡牝を馬名セルへ畳む（.sp-no / .sp-line は「父（性）」）', () => {
   const html = entryVoteRowHtml(row);
   assert.match(html, /<span class="sp-no">7\.<\/span>/);
-  assert.match(html, /<span class="sp-line">牡<\/span>/);
+  assert.match(html, /<span class="sp-line">エフフォーリア（牡）<\/span>/);
 });

@@ -79,6 +79,7 @@ const rows: EntryVoteRow[] = [
   {
     id: '2',
     name: 'いろは号',
+    sire: 'キズナ',
     sex: '牝',
     cells: [{ total: 300, damPriority: null }, { total: 280, damPriority: null }],
     latestTotal: 280,
@@ -86,6 +87,7 @@ const rows: EntryVoteRow[] = [
   {
     id: '1',
     name: 'あお号',
+    sire: 'イクイノックス',
     sex: '牡',
     cells: [{ total: 420, damPriority: 58 }, { total: 510, damPriority: 60 }],
     latestTotal: 510,
@@ -93,6 +95,7 @@ const rows: EntryVoteRow[] = [
   {
     id: '10',
     name: 'うめ号',
+    sire: 'エピファネイア',
     sex: '牡',
     cells: [null, null],
     latestTotal: null,
@@ -118,8 +121,8 @@ test('sortEntryVoteRows: total:${i} でその回の全体票数で並べ替え',
 
 test('sortEntryVoteRows: その回が未発表（cells[i] が null）の行は末尾', () => {
   const partial: EntryVoteRow[] = [
-    { id: '1', name: 'a', sex: '牡', cells: [{ total: 100, damPriority: null }], latestTotal: 100 },
-    { id: '2', name: 'b', sex: '牡', cells: [null], latestTotal: null },
+    { id: '1', name: 'a', sire: 'x', sex: '牡', cells: [{ total: 100, damPriority: null }], latestTotal: 100 },
+    { id: '2', name: 'b', sire: 'y', sex: '牡', cells: [null], latestTotal: null },
   ];
   assert.deepEqual(sortEntryVoteRows(partial, 'total:0', 'asc').map((r) => r.id), ['1', '2']);
   assert.deepEqual(sortEntryVoteRows(partial, 'total:0', 'desc').map((r) => r.id), ['1', '2']);
@@ -133,6 +136,11 @@ test('sortEntryVoteRows: id は数値比較（文字列比較なら 10 < 2 に�
 test('sortEntryVoteRows: 馬名は日本語の並び順で比較する', () => {
   const asc = sortEntryVoteRows(rows, 'name', 'asc');
   assert.deepEqual(asc.map((r) => r.name), ['あお号', 'いろは号', 'うめ号']);
+});
+
+test('sortEntryVoteRows: 父も日本語の並び順で比較する', () => {
+  const asc = sortEntryVoteRows(rows, 'sire', 'asc');
+  assert.deepEqual(asc.map((r) => r.sire), ['イクイノックス', 'エピファネイア', 'キズナ']);
 });
 
 test('sortEntryVoteRows: 元の配列を変更しない', () => {

@@ -54,7 +54,7 @@ const description = `【非公式】キャロットクラブ2026年募集馬${to
     票数の出所:{' '}
     {/* TODO(データ投入時に確定): 中間発表ページの正確なURLへ差し替える。暫定でトップを貼っている。 */}
     <a href="https://carrotclub.net/" target="_blank" rel="noopener">キャロットクラブ公式サイト「募集申し込み票数 中間発表」</a>。
-    クラブは票数が多い馬のみを掲載します。掲載が無い馬は「—」と表示しています。
+    掲載が無い馬は「—」と表示しています。
   </p>
 
   <p class="year-switch">
@@ -208,6 +208,16 @@ const description = `【非公式】キャロットクラブ2026年募集馬${to
       overflow-wrap: anywhere;
     }
 
+    /* 父列も馬名列と同じ扱い（幅の上限＋折り返し）。無いと長いカタカナの父名で列が
+       際限なく伸びて表が崩れて見える（tour-weight で直したのと同じ対処）。
+       SPでは父列は display:none なので実質PC幅（min-width: 40.0625rem）向けの指定。 */
+    #votes-table th:nth-child(3),
+    #votes-table td:nth-child(3) {
+      width: 7rem;
+      white-space: normal;
+      overflow-wrap: anywhere;
+    }
+
     /* ---- 馬名列は画面幅を問わず左端に固定する（tour-weight と同じ考え方） ---- */
     #votes-table th:nth-child(2),
     #votes-table td:nth-child(2) {
@@ -223,7 +233,7 @@ const description = `【非公式】キャロットクラブ2026年募集馬${to
     }
     #votes-table tbody tr:hover td:nth-child(2) { background: var(--accent-weak); }
 
-    /* ---- 狭い画面（SP）: No・牡牝を馬名セルに畳む ---- */
+    /* ---- 狭い画面（SP）: No・父・牡牝を馬名セルに畳む ---- */
     @media (max-width: 40rem) {
       #votes-table .sp-no {
         display: inline;
@@ -236,11 +246,14 @@ const description = `【非公式】キャロットクラブ2026年募集馬${to
         font-weight: 400;
         color: var(--muted);
       }
-      /* 固定列は No(1)・馬名(2)・牡牝(3) の順。No と牡牝を隠して馬名セルに畳む */
+      /* 列は No(1)・馬名(2)・父(3)・牡牝(4) の順。No・父・牡牝を隠して馬名セルに畳む
+         （馬名セルの .sp-line に「父（性）」を出している。tour-weight と同じ） */
       #votes-table th:nth-child(1),
       #votes-table td:nth-child(1),
       #votes-table th:nth-child(3),
-      #votes-table td:nth-child(3) { display: none; }
+      #votes-table td:nth-child(3),
+      #votes-table th:nth-child(4),
+      #votes-table td:nth-child(4) { display: none; }
       #votes-table td:nth-child(2) { vertical-align: top; }
     }
 
@@ -318,8 +331,9 @@ const description = `【非公式】キャロットクラブ2026年募集馬${to
           sortDirection = sortDirection === 'asc' ? 'desc' : 'asc';
         } else {
           sortKey = key;
-          // 票数の列は「多い順」で見たいことが多いので初手を降順にする
-          sortDirection = key === 'name' || key === 'sex' || key === 'id' ? 'asc' : 'desc';
+          // 票数の列は「多い順」で見たいことが多いので初手を降順に、文字列の列は昇順にする
+          sortDirection =
+            key === 'name' || key === 'sire' || key === 'sex' || key === 'id' ? 'asc' : 'desc';
         }
         render();
       });

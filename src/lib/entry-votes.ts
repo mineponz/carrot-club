@@ -14,6 +14,7 @@ import type { EntryVoteEntry, EntryVoteSnapshot } from '../data/entryVotes2026.t
 export interface EntryVoteRow {
   id: string;
   name: string;
+  sire: string;
   sex: Sex;
   /** `snapshots` と同じ長さ・同じ順。その回に未発表なら null */
   cells: (EntryVoteEntry | null)[];
@@ -39,12 +40,12 @@ export function entryVoteRows(
         break;
       }
     }
-    return { id: h.id, name: h.name, sex: h.sex, cells, latestTotal };
+    return { id: h.id, name: h.name, sire: h.sire, sex: h.sex, cells, latestTotal };
   });
 }
 
 /** `'total:0'`・`'total:1'` … その回の全体票数で並べ替えるキー。 */
-export type EntryVoteSortKey = 'id' | 'name' | 'sex' | 'latestTotal' | `total:${number}`;
+export type EntryVoteSortKey = 'id' | 'name' | 'sire' | 'sex' | 'latestTotal' | `total:${number}`;
 export type SortDirection = 'asc' | 'desc';
 
 /** ソートキーから「何回目の列か」を取り出す。`total:` 以外なら null。 */
@@ -68,7 +69,7 @@ export function sortEntryVoteRows(
   const snapIndex = snapshotIndexOf(key);
 
   const valueOf = (row: EntryVoteRow): string | number | null => {
-    if (key === 'id' || key === 'name' || key === 'sex') return row[key];
+    if (key === 'id' || key === 'name' || key === 'sire' || key === 'sex') return row[key];
     if (key === 'latestTotal') return row.latestTotal;
     if (snapIndex !== null) return row.cells[snapIndex]?.total ?? null;
     return null;
