@@ -209,6 +209,52 @@ function bellPath(cx: number, width: number, height: number, baseY: number) {
 /** 図5: 優越確率のゲージ。0〜100%の帯の上に、実データの値と50%の目盛りを置く。 */
 const SUPERIORITY_PCT = (maleSuperiority ?? 0.5) * 100;
 
+/**
+ * 実データ: 「◯◯SD離れている」を優越確率に翻訳した表。
+ *
+ * SDは単位の違う指標を同じ土俵に載せるための換算だが、「1.13SD」と書かれても
+ * 実際どれくらい違うのかは伝わらない（本人談・2026-09-02）。そこで
+ * **牡と牝を1頭ずつ取ったとき牡のほうが大きい確率**に直して併記する。
+ * 正規分布を仮定した近似ではなく、実データの全組み合わせで数えている。
+ */
+const recruitYears = [...new Set(allRecruits.map((h) => h.recruitYear))].sort((a, b) => a - b);
+const yearRangeLabel = `${recruitYears[0]}〜${recruitYears[recruitYears.length - 1]}年`;
+const sdMales = allRecruits.filter((h) => h.sex === '牡');
+const sdFemales = allRecruits.filter((h) => h.sex === '牝');
+const sdMaleCount = sdMales.length;
+const sdFemaleCount = sdFemales.length;
+function stdev(values: number[]): number {
+  if (values.length < 2) return 0;
+  const m = mean(values);
+  return Math.sqrt(values.reduce((acc, v) => acc + (v - m) * (v - m), 0) / (values.length - 1));
+}
+const sdRows = (
+  [
+    ['caretGirth', '管囲', 'cm'],
+    ['weight', '馬体重', 'kg'],
+    ['height', '体高', 'cm'],
+    ['chestGirth', '胸囲', 'cm'],
+  ] as const
+).map(([key, label, unit]) => {
+  const pick = (rows: typeof allRecruits) =>
+    rows.map((h) => h[key] as number | null).filter((v): v is number => v !== null);
+  const M = pick(sdMales);
+  const F = pick(sdFemales);
+  const both = [...M, ...F];
+  const maleMed = median(M);
+  return {
+    key,
+    label,
+    unit,
+    gapInSd: (maleMed - median(F)) / (stdev(both) || 1),
+    rawGap: maleMed - median(F),
+    /** 牡を1頭・牝を1頭ランダムに取って、牡のほうが大きい確率（同値は0.5）。 */
+    superiority: probabilityOfSuperiority(F, M) ?? 0.5,
+    /** 牡の中央値が、牝の分布の何パーセンタイルに当たるか。 */
+    malePercentileInFemales: (100 * F.filter((v) => v < maleMed).length) / F.length,
+  };
+});
+
 /** 図8: 分位。並んだ点を4等分する図の座標。 */
 const QUARTILE_DOTS = Array.from({ length: 40 }, (_, i) => ({
   x: 40 + i * 14,
@@ -623,11 +669,60 @@ const description =
       </svg>
       <figcaption>イメージ図。値ではなく頭数で切るので、境界を選ぶ余地がありません。</figcaption>
     </figure>
+    <h2 id="sd">標準偏差（SD）—「0.9cmの差」が大きいのか小さいのか</h2>
     <p>
-      cmとkgのように単位が違う指標を比べるときは、<strong>標準偏差（SD）</strong>という
-      「その指標のばらつき何個ぶんか」に換算します。「牡と牝の差が1.13SD」と書いてあれば、
-      それはcmの大小ではなく<strong>その指標のばらつきに対してどれくらい大きな差か</strong>という意味です。
+      cmとkgのように単位が違う指標は、そのままでは大小を比べられません。そこで
+      <strong>標準偏差（SD）</strong>という「その指標のばらつき何個ぶんか」に換算します。
+      記事で「牡と牝の差が{sdRows[0].gapInSd.toFixed(2)}SD」と書いてあるのがそれです。
     </p>
+    <p>
+      とはいえ「{sdRows[0].gapInSd.toFixed(2)}SD」と言われても実感が湧かないと思います。
+      なので、<strong>さっきの優越確率に翻訳した表</strong>を置いておきます。
+      牡と牝を1頭ずつ選んだとき、牡のほうが大きいのは何%か ―― 差がまったく無ければ50%です。
+    </p>
+    <div class="table-scroll">
+      <table class="sd-table">
+        <thead>
+          <tr>
+            <th>測尺</th>
+            <th>牡と牝の差</th>
+            <th>牡のほうが大きい確率</th>
+            <th>実際の差</th>
+          </tr>
+        </thead>
+        <tbody>
+          {sdRows.map((r) => (
+            <tr class={r.key === 'caretGirth' ? 'highlight' : undefined}>
+              <td>{r.label}</td>
+              <td>{r.gapInSd.toFixed(2)} SD</td>
+              <td>{(r.superiority * 100).toFixed(1)}%</td>
+              <td>{r.rawGap.toFixed(1)}{r.unit}</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+    <p class="table-note">
+      {yearRangeLabel}募集の実データ。「牡のほうが大きい確率」は牡{sdMaleCount}頭・牝{sdFemaleCount}頭から
+      1頭ずつ取り出した全組み合わせで数えたもの（同値は0.5と数える）。
+    </p>
+    <div class="finding">
+      <p class="finding-lead">
+        管囲の{sdRows[0].gapInSd.toFixed(2)}SDは「牡と牝がほとんど別の集団」という意味
+      </p>
+      <p>
+        表の一番上、管囲の差は見た目には<strong>わずか{sdRows[0].rawGap.toFixed(1)}cm</strong>です。
+        ところが優越確率にすると<strong>{(sdRows[0].superiority * 100).toFixed(1)}%</strong> ――
+        牡と牝を1頭ずつ選べば、9回に1回くらいしか牝のほうが太くなりません。
+        平均的な牡の管囲は、<strong>牝の中では上位{(100 - sdRows[0].malePercentileInFemales).toFixed(0)}%に入る太さ</strong>です。
+        だから<a href="/articles/caret-girth/">管囲で並べ替えると、ほぼ性別で並べたことになる</a>わけです。
+      </p>
+      <p>
+        いっぽう胸囲は{sdRows[3].gapInSd.toFixed(2)}SD・{(sdRows[3].superiority * 100).toFixed(1)}%で、
+        ほぼコイン投げ。同じ「牡は牝より大きい」でも、<strong>どこが大きくなるかは測尺ごとに
+        まるで違います</strong>。
+      </p>
+    </div>
 
     <h2 id="rules">記事で守っていること</h2>
     <p>
@@ -714,6 +809,32 @@ const description =
     display: flex;
     justify-content: center;
     margin: 1.75rem 0 0.5rem;
+  }
+  .table-scroll {
+    overflow-x: auto;
+    margin: 1rem 0;
+  }
+  table.sd-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.875rem;
+    white-space: nowrap;
+  }
+  table.sd-table th,
+  table.sd-table td {
+    padding: 0.45rem 0.7rem;
+    border-bottom: 1px solid var(--border);
+    text-align: left;
+  }
+  table.sd-table th {
+    color: var(--muted);
+    font-weight: 600;
+  }
+  /* 管囲の行だけ強調する。この表の主役は「見た目0.9cmなのに86%」という対比なので、
+     どこを見ればいいかを色で示す。 */
+  table.sd-table tr.highlight td {
+    background: var(--info-weak);
+    font-weight: 700;
   }
 
   /* ---- 図 ---- */
