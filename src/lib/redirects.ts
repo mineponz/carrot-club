@@ -14,15 +14,18 @@
  * （＝いちばん古くて価値のある）被リンクほど遠回りになる。`redirectTargetForHost()` が
  * ホスト名の付け替えとパスの正本化を1回で済ませる。
  *
- * ## ここで扱う3本
+ * ## ここで扱う4本
  * 1. `/horses/{id}/`  → `/2026/horses/{id}/` … 旧URL（2026-08-19〜2026-09-01の正本）からの引き継ぎ。
  * 2. `/tour-weight/`  → `/2026/tour-weight/` … 中身が100%2026年募集馬で年度切替の仕組みが無いため、
  *    個別ページと同じ扱いにした（本人承認 / 2026-09-01）。
- * 3. `/2026/`         → `/` … `/2026/` は**最新年度への別名**で、実体は `/` と同じもの。
+ * 3. `/votes/`        → `/2026/votes/` … 募集申込票数（中間発表）ページ。tour-weight と同じく
+ *    中身が100%2026年募集馬なので年度付きが正本（本人承認 / 2026-09-02）。
+ * 4. `/2026/`         → `/` … `/2026/` は**最新年度への別名**で、実体は `/` と同じもの。
  *    過去年度（`/2025/`）と同じ形で辿ってきた人を落とさないために受ける。
  *
  * ## 来年（2027年募集）の切替でやること
- * **この3本の向き先を2027に変えるだけ**。すなわち `CURRENT_YEAR_PREFIX` を `/2027/` にし、
+ * **この4本の向き先を2027に変えるだけ**（`/horses/`・`/tour-weight/`・`/votes/`・`/2026/`）。
+ * すなわち `CURRENT_YEAR_PREFIX` を `/2027/` にし、
  * 今の `/2026/` は別名ではなく実ページ（過去年度一覧）へ昇格させる。
  * **301そのものは恒久的に残す**（消すと `/horses/{id}/` 等に付いた被リンク・検索インデックスが切れる）。
  *
@@ -38,6 +41,9 @@ const LEGACY_DETAIL_PREFIX = '/horses/';
 
 /** 年度なしの旧・ツアー後馬体重ページ。恒久的に301で受け続ける。 */
 const LEGACY_TOUR_WEIGHT_PATH = '/tour-weight/';
+
+/** 年度なしの募集申込票数ページ。tour-weight と同じく恒久的に301で受け続ける。 */
+const LEGACY_VOTES_PATH = '/votes/';
 
 /**
  * 末尾スラッシュ無し（`/horses/1`）と `index.html` 付き（`/horses/1/index.html`）を、
@@ -64,6 +70,9 @@ export function redirectTarget(pathname: string): string | null {
 
   // 年度なしのツアー後馬体重ページ。`/2026/tour-weight/` は正本なので当然対象外。
   if (path === LEGACY_TOUR_WEIGHT_PATH) return `${CURRENT_YEAR_PREFIX}tour-weight/`;
+
+  // 年度なしの募集申込票数ページ。`/2026/votes/` は正本なので当然対象外。
+  if (path === LEGACY_VOTES_PATH) return `${CURRENT_YEAR_PREFIX}votes/`;
 
   if (path.startsWith(LEGACY_DETAIL_PREFIX)) {
     // `/horses/` と `/horses/{id}/` の間の1セグメントだけを個別ページとして扱う。

@@ -1,0 +1,331 @@
+---
+/**
+ * 募集申込票数（中間発表）ページ（`/2026/votes/`）。
+ *
+ * キャロットクラブが2026年募集の締め切り前に各回17時で公開する「募集申し込み票数の
+ * 中間発表」（票数が多い馬だけを掲載）を、全93頭の表に載せて見比べるための単独ページ
+ * （本人依頼・2026-09-02）。データは `src/data/entryVotes2026.ts` の
+ * `ENTRY_VOTE_SNAPSHOTS`（回ごとのスナップショット配列）。回が増えたら配列に足すだけで
+ * 列が増える。
+ *
+ * **中身が100%2026年募集馬**なので、tour-weight と同じく**年度付きURLが正本**。
+ * 年度なしの `/votes/` は `src/lib/redirects.ts` で301するだけの別名。
+ *
+ * 表の行はビルド時とブラウザ側の両方で `entryVoteRowHtml()` から作る（全頭をビルド時に
+ * 埋め込まないと、サーバーが返すHTMLに1件もデータが入らず検索に載らない）。
+ */
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import { horses2026 } from '../../data/horses2026.ts';
+import { ENTRY_VOTE_SNAPSHOTS } from '../../data/entryVotes2026.ts';
+import { entryVoteRows, sortEntryVoteRows } from '../../lib/entry-votes.ts';
+import { entryVoteColumns, entryVoteRowHtml } from '../../lib/entry-votes-row.ts';
+
+// 馬名から飛ぶ個別ページも年度付きが正本。既定値まかせにせず年度ごとに明示する（tour-weight と同じ書き方）
+const DETAIL_BASE_PATH = '/2026/horses/';
+
+const rows = entryVoteRows(horses2026, ENTRY_VOTE_SNAPSHOTS);
+const total = rows.length;
+const columns = entryVoteColumns(ENTRY_VOTE_SNAPSHOTS);
+
+// まだどの回も発表されていない（全スナップショットの byId が空）状態か。
+// 器の段階ではここが true。発表が入れば false になり、プレースホルダ文が消える。
+const noSnapshotPublished = ENTRY_VOTE_SNAPSHOTS.every(
+  (snap) => Object.keys(snap.byId).length === 0,
+);
+// 掲載済みの馬数（発表分の把握用）
+const publishedCount = rows.filter((r) => r.latestTotal !== null).length;
+
+// 初期表示は「最新回の全体票数の降順」。未発表（null）は末尾に落ちる。
+const initialRowsHtml = sortEntryVoteRows(rows, 'latestTotal', 'desc')
+  .map((row) => entryVoteRowHtml(row, DETAIL_BASE_PATH))
+  .join('\n');
+
+const title = '募集申込票数（中間発表）';
+const description = `【非公式】キャロットクラブ2026年募集馬${total}頭について、クラブが中間発表する「募集申し込み票数」（票数が多い馬のみ掲載）を全体票数の多い順で見比べられる非公式ツールです。株式会社キャロットクラブとは関係ありません。`;
+---
+
+<BaseLayout title={title} description={description}>
+  <h1>{title}</h1>
+  <p class="lead">
+    キャロットクラブが各回17時に公開する「募集申し込み票数」の中間発表のうち、票数が多い馬の分だけをまとめています。
+    全体票数の多い順で初期表示します。見出しをクリックすると並べ替えられます（もう一度押すと昇順・降順が入れ替わります）。馬名から各馬の個別ページに飛べます。
+  </p>
+  <p class="source-note">
+    票数の出所:{' '}
+    {/* TODO(データ投入時に確定): 中間発表ページの正確なURLへ差し替える。暫定でトップを貼っている。 */}
+    <a href="https://carrotclub.net/" target="_blank" rel="noopener">キャロットクラブ公式サイト「募集申し込み票数 中間発表」</a>。
+    クラブは票数が多い馬のみを掲載します。掲載が無い馬は「—」と表示しています。
+  </p>
+
+  <p class="year-switch">
+    <a href="/">一覧に戻る</a>
+  </p>
+
+  {
+    noSnapshotPublished ? (
+      <p class="placeholder">
+        第1回中間発表は9/3 17時にクラブ公式で公開予定です。公開後にここへ反映します。
+      </p>
+    ) : (
+      <p class="result-count">{total}頭中、票数が発表されているのは{publishedCount}頭です。</p>
+    )
+  }
+
+  <div class="table-wrap">
+    <table id="votes-table">
+      <caption class="visually-hidden">
+        2026年募集馬{total}頭の募集申込票数（中間発表）の一覧
+      </caption>
+      <thead>
+        <tr>
+          {
+            columns.map((col) => (
+              <th data-col={col.key} class:list={[col.align === 'num' && 'num']}>
+                <button
+                  type="button"
+                  class="sort-btn"
+                  data-sort-key={col.sortKey}
+                  data-sort-key-sp={col.spSortKey}
+                >
+                  {col.label}
+                </button>
+              </th>
+            ))
+          }
+        </tr>
+      </thead>
+      <tbody id="votes-tbody" set:html={initialRowsHtml} />
+    </table>
+  </div>
+
+  <p class="note">
+    データは掲載時点のものです。最新の票数や募集条件は必ずクラブ公式でご確認ください。
+    票数の多寡は検討の一材料であり、良し悪しを示すものではありません。
+  </p>
+
+  <style>
+    .lead { color: var(--muted); margin-top: 0; }
+    .source-note {
+      margin-block: 0 0.5rem;
+      font-size: 0.8125rem;
+      color: var(--muted);
+    }
+    .year-switch { margin-block: 0 0.5rem; font-size: 0.875rem; color: var(--muted); }
+    .placeholder {
+      margin-block: 0 0.75rem;
+      padding: 0.75rem 1rem;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      font-size: 0.875rem;
+      color: var(--muted);
+    }
+    .result-count {
+      color: var(--muted);
+      font-size: 0.8125rem;
+      margin: 0 0 0.35rem;
+    }
+    .note { color: var(--muted); font-size: 0.875rem; }
+    .table-wrap {
+      overflow: auto;
+      max-height: calc(100vh - 2rem);
+      max-height: calc(100dvh - 2rem);
+      overscroll-behavior: auto;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      background: var(--surface);
+    }
+    .visually-hidden {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      overflow: hidden;
+      clip-path: inset(50%);
+      white-space: nowrap;
+    }
+  </style>
+
+  <!--
+    表の行はクライアント側のscriptがinnerHTMLで描き直すため、Astroのスコープ属性が付かない。
+    tour-weight ページと同じ理由で、表まわりだけ is:global にする。
+  -->
+  <style is:global>
+    #votes-table {
+      border-collapse: collapse;
+      width: 100%;
+      font-size: 0.8125rem;
+    }
+    #votes-table th,
+    #votes-table td {
+      padding: 0.4rem 0.6rem;
+      border-bottom: 1px solid var(--border);
+      text-align: left;
+      vertical-align: middle;
+      white-space: nowrap;
+    }
+    #votes-table thead th {
+      background: var(--accent-weak);
+      position: sticky;
+      top: 0;
+      z-index: 2;
+    }
+    #votes-table th.num,
+    #votes-table td.num { text-align: right; }
+    #votes-table tbody tr:hover td { background: var(--accent-weak); }
+
+    #votes-table .sort-btn {
+      font: inherit;
+      font-weight: 700;
+      background: none;
+      border: none;
+      padding: 0;
+      cursor: pointer;
+      color: var(--text);
+    }
+    #votes-table .sort-btn:hover { color: var(--accent); }
+    #votes-table .sort-btn[data-active='true'] { color: var(--accent); }
+
+    /* 各回セル: 全体票数を主、母優票数を一段小さく弱い色で下に添える。
+       票数の多寡に良し悪しを含意しないよう、色分け等の評価的な装飾は付けない。 */
+    #votes-table .vote-total { display: block; }
+    #votes-table .vote-dam {
+      display: block;
+      font-size: 0.6875rem;
+      font-weight: 400;
+      color: var(--muted);
+    }
+
+    /* 馬名セルに重ねてあるSP用の行は、広い画面では列として並んでいるので出さない */
+    #votes-table .sp-no,
+    #votes-table .sp-line { display: none; }
+
+    /* 馬名は途切れさせず、長い馬名は折り返す（tour-weight と同じ扱い）。
+       幅を決めておかないと table-layout: auto では際限なく伸びるので 7rem で折り返す。 */
+    #votes-table th:nth-child(2),
+    #votes-table td:nth-child(2) {
+      width: 7rem;
+      white-space: normal;
+      overflow-wrap: anywhere;
+    }
+
+    /* ---- 馬名列は画面幅を問わず左端に固定する（tour-weight と同じ考え方） ---- */
+    #votes-table th:nth-child(2),
+    #votes-table td:nth-child(2) {
+      position: sticky;
+      left: 0;
+      background: var(--surface);
+      z-index: 1;
+      box-shadow: 6px 0 5px -5px rgb(0 0 0 / 0.28);
+    }
+    #votes-table thead th:nth-child(2) {
+      background: var(--accent-weak);
+      z-index: 3;
+    }
+    #votes-table tbody tr:hover td:nth-child(2) { background: var(--accent-weak); }
+
+    /* ---- 狭い画面（SP）: No・牡牝を馬名セルに畳む ---- */
+    @media (max-width: 40rem) {
+      #votes-table .sp-no {
+        display: inline;
+        color: var(--muted);
+        margin-right: 0.2rem;
+      }
+      #votes-table .sp-line {
+        display: block;
+        font-size: 0.6875rem;
+        font-weight: 400;
+        color: var(--muted);
+      }
+      /* 固定列は No(1)・馬名(2)・牡牝(3) の順。No と牡牝を隠して馬名セルに畳む */
+      #votes-table th:nth-child(1),
+      #votes-table td:nth-child(1),
+      #votes-table th:nth-child(3),
+      #votes-table td:nth-child(3) { display: none; }
+      #votes-table td:nth-child(2) { vertical-align: top; }
+    }
+
+    /* 広い画面（40remより広い）では No 列も表示されるので、No・馬名の2列を左端に固定する
+       （No が左端、馬名はNo列の幅ぶん右にずらす）。 */
+    @media (min-width: 40.0625rem) {
+      #votes-table th:nth-child(1),
+      #votes-table td:nth-child(1) {
+        position: sticky;
+        left: 0;
+        width: 3rem;
+        min-width: 3rem;
+        max-width: 3rem;
+        background: var(--surface);
+        z-index: 1;
+      }
+      #votes-table th:nth-child(2),
+      #votes-table td:nth-child(2) {
+        left: 3rem;
+      }
+      #votes-table thead th:nth-child(1) {
+        background: var(--accent-weak);
+        z-index: 3;
+      }
+      #votes-table tbody tr:hover td:nth-child(1) { background: var(--accent-weak); }
+    }
+  </style>
+
+  <script>
+    import { horses2026 } from '../../data/horses2026.ts';
+    import { ENTRY_VOTE_SNAPSHOTS } from '../../data/entryVotes2026.ts';
+    import {
+      entryVoteRows,
+      sortEntryVoteRows,
+      type EntryVoteSortKey,
+      type SortDirection,
+    } from '../../lib/entry-votes.ts';
+    // 行のマークアップはビルド時と共有する（二重管理にすると初期HTMLとずれる）
+    import { entryVoteRowHtml } from '../../lib/entry-votes-row.ts';
+
+    // frontmatter の定数はクライアント側から参照できないので同じ値をここにも置く
+    const DETAIL_BASE_PATH = '/2026/horses/';
+
+    const rows = entryVoteRows(horses2026, ENTRY_VOTE_SNAPSHOTS);
+
+    const tbody = document.getElementById('votes-tbody')!;
+    const sortButtons = document.querySelectorAll<HTMLButtonElement>('.sort-btn');
+
+    let sortKey: EntryVoteSortKey = 'latestTotal';
+    let sortDirection: SortDirection = 'desc';
+
+    // No列を隠すSP幅（40rem）は上のCSSの境界と必ず同じ値にする（tour-weight と同じ理由）
+    const SP_MEDIA_QUERY = '(max-width: 40rem)';
+    function sortKeyOf(btn: HTMLButtonElement): EntryVoteSortKey {
+      const spKey = btn.dataset.sortKeySp;
+      if (spKey && window.matchMedia(SP_MEDIA_QUERY).matches) return spKey as EntryVoteSortKey;
+      return btn.dataset.sortKey as EntryVoteSortKey;
+    }
+
+    function render() {
+      const sorted = sortEntryVoteRows(rows, sortKey, sortDirection);
+      tbody.innerHTML = sorted.map((r) => entryVoteRowHtml(r, DETAIL_BASE_PATH)).join('');
+      for (const btn of sortButtons) {
+        const active = sortKeyOf(btn) === sortKey;
+        btn.setAttribute('data-active', String(active));
+        const label = btn.textContent!.trim().replace(/\s*[▲▼]$/u, '');
+        btn.textContent = active ? `${label} ${sortDirection === 'asc' ? '▲' : '▼'}` : label;
+      }
+    }
+
+    for (const btn of sortButtons) {
+      btn.addEventListener('click', () => {
+        const key = sortKeyOf(btn);
+        if (sortKey === key) {
+          sortDirection = sortDirection === 'asc' ? 'desc' : 'asc';
+        } else {
+          sortKey = key;
+          // 票数の列は「多い順」で見たいことが多いので初手を降順にする
+          sortDirection = key === 'name' || key === 'sex' || key === 'id' ? 'asc' : 'desc';
+        }
+        render();
+      });
+    }
+
+    // 初期表示（latestTotal 降順）を見出しのアクティブ表示に反映する
+    render();
+  </script>
+</BaseLayout>

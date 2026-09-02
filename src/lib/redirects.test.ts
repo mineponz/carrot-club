@@ -24,6 +24,12 @@ test('redirectTarget: 年度なしのツアー後馬体重ページも年度付�
   assert.equal(redirectTarget('/tour-weight/index.html'), '/2026/tour-weight/');
 });
 
+test('redirectTarget: 年度なしの募集申込票数ページも年度付きへ301', () => {
+  assert.equal(redirectTarget('/votes/'), '/2026/votes/');
+  assert.equal(redirectTarget('/votes'), '/2026/votes/');
+  assert.equal(redirectTarget('/votes/index.html'), '/2026/votes/');
+});
+
 test('redirectTarget: /2026/ は最新年度の別名なので一覧トップへ301', () => {
   assert.equal(redirectTarget('/2026/'), '/');
   assert.equal(redirectTarget('/2026'), '/');
@@ -34,6 +40,7 @@ test('redirectTarget: 正本URLはリダイレクトしない（301のチェー�
   // ここが null でなくなると /horses/1/ → /2026/horses/1/ → … と多段になる
   assert.equal(redirectTarget('/2026/horses/1/'), null);
   assert.equal(redirectTarget('/2026/tour-weight/'), null);
+  assert.equal(redirectTarget('/2026/votes/'), null);
   assert.equal(redirectTarget('/'), null);
 });
 
