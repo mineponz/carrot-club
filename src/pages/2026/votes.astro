@@ -199,11 +199,11 @@ const description = `【非公式】キャロットクラブ2026年募集馬${to
     #votes-table .sp-no,
     #votes-table .sp-line { display: none; }
 
-    /* 馬名は途切れさせず、長い馬名は折り返す（tour-weight と同じ扱い）。
-       幅を決めておかないと table-layout: auto では際限なく伸びるので 7rem で折り返す。 */
+    /* 馬名は途切れさせず、長い馬名は折り返す（tour-weight と同じ扱い・同じ 9rem）。
+       幅を決めておかないと table-layout: auto では際限なく伸びる。 */
     #votes-table th:nth-child(2),
     #votes-table td:nth-child(2) {
-      width: 7rem;
+      width: 9rem;
       white-space: normal;
       overflow-wrap: anywhere;
     }
