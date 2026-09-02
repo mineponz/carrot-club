@@ -1,0 +1,139 @@
+---
+/**
+ * プライバシーポリシー（`/privacy/`）。2026-09-02 追加。
+ *
+ * Google AdSense の審査要件（Cookie・第三者配信・アクセス解析の明示）を満たすための単独ページ。
+ * 全ページのフッターから辿れる。中身は年度非依存なので `/about/`・`/articles/*` と同じく
+ * 年度プレフィックス（`/2026/`）は付けず、`src/lib/redirects.ts` の対象にもしない。
+ *
+ * 書いてある挙動は実装と揃えること:
+ *  - GA4: `src/layouts/BaseLayout.astro` の gtag（測定ID G-HV39111Z5T）
+ *  - AdSense: 同 BaseLayout の自動広告スクリプト（`src/consts.ts` ADSENSE_CLIENT_ID）
+ *  - 忍者AdMax: `src/components/AdSlot.astro` とフッター枠
+ *  - localStorage / 匿名同期ID / サーバー保存: `src/lib/anon-id.ts`・`src/lib/evaluation-client.ts`
+ *  - 問い合わせ: `src/consts.ts` CONTACT_FORM_URL（Googleフォーム）
+ */
+import BaseLayout from '../layouts/BaseLayout.astro';
+
+const title = 'プライバシーポリシー';
+const description =
+  '【非公式】キャロットクラブ出資馬検討ツールのプライバシーポリシー。アクセス解析（Google Analytics）、広告配信（Google AdSense・忍者AdMax）で利用するCookie、ブラウザ内に保存する評価データと匿名同期IDの扱いについて説明します。';
+
+const UPDATED = '2026年9月2日';
+---
+
+<BaseLayout title={title} description={description} showHeaderNotices={false}>
+  <h1>プライバシーポリシー</h1>
+
+  <p class="lead">
+    当サイト（キャロットクラブ出資馬検討ツール、以下「当サイト」）における、利用者の情報の取り扱いについて説明します。当サイトは一口馬主が個人で運営する非公式サイトで、株式会社キャロットクラブとは関係ありません。運営者については<a href="/about/">運営者について</a>をご覧ください。
+  </p>
+
+  <h2>アクセス解析ツールについて</h2>
+  <p>
+    当サイトは、サイトの利用状況を把握するために Google が提供するアクセス解析ツール「Google
+    アナリティクス」を使用しています。Google アナリティクスは Cookie
+    を利用して、氏名などの個人を特定する情報を含まない形でアクセスデータを収集します。
+    収集されるデータは Google のプライバシーポリシーに基づいて管理されます。
+  </p>
+  <ul class="links">
+    <li>
+      <a href="https://policies.google.com/technologies/partner-sites" target="_blank" rel="noopener noreferrer">
+        Google のサービスを使用するサイトやアプリから収集した情報の Google による使用
+      </a>
+    </li>
+    <li>
+      <a href="https://tools.google.com/dlpage/gaoptout" target="_blank" rel="noopener noreferrer">
+        Google アナリティクス オプトアウト アドオン（収集を無効化する場合）
+      </a>
+    </li>
+  </ul>
+
+  <h2>広告配信について</h2>
+  <p>
+    当サイトは、第三者配信の広告サービス「Google AdSense」および「忍者AdMax」を利用しています。
+    これらの広告配信事業者は、利用者の興味に応じた広告を表示するために Cookie
+    を使用することがあります。Cookie を無効にする設定や AdSense に関する詳細は、
+    以下のページで確認・変更できます。
+  </p>
+  <ul class="links">
+    <li>
+      <a href="https://policies.google.com/technologies/ads" target="_blank" rel="noopener noreferrer">
+        広告 – ポリシーと規約（Google）
+      </a>
+    </li>
+    <li>
+      <a href="https://myadcenter.google.com/" target="_blank" rel="noopener noreferrer">
+        マイ アド センター（パーソナライズド広告の設定）
+      </a>
+    </li>
+    <li>
+      <a href="https://optout.aboutads.info/" target="_blank" rel="noopener noreferrer">
+        aboutads.info（第三者配信事業者の広告のオプトアウト）
+      </a>
+    </li>
+  </ul>
+
+  <h2>ブラウザに保存されるデータ</h2>
+  <p>
+    当サイトで各馬に付けた評価（A〜E・お気に入り・消・メモ）は、利用者の端末のブラウザ内（localStorage）に保存されます。ログイン機能はなく、これらのデータの保存に会員番号・氏名・メールアドレスは使いません。ブラウザのデータを消去すると、保存した評価も消えます。
+  </p>
+
+  <h2>評価データの端末間同期とサーバー保存</h2>
+  <p>
+    端末を移っても評価を引き継げるように、また「他の会員がどの馬をどう見ているか」の傾向を集計するために、付けた評価の内容を、ブラウザ内に自動生成されるランダムな文字列（匿名同期ID）に紐づけてサーバー（Cloudflare
+    D1）へ送信し、保存します。
+  </p>
+  <ul class="notes">
+    <li>匿名同期IDは、同じ人が同じ馬に二重に票を入れないようにするためだけのもので、会員番号・氏名・メールアドレスなど個人を特定できる情報とは一切結び付きません。</li>
+    <li>ブラウザのデータを消去すると匿名同期IDも失われ、それ以降は別の利用者として扱われます。</li>
+    <li>送信した評価は、その匿名同期IDを知っている端末からのみ読み出せます。集計値として他の利用者に見えるのは各評価（A〜E）の件数だけで、メモの中身が公開されることはありません。</li>
+  </ul>
+
+  <h2>お問い合わせ</h2>
+  <p>
+    お問い合わせは Google フォームで受け付けています。フォームに入力された内容は Google
+    のサービスを通じて運営者に届きます。入力する情報は必要な範囲にとどめてください。
+  </p>
+
+  <h2>個人情報の第三者提供</h2>
+  <p>
+    当サイトは、上記の各サービス（Google アナリティクス、Google AdSense、忍者AdMax、Google
+    フォーム）の利用に伴う場合を除き、利用者の情報を第三者に提供・販売することはありません。
+  </p>
+
+  <h2>免責事項</h2>
+  <p>
+    当サイトの内容・利用について詳しくは<a href="/disclaimer/">免責事項</a>をご覧ください。
+  </p>
+
+  <h2>ポリシーの変更</h2>
+  <p>
+    本ポリシーの内容は、必要に応じて予告なく変更することがあります。変更後の内容は当ページに掲載した時点から適用されます。
+  </p>
+
+  <p class="updated">制定・最終更新: {UPDATED}</p>
+</BaseLayout>
+
+<style>
+  .lead {
+    font-size: 1.05rem;
+  }
+  h2 {
+    margin-top: 2rem;
+  }
+  .links,
+  .notes {
+    margin: 0.75rem 0 0;
+    padding-left: 1.25rem;
+  }
+  .links li,
+  .notes li {
+    margin: 0.35rem 0;
+  }
+  .updated {
+    margin-top: 2.5rem;
+    font-size: 0.8125rem;
+    color: var(--muted);
+  }
+</style>

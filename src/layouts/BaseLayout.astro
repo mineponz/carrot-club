@@ -10,6 +10,7 @@ import {
   DOCUMENT_TITLE,
   ALLOW_INDEXING,
   ADSENSE_CLIENT_ID,
+  isNoindexPath,
 } from '../consts';
 
 interface Props {
@@ -85,8 +86,17 @@ const {
 const fullTitle = title ? `${title} | ${DOCUMENT_TITLE}` : `${DOCUMENT_TITLE}｜${SITE_TAGLINE}`;
 const canonical = new URL(Astro.url.pathname, SITE_URL).href;
 
-// クラブの利用許可が下りるまでは noindex（src/consts.ts の ALLOW_INDEXING で切り替える）
-const robotsContent = ALLOW_INDEXING ? 'index,follow,max-image-preview:large' : 'noindex,follow';
+// noindex にする条件は2つ:
+//  1. クラブの利用許可が下りるまでのサイト全体の noindex（src/consts.ts の ALLOW_INDEXING）
+//  2. データ転記だけのページ（馬個別・ツアー後馬体重・募集申込票数）を AdSense 審査向けに個別 noindex
+//     （src/consts.ts の NOINDEX_PATH_PREFIXES / isNoindexPath）
+const isNoindex = !ALLOW_INDEXING || isNoindexPath(Astro.url.pathname);
+const robotsContent = isNoindex ? 'noindex,follow' : 'index,follow,max-image-preview:large';
+
+// AdSense の自動広告スクリプトは noindex ページには入れない。
+// 「複製コンテンツの画面に Google 配信の広告を置かない」ポリシーに触れないための予防で、
+// 忍者AdMax の枠（footer / src/components/AdSlot.astro）はそのまま残す。
+const showAdsenseScript = !isNoindex;
 
 // OGP画像は既定で public/og-v2.png（1200x630）を絶対URLで参照する。
 // ページ側から `ogImage` を渡すと差し替えられる（記事ページはこちら）。
@@ -193,12 +203,15 @@ const webAppJsonLd = {
       Google AdSense（自動広告）。パブリッシャーIDは src/consts.ts の ADSENSE_CLIENT_ID に置き、
       public/ads.txt と必ず同じIDにする。枠の位置はAdSense側の管理画面で決まるので、
       忍者AdMaxの枠（src/components/AdSlot.astro）のようにページ側へ差し込む必要はない。
+      noindex ページ（データ転記だけの馬個別・ツアー後馬体重・募集申込票数）には入れない（上の showAdsenseScript）。
     -->
-    <script
-      async
-      src={`https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=${ADSENSE_CLIENT_ID}`}
-      crossorigin="anonymous"
-      is:inline></script>
+    {showAdsenseScript && (
+      <script
+        async
+        src={`https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=${ADSENSE_CLIENT_ID}`}
+        crossorigin="anonymous"
+        is:inline></script>
+    )}
 
     <script type="application/ld+json" set:html={JSON.stringify(webSiteJsonLd)} is:inline />
     <script type="application/ld+json" set:html={JSON.stringify(webAppJsonLd)} is:inline />
@@ -260,6 +273,10 @@ const webAppJsonLd = {
       </p>
       <p class="meta">
         <a href="/about/">運営者について</a>
+        <span aria-hidden="true"> ・ </span>
+        <a href="/privacy/">プライバシーポリシー</a>
+        <span aria-hidden="true"> ・ </span>
+        <a href="/disclaimer/">免責事項</a>
         <span aria-hidden="true"> ・ </span>
         <a href={homeHref}>馬一覧へ戻る</a>
       </p>

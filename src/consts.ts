@@ -19,6 +19,34 @@ export const SITE_URL = 'https://carrot.mineponz.com';
  */
 export const ALLOW_INDEXING = true;
 
+/**
+ * サイト全体では index するが、この接頭辞に一致するページだけは `noindex` にする。
+ *
+ * 対象は「よそのデータを転記して並べただけ」のページ（馬個別ページ・ツアー後馬体重・
+ * 募集申込票数）。Google AdSense の審査で `mineponz.com`（このWorkerに向けた裸ドメイン）が
+ * 「コンテンツが複製された画面」「有用性の低いコンテンツ」と判定され、審査に落ちた
+ * （2026-09-02 / [[20260823-mineponz-domain-migration-and-adsense]]）。
+ * 薄いテンプレページ 約190枚が、自分で書いた記事（十数本）を数で押し流してサイト全体の
+ * 評価を下げているのが主因。審査botに見せる面を〈ツール＋記事＋about＋ポリシー〉へ
+ * 絞るための措置で、**クラブの転載許可の話とは別問題**。
+ *
+ * これは元に戻せる。AdSense通過後に馬名のロングテール検索を取りにいくなら
+ * この配列を空にするだけでよい（ページ自体は消していない）。
+ *
+ * BaseLayout の robots メタと astro.config.mjs の sitemap フィルタの両方がこの関数を見る。
+ * 2か所に別々の正規表現を書くと片方だけ直し忘れるため、判定はここに一本化する。
+ */
+export const NOINDEX_PATH_PREFIXES = [
+  '/2025/horses/',
+  '/2026/horses/',
+  '/2026/tour-weight/',
+  '/2026/votes/',
+];
+
+export function isNoindexPath(pathname: string): boolean {
+  return NOINDEX_PATH_PREFIXES.some((prefix) => pathname === prefix || pathname.startsWith(prefix));
+}
+
 /** アプリ名。構造化データやフッターなど「名前」として扱う場所で使う */
 export const SITE_TITLE = 'キャロットクラブ出資馬検討ツール';
 
