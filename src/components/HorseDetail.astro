@@ -47,6 +47,7 @@ import {
 } from '../lib/sibling-roster.ts';
 import { horses2026 } from '../data/horses2026.ts';
 import { TOUR_WEIGHT_AS_OF, TOUR_WEIGHT_BY_ID } from '../data/tourWeight2026.ts';
+import { ENTRY_VOTE_SNAPSHOTS } from '../data/entryVotes2026.ts';
 import { formatDiff } from '../lib/tour-weight-row.ts';
 import { formatManYen } from '../lib/chart-math.ts';
 
@@ -176,6 +177,26 @@ const tourWeight = recruitYear === 2026 ? (TOUR_WEIGHT_BY_ID[horse.id] ?? null) 
 const tourWeightDiff = tourWeight === null ? null : tourWeight - horse.weight;
 
 /**
+ * 募集申込票数の中間発表（クラブ公式・`src/data/entryVotes2026.ts`）。2026年募集にしか
+ * 情報源が無く、かつクラブは票数が多い馬だけを掲載するので、その馬が掲載された回の分だけ
+ * facts 行になる（未掲載・未発表なら0行）。全体を並べた表は `/2026/votes/`。
+ */
+const entryVoteFacts =
+  recruitYear === 2026
+    ? ENTRY_VOTE_SNAPSHOTS.flatMap((snap) => {
+        const entry = snap.byId[horse.id];
+        if (!entry) return [];
+        return [
+          {
+            term: `申込票数（${snap.asOf}・${snap.label}）`,
+            value: `${entry.total}票`,
+            note: entry.damPriority != null ? `（母優 ${entry.damPriority}）` : undefined,
+          },
+        ];
+      })
+    : [];
+
+/**
  * 定義リストに出す項目。値が無いものは出さない（空欄の行を並べても情報にならない）。
  * `note` は値に添える補足（測尺の順位）。値そのものより弱く見せたいので別に持つ。
  */
@@ -206,6 +227,7 @@ const facts: { term: string; value: string; note?: string }[] = [
         },
       ]
     : []),
+  ...entryVoteFacts,
   { term: '兄弟', value: horse.sibling },
   { term: '母優先', value: horse.damPriority ? '対象' : '対象外' },
 ];
@@ -257,6 +279,13 @@ const facts: { term: string; value: string; note?: string }[] = [
     recruitYear === 2026 && (
       <p class="note tour-weight-link">
         全頭の募集時馬体重とツアー後馬体重の比較は<a href="/2026/tour-weight/">こちら</a>。
+      </p>
+    )
+  }
+  {
+    recruitYear === 2026 && (
+      <p class="note votes-link">
+        全頭の募集申込票数（中間発表）の一覧は<a href="/2026/votes/">こちら</a>。
       </p>
     )
   }
