@@ -27,6 +27,14 @@ const rows = entryVoteRows(horses2026, ENTRY_VOTE_SNAPSHOTS);
 const total = rows.length;
 const columns = entryVoteColumns(ENTRY_VOTE_SNAPSHOTS);
 
+/**
+ * PC幅での表の総幅（`table-layout: fixed` 用）。列が少ないと `table-layout: auto` が
+ * 余った横幅を無指定の列にぶら下げ、馬名と票数が大きく離れて見える（本人の指摘・2026-09-02）。
+ * PC幅では固定レイアウトにして幅を積み上げる: No 3 + 馬名 15 + 父 8 + 牡牝 3 ＝ 29rem、
+ * ＋ 各回 6rem。SP幅は従来どおり `table-layout: auto` のまま（この変数は使わない）。
+ */
+const pcTableWidthRem = 29 + ENTRY_VOTE_SNAPSHOTS.length * 6;
+
 // まだどの回も発表されていない（全スナップショットの byId が空）状態か。
 // 器の段階ではここが true。発表が入れば false になり、プレースホルダ文が消える。
 const noSnapshotPublished = ENTRY_VOTE_SNAPSHOTS.every(
@@ -72,7 +80,7 @@ const description = `【非公式】キャロットクラブ2026年募集馬${to
   }
 
   <div class="table-wrap">
-    <table id="votes-table">
+    <table id="votes-table" style={`--pc-table-w: ${pcTableWidthRem}rem`}>
       <caption class="visually-hidden">
         2026年募集馬{total}頭の募集申込票数（中間発表）の一覧
       </caption>
@@ -134,6 +142,14 @@ const description = `【非公式】キャロットクラブ2026年募集馬${to
       border: 1px solid var(--border);
       border-radius: 8px;
       background: var(--surface);
+    }
+    /* PC幅では表を固定幅（下の #votes-table 参照）にするので、枠も表の幅ぶんに縮める。
+       表が画面より広ければ 100% で頭打ちにして中で横スクロール。SP幅は従来どおり全幅。 */
+    @media (min-width: 40.0625rem) {
+      .table-wrap {
+        width: fit-content;
+        max-width: 100%;
+      }
     }
     .visually-hidden {
       position: absolute;
@@ -199,18 +215,17 @@ const description = `【非公式】キャロットクラブ2026年募集馬${to
     #votes-table .sp-no,
     #votes-table .sp-line { display: none; }
 
-    /* 馬名は途切れさせず、長い馬名は折り返す（tour-weight と同じ扱い・同じ 9rem）。
-       幅を決めておかないと table-layout: auto では際限なく伸びる。 */
+    /* 馬名は途切れさせず、長い馬名は折り返す。以前は 9rem 固定だったが、票数は3桁で足りるのに
+       余白が他の列にぶら下がって馬名が窮屈に見えた（本人の指摘・2026-09-02）。
+       SP幅では 11rem、PC幅では下の固定レイアウトで 15rem に広げる。 */
     #votes-table th:nth-child(2),
     #votes-table td:nth-child(2) {
-      width: 9rem;
+      width: 11rem;
       white-space: normal;
       overflow-wrap: anywhere;
     }
 
-    /* 父列も馬名列と同じ扱い（幅の上限＋折り返し）。無いと長いカタカナの父名で列が
-       際限なく伸びて表が崩れて見える（tour-weight で直したのと同じ対処）。
-       SPでは父列は display:none なので実質PC幅（min-width: 40.0625rem）向けの指定。 */
+    /* 父列も長いカタカナ父名で伸びないよう折り返す（SPでは display:none なので実質PC幅向け）。 */
     #votes-table th:nth-child(3),
     #votes-table td:nth-child(3) {
       width: 7rem;
@@ -257,9 +272,26 @@ const description = `【非公式】キャロットクラブ2026年募集馬${to
       #votes-table td:nth-child(2) { vertical-align: top; }
     }
 
-    /* 広い画面（40remより広い）では No 列も表示されるので、No・馬名の2列を左端に固定する
-       （No が左端、馬名はNo列の幅ぶん右にずらす）。 */
+    /* 広い画面（40remより広い）: 固定レイアウトにして各列の幅を積み上げる。
+       これをしないと余った横幅が無指定の列（牡牝）にぶら下がり、馬名と票数が離れて見える
+       （本人の指摘・2026-09-02。牡牝が実測490pxまで広がっていた）。
+       総幅は frontmatter の --pc-table-w（No 3 + 馬名 15 + 父 8 + 牡牝 3 + 各回 6rem）。 */
     @media (min-width: 40.0625rem) {
+      #votes-table {
+        table-layout: fixed;
+        width: var(--pc-table-w);
+      }
+      #votes-table th:nth-child(2),
+      #votes-table td:nth-child(2) { width: 15rem; }
+      #votes-table th:nth-child(3),
+      #votes-table td:nth-child(3) { width: 8rem; }
+      #votes-table th:nth-child(4),
+      #votes-table td:nth-child(4) { width: 3rem; }
+      #votes-table th[data-col^='total:'],
+      #votes-table td[data-col^='total:'] { width: 6rem; }
+
+      /* No 列も表示されるので、No・馬名の2列を左端に固定する
+         （No が左端、馬名はNo列の幅ぶん右にずらす）。 */
       #votes-table th:nth-child(1),
       #votes-table td:nth-child(1) {
         position: sticky;

@@ -119,6 +119,14 @@ const description = `【非公式】キャロットクラブ2026年募集馬${to
       border-radius: 8px;
       background: var(--surface);
     }
+    /* PC幅では表を固定幅（下の #tour-weight-table 参照）にするので、枠も表の幅ぶんに縮める。
+       表が画面より広ければ 100% で頭打ちにして中で横スクロール。SP幅は従来どおり全幅。 */
+    @media (min-width: 40.0625rem) {
+      .table-wrap {
+        width: fit-content;
+        max-width: 100%;
+      }
+    }
     .visually-hidden {
       position: absolute;
       width: 1px;
@@ -179,18 +187,16 @@ const description = `【非公式】キャロットクラブ2026年募集馬${to
     #tour-weight-table .sp-line { display: none; }
 
     /* 馬名は途切れさせず、長い馬名は折り返す（本人の指示・2026-08-31）。
-       幅を決めておかないと table-layout: auto では折り返さず際限なく伸びるので、
-       9remで折り返す（省略記号にはしない）。 */
+       以前は 9rem 固定だったが、数値列が3桁で足りるのに余白が他の列にぶら下がり馬名が
+       窮屈に見えた（本人の指摘・2026-09-02）。SP幅は 11rem、PC幅は下の固定レイアウトで 15rem。 */
     #tour-weight-table th:nth-child(2),
     #tour-weight-table td:nth-child(2) {
-      width: 9rem;
+      width: 11rem;
       white-space: normal;
       overflow-wrap: anywhere;
     }
 
-    /* 父列も馬名列と同じ扱い（幅の上限＋折り返し）。無いと長いカタカナの父名で列が
-       際限なく伸び、PC幅で固定2列（No・馬名）と噛み合って表が崩れて見える。
-       SPでは父列は display:none なので実質PC幅（min-width: 40.0625rem）向けの指定。 */
+    /* 父列も長いカタカナ父名で伸びないよう折り返す（SPでは display:none なので実質PC幅向け）。 */
     #tour-weight-table th:nth-child(3),
     #tour-weight-table td:nth-child(3) {
       width: 7rem;
@@ -239,9 +245,25 @@ const description = `【非公式】キャロットクラブ2026年募集馬${to
       #tour-weight-table td:nth-child(2) { vertical-align: top; }
     }
 
-    /* 広い画面（40remより広い）では No 列も表示されるので、一覧ページと同じく
-       No・馬名の2列を左端に固定する（No が左端、馬名はNo列の幅ぶん右にずらす）。 */
+    /* 広い画面（40remより広い）: 固定レイアウトにして各列の幅を積み上げる。
+       これをしないと余った横幅が無指定の列（性）にぶら下がり、馬名と数値が離れて見える
+       （本人の指摘・2026-09-02）。総幅 = No 3 + 馬名 15 + 父 8 + 性 3 + 数値3列×5 ＝ 44rem。 */
     @media (min-width: 40.0625rem) {
+      #tour-weight-table {
+        table-layout: fixed;
+        width: 44rem;
+      }
+      #tour-weight-table th:nth-child(2),
+      #tour-weight-table td:nth-child(2) { width: 15rem; }
+      #tour-weight-table th:nth-child(3),
+      #tour-weight-table td:nth-child(3) { width: 8rem; }
+      #tour-weight-table th:nth-child(4),
+      #tour-weight-table td:nth-child(4) { width: 3rem; }
+      #tour-weight-table th.num:not(:first-child),
+      #tour-weight-table td.num:not(:first-child) { width: 5rem; }
+
+      /* No 列も表示されるので、一覧ページと同じく No・馬名の2列を左端に固定する
+         （No が左端、馬名はNo列の幅ぶん右にずらす）。 */
       #tour-weight-table th:nth-child(1),
       #tour-weight-table td:nth-child(1) {
         position: sticky;
