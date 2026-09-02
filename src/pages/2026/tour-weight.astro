@@ -188,6 +188,16 @@ const description = `【非公式】キャロットクラブ2026年募集馬${to
       overflow-wrap: anywhere;
     }
 
+    /* 父列も馬名列と同じ扱い（幅の上限＋折り返し）。無いと長いカタカナの父名で列が
+       際限なく伸び、PC幅で固定2列（No・馬名）と噛み合って表が崩れて見える。
+       SPでは父列は display:none なので実質PC幅（min-width: 40.0625rem）向けの指定。 */
+    #tour-weight-table th:nth-child(3),
+    #tour-weight-table td:nth-child(3) {
+      width: 7rem;
+      white-space: normal;
+      overflow-wrap: anywhere;
+    }
+
     /* ---- 1番左の列は一覧ページ（index.astro）と同じ考え方でスクロールに追従させる ----
        馬名列は画面幅を問わず常に左端に固定する。表は横スクロールする前提（本人の指示）。 */
     #tour-weight-table th:nth-child(2),
