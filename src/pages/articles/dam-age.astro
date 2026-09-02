@@ -18,6 +18,8 @@ import ScatterChart from '../../components/charts/ScatterChart.astro';
 import ChartTooltip from '../../components/charts/ChartTooltip.astro';
 import StatTiles from '../../components/charts/StatTiles.astro';
 import ArticleToc from '../../components/ArticleToc.astro';
+import MethodsLink from '../../components/MethodsLink.astro';
+import TermLink from '../../components/TermLink.astro';
 import AdSlot from '../../components/AdSlot.astro';
 import GradeWinnerTable from '../../components/GradeWinnerTable.astro';
 import { loadRecruitsWithResults, racedOnly, RACE_RESULTS_FETCHED_AT } from '../../lib/analysis-data.ts';
@@ -195,6 +197,7 @@ const description = `【非公式】キャロットクラブ${yearRangeLabel}${a
     />
 
     <ArticleToc />
+    <MethodsLink />
 
     <AdSlot sp={AD_SP_WIDE_A} pc={AD_PC_WIDE_A} />
 
@@ -210,7 +213,7 @@ const description = `【非公式】キャロットクラブ${yearRangeLabel}${a
     <h2>母齢 × 獲得賞金合計</h2>
     <p>
       出走済みの{raced.length}頭で、母齢と獲得賞金合計（中央+地方、万円）を散布図にしてみた。
-      相関係数は r={ageR?.toFixed(3)}。体高（前回の記事でr=0.2台）はおろか、
+      <TermLink to="correlation">相関係数</TermLink>は r={ageR?.toFixed(3)}。体高（前回の記事でr=0.2台）はおろか、
       「ほぼ無相関」と言っていた一口価格よりもさらにゼロに近い数字で、率直に言って
       <strong>母齢から成績はまったく読めなかった</strong>。
       {ageScatterOmitted > 0 && (

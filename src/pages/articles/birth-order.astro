@@ -29,6 +29,8 @@ import ScatterChart from '../../components/charts/ScatterChart.astro';
 import ChartTooltip from '../../components/charts/ChartTooltip.astro';
 import StatTiles from '../../components/charts/StatTiles.astro';
 import ArticleToc from '../../components/ArticleToc.astro';
+import MethodsLink from '../../components/MethodsLink.astro';
+import TermLink from '../../components/TermLink.astro';
 import AdSlot from '../../components/AdSlot.astro';
 import GradeWinnerTable from '../../components/GradeWinnerTable.astro';
 import { loadRecruitsWithResults, racedOnly, RACE_RESULTS_FETCHED_AT } from '../../lib/analysis-data.ts';
@@ -444,13 +446,14 @@ const description = `【非公式】キャロットクラブ${yearRangeLabel}${a
     />
 
     <ArticleToc />
+    <MethodsLink />
 
     <AdSlot sp={AD_SP_WIDE_A} pc={AD_PC_WIDE_A} />
 
     <h2>まず産次の分布</h2>
     <p>
       母集団を見ておくと、{all.length}頭は{parityMin}番仔から{parityMax}番仔まで分布していて、
-      中央値は{parityMedian}番仔だった。初仔が{all.filter((h) => parityOf(h) === 1).length}頭と
+      <TermLink to="median">中央値</TermLink>は{parityMedian}番仔だった。初仔が{all.filter((h) => parityOf(h) === 1).length}頭と
       一番多く、番号が上がるにつれてなだらかに減っていく。クラブの募集は
       「若い繁殖の仔ばかり」でも「ベテラン繁殖の仔ばかり」でもなく、かなり広く散らばっている。
     </p>
@@ -465,8 +468,8 @@ const description = `【非公式】キャロットクラブ${yearRangeLabel}${a
     <h2>産次 × 獲得賞金合計</h2>
     <p>
       出走済みの{raced.length}頭で、産次と獲得賞金合計（中央+地方、万円）を散布図にした。
-      相関係数は r={parityR?.toFixed(3)}。賞金は一部の稼ぎ頭に極端に引っ張られる分布なので、
-      順位で見るスピアマンの相関係数も出したが、そちらでも
+      <TermLink to="correlation">相関係数</TermLink>は r={parityR?.toFixed(3)}。賞金は一部の稼ぎ頭に極端に引っ張られる分布なので、
+      順位で見る<TermLink to="spearman">スピアマン</TermLink>の相関係数も出したが、そちらでも
       {paritySpearman?.toFixed(3)}。<strong>産次から成績はほとんど読めなかった</strong>。
       {scatterOmitted > 0 && (
         <>獲得賞金合計が1億円を超える{scatterOmitted}頭はグラフの外に出るため省略した

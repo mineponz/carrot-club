@@ -21,6 +21,11 @@ const description = `【非公式】${yearRangeLabel}のキャロットクラブ
     {yearRangeLabel}募集の募集時データと、その後の競走成績を突き合わせた独自集計をもとに、
     体高・母齢といった募集時の情報が後の成績とどう関係するかを見ていく読み物コンテンツです。
   </p>
+  <p class="methods-note">
+    <a href="/articles/methods/">分析記事の読み方</a> ……
+    記事に出てくる「順位相関」「p値」「偏相関」などの用語を、図と実際の集計例で説明しています。
+    はじめて読む方はこちらから。
+  </p>
   <ul class="article-list">
     {analysisArticles.map((a) => (
       <li>
@@ -100,5 +105,19 @@ const description = `【非公式】${yearRangeLabel}のキャロットクラブ
   .more-note {
     color: var(--muted);
     font-size: 0.875rem;
+  }
+  /* 用語解説への導線。分析記事のカード（--info系の青）と役割を揃えつつ、
+     カード一覧の前に置いて「先に読む案内」だと分かる見た目にする。 */
+  .methods-note {
+    padding: 0.7rem 0.95rem;
+    background: var(--info-weak);
+    border: 1px solid var(--info);
+    border-radius: 8px;
+    font-size: 0.9375rem;
+    line-height: 1.6;
+  }
+  .methods-note a {
+    color: var(--info);
+    font-weight: 700;
   }
 </style>

@@ -1,0 +1,856 @@
+---
+/**
+ * 分析記事（`/articles/*`）で使っている統計用語の説明ページ。
+ *
+ * 記事側は「相関係数」「順位相関」「p値」「偏相関」「優越確率」を注釈なしで使っている。
+ * 読者（一口馬主の会員）に統計の前提知識は期待できないので、ここに一箇所まとめて置き、
+ * 各記事から `MethodsLink.astro` でリンクする。
+ *
+ * ## 書き方の方針
+ * - **説明の裏づけには実データを使う。** このサイトの記事は実データが売りなので、
+ *   用語の説明も「実際にこの記事群で何が起きたか」で示す（平均と中央値の乖離、
+ *   ピアソンとスピアマンが倍違った例、管囲が性別の代理になっていた例）。
+ *   数字はハードコードせず `analysis-data.ts` から計算するので、成績を取り直しても古くならない。
+ * - **概念図は実データではないので必ず「イメージ図」と明示する。** 実データのグラフと
+ *   混ぜて誤読されると、記事本体の信頼まで損なう。
+ * - 図はインラインSVG。外部ライブラリを足さず、`viewBox`で可変幅、色はCSS変数で
+ *   ライト／ダーク両対応にする。装飾ではなく説明のための図なので、必ず本文で結論を書く。
+ *
+ * ## 合成データについて
+ * 相関の強さ・外れ値の効き方を見せる図は、実データだと「ちょうどいい形」が手に入らないので
+ * 決定的な擬似乱数（`lcg`）で作っている。乱数の種を固定しているのでビルドのたびに図は変わらない。
+ */
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import ArticleToc from '../../components/ArticleToc.astro';
+import AdSlot from '../../components/AdSlot.astro';
+import { loadRecruitsWithResults, racedOnly } from '../../lib/analysis-data.ts';
+import {
+  pearsonCorrelation,
+  spearmanCorrelation,
+  probabilityOfSuperiority,
+  mean,
+  median,
+  formatManYen,
+} from '../../lib/chart-math.ts';
+
+const allRecruits = loadRecruitsWithResults();
+const raced = racedOnly(allRecruits);
+
+// ---- 実データ: 平均と中央値の乖離（「なぜ中央値か」の根拠） ----
+const prizes = raced.map((h) => h.totalPrizeManYen);
+const prizeMean = mean(prizes);
+const prizeMedian = median(prizes);
+const aboveMeanCount = prizes.filter((v) => v >= prizeMean).length;
+const aboveMeanShare = (100 * aboveMeanCount) / prizes.length;
+const prizeMax = Math.max(...prizes);
+const zeroPrizeCount = prizes.filter((v) => v === 0).length;
+
+// ---- 実データ: 同じデータでピアソンとスピアマンが倍違う例（牝の体重×賞金） ----
+const racedFemalesWithWeight = raced.filter((h) => h.sex === '牝' && h.weight !== null);
+const femalePearson = pearsonCorrelation(
+  racedFemalesWithWeight.map((h) => h.weight as number),
+  racedFemalesWithWeight.map((h) => h.totalPrizeManYen)
+);
+const femaleSpearman = spearmanCorrelation(
+  racedFemalesWithWeight.map((h) => h.weight as number),
+  racedFemalesWithWeight.map((h) => h.totalPrizeManYen)
+);
+
+// ---- 実データ: 交絡の実例（管囲で並べると性別で並ぶ） ----
+const withCaret = allRecruits.filter(
+  (h) => h.caretGirth !== null && (h.sex === '牡' || h.sex === '牝')
+);
+const CARET_THICK = 21;
+const thickCaret = withCaret.filter((h) => (h.caretGirth as number) >= CARET_THICK);
+const thickMaleShare = (100 * thickCaret.filter((h) => h.sex === '牡').length) / thickCaret.length;
+const caretMaleMedian = median(
+  withCaret.filter((h) => h.sex === '牡').map((h) => h.caretGirth as number)
+);
+const caretFemaleMedian = median(
+  withCaret.filter((h) => h.sex === '牝').map((h) => h.caretGirth as number)
+);
+
+// ---- 実データ: 優越確率の実例（牡の体重・軽い1/4 vs 重い1/4） ----
+// 馬体重の記事に載っている数字とそろえる必要があるので、分位の切り方も記事と同じにする。
+// 記事側は **全頭（未出走を含む牡）** の体重から境界を決め、賞金の比較だけ出走済みで行う。
+// ここで出走済みだけから境界を取ると別の群になり、記事と違う数字が出てしまう。
+const malesWithWeight = allRecruits.filter((h) => h.sex === '牡' && h.weight !== null);
+const maleWeightsSorted = [...malesWithWeight].map((h) => h.weight as number).sort((a, b) => a - b);
+const maleQ1Cut = maleWeightsSorted[Math.floor(maleWeightsSorted.length / 4)];
+const maleQ3Cut = maleWeightsSorted[Math.floor((3 * maleWeightsSorted.length) / 4)];
+const racedMalesWithWeight = raced.filter((h) => h.sex === '牡' && h.weight !== null);
+const maleSuperiority = probabilityOfSuperiority(
+  racedMalesWithWeight.filter((h) => (h.weight as number) < maleQ1Cut).map((h) => h.totalPrizeManYen),
+  racedMalesWithWeight.filter((h) => (h.weight as number) >= maleQ3Cut).map((h) => h.totalPrizeManYen)
+);
+
+/* ------------------------------------------------------------------ *
+ * 図の部品。すべて 640 幅の viewBox で組み、CSS 側で width:100% にする。
+ * ------------------------------------------------------------------ */
+
+/** 決定的な擬似乱数（線形合同法）。種を固定するのでビルドのたびに図が変わらない。 */
+function lcg(seed: number) {
+  let s = seed >>> 0;
+  return () => {
+    s = (s * 1664525 + 1013904223) >>> 0;
+    return s / 0x100000000;
+  };
+}
+/** 一様乱数2つから標準正規乱数を作る（Box-Muller）。散布図の雲を自然な形にするため。 */
+function gauss(rand: () => number) {
+  const u = Math.max(rand(), 1e-9);
+  const v = rand();
+  return Math.sqrt(-2 * Math.log(u)) * Math.cos(2 * Math.PI * v);
+}
+/**
+ * 目標の相関係数 r をもつ2次元の点群を作る。
+ * y = r*x + sqrt(1-r^2)*noise とすると x と y の相関がだいたい r になる、という作り方。
+ */
+function correlatedPoints(r: number, n: number, seed: number) {
+  const rand = lcg(seed);
+  const pts: { x: number; y: number }[] = [];
+  for (let i = 0; i < n; i++) {
+    const x = gauss(rand);
+    const y = r * x + Math.sqrt(Math.max(0, 1 - r * r)) * gauss(rand);
+    pts.push({ x, y });
+  }
+  return pts;
+}
+/** 標準化された点群を、指定の枠（左上originとサイズ）にはめ込むスケーラを返す。 */
+function fitter(pts: { x: number; y: number }[], x0: number, y0: number, w: number, h: number) {
+  const xs = pts.map((p) => p.x);
+  const ys = pts.map((p) => p.y);
+  const [xMin, xMax] = [Math.min(...xs), Math.max(...xs)];
+  const [yMin, yMax] = [Math.min(...ys), Math.max(...ys)];
+  return {
+    px: (x: number) => x0 + ((x - xMin) / (xMax - xMin || 1)) * w,
+    // SVGは下向きが正なので、yは反転させる（上が大きい値）
+    py: (y: number) => y0 + h - ((y - yMin) / (yMax - yMin || 1)) * h,
+  };
+}
+
+// 図2: 相関の強さ3連（r = 0.85 / 0.30 / 0.00）
+const STRENGTH_PANELS = [
+  { r: 0.85, label: 'r = 0.85', note: 'はっきり関係がある' },
+  { r: 0.3, label: 'r = 0.30', note: '言われれば分かる程度' },
+  { r: 0.0, label: 'r = 0.00', note: '関係なし' },
+].map((p, i) => {
+  const pts = correlatedPoints(p.r, 90, 12345 + i * 977);
+  // 枠線に点が乗って半分はみ出すので、点の半径ぶん内側に詰めて配置する。
+  const PAD = 6;
+  const fit = fitter(pts, PAD, PAD, 160 - PAD * 2, 120 - PAD * 2);
+  return { ...p, dots: pts.map((q) => ({ cx: fit.px(q.x), cy: fit.py(q.y) })) };
+});
+
+/**
+ * 図3: ピアソンとスピアマンの違い。
+ * 「順位はきれいに揃っているのに、1頭だけ桁違いに稼いだ馬がいる」データを作る。
+ * ピアソンは値の大きさをそのまま見るので外れ値1点に引っ張られ、
+ * スピアマンは順位しか見ないので影響を受けにくい ―― という対比を1枚で見せる。
+ */
+const OUTLIER_DEMO = (() => {
+  const rand = lcg(4242);
+  const base: { x: number; y: number }[] = [];
+  for (let i = 0; i < 40; i++) {
+    const x = i / 39;
+    base.push({ x, y: x * 0.9 + gauss(rand) * 0.18 });
+  }
+  // 実データの賞金と同じく「下が詰まって上に長い尾」を作るため、指数変換してから外れ値を足す
+  const shaped = base.map((p) => ({ x: p.x, y: Math.exp(p.y * 1.6) }));
+  const withOutlier = [...shaped];
+  // 体重は軽い方（x小）なのに桁違いに稼いだ1頭。ピアソンだけがこの1点で大きく動く。
+  withOutlier.push({ x: 0.12, y: Math.max(...shaped.map((p) => p.y)) * 3.4 });
+  const xs = withOutlier.map((p) => p.x);
+  const ys = withOutlier.map((p) => p.y);
+  return {
+    pearson: pearsonCorrelation(xs, ys),
+    spearman: spearmanCorrelation(xs, ys),
+    pts: withOutlier,
+  };
+})();
+const OUTLIER_FIT = fitter(OUTLIER_DEMO.pts, 8, 8, 234, 134);
+const outlierDots = OUTLIER_DEMO.pts.map((p, i) => ({
+  cx: OUTLIER_FIT.px(p.x),
+  cy: OUTLIER_FIT.py(p.y),
+  isOutlier: i === OUTLIER_DEMO.pts.length - 1,
+}));
+// 順位に置き換えた同じデータ（右のパネル）。順位で見ると外れ値もただの「1位」になる。
+const rankPts = (() => {
+  const order = (arr: number[]) => {
+    const idx = arr.map((v, i) => [v, i] as [number, number]).sort((a, b) => a[0] - b[0]);
+    const out = new Array<number>(arr.length);
+    idx.forEach(([, orig], rank) => (out[orig] = rank));
+    return out;
+  };
+  const rx = order(OUTLIER_DEMO.pts.map((p) => p.x));
+  const ry = order(OUTLIER_DEMO.pts.map((p) => p.y));
+  const pts = rx.map((x, i) => ({ x, y: ry[i] }));
+  const fit = fitter(pts, 8, 8, 234, 134);
+  return pts.map((p, i) => ({
+    cx: fit.px(p.x),
+    cy: fit.py(p.y),
+    isOutlier: i === pts.length - 1,
+  }));
+})();
+
+/** 図4: p値。重なりの大きい2群と、離れた2群を、同じ描き方で並べる。 */
+function bellPath(cx: number, width: number, height: number, baseY: number) {
+  const pts: string[] = [];
+  const steps = 48;
+  for (let i = 0; i <= steps; i++) {
+    const t = -3 + (6 * i) / steps;
+    const x = cx + (t * width) / 6;
+    const y = baseY - Math.exp(-0.5 * t * t) * height;
+    pts.push(`${i === 0 ? 'M' : 'L'}${x.toFixed(1)},${y.toFixed(1)}`);
+  }
+  return pts.join(' ');
+}
+
+/** 図5: 優越確率のゲージ。0〜100%の帯の上に、実データの値と50%の目盛りを置く。 */
+const SUPERIORITY_PCT = (maleSuperiority ?? 0.5) * 100;
+
+/** 図8: 分位。並んだ点を4等分する図の座標。 */
+const QUARTILE_DOTS = Array.from({ length: 40 }, (_, i) => ({
+  x: 40 + i * 14,
+  group: Math.floor(i / 10),
+}));
+
+const description =
+  '【非公式】キャロットクラブ募集馬の分析記事で使っている統計用語（中央値・相関係数・順位相関・p値・偏相関・優越確率）を、図と実データの例で説明します。';
+---
+
+<BaseLayout
+  title="分析記事の読み方"
+  description={description}
+  breadcrumb={[
+    { label: '分析記事', href: '/articles/' },
+    { label: '分析記事の読み方', href: '/articles/methods/' },
+  ]}
+  showHeaderNotices={false}
+  ogImage="/og-article-methods-v1.png"
+  ogImageAlt="分析記事の読み方（統計用語の説明）のカード画像（【非公式】キャロットクラブ出資馬検討ツール）"
+>
+  <article>
+    <h1>分析記事の読み方</h1>
+
+    <p>
+      <a href="/articles/">分析記事</a>では「順位相関」「p値」「偏相関」といった言葉が
+      説明なしに出てきます。統計の授業のような話は本題ではないのですが、
+      <strong>どの数字を信じてよくて、どの数字は話半分に読むべきか</strong>が分かると
+      記事はぐっと読みやすくなるはずです。このページでは、記事で使っている用語を
+      図と実際の集計例だけで説明します。数式は出てきません。
+    </p>
+
+    <div class="tldr">
+      <p class="tldr-lead">先に3行でまとめると</p>
+      <ul>
+        <li><strong>相関係数（r）</strong>は −1〜1の「関係の強さ」。競走成績のデータでは
+          0.2もあれば強い方で、<strong>0.1前後は「弱い傾向」止まり</strong>。</li>
+        <li><strong>p値</strong>は「偶然でもこれくらい起きるか」の目安。小さいほど偶然では
+          説明しにくい。<strong>大きくても「差が無い」と証明されたわけではない</strong>。</li>
+        <li>グループ分けの数字は、<strong>本当にその指標を見ているのか</strong>（性別など
+          別のものを見ていないか）を疑ってから読む。</li>
+      </ul>
+    </div>
+
+    <ArticleToc />
+
+    <AdSlot sp="f81bbb016a82d6366a0e2f70051b1a0c" pc="f0efb5bd6ae3e164bb584a4dbb846f48" />
+
+    <h2 id="median">平均ではなく「中央値」を使う</h2>
+    <p>
+      記事のグラフはほとんど<strong>中央値</strong>（小さい順に並べてちょうど真ん中の馬の値）で
+      書いています。平均ではありません。理由は、獲得賞金の分布が極端に偏っているからです。
+    </p>
+    <p>
+      出走した{raced.length}頭の獲得賞金は、<strong>平均{formatManYen(Math.round(prizeMean))}万円</strong>
+      に対して<strong>中央値{formatManYen(Math.round(prizeMedian))}万円</strong>。3倍以上ちがいます。
+      平均以上を稼いだ馬は{aboveMeanCount}頭、全体の<strong>{aboveMeanShare.toFixed(1)}%しかいません</strong>。
+      最高は{formatManYen(prizeMax)}万円、いっぽうで{zeroPrizeCount}頭は出走しても賞金ゼロです。
+      ひと握りの大物が平均を引き上げるので、「平均{formatManYen(Math.round(prizeMean))}万円」を
+      普通の馬の姿だと思って読むと実態から離れてしまいます。
+    </p>
+    <figure class="diagram">
+      <svg viewBox="0 0 640 150" role="img" aria-labelledby="fig-median-t" preserveAspectRatio="xMidYMid meet">
+        <title id="fig-median-t">少数の大物が平均を引き上げ、中央値は真ん中に残ることを示した図</title>
+        <line x1="30" y1="95" x2="610" y2="95" class="axis" />
+        {Array.from({ length: 34 }, (_, i) => {
+          // 左に密集し、右へまばらに伸びる並び（賞金分布の形）
+          const t = i / 33;
+          const x = 34 + Math.pow(t, 2.1) * 520;
+          return <circle cx={x} cy="95" r="5" class="dot" />;
+        })}
+        <circle cx="592" cy="95" r="5" class="dot dot-out" />
+        <circle cx="565" cy="95" r="5" class="dot dot-out" />
+        <g class="marker marker-median">
+          <line x1="120" y1="55" x2="120" y2="112" />
+          <text x="120" y="46" text-anchor="middle">中央値</text>
+        </g>
+        <g class="marker marker-mean">
+          <line x1="243" y1="55" x2="243" y2="112" />
+          <text x="243" y="46" text-anchor="middle">平均</text>
+        </g>
+        <text x="34" y="130" class="cap">賞金が少ない</text>
+        <text x="606" y="130" class="cap" text-anchor="end">桁違いに稼いだ馬</text>
+      </svg>
+      <figcaption>
+        イメージ図。1頭1頭を点にして賞金順に並べたもの。右端の数頭が平均を右へ引っぱるのに対し、
+        中央値は点の数で決まるので動きません。
+      </figcaption>
+    </figure>
+
+    <h2 id="correlation">相関係数（r）— どれくらいなら「関係がある」のか</h2>
+    <p>
+      「体高が高いほど賞金も高い」のような<strong>2つの数字が連れ立って動く度合い</strong>を、
+      −1から1までの1つの数字にしたものが相関係数です。1に近いほど「片方が大きいほど
+      もう片方も大きい」、0なら無関係、マイナスなら逆向きです。
+    </p>
+    <figure class="diagram">
+      <svg viewBox="0 0 640 190" role="img" aria-labelledby="fig-strength-t" preserveAspectRatio="xMidYMid meet">
+        <title id="fig-strength-t">相関係数が0.85・0.30・0.00のときの散布図の見え方の違い</title>
+        {STRENGTH_PANELS.map((panel, i) => (
+          <g transform={`translate(${30 + i * 200}, 20)`}>
+            <rect x="0" y="0" width="160" height="120" class="panel" />
+            {panel.dots.map((d) => (
+              <circle cx={d.cx} cy={d.cy} r="2.6" class="dot" />
+            ))}
+            <text x="80" y="145" text-anchor="middle" class="panel-label">{panel.label}</text>
+            <text x="80" y="164" text-anchor="middle" class="cap">{panel.note}</text>
+          </g>
+        ))}
+      </svg>
+      <figcaption>イメージ図。同じ数の点を、相関の強さだけ変えて描いたもの。</figcaption>
+    </figure>
+    <p>
+      大事なのは<strong>「どれくらいなら大きいのか」は分野によって違う</strong>ということです。
+      競走馬の成績は血統・調教・展開・相手関係など無数の要因で決まるので、
+      募集時の測尺ひとつで説明できる部分はごくわずかです。この記事群で出てくる相関は
+      おおむね<strong>0.0〜0.25の範囲</strong>で、上の図でいえば真ん中よりさらに薄いくらい。
+      「r=0.2だから当てられる」ではなく、<strong>「たくさん集めて平均するとわずかに差が見える」</strong>
+      という強さだと思ってください。
+    </p>
+    <div class="note-box">
+      <p>
+        <strong>相関があっても原因とは限りません。</strong>「体重が重いから走る」のか、
+        「よく育った馬がたまたま重くもあり走りもする」のかは、この集計では区別できません。
+        記事では「関係がある／ない」までしか書かず、「だから重い馬を選べば勝てる」とは書きません。
+      </p>
+    </div>
+
+    <AdSlot sp="b4b7d55c89d5fc92c564979491a16ad1" pc="0a525f6469ec1f40642b4550e53d39cc" />
+
+    <h2 id="spearman">順位相関（スピアマン）— 賞金にはこちらを使う</h2>
+    <p>
+      相関係数には2種類あります。記事では両方出てくるので、違いだけ押さえてください。
+    </p>
+    <ul class="term-list">
+      <li>
+        <strong>ピアソンの相関係数</strong>…… 値の大きさをそのまま使う、いわゆる普通の相関係数。
+        「1億円」と「1,000万円」の差を10倍として扱います。
+      </li>
+      <li>
+        <strong>スピアマンの順位相関</strong>…… 値を<strong>順位に置きかえてから</strong>計算します。
+        「1位・2位・3位……」だけを見るので、1位が1億円でも10億円でも結果は同じです。
+      </li>
+    </ul>
+    <figure class="diagram">
+      <svg viewBox="0 0 640 252" role="img" aria-labelledby="fig-spearman-t" preserveAspectRatio="xMidYMid meet">
+        <title id="fig-spearman-t">同じデータを金額で見た場合と順位で見た場合の散布図の違い</title>
+        <g transform="translate(40, 24)">
+          <rect x="0" y="0" width="250" height="150" class="panel" />
+          {outlierDots.map((d) => (
+            <circle cx={d.cx} cy={d.cy} r={d.isOutlier ? 5 : 2.8} class={d.isOutlier ? 'dot dot-out' : 'dot'} />
+          ))}
+          <text x="125" y="177" text-anchor="middle" class="panel-label">金額のまま（ピアソン）</text>
+          <text x="125" y="197" text-anchor="middle" class="cap">
+            r = {OUTLIER_DEMO.pearson?.toFixed(2)}
+          </text>
+        </g>
+        <g transform="translate(350, 24)">
+          <rect x="0" y="0" width="250" height="150" class="panel" />
+          {rankPts.map((d) => (
+            <circle cx={d.cx} cy={d.cy} r={d.isOutlier ? 5 : 2.8} class={d.isOutlier ? 'dot dot-out' : 'dot'} />
+          ))}
+          <text x="125" y="177" text-anchor="middle" class="panel-label">順位に直して（スピアマン）</text>
+          <text x="125" y="197" text-anchor="middle" class="cap">
+            r = {OUTLIER_DEMO.spearman?.toFixed(2)}
+          </text>
+        </g>
+        <text x="320" y="243" text-anchor="middle" class="cap">
+          オレンジの点＝1頭だけ桁違いに稼いだ馬（同じデータ・見方だけが違う）
+        </text>
+      </svg>
+      <figcaption>
+        イメージ図。左は縦軸が金額なので、飛び抜けた1頭にグラフ全体が潰されて、
+        残りの馬の並びが見えません。右は順位なので、その1頭も「1位」という1点に収まります。
+      </figcaption>
+    </figure>
+    <p>
+      獲得賞金は<strong>ごく一部の馬が桁違いに稼ぐ</strong>形の分布なので、金額のまま計算すると
+      数頭の大物に結果を左右されます。そのため記事では、賞金がからむ相関は
+      <strong>順位相関を主に載せています</strong>。
+    </p>
+    <div class="note-box">
+      <p>
+        実際に差が出た例があります。<a href="/articles/weight/">馬体重の記事</a>で、
+        牝馬{racedFemalesWithWeight.length}頭の「募集時体重 × 獲得賞金」を計算すると、
+        ピアソンでは r={femalePearson?.toFixed(3)} と弱いのに、
+        <strong>順位相関では r={femaleSpearman?.toFixed(3)}</strong> と倍以上になります。
+        同じデータです。金額で見ると一部の大物のばらつきに埋もれてしまう関係が、
+        順位で見ると「小さい馬から大きい馬へ、順番に賞金も上がっていく」という形で
+        浮かび上がる、ということです。
+      </p>
+    </div>
+
+    <h2 id="p-value">p値 —「偶然でもこれくらい起きるか」の目安</h2>
+    <p>
+      2つのグループを比べて「重い方が稼いでいた」となっても、それが<strong>たまたま</strong>
+      かもしれません。コインを10回投げて7回表が出ても、コインが歪んでいるとは限らないのと同じです。
+      そこで「もし本当は差が無いとしたら、これくらいの差はどれくらいの確率で起きるのか」を
+      計算したものが<strong>p値</strong>です。
+    </p>
+    <figure class="diagram">
+      <svg viewBox="0 0 640 200" role="img" aria-labelledby="fig-p-t" preserveAspectRatio="xMidYMid meet">
+        <title id="fig-p-t">2つのグループの分布が重なっている場合と離れている場合の比較</title>
+        <g transform="translate(30, 10)">
+          <path d={bellPath(105, 150, 88, 120)} class="bell bell-a" />
+          <path d={bellPath(155, 150, 88, 120)} class="bell bell-b" />
+          <line x1="0" y1="120" x2="260" y2="120" class="axis" />
+          <text x="130" y="146" text-anchor="middle" class="panel-label">重なりが大きい</text>
+          <text x="130" y="166" text-anchor="middle" class="cap">p値は大きい＝偶然でも起きる</text>
+          <text x="130" y="184" text-anchor="middle" class="cap">「差があるとは言えない」</text>
+        </g>
+        <g transform="translate(350, 10)">
+          <path d={bellPath(70, 150, 88, 120)} class="bell bell-a" />
+          <path d={bellPath(190, 150, 88, 120)} class="bell bell-b" />
+          <line x1="0" y1="120" x2="260" y2="120" class="axis" />
+          <text x="130" y="146" text-anchor="middle" class="panel-label">重なりが小さい</text>
+          <text x="130" y="166" text-anchor="middle" class="cap">p値は小さい＝偶然では説明しにくい</text>
+          <text x="130" y="184" text-anchor="middle" class="cap">「差がありそう」</text>
+        </g>
+      </svg>
+      <figcaption>
+        イメージ図。山の高いところがそのグループのよくある値。2つの山が重なっているほど
+        「たまたま片方が上に出ただけ」の可能性が残ります。
+      </figcaption>
+    </figure>
+    <p>
+      慣習として<strong>p &lt; 0.05</strong>（偶然で起きる確率が5%未満）を「差がありそう」の
+      目安に使い、記事でもこの線で書いています。ただし注意点が2つあります。
+    </p>
+    <ul class="term-list">
+      <li>
+        <strong>p値が大きくても「差が無い」と証明されたわけではありません。</strong>
+        頭数が少なければ、本当に差があっても検出できません。記事で「差は出なかった」と書くときは、
+        できるだけ「差が無いと確かめられた、ではない」と添えるようにしています。
+      </li>
+      <li>
+        <strong>p値は差の大きさではありません。</strong>頭数が多ければ、ごくわずかな差でも
+        p値は小さくなります。「p&lt;0.0001だからすごく効く」ではありません。効き目の大きさは
+        相関係数や次の優越確率で見ます。
+      </li>
+    </ul>
+    <p class="table-note">
+      記事に出てくる「Mann-Whitney（マン・ホイットニー）検定」は、2つのグループの分布を
+      順位で比べてこのp値を出す方法です。賞金のように分布が歪む数字を比べるのに向いています。
+      「2標本の比率の差の検定」は、勝ち上がり率のような<strong>割合</strong>を比べるときに使います。
+    </p>
+
+    <div class="ad-rect">
+      <AdSlot sp="24e3e1a24f40d88ee1a0ca315c54a7b9" pc="f0efb5bd6ae3e164bb584a4dbb846f48" />
+    </div>
+
+    <h2 id="superiority">優越確率 — 1頭ずつ比べたら何%勝つか</h2>
+    <p>
+      棒グラフの中央値は上がっているのに、検定してみると「差とは言えない」。
+      記事ではこの状態がよく出てきます。読者からすると矛盾に見えるので、
+      そういうときは<strong>優越確率</strong>という数字を添えています。
+    </p>
+    <p>
+      これは<strong>「2つのグループから1頭ずつ選んで比べたら、こちらの群の方が上回るのは何%か」</strong>
+      です。まったく差が無ければ50%（コイン投げ）、片方が完全に上回っていれば100%。
+      頭数に左右されないので、<strong>効き目の大きさそのもの</strong>を表します。
+    </p>
+    <figure class="diagram">
+      <svg viewBox="0 0 640 150" role="img" aria-labelledby="fig-sup-t" preserveAspectRatio="xMidYMid meet">
+        <title id="fig-sup-t">優越確率の目盛りと、実データの値が50%付近にあることを示した図</title>
+        <rect x="60" y="52" width="520" height="26" rx="13" class="gauge-track" />
+        <line x1="320" y1="42" x2="320" y2="88" class="gauge-mid" />
+        <text x="320" y="32" text-anchor="middle" class="cap">50%（コイン投げ）</text>
+        <circle cx={60 + (SUPERIORITY_PCT / 100) * 520} cy="65" r="9" class="gauge-knob" />
+        <text
+          x={60 + (SUPERIORITY_PCT / 100) * 520}
+          y="110"
+          text-anchor="middle"
+          class="panel-label"
+        >
+          {SUPERIORITY_PCT.toFixed(1)}%
+        </text>
+        <text x="60" y="110" text-anchor="start" class="cap">0%</text>
+        <text x="580" y="110" text-anchor="end" class="cap">100%</text>
+        <text x="320" y="136" text-anchor="middle" class="cap">
+          牡の「軽い1/4 vs 重い1/4」で重い方が上回る確率（実データ）
+        </text>
+      </svg>
+      <figcaption>
+        <a href="/articles/weight/">馬体重の記事</a>の実データ。棒グラフでは重い群の中央値が
+        高く出ますが、1頭ずつ比べると{SUPERIORITY_PCT.toFixed(1)}%＝ほぼコイン投げで、
+        「差とは言えない」という検定結果と一致します。
+      </figcaption>
+    </figure>
+
+    <h2 id="partial">偏相関 —「もう一方をそろえて」見る</h2>
+    <p>
+      体高と体重のように、<strong>2つの指標が互いに連動している</strong>ことがあります。
+      すると「体高が高い馬は稼ぐ」という関係が出ても、それが体高のおかげなのか、
+      単に<strong>「体高が高い馬は体重も重いから」</strong>なのかが分かりません。
+    </p>
+    <figure class="diagram">
+      <svg viewBox="0 0 640 210" role="img" aria-labelledby="fig-partial-t" preserveAspectRatio="xMidYMid meet">
+        <title id="fig-partial-t">体高と体重が連動しているため、体高と賞金の関係が体重経由かもしれないことを示す図</title>
+        <g class="node"><rect x="40" y="30" width="120" height="46" rx="8" /><text x="100" y="59" text-anchor="middle">体高</text></g>
+        <g class="node"><rect x="40" y="128" width="120" height="46" rx="8" /><text x="100" y="157" text-anchor="middle">体重</text></g>
+        <g class="node node-out"><rect x="330" y="79" width="120" height="46" rx="8" /><text x="390" y="108" text-anchor="middle">獲得賞金</text></g>
+        <path d="M100,76 L100,128" class="edge edge-link" marker-end="url(#mh-arrow)" />
+        <path d="M100,128 L100,76" class="edge edge-link" marker-end="url(#mh-arrow)" />
+        <text x="112" y="107" class="cap">連動</text>
+        <path d="M160,53 C250,53 250,90 330,95" class="edge edge-dim" marker-end="url(#mh-arrow-dim)" />
+        <text x="240" y="48" text-anchor="middle" class="cap">本当に効いている？</text>
+        <path d="M160,151 C250,151 250,115 330,110" class="edge" marker-end="url(#mh-arrow)" />
+        <text x="243" y="180" text-anchor="middle" class="cap">それともこちらだけ？</text>
+        <defs>
+          <marker id="mh-arrow" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto">
+            <path d="M0,0 L8,4 L0,8 z" class="arrow-head" />
+          </marker>
+          <marker id="mh-arrow-dim" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto">
+            <path d="M0,0 L8,4 L0,8 z" class="arrow-head arrow-head-dim" />
+          </marker>
+        </defs>
+      </svg>
+      <figcaption>
+        イメージ図。体高と体重は連動しているので、片方の効果だけを取り出すには工夫がいります。
+      </figcaption>
+    </figure>
+    <p>
+      そこで使うのが<strong>偏相関</strong>です。ざっくり言うと
+      <strong>「体重が同じくらいの馬どうしの中で比べたら、体高はまだ効いているか」</strong>
+      を計算したもの。もし体高が体重の影でしかなかったなら、体重をそろえた時点で
+      体高と賞金の関係はゼロに近づきます。逆に体重の方は、体高をそろえても関係が残るなら
+      「体重そのものが効いている」と考えられます。
+    </p>
+    <p>
+      記事の表で「<strong>体重 ↔ 賞金（体高をそろえて）</strong>」のように書いてあるのがこれです。
+      そろえる相手を変えながら並べることで、<strong>どの指標が本体で、どれがその影なのか</strong>を
+      見分けようとしています。
+    </p>
+    <div class="note-box">
+      <p>
+        ただし偏相関でそろえられるのは、<strong>手元にある指標だけ</strong>です。血統や育成環境など
+        データに無いものの影響までは取り除けません。「体重が本体だと確定した」ではなく
+        「体高では説明がつかなかった」までの話として読んでください。
+      </p>
+    </div>
+
+    <h2 id="confounding">交絡 — 測っているつもりのものと違うものを測る</h2>
+    <p>
+      いちばん気をつけているのがこれです。ある指標で馬を並べたつもりが、
+      <strong>実はまったく別のもので並べていた</strong>という落とし穴があります。
+    </p>
+    <p>
+      実例が<a href="/articles/caret-girth/">管囲の記事</a>です。管囲（前脚の細い部分の周囲）で
+      馬を並べると、太い方が明らかに稼いでいるように見えました。ところが管囲は
+      <strong>牡と牝で大きく違う指標</strong>で、中央値は牡{caretMaleMedian}cm・牝{caretFemaleMedian}cm。
+      結果として<strong>{CARET_THICK}cm以上の{thickCaret.length}頭のうち{thickMaleShare.toFixed(1)}%が牡</strong>でした。
+      牡は牝より賞金の高いレースに出ていくので、<strong>「管囲で並べる」はほとんど「性別で並べる」
+      ことになっていた</strong>わけです。
+    </p>
+    <figure class="diagram">
+      <svg viewBox="0 0 640 210" role="img" aria-labelledby="fig-confound-t" preserveAspectRatio="xMidYMid meet">
+        <title id="fig-confound-t">管囲の分布が牡と牝でずれているため、太い群がほぼ牡になることを示す図</title>
+        <path d={bellPath(220, 260, 92, 140)} class="bell bell-b" />
+        <path d={bellPath(400, 260, 92, 140)} class="bell bell-a" />
+        <line x1="40" y1="140" x2="600" y2="140" class="axis" />
+        <text x="200" y="52" text-anchor="middle" class="panel-label">牝</text>
+        <text x="420" y="52" text-anchor="middle" class="panel-label">牡</text>
+        <line x1="470" y1="44" x2="470" y2="152" class="cut-line" />
+        <text x="462" y="34" text-anchor="end" class="cap">ここから右を「太い」と呼ぶと……</text>
+        <text x="535" y="176" text-anchor="middle" class="cap">ほぼ牡だけの群になる</text>
+        <text x="40" y="176" class="cap">細い</text>
+        <text x="600" y="198" text-anchor="end" class="cap">太い</text>
+      </svg>
+      <figcaption>
+        イメージ図。2つの山がずれていると、片側を切り取った群は一方の性別ばかりになります。
+      </figcaption>
+    </figure>
+    <p>
+      こういう「本当は別のものを測っていた」要因を<strong>交絡</strong>といいます。対策は単純で、
+      <strong>牡だけ・牝だけに分けて計算し直す</strong>ことです。記事で牡と牝のグラフを
+      いちいち並べているのはこのためで、<strong>実際に、混ぜて見たときと分けて見たときで
+      結論が変わった記事があります</strong>。募集馬一覧で測尺を並べ替えるときも、
+      先に性別で絞ってから見るのがおすすめです。
+    </p>
+
+    <h2 id="quantile">分位で切る —「境界を選べる」状態を避ける</h2>
+    <p>
+      グループ分けの境界は、<strong>置き方しだいで結論が変わってしまいます</strong>。
+      「20cm以上か未満か」で切るか「21cm以上か」で切るかで、有意差が出たり出なかったりする。
+      こうなると、都合のいい境界を探して選べてしまいます。
+    </p>
+    <p>
+      なので記事では、多くの場面で<strong>分位</strong>を使っています。
+      値の大小ではなく<strong>「並べて4等分（4分位）」「3等分（3分位）」</strong>で切る方法です。
+      これなら選ぶ余地がなく、どの群も同じ頭数になります。グラフの棒の下に
+      「357〜430kg・94頭」のように実際の範囲と頭数を書いてあるのは、その群が
+      どのあたりの馬なのかを確認できるようにするためです。
+    </p>
+    <figure class="diagram">
+      <svg viewBox="0 0 640 130" role="img" aria-labelledby="fig-quartile-t" preserveAspectRatio="xMidYMid meet">
+        <title id="fig-quartile-t">馬を値の順に並べて同じ頭数ずつ4つに分ける様子</title>
+        {QUARTILE_DOTS.map((d) => (
+          <circle cx={d.x} cy="56" r="5" class={`dot dot-q${d.group}`} />
+        ))}
+        {[0, 1, 2, 3].map((g) => (
+          <text x={40 + g * 140 + 63} y="92" text-anchor="middle" class="panel-label">
+            {['軽い1/4', 'やや軽い', 'やや重い', '重い1/4'][g]}
+          </text>
+        ))}
+        {[1, 2, 3].map((g) => (
+          <line x1={40 + g * 140 - 7} y1="34" x2={40 + g * 140 - 7} y2="72" class="cut-line" />
+        ))}
+        <text x="40" y="26" class="cap">軽い</text>
+        <text x="600" y="26" text-anchor="end" class="cap">重い</text>
+        <text x="320" y="118" text-anchor="middle" class="cap">どの群も同じ頭数（各10頭のイメージ）</text>
+      </svg>
+      <figcaption>イメージ図。値ではなく頭数で切るので、境界を選ぶ余地がありません。</figcaption>
+    </figure>
+    <p>
+      cmとkgのように単位が違う指標を比べるときは、<strong>標準偏差（SD）</strong>という
+      「その指標のばらつき何個ぶんか」に換算します。「牡と牝の差が1.13SD」と書いてあれば、
+      それはcmの大小ではなく<strong>その指標のばらつきに対してどれくらい大きな差か</strong>という意味です。
+    </p>
+
+    <h2 id="rules">記事で守っていること</h2>
+    <p>
+      最後に、書く側のルールも書いておきます。読むときの信頼度の目安にしてください。
+    </p>
+    <ul class="term-list">
+      <li>
+        <strong>本文の主張は、ページを作り直すたびに自動で検算しています。</strong>
+        「牡では差が出ない」のような文章は、競走成績のデータを新しくしたときに
+        <strong>数字だけが入れ替わって、文章のほうが嘘になってしまう</strong>ことがあります。
+        そこで主張の一つひとつを計算式の形で持たせておき、データを更新して計算が合わなくなったら、
+        そもそもページを公開できない仕組みにしてあります。
+      </li>
+      <li>
+        <strong>「差が無い」は、その部分集合で計算し直してから書きます。</strong>
+        全体の数字を部分集合の話に流用しません。
+      </li>
+      <li>
+        <strong>頭数が少ないときはp値を出しません。</strong>重賞勝ち馬のように数が少ない事象では
+        検定の前提が崩れるので、そのときは「検定に足りない」と書いて数字だけ出します。
+      </li>
+      <li>
+        <strong>都合のいい境界を選びません。</strong>境界で結論が動く指標は分位で切ります。
+      </li>
+      <li>
+        <strong>相関を並べるときはp値も並べます。</strong>頭数の違う群のrだけを見比べると、
+        頭数が減って揺らいだだけなのを「効果が消えた」と読み違えるためです。
+      </li>
+    </ul>
+    <p>
+      それでもこれは<strong>個人が趣味で集計しているもの</strong>です。出資判断の道具というより、
+      カタログを眺めるときの話のタネとして読んでもらえたら嬉しいです。
+    </p>
+
+    <p>
+      <a href="/articles/">分析記事の一覧へ</a> ／ <a href="/">募集馬一覧へ戻る</a>
+    </p>
+  </article>
+</BaseLayout>
+
+<style>
+  article :global(h2) {
+    margin-top: 2.5rem;
+  }
+  .tldr {
+    margin: 1.5rem 0;
+    padding: 1rem 1.2rem;
+    background: var(--info-weak);
+    border-left: 3px solid var(--info);
+    border-radius: 0 6px 6px 0;
+  }
+  .tldr-lead {
+    margin: 0 0 0.5rem;
+    font-weight: 700;
+  }
+  .tldr ul {
+    margin: 0;
+    padding-left: 1.2rem;
+  }
+  .tldr li + li {
+    margin-top: 0.4rem;
+  }
+  .note-box {
+    margin: 1.25rem 0;
+    padding: 0.9rem 1.1rem;
+    background: var(--accent-weak);
+    border-left: 3px solid var(--accent);
+    border-radius: 0 6px 6px 0;
+  }
+  .note-box p {
+    margin: 0;
+  }
+  .term-list {
+    padding-left: 1.2rem;
+  }
+  .term-list li {
+    margin-bottom: 0.7rem;
+  }
+  .table-note {
+    font-size: 0.8125rem;
+    color: var(--muted);
+  }
+  .ad-rect {
+    display: flex;
+    justify-content: center;
+    margin: 1.75rem 0 0.5rem;
+  }
+
+  /* ---- 図 ---- */
+  .diagram {
+    margin: 1.5rem 0;
+    padding: 0.9rem 0.6rem 0.2rem;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    background: var(--surface);
+
+    --fig-dot: #2a78d6;
+    --fig-out: #eb6834;
+    --fig-line: var(--border);
+    --fig-ink: var(--muted);
+    --fig-a: #2a78d6;
+    --fig-b: #eb6834;
+  }
+  @media (prefers-color-scheme: dark) {
+    .diagram {
+      --fig-dot: #3987e5;
+      --fig-out: #d95926;
+      --fig-a: #3987e5;
+      --fig-b: #d95926;
+    }
+  }
+  .diagram svg {
+    display: block;
+    width: 100%;
+    height: auto;
+    overflow: visible;
+  }
+  .diagram figcaption {
+    margin-top: 0.5rem;
+    padding: 0 0.4rem;
+    font-size: 0.8125rem;
+    line-height: 1.6;
+    color: var(--muted);
+  }
+
+  .diagram :global(.dot) {
+    fill: var(--fig-dot);
+    opacity: 0.65;
+  }
+  .diagram :global(.dot-out) {
+    fill: var(--fig-out);
+    opacity: 1;
+  }
+  .diagram :global(.dot-q0) { fill: var(--fig-dot); opacity: 0.35; }
+  .diagram :global(.dot-q1) { fill: var(--fig-dot); opacity: 0.55; }
+  .diagram :global(.dot-q2) { fill: var(--fig-dot); opacity: 0.75; }
+  .diagram :global(.dot-q3) { fill: var(--fig-dot); opacity: 0.95; }
+  .diagram :global(.axis) {
+    stroke: var(--fig-line);
+    stroke-width: 1.5;
+  }
+  .diagram :global(.panel) {
+    fill: none;
+    stroke: var(--fig-line);
+    stroke-width: 1;
+    rx: 4;
+  }
+  .diagram :global(.panel-label) {
+    fill: var(--text);
+    font-size: 13px;
+    font-weight: 700;
+  }
+  .diagram :global(.cap) {
+    fill: var(--fig-ink);
+    font-size: 11.5px;
+  }
+  .diagram :global(.marker line) {
+    stroke-width: 2;
+    stroke-dasharray: 4 3;
+  }
+  .diagram :global(.marker text) {
+    font-size: 12px;
+    font-weight: 700;
+  }
+  .diagram :global(.marker-median line) { stroke: var(--fig-dot); }
+  .diagram :global(.marker-median text) { fill: var(--fig-dot); }
+  .diagram :global(.marker-mean line) { stroke: var(--fig-out); }
+  .diagram :global(.marker-mean text) { fill: var(--fig-out); }
+  .diagram :global(.bell) {
+    stroke-width: 2;
+    fill-opacity: 0.16;
+  }
+  .diagram :global(.bell-a) { stroke: var(--fig-a); fill: var(--fig-a); }
+  .diagram :global(.bell-b) { stroke: var(--fig-b); fill: var(--fig-b); }
+  .diagram :global(.cut-line) {
+    stroke: var(--fig-out);
+    stroke-width: 2;
+    stroke-dasharray: 5 3;
+  }
+  .diagram :global(.gauge-track) {
+    fill: var(--accent-weak);
+    stroke: var(--fig-line);
+  }
+  .diagram :global(.gauge-mid) {
+    stroke: var(--fig-ink);
+    stroke-width: 2;
+    stroke-dasharray: 4 3;
+  }
+  .diagram :global(.gauge-knob) {
+    fill: var(--fig-dot);
+    stroke: var(--surface);
+    stroke-width: 2.5;
+  }
+  .diagram :global(.node rect) {
+    fill: var(--surface);
+    stroke: var(--fig-dot);
+    stroke-width: 2;
+  }
+  .diagram :global(.node text) {
+    fill: var(--text);
+    font-size: 14px;
+    font-weight: 700;
+  }
+  .diagram :global(.node-out rect) {
+    stroke: var(--fig-out);
+  }
+  .diagram :global(.edge) {
+    fill: none;
+    stroke: var(--fig-dot);
+    stroke-width: 2;
+  }
+  .diagram :global(.edge-link) {
+    stroke: var(--fig-ink);
+    stroke-width: 1.5;
+  }
+  .diagram :global(.edge-dim) {
+    stroke: var(--fig-ink);
+    stroke-dasharray: 5 4;
+  }
+  .diagram :global(.arrow-head) {
+    fill: var(--fig-dot);
+  }
+  .diagram :global(.arrow-head-dim) {
+    fill: var(--fig-ink);
+  }
+</style>

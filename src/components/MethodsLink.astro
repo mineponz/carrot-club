@@ -1,0 +1,43 @@
+---
+/**
+ * 分析記事から用語解説ページ（`/articles/methods/`）への導線。
+ *
+ * 記事は「順位相関」「p値」「偏相関」を注釈なしで使っている。本人から
+ * 「分析記事が難しめなので手法の説明ページとリンクを」との依頼（2026-09-02）を受けて新設。
+ *
+ * ## 各記事に1行置くだけにする
+ * 文言やスタイルを記事ごとに書くと、直すときに8箇所を追いかけることになる
+ * （`GradeWinnerTable.astro`・`ArticleToc.astro` と同じ方針）。記事側は
+ * `<MethodsLink />` を目次の下に置くだけでよい。
+ *
+ * ## `ArticleToc` の中に入れなかった理由
+ * 目次はJSでDOMから組み立てる都合で、JSが動かない環境では `hidden` のまま出ない。
+ * この導線は「記事が読めない人」への案内なので、素のHTMLで必ず出る独立要素にしてある。
+ */
+---
+
+<p class="methods-link">
+  <a href="/articles/methods/">
+    「順位相関」「p値」「偏相関」といった用語は<strong>分析記事の読み方</strong>で図つきで説明しています
+  </a>
+</p>
+
+<style>
+  .methods-link {
+    margin: 1rem 0 1.5rem;
+    padding: 0.7rem 0.95rem;
+    background: var(--info-weak);
+    border: 1px solid var(--info);
+    border-radius: 8px;
+    font-size: 0.9375rem;
+    line-height: 1.6;
+  }
+  .methods-link a {
+    color: var(--info);
+    text-decoration: none;
+  }
+  .methods-link a:hover,
+  .methods-link a:focus-visible {
+    text-decoration: underline;
+  }
+</style>

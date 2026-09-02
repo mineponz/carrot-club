@@ -38,6 +38,8 @@ import GroupedBarChart from '../../components/charts/GroupedBarChart.astro';
 import ChartTooltip from '../../components/charts/ChartTooltip.astro';
 import StatTiles from '../../components/charts/StatTiles.astro';
 import ArticleToc from '../../components/ArticleToc.astro';
+import MethodsLink from '../../components/MethodsLink.astro';
+import TermLink from '../../components/TermLink.astro';
 import AdSlot from '../../components/AdSlot.astro';
 import GradeWinnerTable from '../../components/GradeWinnerTable.astro';
 import { loadRecruitsWithResults, racedOnly, RACE_RESULTS_FETCHED_AT } from '../../lib/analysis-data.ts';
@@ -387,6 +389,7 @@ const description = `【非公式】キャロットクラブ${yearRangeLabel}${a
     />
 
     <ArticleToc />
+    <MethodsLink />
 
     <AdSlot sp={AD_SP_WIDE_A} pc={AD_PC_WIDE_A} />
 
@@ -425,7 +428,7 @@ const description = `【非公式】キャロットクラブ${yearRangeLabel}${a
     <p>
       ここからが本題。{matureYearRangeLabel}募集の{mature.length}頭を、誕生日と体高の2軸で
       4グループに分けた。<strong>大きい/小さいの基準は体高。{heightMedian}cm以上を「大きい」、
-      それ未満を「小さい」としている</strong>（{mature.length}頭の中央値がちょうど{heightMedian}cm）。
+      それ未満を「小さい」としている</strong>（{mature.length}頭の<TermLink to="median">中央値</TermLink>がちょうど{heightMedian}cm）。
       早生まれ/遅生まれの境目は<strong>{earlyBirthCutoffLabel}</strong>。この日までに生まれた馬を
       「早生まれ」、これより後を「遅生まれ」とした。誕生日の中央値もちょうど
       {earlyBirthCutoffLabel}なので、どちらの軸も頭数がほぼ半々に割れる。
@@ -500,7 +503,7 @@ const description = `【非公式】キャロットクラブ${yearRangeLabel}${a
         向きは見立て通りでも、言い切れるほど強い差ではない。早生まれ・小さい（n={earlySmall.length}）と
         遅生まれ・小さい（n={lateSmall.length}）の総賞金差をMann-Whitney U検定にかけると
         p={smallPrizeTest.p.toFixed(3)}、大きい馬同士ではp={bigPrizeTest.p.toFixed(3)}で、どちらも
-        一般的な有意水準（0.05）には届かない。交絡もあり、小さい群は牝馬の比率が高い
+        一般的な有意水準（0.05）には届かない。<TermLink to="confounding">交絡</TermLink>もあり、小さい群は牝馬の比率が高い
         （早生まれ・小さい{earlySmallStats.mareShare.toFixed(0)}%、遅生まれ・小さい
         {lateSmallStats.mareShare.toFixed(0)}%に対し、大きい群は{earlyBigStats.mareShare.toFixed(0)}%・
         {lateBigStats.mareShare.toFixed(0)}%）。この{mature.length}頭でも牡馬の平均総賞金
@@ -537,7 +540,7 @@ const description = `【非公式】キャロットクラブ${yearRangeLabel}${a
 
     <h2>実際にどんな馬がいたか</h2>
     <p>
-      相関係数や検定の話ばかりだと実感が湧かないので、実際に重賞を勝った{gradeWinners.length}頭を
+      <TermLink to="correlation">相関係数</TermLink>や検定の話ばかりだと実感が湧かないので、実際に重賞を勝った{gradeWinners.length}頭を
       獲得賞金の多い順に紹介する。どのグループの馬かも並べてあるので、「小さい」側から
       どれだけ出ているかを見てほしい ―― {smallGradeWinners.length}頭いる。
     </p>

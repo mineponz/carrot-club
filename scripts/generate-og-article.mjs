@@ -115,6 +115,21 @@ const ARTICLES = {
     chips: ['牡と牝に分けて検証', '測尺4種を比較', '重賞勝ち馬を全掲載'],
     buildChart: caretGirthChart,
   },
+  methods: {
+    out: 'og-article-methods-v1.png',
+    headline: ['分析記事の', '読み方'],
+    lead: '順位相関・p値・偏相関を、図と実際の集計例で説明します',
+    chips: ['中央値と平均', '順位相関とp値', '偏相関と交絡'],
+    buildChart: methodsChart,
+  },
+  weight: {
+    out: 'og-article-weight-v1.png',
+    headline: ['馬体重と成績の', '関係を見てみた'],
+    lead: 'キャロットクラブ 2017〜2025年募集の募集時データ × 現在の競走成績',
+    yearRangePlaceholder: '2017〜2025年',
+    chips: ['牡と牝で効き方が違う', '体高より体重で見る', '重賞勝ち馬を全掲載'],
+    buildChart: weightChart,
+  },
   'club-siblings': {
     out: 'og-article-club-siblings-v1.png',
     headline: ['母がサンデー出身の', '募集馬は活躍しているか？'],
@@ -354,6 +369,40 @@ function clubSiblingsChart() {
     yearRangeLabel: '2017〜2025年',
     html: barsHtml(order.map((k) => Math.round(med(buckets[k])))),
     caption: '母の所属クラブ別 獲得賞金の中央値',
+  };
+}
+
+/**
+ * 用語解説ページ用のミニ図。実データの分布ではなく「相関の強さ」を示す形にしたいので、
+ * 右上がりの階段を描く（このページだけは特定の集計結果を表さない）。
+ * `total` は使わないが他の記事と同じ戻り値の形に揃えておく。
+ */
+function methodsChart() {
+  const recruits = JSON.parse(readFileSync(join(repoRoot, 'analysis', 'data', 'recruits.json'), 'utf8'));
+  const years = [...new Set(recruits.map((r) => r.recruitYear))].sort((a, b) => a - b);
+  return {
+    total: recruits.length,
+    yearRangeLabel: years.length > 0 ? `${years[0]}〜${years[years.length - 1]}年` : '',
+    html: barsHtml([12, 20, 26, 36, 44, 55, 68, 82]),
+    caption: '用語と読み方の解説',
+  };
+}
+
+/**
+ * 記事と同じ馬体重分布（10kg刻み・350〜590kg）をミニ棒グラフのHTMLにする
+ * （weight.astro と同じ binning）。24本になるので `barsHtml` で幅を逆算させる。
+ */
+function weightChart() {
+  const recruits = JSON.parse(readFileSync(join(repoRoot, 'analysis', 'data', 'recruits.json'), 'utf8'));
+  const w = recruits.map((h) => h.weight).filter((v) => typeof v === 'number');
+  const bins = histogram(w, 10, 350, 590);
+  const years = [...new Set(recruits.map((r) => r.recruitYear))].sort((a, b) => a - b);
+  const yearRangeLabel = years.length > 0 ? `${years[0]}〜${years[years.length - 1]}年` : '';
+  return {
+    total: w.length,
+    yearRangeLabel,
+    html: barsHtml(bins.map((b) => b.count)),
+    caption: '馬体重の分布（10kg刻み）',
   };
 }
 

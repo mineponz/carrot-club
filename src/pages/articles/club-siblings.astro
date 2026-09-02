@@ -38,6 +38,8 @@ import StatTiles from '../../components/charts/StatTiles.astro';
 import AdSlot from '../../components/AdSlot.astro';
 import DamSplitTable from '../../components/DamSplitTable.astro';
 import ArticleToc from '../../components/ArticleToc.astro';
+import MethodsLink from '../../components/MethodsLink.astro';
+import TermLink from '../../components/TermLink.astro';
 import damSiblingsJson from '../../../analysis/data/dam-siblings.json';
 import { horses2026 } from '../../data/horses2026.ts';
 import { cancelledRecruits2026, isCancelled2026 } from '../../data/cancelledRecruits2026.ts';
@@ -378,6 +380,7 @@ const description = `【非公式】母がサンデーレーシング・シル�
     />
 
     <ArticleToc />
+    <MethodsLink />
 
     <AdSlot sp={AD_SP_WIDE_A} pc={AD_PC_WIDE_A} />
 
@@ -557,7 +560,7 @@ const description = `【非公式】母がサンデーレーシング・シル�
       nLabel="出走した頭数"
     />
     <p>
-      獲得賞金の中央値は<strong>{fmtMan(ssStats.medianPrize)}</strong>で、
+      獲得賞金の<TermLink to="median">中央値</TermLink>は<strong>{fmtMan(ssStats.medianPrize)}</strong>で、
       それ以外の募集馬の{fmtMan(restStats.medianPrize)}を下回る。賞金は一部の稼ぎ頭に
       極端に引っ張られる分布なので、順位で比べるマン・ホイットニーの検定をかけたところ、
       <strong>この差は偶然とは言いにくかった（{fmtP(prizeTest.p)}）</strong>。

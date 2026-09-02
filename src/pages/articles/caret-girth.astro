@@ -33,6 +33,8 @@ import ScatterChart from '../../components/charts/ScatterChart.astro';
 import ChartTooltip from '../../components/charts/ChartTooltip.astro';
 import StatTiles from '../../components/charts/StatTiles.astro';
 import ArticleToc from '../../components/ArticleToc.astro';
+import MethodsLink from '../../components/MethodsLink.astro';
+import TermLink from '../../components/TermLink.astro';
 import AdSlot from '../../components/AdSlot.astro';
 import GradeWinnerTable from '../../components/GradeWinnerTable.astro';
 import {
@@ -748,13 +750,14 @@ const description = `【非公式】キャロットクラブ${yearRangeLabel}${a
     />
 
     <ArticleToc />
+    <MethodsLink />
 
     <AdSlot sp={AD_SP_WIDE_A} pc={AD_PC_WIDE_A} />
 
     <h2>管囲の分布</h2>
     <p>
       まず母集団から。{all.length}頭の管囲は{girthMin}〜{girthMax}cmに分布していて、
-      平均{girthMean.toFixed(2)}cm・中央値{girthMedian}cm。同じ測尺欄でも体高は
+      平均{girthMean.toFixed(2)}cm・<TermLink to="median">中央値</TermLink>{girthMedian}cm。同じ測尺欄でも体高は
       {heightRange.min}〜{heightRange.max}cm（幅{(heightRange.max - heightRange.min).toFixed(0)}cm）、
       胸囲は{chestRange.min}〜{chestRange.max}cm（同{(chestRange.max - chestRange.min).toFixed(0)}cm）に
       広がるので、<strong>管囲は{(girthMax - girthMin).toFixed(1)}cmの幅にほぼ全頭が収まる、
@@ -788,8 +791,8 @@ const description = `【非公式】キャロットクラブ${yearRangeLabel}${a
       2群の差の検定（Mann-Whitney）でも {formatP(endsAll.mw.p)} で、はっきり差が出ている。
       勝ち上がり（1勝以上）の率も{winAll.thinRate.toFixed(1)}%（{winAll.thinN}頭中）に対して
       {winAll.thickRate.toFixed(1)}%（{winAll.thickN}頭中）で、
-      {formatP(winAll.test.p)}。相関係数もピアソンで r={rAll.pearson?.toFixed(3)}、
-      順位ベースのスピアマンで r={rAll.spearman?.toFixed(3)}と、
+      {formatP(winAll.test.p)}。<TermLink to="correlation">相関係数</TermLink>もピアソンで r={rAll.pearson?.toFixed(3)}、
+      順位ベースの<TermLink to="spearman">スピアマン</TermLink>で r={rAll.spearman?.toFixed(3)}と、
       体高（r={heightRow.all.pearson?.toFixed(3)}）や胸囲（r={chestRow.all.pearson?.toFixed(3)}）を
       上回る。これまで調べた測尺の中で一番強い数字だ。
     </p>
@@ -958,7 +961,7 @@ const description = `【非公式】キャロットクラブ${yearRangeLabel}${a
     <p>
       同じことを体高・馬体重・胸囲でもやってみた。まず「その測尺が牡と牝でどれだけ違うか」。
       cmとkgをそのまま比べても大小は言えないので、<strong>牡牝の中央値の差が、その測尺の
-      ばらつき（標準偏差）何個ぶんか</strong>に換算してある。0.5なら「牡牝の分布が半個ぶんずれている」、
+      ばらつき（<TermLink to="quantile">標準偏差</TermLink>）何個ぶんか</strong>に換算してある。0.5なら「牡牝の分布が半個ぶんずれている」、
       0なら「牡も牝も同じ」という読み方になる。
     </p>
     <div class="table-scroll">

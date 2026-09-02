@@ -1,0 +1,41 @@
+---
+/**
+ * 本文中の統計用語から、用語解説ページ（`/articles/methods/`）の該当セクションへ飛ばすリンク。
+ *
+ *   <TermLink to="spearman">スピアマン</TermLink>
+ *
+ * 本人の要望（2026-09-02）「文脈のスピアマンをリンクにしてそこの説明に飛ばせない？」に対応。
+ * 記事ごとに `/articles/methods/#spearman` を手で書くと、アンカー名を変えたときに
+ * 追いきれなくなるので、飛び先のidだけ受け取る形にしてある。
+ *
+ * ## 使いどころ
+ * **1記事につき、その用語が最初に出てきた1箇所だけ**に付ける。出るたびに全部リンクにすると
+ * 本文が青字だらけになって、かえって読みづらい。
+ *
+ * ## 見た目
+ * 普通のリンク（青・下線）だと本文の流れを切ってしまうので、文字色は本文のまま
+ * 点線の下線だけにして「用語の説明がある」と分かる程度に留める。
+ * 用語集リンクの慣用的な見せ方で、記事内の他のリンク（青）とも役割が見分けられる。
+ */
+interface Props {
+  /** 解説ページ側の見出しid（median / correlation / spearman / p-value / superiority / partial / confounding / quantile / rules）。 */
+  to: string;
+}
+const { to } = Astro.props;
+---
+
+<a class="term-link" href={`/articles/methods/#${to}`}><slot /></a>
+
+<style>
+  .term-link {
+    color: inherit;
+    text-decoration: underline dotted var(--info);
+    text-underline-offset: 0.22em;
+    text-decoration-thickness: 1.5px;
+  }
+  .term-link:hover,
+  .term-link:focus-visible {
+    color: var(--info);
+    text-decoration: underline solid var(--info);
+  }
+</style>

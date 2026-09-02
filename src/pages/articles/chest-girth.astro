@@ -19,6 +19,8 @@ import ScatterChart from '../../components/charts/ScatterChart.astro';
 import ChartTooltip from '../../components/charts/ChartTooltip.astro';
 import StatTiles from '../../components/charts/StatTiles.astro';
 import ArticleToc from '../../components/ArticleToc.astro';
+import MethodsLink from '../../components/MethodsLink.astro';
+import TermLink from '../../components/TermLink.astro';
 import AdSlot from '../../components/AdSlot.astro';
 import GradeWinnerTable from '../../components/GradeWinnerTable.astro';
 import {
@@ -283,13 +285,14 @@ const description = `【非公式】キャロットクラブ${yearRangeLabel}${a
     />
 
     <ArticleToc />
+    <MethodsLink />
 
     <AdSlot sp={AD_SP_WIDE_A} pc={AD_PC_WIDE_A} />
 
     <h2>胸囲の分布</h2>
     <p>
       まず母集団を見ておくと、{all.length}頭の胸囲は{girthMin}〜{girthMax}cmに分布していて、
-      平均は{girthMean.toFixed(1)}cm・中央値は{girthMedian.toFixed(1)}cm。3cm刻みでヒストグラムに
+      平均は{girthMean.toFixed(1)}cm・<TermLink to="median">中央値</TermLink>は{girthMedian.toFixed(1)}cm。3cm刻みでヒストグラムに
       するとこんな感じ。
     </p>
     <BarChart title={`胸囲の分布（全${all.length}頭・3cm刻み）`} bars={girthBins} valueLabel="頭数" />
@@ -299,10 +302,10 @@ const description = `【非公式】キャロットクラブ${yearRangeLabel}${a
     <h2>胸囲 × 獲得賞金合計</h2>
     <p>
       出走済みの{raced.length}頭で、胸囲と獲得賞金合計（中央+地方、万円）を散布図にしてみた。
-      相関係数（ピアソン）は r={girthR?.toFixed(3)}。体高（r={heightPrizeR?.toFixed(3)}）よりも
+      <TermLink to="correlation">相関係数</TermLink>（ピアソン）は r={girthR?.toFixed(3)}。体高（r={heightPrizeR?.toFixed(3)}）よりも
       ゼロに近い数字で、<strong>胸囲だけを見て成績を読むのはかなり難しい</strong>という結果になった。
       獲得賞金は少数の稼ぎ頭に大きく引っ張られる歪んだ分布なので、大きさに引っ張られない
-      順位ベースの相関係数（スピアマン）でも確認すると r={girthSpearmanR?.toFixed(3)}で、
+      順位ベースの相関係数（<TermLink to="spearman">スピアマン</TermLink>）でも確認すると r={girthSpearmanR?.toFixed(3)}で、
       ピアソンよりは高く出るものの、それでも弱い部類であることに変わりはない。
       {girthScatterOmitted > 0 && (
         <>獲得賞金合計が1億円を超える{girthScatterOmitted}頭はグラフの外に出るため省略した
@@ -475,7 +478,7 @@ const description = `【非公式】キャロットクラブ${yearRangeLabel}${a
         r={roiR?.toFixed(3)}と、<strong>どちらの見方でも弱かった</strong>。順位ベースの相関係数
         （スピアマン）で見ると獲得賞金r={girthSpearmanR?.toFixed(3)}・回収率r={roiSpearmanR?.toFixed(3)}
         とやや高くなり、回収率は174cmを境にした2群比較（Mann-Whitney検定、p={roiMw.p.toFixed(3)}）
-        で統計的な差も見られたが、これは次で述べる交絡を踏まえるとそのまま「胸囲が効いている」
+        で統計的な差も見られたが、これは次で述べる<TermLink to="confounding">交絡</TermLink>を踏まえるとそのまま「胸囲が効いている」
         とは言えない。</li>
       <li>胸囲は馬体重（r={girthWeightR?.toFixed(3)}）・体高（r={girthHeightR?.toFixed(3)}）といずれも
         はっきり連動しており、胸囲そのものが独自に持っている情報は薄い。回収率で見えた差も、

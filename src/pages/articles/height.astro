@@ -27,6 +27,8 @@ import ScatterChart from '../../components/charts/ScatterChart.astro';
 import ChartTooltip from '../../components/charts/ChartTooltip.astro';
 import StatTiles from '../../components/charts/StatTiles.astro';
 import ArticleToc from '../../components/ArticleToc.astro';
+import MethodsLink from '../../components/MethodsLink.astro';
+import TermLink from '../../components/TermLink.astro';
 import AdSlot from '../../components/AdSlot.astro';
 import GradeWinnerTable from '../../components/GradeWinnerTable.astro';
 import { loadRecruitsWithResults, racedOnly, RACE_RESULTS_FETCHED_AT } from '../../lib/analysis-data.ts';
@@ -336,13 +338,14 @@ const description = `【非公式】キャロットクラブ${yearRangeLabel}${a
     />
 
     <ArticleToc />
+    <MethodsLink />
 
     <AdSlot sp={AD_SP_WIDE_A} pc={AD_PC_WIDE_A} />
 
     <h2>体高の分布</h2>
     <p>
       まず母集団を見ておくと、{all.length}頭の体高は{heightMin}〜{heightMax}cmに収まっていて、
-      平均{heightMean.toFixed(1)}cm・中央値{heightMedian}cm。3cm刻みでヒストグラムにするとこんな感じ。
+      平均{heightMean.toFixed(1)}cm・<TermLink to="median">中央値</TermLink>{heightMedian}cm。3cm刻みでヒストグラムにするとこんな感じ。
     </p>
     <BarChart title={`体高の分布（全${all.length}頭・3cm刻み）`} bars={heightBins} valueLabel="頭数" />
 
@@ -351,7 +354,7 @@ const description = `【非公式】キャロットクラブ${yearRangeLabel}${a
     <h2>体高 × 獲得賞金合計</h2>
     <p>
       出走済みの{raced.length}頭で、体高と獲得賞金合計（中央+地方、万円）を散布図にしてみた。
-      点にカーソルを合わせる（スマホはタップ）と馬名と成績が出る。相関係数は
+      点にカーソルを合わせる（スマホはタップ）と馬名と成績が出る。<TermLink to="correlation">相関係数</TermLink>は
       r={heightPrizeR?.toFixed(3)} で、「体高が大きいほど稼ぐ」と言い切れるほど強くはない、
       かなり弱い正の相関にとどまった。
       {heightScatterOmitted > 0 && (
