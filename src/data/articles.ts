@@ -14,6 +14,13 @@ export interface AnalysisArticle {
 
 export const analysisArticles: AnalysisArticle[] = [
   {
+    href: '/articles/weight/',
+    title: '馬体重と成績の関係',
+    description:
+      '測尺で一番みんなが見る馬体重。全体では弱い正の相関だが、牡と牝に分けると牡では消え、牝でだけはっきり残った。小柄な牝は数字が振るわず、牡はサイズと成績が無関係。',
+    image: '/og-article-weight-v1.png',
+  },
+  {
     href: '/articles/caret-girth/',
     title: '管囲が太い馬は走るのか？',
     description:
