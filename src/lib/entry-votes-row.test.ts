@@ -32,7 +32,7 @@ const row: EntryVoteRow = {
   name: 'フィリアプーラの25',
   sire: 'エフフォーリア',
   sex: '牡',
-  cells: [{ total: 420, damPriority: 58 }, null],
+  cells: [{ total: 420, topPriority: 100, damPriority: 58 }, null],
   latestTotal: 420,
 };
 
@@ -45,9 +45,9 @@ test('entryVoteRowHtml: No・馬名・個別ページリンク・父・牡牝を
   assert.match(html, /data-col="sex">牡</);
 });
 
-test('entryVoteRowHtml: 全体票数を主、母優票数を小さく併記する', () => {
+test('entryVoteRowHtml: 全体票数を主、最優先・母優票数を小さく併記する（最優先が先）', () => {
   const html = entryVoteRowHtml(row);
-  assert.match(html, /data-col="total:0" class="num"><span class="vote-total">420<\/span><span class="vote-dam">母優 58<\/span>/);
+  assert.match(html, /data-col="total:0" class="num"><span class="vote-total">420<\/span><span class="vote-top">最優 100<\/span><span class="vote-dam">母優 58<\/span>/);
 });
 
 test('entryVoteRowHtml: 未発表回は「—」', () => {
@@ -55,12 +55,13 @@ test('entryVoteRowHtml: 未発表回は「—」', () => {
   assert.match(html, /data-col="total:1" class="num">—</);
 });
 
-test('entryVoteRowHtml: その回に母優が無ければ母優併記なし', () => {
+test('entryVoteRowHtml: その回に最優先・母優が無ければ併記なし', () => {
   const html = entryVoteRowHtml({
     ...row,
-    cells: [{ total: 300, damPriority: null }],
+    cells: [{ total: 300, topPriority: null, damPriority: null }],
   });
   assert.match(html, /data-col="total:0" class="num"><span class="vote-total">300<\/span><\/td>/);
+  assert.doesNotMatch(html, /vote-top/);
   assert.doesNotMatch(html, /vote-dam/);
 });
 

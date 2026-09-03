@@ -33,12 +33,15 @@ const snapshots: EntryVoteSnapshot[] = [
   {
     asOf: '9/3',
     label: '第1回中間発表',
-    byId: { '1': { total: 420, damPriority: 58 }, '2': { total: 300, damPriority: null } },
+    byId: {
+      '1': { total: 420, topPriority: 100, damPriority: 58 },
+      '2': { total: 300, topPriority: null, damPriority: null },
+    },
   },
   {
     asOf: '9/4',
     label: '第2回中間発表',
-    byId: { '1': { total: 510, damPriority: 60 } },
+    byId: { '1': { total: 510, topPriority: 110, damPriority: 60 } },
   },
 ];
 
@@ -47,10 +50,10 @@ test('entryVoteRows: cells は snapshots と同じ長さ・同じ順、未発表
   const rows = entryVoteRows(horses, snapshots);
   assert.equal(rows.length, 3);
   assert.deepEqual(rows[0].cells, [
-    { total: 420, damPriority: 58 },
-    { total: 510, damPriority: 60 },
+    { total: 420, topPriority: 100, damPriority: 58 },
+    { total: 510, topPriority: 110, damPriority: 60 },
   ]);
-  assert.deepEqual(rows[1].cells, [{ total: 300, damPriority: null }, null]);
+  assert.deepEqual(rows[1].cells, [{ total: 300, topPriority: null, damPriority: null }, null]);
   assert.deepEqual(rows[2].cells, [null, null]);
 });
 
@@ -81,7 +84,10 @@ const rows: EntryVoteRow[] = [
     name: 'いろは号',
     sire: 'キズナ',
     sex: '牝',
-    cells: [{ total: 300, damPriority: null }, { total: 280, damPriority: null }],
+    cells: [
+      { total: 300, topPriority: null, damPriority: null },
+      { total: 280, topPriority: null, damPriority: null },
+    ],
     latestTotal: 280,
   },
   {
@@ -89,7 +95,10 @@ const rows: EntryVoteRow[] = [
     name: 'あお号',
     sire: 'イクイノックス',
     sex: '牡',
-    cells: [{ total: 420, damPriority: 58 }, { total: 510, damPriority: 60 }],
+    cells: [
+      { total: 420, topPriority: 100, damPriority: 58 },
+      { total: 510, topPriority: 110, damPriority: 60 },
+    ],
     latestTotal: 510,
   },
   {
@@ -121,7 +130,7 @@ test('sortEntryVoteRows: total:${i} でその回の全体票数で並べ替え',
 
 test('sortEntryVoteRows: その回が未発表（cells[i] が null）の行は末尾', () => {
   const partial: EntryVoteRow[] = [
-    { id: '1', name: 'a', sire: 'x', sex: '牡', cells: [{ total: 100, damPriority: null }], latestTotal: 100 },
+    { id: '1', name: 'a', sire: 'x', sex: '牡', cells: [{ total: 100, topPriority: null, damPriority: null }], latestTotal: 100 },
     { id: '2', name: 'b', sire: 'y', sex: '牡', cells: [null], latestTotal: null },
   ];
   assert.deepEqual(sortEntryVoteRows(partial, 'total:0', 'asc').map((r) => r.id), ['1', '2']);

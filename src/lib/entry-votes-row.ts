@@ -47,15 +47,23 @@ export function entryVoteColumns(
   return [...fixed, ...rounds];
 }
 
-/** 1回ぶんのセルの中身。未発表は「—」、母優の数字が無ければ母優併記なし。 */
+/**
+ * 1回ぶんのセルの中身。未発表は「—」。
+ * 全体票数の下に最優先・母優先を小さく併記する（無ければその項目だけ出さない）。
+ * 母優先より最優先を重視する指標として先に出す。
+ */
 function voteCellHtml(cell: EntryVoteRow['cells'][number]): string {
   if (cell === null) return '—';
   const total = `<span class="vote-total">${cell.total}</span>`;
+  const top =
+    cell.topPriority === null
+      ? ''
+      : `<span class="vote-top">最優 ${cell.topPriority}</span>`;
   const dam =
     cell.damPriority === null
       ? ''
       : `<span class="vote-dam">母優 ${cell.damPriority}</span>`;
-  return `${total}${dam}`;
+  return `${total}${top}${dam}`;
 }
 
 export function entryVoteRowHtml(

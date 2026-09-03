@@ -201,9 +201,17 @@ const description = `【非公式】キャロットクラブ2026年募集馬${to
     #votes-table .sort-btn:hover { color: var(--accent); }
     #votes-table .sort-btn[data-active='true'] { color: var(--accent); }
 
-    /* 各回セル: 全体票数を主、母優票数を一段小さく弱い色で下に添える。
+    /* 各回セル: 全体票数を主、最優先・母優先の票数を一段小さく下に添える
+       （母優先より最優先を重視する指標なので先に出す。文字色は最優先の方を強めにして
+       並び順だけでなく濃さでも優先度の違いを示す）。
        票数の多寡に良し悪しを含意しないよう、色分け等の評価的な装飾は付けない。 */
     #votes-table .vote-total { display: block; }
+    #votes-table .vote-top {
+      display: block;
+      font-size: 0.6875rem;
+      font-weight: 400;
+      color: var(--text);
+    }
     #votes-table .vote-dam {
       display: block;
       font-size: 0.6875rem;

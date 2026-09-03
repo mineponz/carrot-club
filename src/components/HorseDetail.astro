@@ -186,11 +186,16 @@ const entryVoteFacts =
     ? ENTRY_VOTE_SNAPSHOTS.flatMap((snap) => {
         const entry = snap.byId[horse.id];
         if (!entry) return [];
+        // 母優先より最優先を重視する指標なので先に出す（votes.astro の表示順と揃える）
+        const breakdown = [
+          entry.topPriority != null ? `最優 ${entry.topPriority}` : null,
+          entry.damPriority != null ? `母優 ${entry.damPriority}` : null,
+        ].filter((s): s is string => s !== null);
         return [
           {
             term: `申込票数（${snap.asOf}・${snap.label}）`,
             value: `${entry.total}票`,
-            note: entry.damPriority != null ? `（母優 ${entry.damPriority}）` : undefined,
+            note: breakdown.length > 0 ? `（${breakdown.join('・')}）` : undefined,
           },
         ];
       })
