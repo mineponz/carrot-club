@@ -44,20 +44,35 @@ export function entryVoteRows(
   });
 }
 
-/** `'total:0'`・`'total:1'` … その回の全体票数で並べ替えるキー。 */
-export type EntryVoteSortKey = 'id' | 'name' | 'sire' | 'sex' | 'latestTotal' | `total:${number}`;
+/**
+ * `'total:0'`・`'total:1'` … その回の全体票数、`'top:0'`・`'top:1'` … その回の
+ * 最優先枠票数で並べ替えるキー。
+ */
+export type EntryVoteSortKey =
+  | 'id'
+  | 'name'
+  | 'sire'
+  | 'sex'
+  | 'latestTotal'
+  | `total:${number}`
+  | `top:${number}`;
 export type SortDirection = 'asc' | 'desc';
 
-/** ソートキーから「何回目の列か」を取り出す。`total:` 以外なら null。 */
-function snapshotIndexOf(key: EntryVoteSortKey): number | null {
-  const m = /^total:(\d+)$/.exec(key);
-  return m ? Number(m[1]) : null;
+/** ソートキーから「何回目の、どの数値の列か」を取り出す。回の列以外なら null。 */
+function roundColumnOf(
+  key: EntryVoteSortKey,
+): { index: number; field: 'total' | 'topPriority' } | null {
+  const mTotal = /^total:(\d+)$/.exec(key);
+  if (mTotal) return { index: Number(mTotal[1]), field: 'total' };
+  const mTop = /^top:(\d+)$/.exec(key);
+  if (mTop) return { index: Number(mTop[1]), field: 'topPriority' };
+  return null;
 }
 
 /**
  * 指定したキーで並べ替える。元の配列は変更しない。
  *
- * 票数が未発表（`latestTotal` が null、または対象の回の `cells[i]` が null）の行は、
+ * 票数が未発表（`latestTotal` が null、または対象の回・項目の数字が無い）の行は、
  * 昇順・降順どちらでも常に末尾に置く（`tour-weight.ts` の null 扱いと同じ。降順で
  * 先頭に出ると「票数が一番多い馬」と見間違えるため）。
  */
@@ -66,12 +81,15 @@ export function sortEntryVoteRows(
   key: EntryVoteSortKey,
   direction: SortDirection = 'asc',
 ): EntryVoteRow[] {
-  const snapIndex = snapshotIndexOf(key);
+  const round = roundColumnOf(key);
 
   const valueOf = (row: EntryVoteRow): string | number | null => {
     if (key === 'id' || key === 'name' || key === 'sire' || key === 'sex') return row[key];
     if (key === 'latestTotal') return row.latestTotal;
-    if (snapIndex !== null) return row.cells[snapIndex]?.total ?? null;
+    if (round !== null) {
+      const cell = row.cells[round.index];
+      return cell === null ? null : cell[round.field];
+    }
     return null;
   };
 

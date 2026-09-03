@@ -128,6 +128,24 @@ test('sortEntryVoteRows: total:${i} でその回の全体票数で並べ替え',
   assert.deepEqual(byRound1Asc.map((r) => r.id), ['2', '1', '10']);
 });
 
+test('sortEntryVoteRows: top:${i} でその回の最優先枠票数で並べ替え', () => {
+  // round0: id=1 topPriority=100, id=2 は null（→末尾）
+  const byRound0Desc = sortEntryVoteRows(rows, 'top:0', 'desc');
+  assert.deepEqual(byRound0Desc.map((r) => r.id), ['1', '2', '10']);
+  // round1: id=1 topPriority=110 のみ実値。id=2・id=10 は null（→末尾、元の相対順を維持）
+  const byRound1Asc = sortEntryVoteRows(rows, 'top:1', 'asc');
+  assert.deepEqual(byRound1Asc.map((r) => r.id), ['1', '2', '10']);
+});
+
+test('sortEntryVoteRows: その回の最優先が未発表（topPriority が null）の行は末尾', () => {
+  const partial: EntryVoteRow[] = [
+    { id: '1', name: 'a', sire: 'x', sex: '牡', cells: [{ total: 100, topPriority: 50, damPriority: null }], latestTotal: 100 },
+    { id: '2', name: 'b', sire: 'y', sex: '牡', cells: [{ total: 200, topPriority: null, damPriority: null }], latestTotal: 200 },
+  ];
+  assert.deepEqual(sortEntryVoteRows(partial, 'top:0', 'asc').map((r) => r.id), ['1', '2']);
+  assert.deepEqual(sortEntryVoteRows(partial, 'top:0', 'desc').map((r) => r.id), ['1', '2']);
+});
+
 test('sortEntryVoteRows: その回が未発表（cells[i] が null）の行は末尾', () => {
   const partial: EntryVoteRow[] = [
     { id: '1', name: 'a', sire: 'x', sex: '牡', cells: [{ total: 100, topPriority: null, damPriority: null }], latestTotal: 100 },

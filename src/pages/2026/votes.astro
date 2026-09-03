@@ -8,6 +8,10 @@
  * `ENTRY_VOTE_SNAPSHOTS`（回ごとのスナップショット配列）。回が増えたら配列に足すだけで
  * 列が増える。
  *
+ * 各回は「最優先」「総票数」の2列に分け、見出しは2段（1段目に回のラベルをcolspan=2で
+ * またがせ、2段目に最優先・総票数）にする（本人依頼・2026-09-03。最優先は母優先より
+ * 重視する指標なので、母優先はこの表には出さず個別ページの facts にだけ添える）。
+ *
  * **中身が100%2026年募集馬**なので、tour-weight と同じく**年度付きURLが正本**。
  * 年度なしの `/votes/` は `src/lib/redirects.ts` で301するだけの別名。
  *
@@ -28,12 +32,14 @@ const total = rows.length;
 const columns = entryVoteColumns(ENTRY_VOTE_SNAPSHOTS);
 
 /**
- * PC幅での表の総幅（`table-layout: fixed` 用）。列が少ないと `table-layout: auto` が
- * 余った横幅を無指定の列にぶら下げ、馬名と票数が大きく離れて見える（本人の指摘・2026-09-02）。
+ * PC幅での表の総幅（`table-layout: fixed` 用。列幅そのものは下の `<colgroup>` で決める）。
+ * 列が少ないと `table-layout: auto` が余った横幅を無指定の列にぶら下げ、馬名と票数が
+ * 大きく離れて見える（本人の指摘・2026-09-02）。
  * PC幅では固定レイアウトにして幅を積み上げる: No 3 + 馬名 15 + 父 8 + 牡牝 3 ＝ 29rem、
- * ＋ 各回 6rem。SP幅は従来どおり `table-layout: auto` のまま（この変数は使わない）。
+ * ＋ 各回 9rem（最優先 4.5 + 総票数 4.5）。SP幅は従来どおり `table-layout: auto` のまま
+ * （この変数・`<colgroup>` の幅指定は使わない）。
  */
-const pcTableWidthRem = 29 + ENTRY_VOTE_SNAPSHOTS.length * 6;
+const pcTableWidthRem = 29 + ENTRY_VOTE_SNAPSHOTS.length * 9;
 
 // まだどの回も発表されていない（全スナップショットの byId が空）状態か。
 // 器の段階ではここが true。発表が入れば false になり、プレースホルダ文が消える。
@@ -84,11 +90,15 @@ const description = `【非公式】キャロットクラブ2026年募集馬${to
       <caption class="visually-hidden">
         2026年募集馬{total}頭の募集申込票数（中間発表）の一覧
       </caption>
+      <colgroup>
+        {columns.fixed.map((col) => <col data-col={col.key} />)}
+        {columns.rounds.flatMap((r) => r.columns.map((col) => <col data-col={col.key} />))}
+      </colgroup>
       <thead>
         <tr>
           {
-            columns.map((col) => (
-              <th data-col={col.key} class:list={[col.align === 'num' && 'num']}>
+            columns.fixed.map((col) => (
+              <th rowspan="2" data-col={col.key} class:list={[col.align === 'num' && 'num']}>
                 <button
                   type="button"
                   class="sort-btn"
@@ -99,6 +109,29 @@ const description = `【非公式】キャロットクラブ2026年募集馬${to
                 </button>
               </th>
             ))
+          }
+          {
+            columns.rounds.map((r) => (
+              <th colspan="2" class="round-group-label">{r.asOf}</th>
+            ))
+          }
+        </tr>
+        <tr>
+          {
+            columns.rounds.flatMap((r) =>
+              r.columns.map((col) => (
+                <th data-col={col.key} class:list={[col.align === 'num' && 'num']}>
+                  <button
+                    type="button"
+                    class="sort-btn"
+                    data-sort-key={col.sortKey}
+                    data-sort-key-sp={col.spSortKey}
+                  >
+                    {col.label}
+                  </button>
+                </th>
+              )),
+            )
           }
         </tr>
       </thead>
@@ -179,11 +212,16 @@ const description = `【非公式】キャロットクラブ2026年募集馬${to
       vertical-align: middle;
       white-space: nowrap;
     }
-    #votes-table thead th {
-      background: var(--accent-weak);
+    /* 見出しは2段（1段目: No・馬名・父・牡牝はrowspan=2、各回はasOfをcolspan=2／
+       2段目: 各回の最優先・総票数）。thead全体をスティッキーにすれば2段まとめて
+       上端に固定できる（個々のセルにtop:0を持たせる必要が無い）。 */
+    #votes-table thead {
       position: sticky;
       top: 0;
       z-index: 2;
+    }
+    #votes-table thead th {
+      background: var(--accent-weak);
     }
     #votes-table th.num,
     #votes-table td.num { text-align: right; }
@@ -201,60 +239,40 @@ const description = `【非公式】キャロットクラブ2026年募集馬${to
     #votes-table .sort-btn:hover { color: var(--accent); }
     #votes-table .sort-btn[data-active='true'] { color: var(--accent); }
 
-    /* 各回セル: 全体票数を主、最優先・母優先の票数を一段小さく下に添える
-       （母優先より最優先を重視する指標なので先に出す。文字色は最優先の方を強めにして
-       並び順だけでなく濃さでも優先度の違いを示す）。
-       票数の多寡に良し悪しを含意しないよう、色分け等の評価的な装飾は付けない。 */
-    #votes-table .vote-total { display: block; }
-    #votes-table .vote-top {
-      display: block;
-      font-size: 0.6875rem;
-      font-weight: 400;
-      color: var(--text);
-    }
-    #votes-table .vote-dam {
-      display: block;
-      font-size: 0.6875rem;
-      font-weight: 400;
-      color: var(--muted);
+    /* 回のラベル（例 '9/3'）は1段目でcolspan=2、下の2段目に最優先・総票数が並ぶ見出し */
+    #votes-table .round-group-label {
+      text-align: center;
     }
 
     /* 馬名セルに重ねてあるSP用の行は、広い画面では列として並んでいるので出さない */
     #votes-table .sp-no,
     #votes-table .sp-line { display: none; }
 
-    /* 馬名は途切れさせず、長い馬名は折り返す。以前は 9rem 固定だったが、票数は3桁で足りるのに
-       余白が他の列にぶら下がって馬名が窮屈に見えた（本人の指摘・2026-09-02）。
-       SP幅では 11rem、PC幅では下の固定レイアウトで 15rem に広げる。 */
-    #votes-table th:nth-child(2),
-    #votes-table td:nth-child(2) {
-      width: 11rem;
+    /* 馬名は途切れさせず、長い馬名は折り返す（幅は `<colgroup>` で指定）。 */
+    #votes-table [data-col="name"] {
       white-space: normal;
       overflow-wrap: anywhere;
     }
 
     /* 父列も長いカタカナ父名で伸びないよう折り返す（SPでは display:none なので実質PC幅向け）。 */
-    #votes-table th:nth-child(3),
-    #votes-table td:nth-child(3) {
-      width: 7rem;
+    #votes-table [data-col="sire"] {
       white-space: normal;
       overflow-wrap: anywhere;
     }
 
     /* ---- 馬名列は画面幅を問わず左端に固定する（tour-weight と同じ考え方） ---- */
-    #votes-table th:nth-child(2),
-    #votes-table td:nth-child(2) {
+    #votes-table [data-col="name"] {
       position: sticky;
       left: 0;
       background: var(--surface);
       z-index: 1;
       box-shadow: 6px 0 5px -5px rgb(0 0 0 / 0.28);
     }
-    #votes-table thead th:nth-child(2) {
+    #votes-table thead [data-col="name"] {
       background: var(--accent-weak);
       z-index: 3;
     }
-    #votes-table tbody tr:hover td:nth-child(2) { background: var(--accent-weak); }
+    #votes-table tbody tr:hover [data-col="name"] { background: var(--accent-weak); }
 
     /* ---- 狭い画面（SP）: No・父・牡牝を馬名セルに畳む ---- */
     @media (max-width: 40rem) {
@@ -269,56 +287,48 @@ const description = `【非公式】キャロットクラブ2026年募集馬${to
         font-weight: 400;
         color: var(--muted);
       }
-      /* 列は No(1)・馬名(2)・父(3)・牡牝(4) の順。No・父・牡牝を隠して馬名セルに畳む
-         （馬名セルの .sp-line に「父（性）」を出している。tour-weight と同じ） */
-      #votes-table th:nth-child(1),
-      #votes-table td:nth-child(1),
-      #votes-table th:nth-child(3),
-      #votes-table td:nth-child(3),
-      #votes-table th:nth-child(4),
-      #votes-table td:nth-child(4) { display: none; }
-      #votes-table td:nth-child(2) { vertical-align: top; }
+      /* No・父・牡牝を隠して馬名セルに畳む（馬名セルの .sp-line に「父（性）」を出している。
+         tour-weight と同じ）。最優先・総票数は列のまま残す。 */
+      #votes-table [data-col="id"],
+      #votes-table [data-col="sire"],
+      #votes-table [data-col="sex"] { display: none; }
+      #votes-table td[data-col="name"] { vertical-align: top; }
     }
 
-    /* 広い画面（40remより広い）: 固定レイアウトにして各列の幅を積み上げる。
+    /* 広い画面（40remより広い）: 固定レイアウトにして `<colgroup>` の幅を効かせる。
        これをしないと余った横幅が無指定の列（牡牝）にぶら下がり、馬名と票数が離れて見える
        （本人の指摘・2026-09-02。牡牝が実測490pxまで広がっていた）。
-       総幅は frontmatter の --pc-table-w（No 3 + 馬名 15 + 父 8 + 牡牝 3 + 各回 6rem）。 */
+       colspan/rowspan混じりの見出しでは列幅がセルのwidthだけでは決まらないため、
+       `<colgroup><col>` に幅を持たせる（fixedレイアウトではcol要素の幅が最優先される）。
+       総幅は frontmatter の --pc-table-w（No 3 + 馬名 15 + 父 8 + 牡牝 3 + 各回 9rem）。 */
     @media (min-width: 40.0625rem) {
       #votes-table {
         table-layout: fixed;
         width: var(--pc-table-w);
       }
-      #votes-table th:nth-child(2),
-      #votes-table td:nth-child(2) { width: 15rem; }
-      #votes-table th:nth-child(3),
-      #votes-table td:nth-child(3) { width: 8rem; }
-      #votes-table th:nth-child(4),
-      #votes-table td:nth-child(4) { width: 3rem; }
-      #votes-table th[data-col^='total:'],
-      #votes-table td[data-col^='total:'] { width: 6rem; }
+      #votes-table col[data-col="id"] { width: 3rem; }
+      #votes-table col[data-col="name"] { width: 15rem; }
+      #votes-table col[data-col="sire"] { width: 8rem; }
+      #votes-table col[data-col="sex"] { width: 3rem; }
+      #votes-table col[data-col^="top:"],
+      #votes-table col[data-col^="total:"] { width: 4.5rem; }
 
       /* No 列も表示されるので、No・馬名の2列を左端に固定する
          （No が左端、馬名はNo列の幅ぶん右にずらす）。 */
-      #votes-table th:nth-child(1),
-      #votes-table td:nth-child(1) {
+      #votes-table [data-col="id"] {
         position: sticky;
         left: 0;
-        width: 3rem;
-        min-width: 3rem;
-        max-width: 3rem;
         background: var(--surface);
         z-index: 1;
       }
-      #votes-table th:nth-child(2),
-      #votes-table td:nth-child(2) {
+      #votes-table [data-col="name"] {
         left: 3rem;
       }
-      #votes-table thead th:nth-child(1) {
+      #votes-table thead [data-col="id"] {
         background: var(--accent-weak);
         z-index: 3;
       }
-      #votes-table tbody tr:hover td:nth-child(1) { background: var(--accent-weak); }
+      #votes-table tbody tr:hover [data-col="id"] { background: var(--accent-weak); }
     }
   </style>
 

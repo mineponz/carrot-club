@@ -9,22 +9,35 @@ const snapshots: EntryVoteSnapshot[] = [
   { asOf: '9/4', label: '第2回中間発表', byId: {} },
 ];
 
-test('entryVoteColumns: 固定列（No/馬名/父/牡牝）＋各回列を動的生成する', () => {
+test('entryVoteColumns: 固定列（No/馬名/父/牡牝）と回ごとの列グループ（最優先・総票数）を返す', () => {
   const cols = entryVoteColumns(snapshots);
-  assert.deepEqual(cols.map((c) => c.key), ['id', 'name', 'sire', 'sex', 'total:0', 'total:1']);
-  assert.deepEqual(cols.map((c) => c.label), ['No', '馬名', '父', '牡牝', '9/3 票数', '9/4 票数']);
-  // 各回列は total:${i} でソート、SP では募集番号順
-  assert.equal(cols[4].sortKey, 'total:0');
-  assert.equal(cols[4].spSortKey, 'id');
-  assert.equal(cols[5].sortKey, 'total:1');
-  // 馬名の SP ソートキーも id
-  assert.equal(cols[1].spSortKey, 'id');
+  assert.deepEqual(cols.fixed.map((c) => c.key), ['id', 'name', 'sire', 'sex']);
+  assert.deepEqual(cols.fixed.map((c) => c.label), ['No', '馬名', '父', '牡牝']);
+
+  assert.equal(cols.rounds.length, 2);
+  assert.equal(cols.rounds[0].asOf, '9/3');
+  assert.deepEqual(cols.rounds[0].columns.map((c) => c.key), ['top:0', 'total:0']);
+  assert.deepEqual(cols.rounds[0].columns.map((c) => c.label), ['最優先', '総票数']);
+  assert.deepEqual(cols.rounds[0].columns.map((c) => c.sortKey), ['top:0', 'total:0']);
+
+  assert.equal(cols.rounds[1].asOf, '9/4');
+  assert.deepEqual(cols.rounds[1].columns.map((c) => c.key), ['top:1', 'total:1']);
 });
 
-test('entryVoteColumns: 回が増えれば列も増える', () => {
+test('entryVoteColumns: 回が増えれば列グループも増える', () => {
   const three: EntryVoteSnapshot[] = [...snapshots, { asOf: '9/5', label: '第3回中間発表', byId: {} }];
   const cols = entryVoteColumns(three);
-  assert.deepEqual(cols.map((c) => c.key), ['id', 'name', 'sire', 'sex', 'total:0', 'total:1', 'total:2']);
+  assert.equal(cols.rounds.length, 3);
+  assert.deepEqual(cols.rounds[2].columns.map((c) => c.key), ['top:2', 'total:2']);
+});
+
+test('entryVoteColumns: 回の列に spSortKey は付かない（SPでも自分自身のキーで並べ替える）', () => {
+  const cols = entryVoteColumns(snapshots);
+  for (const round of cols.rounds) {
+    for (const col of round.columns) {
+      assert.equal(col.spSortKey, undefined);
+    }
+  }
 });
 
 const row: EntryVoteRow = {
@@ -45,31 +58,28 @@ test('entryVoteRowHtml: No・馬名・個別ページリンク・父・牡牝を
   assert.match(html, /data-col="sex">牡</);
 });
 
-test('entryVoteRowHtml: 全体票数を主、最優先・母優票数を小さく併記する（最優先が先）', () => {
+test('entryVoteRowHtml: 最優先・総票数を別セルで出す（最優先が先）', () => {
   const html = entryVoteRowHtml(row);
-  assert.match(html, /data-col="total:0" class="num"><span class="vote-total">420<\/span><span class="vote-top">最優 100<\/span><span class="vote-dam">母優 58<\/span>/);
+  assert.match(html, /<td data-col="top:0" class="num">100<\/td>\s*<td data-col="total:0" class="num">420<\/td>/);
 });
 
-test('entryVoteRowHtml: 未発表回は「—」', () => {
+test('entryVoteRowHtml: 未発表回は両セルとも「—」', () => {
   const html = entryVoteRowHtml(row);
-  assert.match(html, /data-col="total:1" class="num">—</);
+  assert.match(html, /<td data-col="top:1" class="num">—<\/td>\s*<td data-col="total:1" class="num">—<\/td>/);
 });
 
-test('entryVoteRowHtml: その回に最優先・母優が無ければ併記なし', () => {
+test('entryVoteRowHtml: 最優先の数字が無ければ最優先セルだけ「—」', () => {
   const html = entryVoteRowHtml({
     ...row,
     cells: [{ total: 300, topPriority: null, damPriority: null }],
   });
-  assert.match(html, /data-col="total:0" class="num"><span class="vote-total">300<\/span><\/td>/);
-  assert.doesNotMatch(html, /vote-top/);
-  assert.doesNotMatch(html, /vote-dam/);
+  assert.match(html, /<td data-col="top:0" class="num">—<\/td>\s*<td data-col="total:0" class="num">300<\/td>/);
 });
 
 test('entryVoteRowHtml: 空発表（全 cells が null）でも行は崩れず全セル「—」', () => {
   const html = entryVoteRowHtml({ ...row, cells: [null, null], latestTotal: null });
-  assert.match(html, /data-col="total:0" class="num">—</);
-  assert.match(html, /data-col="total:1" class="num">—</);
-  assert.doesNotMatch(html, /vote-total/);
+  assert.match(html, /<td data-col="top:0" class="num">—<\/td>\s*<td data-col="total:0" class="num">—<\/td>/);
+  assert.match(html, /<td data-col="top:1" class="num">—<\/td>\s*<td data-col="total:1" class="num">—<\/td>/);
 });
 
 test('entryVoteRowHtml: 別年度の接頭辞を渡すとリンク先が変わる', () => {
