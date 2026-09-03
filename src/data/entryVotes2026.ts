@@ -41,9 +41,37 @@ export interface EntryVoteSnapshot {
  * 中間発表の時系列（古い回が先頭）。回が増えても配列に足すだけで、ページ・個別ページの
  * 表示は自動で追従する。
  *
- * 現時点では 9/3・9/4 の2回とも `byId` が空（＝まだ発表前の「器」の状態）。
+ * 9/3（第1回）は発表済み。9/4（第2回）は `byId` が空（＝まだ発表前の「器」の状態）。
+ *
+ * 第1回中間発表（9/3 17時現在）は「母馬優先＋最優先」を damPriority として採用した
+ * （母馬優先対象馬は「母馬優先（一般）」の口数もあるが、`EntryVoteEntry.damPriority` は
+ * 1口しか持てないため、優先枠の合計である「母馬優先＋最優先」を選んだ）。
  */
 export const ENTRY_VOTE_SNAPSHOTS: readonly EntryVoteSnapshot[] = [
-  { asOf: '9/3', label: '第1回中間発表', byId: {} },
+  {
+    asOf: '9/3',
+    label: '第1回中間発表',
+    byId: {
+      '8': { total: 258, damPriority: 97 },
+      '14': { total: 253, damPriority: 58 },
+      '15': { total: 226, damPriority: 85 },
+      '27': { total: 225, damPriority: 14 },
+      '33': { total: 251, damPriority: 58 },
+      '36': { total: 215, damPriority: 26 },
+      '48': { total: 425, damPriority: 7 },
+      '49': { total: 287, damPriority: 88 },
+      '50': { total: 301, damPriority: 58 },
+      '51': { total: 302, damPriority: 95 },
+      '65': { total: 225, damPriority: 33 },
+      '69': { total: 249, damPriority: 13 },
+      '70': { total: 254, damPriority: 18 },
+      '81': { total: 346, damPriority: 63 },
+      '3': { total: 209, damPriority: null },
+      '21': { total: 215, damPriority: null },
+      '53': { total: 231, damPriority: null },
+      '59': { total: 244, damPriority: null },
+      '78': { total: 250, damPriority: null },
+    },
+  },
   { asOf: '9/4', label: '第2回中間発表', byId: {} },
 ];
