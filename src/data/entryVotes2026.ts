@@ -47,9 +47,9 @@ export interface EntryVoteSnapshot {
  * 中間発表の時系列（古い回が先頭）。回が増えても配列に足すだけで、ページ・個別ページの
  * 表示は自動で追従する。
  *
- * 9/3（第1回）は発表済み。9/4（第2回）は `byId` が空（＝まだ発表前の「器」の状態）。
+ * 9/3（第1回）・9/4（第2回）とも発表済み。
  *
- * 第1回中間発表（9/3 17時現在）の列の割り当て（本人確認済み・2026-09-03）:
+ * 列の割り当て（本人確認済み・2026-09-03、第2回も同じ割り当てで踏襲）:
  * - 母馬優先対象馬は発表に4列ある（総申込数／母馬優先＋最優先／母馬優先（一般）／最優先）。
  *   このうち「母馬優先＋最優先」を `topPriority` に、「母馬優先（一般）」を `damPriority` に
  *   採用した。単独の「最優先」列（母優先を持たない最優先会員の分）は今回は取り込んでいない。
@@ -82,5 +82,53 @@ export const ENTRY_VOTE_SNAPSHOTS: readonly EntryVoteSnapshot[] = [
       '78': { total: 250, topPriority: 60, damPriority: null },
     },
   },
-  { asOf: '9/4', label: '第2回中間発表', byId: {} },
+  {
+    asOf: '9/4',
+    label: '第2回中間発表',
+    byId: {
+      '4': { total: 258, topPriority: 31, damPriority: 34 },
+      '5': { total: 263, topPriority: 27, damPriority: 25 },
+      '6': { total: 255, topPriority: 66, damPriority: 32 },
+      '8': { total: 346, topPriority: 126, damPriority: 8 },
+      '13': { total: 248, topPriority: 36, damPriority: 16 },
+      '14': { total: 350, topPriority: 84, damPriority: 30 },
+      '15': { total: 329, topPriority: 136, damPriority: 25 },
+      '18': { total: 247, topPriority: 17, damPriority: 57 },
+      '23': { total: 225, topPriority: 10, damPriority: 38 },
+      '27': { total: 361, topPriority: 20, damPriority: 25 },
+      '33': { total: 398, topPriority: 81, damPriority: 7 },
+      '36': { total: 342, topPriority: 44, damPriority: 59 },
+      '40': { total: 217, topPriority: 10, damPriority: 49 },
+      '47': { total: 239, topPriority: 28, damPriority: 5 },
+      '48': { total: 615, topPriority: 15, damPriority: 17 },
+      '49': { total: 449, topPriority: 116, damPriority: 27 },
+      '50': { total: 410, topPriority: 80, damPriority: 17 },
+      '51': { total: 441, topPriority: 116, damPriority: 7 },
+      '54': { total: 279, topPriority: 52, damPriority: 35 },
+      '57': { total: 214, topPriority: 61, damPriority: 26 },
+      '58': { total: 299, topPriority: 55, damPriority: 50 },
+      '65': { total: 390, topPriority: 51, damPriority: 37 },
+      '69': { total: 388, topPriority: 25, damPriority: 75 },
+      '70': { total: 372, topPriority: 29, damPriority: 30 },
+      '71': { total: 300, topPriority: 12, damPriority: 24 },
+      '73': { total: 318, topPriority: 9, damPriority: 35 },
+      '75': { total: 289, topPriority: 28, damPriority: 30 },
+      '76': { total: 256, topPriority: 53, damPriority: 82 },
+      '81': { total: 561, topPriority: 111, damPriority: 28 },
+      '83': { total: 243, topPriority: 55, damPriority: 7 },
+      '84': { total: 317, topPriority: 21, damPriority: 22 },
+      '85': { total: 231, topPriority: 9, damPriority: 26 },
+      '3': { total: 288, topPriority: 142, damPriority: null },
+      '16': { total: 302, topPriority: 75, damPriority: null },
+      '21': { total: 320, topPriority: 142, damPriority: null },
+      '42': { total: 291, topPriority: 81, damPriority: null },
+      '45': { total: 236, topPriority: 106, damPriority: null },
+      '52': { total: 242, topPriority: 119, damPriority: null },
+      '53': { total: 329, topPriority: 204, damPriority: null },
+      '59': { total: 313, topPriority: 78, damPriority: null },
+      '60': { total: 302, topPriority: 86, damPriority: null },
+      '63': { total: 299, topPriority: 69, damPriority: null },
+      '78': { total: 390, topPriority: 92, damPriority: null },
+    },
+  },
 ];
