@@ -8,8 +8,8 @@ import {
 import type { LotteryStatusRow } from './lottery-status.ts';
 import type { FrameLotteryResult } from '../data/lotteryStatus2026.ts';
 
-function frame(overrides: Partial<FrameLotteryResult> = {}): FrameLotteryResult {
-  return { cutoffRank: 'x2', lotteryOccurred: true, note: null, ...overrides };
+function frame(outcome: FrameLotteryResult['outcome']): FrameLotteryResult {
+  return { outcome, note: null };
 }
 
 function makeRow(overrides: Partial<LotteryStatusRow> = {}): LotteryStatusRow {
@@ -32,9 +32,9 @@ test('lotteryListCellHtml: rowがnull（その年度に情報源が無い）な�
 
 test('lotteryListCellHtml: 母馬優先対象外の馬は通常枠のバッジ1行だけ', () => {
   const html = lotteryListCellHtml(
-    makeRow({ hasDamPriority: false, normal: frame({ cutoffRank: 'general', lotteryOccurred: true }) }),
+    makeRow({ hasDamPriority: false, normal: frame({ rank: 'general', lotteryOccurred: true }) }),
   );
-  assert.match(html, /class="lottery-badge tone-strong">一般抽選</);
+  assert.match(html, /class="lottery-badge rank-general occurred">一般抽選</);
   assert.ok(!html.includes('lottery-line-label'));
 });
 
@@ -42,11 +42,11 @@ test('lotteryListCellHtml: 母馬優先対象馬は「母優先」「通常」�
   const html = lotteryListCellHtml(
     makeRow({
       hasDamPriority: true,
-      damPriority: frame({ cutoffRank: 'none', lotteryOccurred: false }),
-      normal: frame({ cutoffRank: 'general', lotteryOccurred: true }),
+      damPriority: frame({ rank: 'general', lotteryOccurred: false }),
+      normal: frame({ rank: 'general', lotteryOccurred: true }),
     }),
   );
-  assert.match(html, /母優先:.*最優先×なしで確保/);
+  assert.match(html, /母優先:.*残口あり/);
   assert.match(html, /通常:.*一般抽選/);
   assert.equal((html.match(/lottery-line-label/g) ?? []).length, 2);
 });

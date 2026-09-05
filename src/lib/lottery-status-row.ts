@@ -27,11 +27,17 @@ function horseDetailHref(horseId: string, detailBasePath = DEFAULT_DETAIL_BASE_P
   return `${detailBasePath}${encodeURIComponent(horseId)}/`;
 }
 
-/** 結果が確定している枠をバッジHTMLに、「発表待ち」（tone:'mid'）はバッジにせず地の文で返す。 */
+/**
+ * 結果が確定している枠をバッジHTMLに、「発表待ち」（rank:'mid'）はバッジにせず地の文で返す。
+ * クラスは `rank-${ランク}`（濃淡はCSS側。×2が最も濃い）＋ `occurred`（抽選発生・塗りつぶし）
+ * か `secured`（一般枠で確保・枠線のみ。最優先ランクにはこの状態は無い＝型上 outcome が
+ * `{ rank: 'general', lotteryOccurred: false }` の場合しか secured にならない）のどちらか。
+ */
 function frameHtml(frame: FrameLotteryResult): string {
   const label = lotteryLabel(frame);
-  if (label.tone === 'mid') return label.text;
-  return `<span class="lottery-badge tone-${label.tone}">${escapeHtml(label.text)}</span>`;
+  if (label.rank === 'mid' || frame.outcome === null) return label.text;
+  const occurredClass = frame.outcome.lotteryOccurred ? 'occurred' : 'secured';
+  return `<span class="lottery-badge rank-${label.rank} ${occurredClass}">${escapeHtml(label.text)}</span>`;
 }
 
 /** 通常枠セルの中身。未発表（このsnapshotにまだ載っていない）なら「発表待ち」。 */

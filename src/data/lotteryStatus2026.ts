@@ -21,10 +21,14 @@
  *   `entryVotes2026.ts` の「回ごとに列を増やす」設計とは違う）。
  * - `byId`: 募集番号(string) → `LotteryStatusEntry`。**発表された馬のキーだけ**入れる
  *   （未発表の馬はキーごと無し。一覧・特設ページでは「発表待ち」表示になる）。
- * - `FrameLotteryResult.cutoffRank`: その枠で口数がここで尽きた（これより弱いランクは
- *   出資不可）と判明している最弱ランク。未確定は `null`。
- * - `FrameLotteryResult.lotteryOccurred`: `cutoffRank` の地点で抽選が発生したか
- *   （`true`=抽選／`false`=ちょうど満口で抽選なし＝そのランクまでの申込者は全員確保）。
+ * - `FrameLotteryResult.outcome`: 発表された抽選結果。未確定は `null`。
+ *   **最優先（×2/×1/×なし）は抽選が発生した場合のみ発表される**（本人の実体験に基づく訂正・
+ *   2026-09-05「バツ系には確保というステータスはない。一般だけ存在する」）。つまり
+ *   「×1で確保」のような発表は実在しない——あるランクで申込者が口数に届かなければ、
+ *   そのランクの人は無条件で出資でき、抽選ランク発表としては特に取り上げられない。
+ *   「抽選なしで確保（全員当選）」という状態が明示的に発表されるのは**一般枠だけ**。
+ *   これを型で表現し（`LotteryOutcome`）、バツ系ランクに `lotteryOccurred: false` の
+ *   組み合わせが作れないようにしてある。
  *
  * ## 発表が来たらやること
  * `LOTTERY_STATUS_SNAPSHOTS` に `{ asOf, label, byId }` を1つ追加するだけでよい
@@ -37,11 +41,18 @@ export type LotteryRank = 'x2' | 'x1' | 'none' | 'general';
 // x2=最優先×2(過去2年最優先落選) / x1=最優先×1(前年最優先落選) /
 // none=最優先×なし(前年最優先当選) / general=一般申込み。強い順: x2 > x1 > none > general
 
+/**
+ * 発表される抽選結果。最優先ランク（x2/x1/none）は抽選が発生した場合しか型として作れない
+ * （`lotteryOccurred: false` は `rank: 'general'` のときだけ許される）。
+ * 「バツ系には確保ってステータスはない。一般だけ存在する」（本人・2026-09-05）をそのまま型にした。
+ */
+export type LotteryOutcome =
+  | { rank: LotteryRank; lotteryOccurred: true }
+  | { rank: 'general'; lotteryOccurred: false };
+
 export interface FrameLotteryResult {
-  /** 口数がここで尽きた（これより弱いランクは出資不可）と判明している最弱ランク。未確定はnull */
-  cutoffRank: LotteryRank | null;
-  /** cutoffRankの地点で抽選が発生したか（true=抽選／false=ちょうど満口で抽選なし） */
-  lotteryOccurred: boolean;
+  /** 発表されたその枠の結果。未確定（未発表）は null */
+  outcome: LotteryOutcome | null;
   /** 発表文言の生の補足（例 "一般出資枠は落選"）。無ければ null */
   note: string | null;
 }

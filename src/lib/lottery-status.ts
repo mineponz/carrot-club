@@ -27,41 +27,41 @@ export const LOTTERY_RANK_LABELS: Readonly<Record<LotteryRank, string>> = {
   general: '一般',
 };
 
-export type LotteryTone = 'strong' | 'mid' | 'clear';
+/**
+ * バッジの配色キー。`'mid'` は未発表（バッジにせず地の文で出す）。それ以外はランクそのもので、
+ * CSS側は `rank-x2` が最も濃く、`rank-general` に向かって薄くなる（本人依頼・2026-09-05
+ * 「最優先バツ2から濃色に」）。抽選が発生したか（塗りつぶし）・一般枠で確保できたか
+ * （枠線のみ。一般以外のランクには存在しない状態）は呼び出し側が `outcome.lotteryOccurred`
+ * から別クラス（`occurred`/`secured`）を足して表現する（`lottery-status-row.ts` 参照）。
+ */
+export type LotteryBadgeRank = LotteryRank | 'mid';
 
 export interface LotteryLabel {
   text: string;
-  tone: LotteryTone;
+  rank: LotteryBadgeRank;
 }
 
 /**
  * 1つの枠（母馬優先／通常）の結果をバッジ文言に変換する。
  *
- * - `cutoffRank === null`（未確定・未発表）→ 「発表待ち」/ tone:'mid'
- * - `lotteryOccurred === true`（そのランクで抽選が発生）→ 「◯◯抽選」/ tone:'strong'
- * - `lotteryOccurred === false`（そのランクでちょうど満口・抽選なし）→ 「◯◯で確保」/ tone:'clear'
- *
- * `ranks` はその枠で実際に使われる想定のランク集合（通常枠・母馬優先枠のいずれも今のところ
- * `ALL_LOTTERY_RANKS` 全部を使うが、実際の発表文言の実例が無いまま暫定設計しているため、
- * 呼び出し側に明示的に渡させることで「枠によってランク構成が違う」ことが判明した場合に
- * ここへ手を入れやすくしてある）。`cutoffRank` が `ranks` に含まれない場合はエラーにする
- * （呼び出し側のバグ・データ入力ミスに早く気づけるように）。
+ * - `outcome === null`（未確定・未発表）→ 「発表待ち」/ rank:'mid'
+ * - `lotteryOccurred === true`（そのランクで抽選が発生）→ 「◯◯抽選」
+ * - `lotteryOccurred === false`（一般枠で申込者が口数に届かなかった）→ 「残口あり」
+ *   （`LotteryOutcome`の型上、これが起こりうるのは一般枠だけ）。**「一般で確保」のような
+ *   「ちょうど満口」を思わせる文言は使わない**（本人指摘・2026-09-05「ぴったりじゃないと
+ *   この表現ない」——実際にはぴったり満口になることは稀で、大半は口数が余る。
+ *   これは1.5次募集の目安である`remainingShares`と同じ状態を指すため「残口あり」で表す）。
  */
-export function lotteryLabel(
-  frame: FrameLotteryResult,
-  ranks: readonly LotteryRank[] = ALL_LOTTERY_RANKS,
-): LotteryLabel {
-  if (frame.cutoffRank === null) {
-    return { text: '発表待ち', tone: 'mid' };
+export function lotteryLabel(frame: FrameLotteryResult): LotteryLabel {
+  if (frame.outcome === null) {
+    return { text: '発表待ち', rank: 'mid' };
   }
-  if (!ranks.includes(frame.cutoffRank)) {
-    throw new Error(`lotteryLabel: cutoffRank "${frame.cutoffRank}" is not in ranks`);
+  const { rank, lotteryOccurred } = frame.outcome;
+  if (!lotteryOccurred) {
+    return { text: '残口あり', rank };
   }
-  const rankLabel = LOTTERY_RANK_LABELS[frame.cutoffRank];
-  if (frame.lotteryOccurred) {
-    return { text: `${rankLabel}抽選`, tone: 'strong' };
-  }
-  return { text: `${rankLabel}で確保`, tone: 'clear' };
+  const text = `${LOTTERY_RANK_LABELS[rank]}抽選`;
+  return { text, rank };
 }
 
 export interface LotteryStatusRow {
@@ -125,9 +125,10 @@ export function lotteryStatusRows(
  * 未発表は昇順・降順どちらでも常に末尾に落ちる（`tour-weight.ts` 等と同じ「null は末尾」方針）。
  */
 export function lotterySeverity(frame: FrameLotteryResult | null): number {
-  if (frame === null || frame.cutoffRank === null) return -1;
-  const rankStrength = ALL_LOTTERY_RANKS.length - ALL_LOTTERY_RANKS.indexOf(frame.cutoffRank);
-  return frame.lotteryOccurred ? 100 + rankStrength : 50 + rankStrength;
+  if (frame === null || frame.outcome === null) return -1;
+  const { rank, lotteryOccurred } = frame.outcome;
+  const rankStrength = ALL_LOTTERY_RANKS.length - ALL_LOTTERY_RANKS.indexOf(rank);
+  return lotteryOccurred ? 100 + rankStrength : 50 + rankStrength;
 }
 
 export type LotteryStatusSortKey =

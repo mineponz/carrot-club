@@ -238,13 +238,13 @@ test('horseRowHtml: 抽選ステータスの行を渡すと一覧セルに反映
     sire: horse.sire,
     sex: horse.sex,
     hasDamPriority: true,
-    damPriority: { cutoffRank: 'x2', lotteryOccurred: true, note: null },
-    normal: { cutoffRank: 'general', lotteryOccurred: false, note: null },
+    damPriority: { outcome: { rank: 'x2', lotteryOccurred: true }, note: null },
+    normal: { outcome: { rank: 'general', lotteryOccurred: false }, note: null },
     remainingShares: null,
   });
   const cell = html.match(/<td data-col="lottery"[^]*?<\/td>/)![0];
   assert.match(cell, /最優先×2抽選/);
-  assert.match(cell, /一般で確保/);
+  assert.match(cell, /残口あり/);
 });
 
 test('shortStableLabel: 地方馬の長い表記はトラック名だけにする', () => {

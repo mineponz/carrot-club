@@ -37,7 +37,7 @@ const latestSnapshot = LOTTERY_STATUS_SNAPSHOTS.at(-1) ?? null;
 // 発表済み（通常枠の結果が付いている）頭数
 const publishedCount = rows.filter((r) => r.normal !== null).length;
 const lotteryOccurredCount = rows.filter(
-  (r) => r.normal?.lotteryOccurred === true || r.damPriority?.lotteryOccurred === true,
+  (r) => r.normal?.outcome?.lotteryOccurred === true || r.damPriority?.outcome?.lotteryOccurred === true,
 ).length;
 
 // 初期表示は「抽選が発生している馬を上」（本人依頼の主旨）。未発表は常に末尾に落ちる。

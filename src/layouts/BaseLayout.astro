@@ -340,6 +340,19 @@ const webAppJsonLd = {
         --rating-c-bar: #a98a1f;
         --rating-d-bar: #5f8f3e;
         --rating-e-bar: #8a877f;
+
+        /* 抽選ステータスのバッジ配色。ランクが強いほど濃くする（本人依頼・2026-09-05
+           「最優先バツ2から濃色に」）。色相はaccent（オレンジ）1つに固定し、彩度・明度だけ
+           4段階に振る（design.mdのアンチパターン「急な色相変化」を避けるため、色相は変えない）。
+           rating-*と同じ「薄い背景+濃い文字」のペアを維持しつつ濃さだけ変えている。 */
+        --lottery-x2-bg: #9c5518;
+        --lottery-x2-fg: #ffffff;
+        --lottery-x1-bg: #d68e4a;
+        --lottery-x1-fg: #4a2408;
+        --lottery-none-bg: #ecc9a0;
+        --lottery-none-fg: #6b3f12;
+        --lottery-general-bg: #f5e9dc;
+        --lottery-general-fg: #b5651d;
       }
 
       @media (prefers-color-scheme: dark) {
@@ -366,6 +379,16 @@ const webAppJsonLd = {
           --rating-d-fg: #b9d9a0;
           --rating-e-bg: #33322e;
           --rating-e-fg: #cfccc5;
+
+          /* ダークでは同じ色相のまま明度を反転させる（rating-*と同じ考え方） */
+          --lottery-x2-bg: #6b3410;
+          --lottery-x2-fg: #f5c896;
+          --lottery-x1-bg: #5a3018;
+          --lottery-x1-fg: #eabb8c;
+          --lottery-none-bg: #47301f;
+          --lottery-none-fg: #dcb088;
+          --lottery-general-bg: #2b241c;
+          --lottery-general-fg: #e0a45c;
         }
       }
 
@@ -586,10 +609,19 @@ const webAppJsonLd = {
        * （`.rating-select[data-rating]` と同じ理由）。マークアップは `lottery-status-row.ts`
        * の `lotteryListCellHtml()` / `lotteryStatusRowHtml()` が生成する。
        *
-       * tone は3色に限定し「良い/悪い」の含意は持たせない（票数列の評価的装飾を付けない方針を踏襲）。
-       * strong=抽選が発生（人気で口数の奪い合いになっている）は塗りつぶしで目立たせ、
-       * clear=そのランクで満口・抽選なし（確保）は枠線だけの控えめな見た目にする
-       * （design.md「主要=塗りつぶし／副次=枠線のみ」の階層に合わせた）。
+       * 配色は2軸: ランクの強さ（rank-x2が最も濃く、rank-generalに向かって薄くなる。
+       * 本人依頼・2026-09-05「最優先バツ2から濃色に」）と、抽選が発生したか
+       * （occurred=塗りつぶし）・一般枠で申込者が口数に届かず残口が出たか（secured=同色の
+       * 枠線のみ。design.md「主要=塗りつぶし／副次=枠線のみ」の階層を適用）。
+       * **secured（残口あり）は一般枠にしか存在しない**（本人の実体験に基づく訂正・2026-09-05
+       * 「バツ系には確保ってステータスはない。一般だけ存在する」。最優先のどこかのランクで
+       * 申込者が口数に届かなければ、その人たちは無条件で出資でき、抽選が実際に発生した
+       * 弱いランクの結果だけが発表される）。`lottery-status.ts`の`LotteryOutcome`型で
+       * x2/x1/noneにsecuredの組み合わせを作れないようにしてあるので、CSSもgeneral以外の
+       * secured規則を持たない。表示文言は「一般で確保」のようなぴったり満口を思わせる
+       * 表現を避け「残口あり」にしている（本人指摘・2026-09-05）。
+       * 色相はaccent（オレンジ）1つに固定し、良い/悪いの含意を持たせる色（緑/赤等）は使わない
+       * （票数列の評価的装飾を付けない方針を踏襲。抽選の有無は人気の一材料であり優劣ではない）。
        * mid（未発表）はバッジにせず地の文にしているので専用の色は無い。
        */
       .lottery-badge {
@@ -600,15 +632,11 @@ const webAppJsonLd = {
         border-radius: 4px;
         white-space: nowrap;
       }
-      .lottery-badge.tone-strong {
-        color: var(--accent);
-        background: var(--accent-weak);
-      }
-      .lottery-badge.tone-clear {
-        color: var(--info);
-        background: transparent;
-        border: 1px solid var(--info);
-      }
+      .lottery-badge.rank-x2.occurred { background: var(--lottery-x2-bg); color: var(--lottery-x2-fg); }
+      .lottery-badge.rank-x1.occurred { background: var(--lottery-x1-bg); color: var(--lottery-x1-fg); }
+      .lottery-badge.rank-none.occurred { background: var(--lottery-none-bg); color: var(--lottery-none-fg); }
+      .lottery-badge.rank-general.occurred { background: var(--lottery-general-bg); color: var(--lottery-general-fg); }
+      .lottery-badge.rank-general.secured { background: transparent; color: var(--lottery-general-fg); border: 1px solid var(--lottery-general-fg); }
       /* 母馬優先対象馬の一覧セル内2行表示（「母優先: ◯◯」「通常: ◯◯」）。 */
       .lottery-line {
         display: block;
