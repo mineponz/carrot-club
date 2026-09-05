@@ -11,6 +11,7 @@
 import recruitsJson from '../../analysis/data/recruits.json';
 import raceResultsJson from '../../analysis/data/race-results.json';
 import damSiblingsJson from '../../analysis/data/dam-siblings.json';
+import leadingTrainersJson from '../../analysis/data/leading-trainers.json';
 import { damNameFromRecruitName, normalizeDamName } from './horse-meta.ts';
 import type { RawDam } from './dam-siblings.ts';
 
@@ -62,6 +63,21 @@ export interface Recruit {
   chestGirth: number | null;
   caretGirth: number | null;
   weight: number | null;
+  /**
+   * 現（最終）担当調教師名。netkeiba個体ページの「調教師」欄から取得
+   * （`scripts/enrich-trainer-region.mjs`）。欄が空なら null。
+   * 引退・厩舎解散後もこの欄は最後に在籍した厩舎を保持する。
+   */
+  finalTrainer?: string | null;
+  /** netkeibaの調教師ID（例: "01070"）。欄が空なら null。 */
+  finalTrainerId?: string | null;
+  /** 調教師名の後ろの括弧内をそのまま（"美浦" / "栗東" / "大井" 等）。無ければ null。 */
+  trainerAffiliation?: string | null;
+  /**
+   * 最終所属。"東"(美浦) / "西"(栗東) / "地方"(それ以外の所属) / "不明"(調教師欄が空)。
+   * **募集時ではなく現在の所属**なので、募集後に地方へ移った馬は "地方" になる。
+   */
+  region?: '東' | '西' | '地方' | '不明' | null;
 }
 
 /**
@@ -180,4 +196,114 @@ export function loadDamRoster(): Map<string, RawDam> {
     file.results.filter((d): d is RawDam & { damId: string } => d.damId != null).map((d) => [d.damId, d])
   );
   return damRosterCache;
+}
+
+/* ===================== JRAリーディング（年別の調教師順位）との結合 =====================
+ *
+ * `analysis/data/leading-trainers.json`（umapia の年別JRAリーディング上位50・2017〜2025）を、
+ * 各馬の担当調教師と突き合わせる。厩舎記事（`src/pages/articles/stable-leading.astro`）用。
+ *
+ * ## 名寄せは「氏名の先頭4文字一致」
+ * netkeibaの個体ページは長い調教師名を4文字に切って出す（"中内田充正" → "中内田充"）ため、
+ * IDでは突き合わせられない（umapia側のIDはnetkeibaのIDと別系統）。両方を先頭4文字にして
+ * 突き合わせる。**同じ年の上位内で先頭4文字が衝突したらビルドを落とす**（下の索引作成時に検算）。
+ *
+ * ## 参照する年は「募集年そのもの」
+ * 出資を検討する人がその時点で見られる情報だけで分けるため（2026-09-05にこの基準へ切り替えた）。
+ * 以前は「募集年+2」＝その馬の3歳シーズンを参照していたが、それだとリーディングの勝利数に
+ * **その馬自身の勝利が入りうる**（測定窓が重なる）。実際、3歳シーズン基準で見えていた強い差は
+ * 募集年基準に直すとほぼ消えた。**3歳シーズン基準の関数は残していない** ―― 2つ生きていると
+ * 次の改修で取り違えるため（vault: 20260903-trainer-region-article）。
+ * リーディングの表は2017〜2025年の全年ぶんあり、募集年も同じ範囲なので**代用は起きない**
+ * （`substituted` は常に false になる前提で、記事側のアサーションがそれを検算する）。
+ */
+
+interface LeadingTrainerEntry {
+  rank: number;
+  trainer: string;
+  umapiaId: string;
+  wins: number;
+}
+
+const leadingFile = leadingTrainersJson as unknown as {
+  fetchedAt: string;
+  source: string;
+  byYear: Record<string, LeadingTrainerEntry[]>;
+};
+
+/** リーディングの取得時点。 */
+export const LEADING_TRAINERS_FETCHED_AT: string = leadingFile.fetchedAt;
+/** リーディングの出所（画面の「データについて」に出す）。 */
+export const LEADING_TRAINERS_SOURCE: string = leadingFile.source;
+/** 表を持っている年（昇順）。 */
+export const LEADING_TRAINER_YEARS: number[] = Object.keys(leadingFile.byYear)
+  .map(Number)
+  .sort((a, b) => a - b);
+/** 表を持っている最新の年。募集年の表が無い場合だけこの年で代用する（現状は起きない）。 */
+export const LEADING_TRAINERS_LATEST_YEAR: number =
+  LEADING_TRAINER_YEARS[LEADING_TRAINER_YEARS.length - 1];
+
+/** 調教師名の突き合わせキー（netkeibaが4文字に切るので両方を4文字にする）。 */
+function trainerKey(name: string): string {
+  return [...name].slice(0, 4).join('');
+}
+
+let leadingIndexCache: Map<number, Map<string, number>> | null = null;
+
+/** 年 → （調教師キー → 順位）の索引。 */
+function leadingIndex(): Map<number, Map<string, number>> {
+  if (leadingIndexCache) return leadingIndexCache;
+  const index = new Map<number, Map<string, number>>();
+  for (const year of LEADING_TRAINER_YEARS) {
+    const byKey = new Map<string, number>();
+    const seen = new Map<string, string>();
+    for (const entry of leadingFile.byYear[String(year)]) {
+      const key = trainerKey(entry.trainer);
+      const already = seen.get(key);
+      if (already !== undefined && already !== entry.trainer) {
+        // 先頭4文字が衝突すると、別人の順位を掴んだまま記事が出てしまう。
+        throw new Error(
+          `${year}年のリーディングで調教師名の先頭4文字が衝突した（${already} と ${entry.trainer}）。` +
+            'analysis-data.ts の名寄せ（先頭4文字一致）を作り直すこと。'
+        );
+      }
+      seen.set(key, entry.trainer);
+      // 同名の重複は無い前提だが、万一あっても上位の順位を残す。
+      if (!byKey.has(key) || entry.rank < (byKey.get(key) as number)) byKey.set(key, entry.rank);
+    }
+    index.set(year, byKey);
+  }
+  leadingIndexCache = index;
+  return index;
+}
+
+export interface LeadingRank {
+  /** その年のJRAリーディング順位。表の圏外（上位50位外）・調教師不明なら null。 */
+  rank: number | null;
+  /** 実際に参照した年。 */
+  year: number;
+  /** 募集年の表が無く、最新年で代用したか（2017〜2025年募集では起きない）。 */
+  substituted: boolean;
+}
+
+/** **その馬の募集年**のリーディングでの、担当調教師の順位（募集時点で見られる情報）。 */
+export function leadingRankOf(h: Pick<Recruit, 'recruitYear' | 'finalTrainer'>): LeadingRank {
+  const index = leadingIndex();
+  const wanted = h.recruitYear;
+  const substituted = !index.has(wanted);
+  const year = substituted ? LEADING_TRAINERS_LATEST_YEAR : wanted;
+  const byKey = index.get(year);
+  const rank = h.finalTrainer && byKey ? (byKey.get(trainerKey(h.finalTrainer)) ?? null) : null;
+  return { rank, year, substituted };
+}
+
+/** 募集年時点で担当調教師がリーディングN位以内だったか。 */
+export function isLeadingTopN(h: Pick<Recruit, 'recruitYear' | 'finalTrainer'>, n: number): boolean {
+  const { rank } = leadingRankOf(h);
+  return rank !== null && rank <= n;
+}
+
+/** 現在JRA（美浦・栗東）に所属しているか。地方転厩・所属不明は false。 */
+export function isJraRegion(h: Pick<Recruit, 'region'>): boolean {
+  return h.region === '東' || h.region === '西';
 }

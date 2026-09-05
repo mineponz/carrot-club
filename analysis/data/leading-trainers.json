@@ -1,0 +1,2724 @@
+{
+  "fetchedAt": "2026-09-02T14:34:52.393Z",
+  "source": "umapia.jp/search/trainers (JRA)",
+  "byYear": {
+    "2017": [
+      {
+        "rank": 1,
+        "trainer": "池江泰寿",
+        "umapiaId": "1071",
+        "wins": 53
+      },
+      {
+        "rank": 2,
+        "trainer": "堀宣行",
+        "umapiaId": "1070",
+        "wins": 45
+      },
+      {
+        "rank": 3,
+        "trainer": "藤沢和雄",
+        "umapiaId": "386",
+        "wins": 41
+      },
+      {
+        "rank": 3,
+        "trainer": "音無秀孝",
+        "umapiaId": "1002",
+        "wins": 41
+      },
+      {
+        "rank": 5,
+        "trainer": "国枝栄",
+        "umapiaId": "399",
+        "wins": 38
+      },
+      {
+        "rank": 6,
+        "trainer": "藤原英昭",
+        "umapiaId": "1055",
+        "wins": 36
+      },
+      {
+        "rank": 7,
+        "trainer": "友道康夫",
+        "umapiaId": "1061",
+        "wins": 35
+      },
+      {
+        "rank": 7,
+        "trainer": "手塚貴久",
+        "umapiaId": "1038",
+        "wins": 35
+      },
+      {
+        "rank": 7,
+        "trainer": "矢作芳人",
+        "umapiaId": "1075",
+        "wins": 35
+      },
+      {
+        "rank": 10,
+        "trainer": "中竹和也",
+        "umapiaId": "1039",
+        "wins": 34
+      },
+      {
+        "rank": 10,
+        "trainer": "藤岡健一",
+        "umapiaId": "1062",
+        "wins": 34
+      },
+      {
+        "rank": 10,
+        "trainer": "西園正都",
+        "umapiaId": "1028",
+        "wins": 34
+      },
+      {
+        "rank": 13,
+        "trainer": "清水久詞",
+        "umapiaId": "1110",
+        "wins": 33
+      },
+      {
+        "rank": 14,
+        "trainer": "中内田充正",
+        "umapiaId": "1137",
+        "wins": 32
+      },
+      {
+        "rank": 14,
+        "trainer": "斎藤誠",
+        "umapiaId": "1086",
+        "wins": 32
+      },
+      {
+        "rank": 14,
+        "trainer": "本田優",
+        "umapiaId": "1099",
+        "wins": 32
+      },
+      {
+        "rank": 17,
+        "trainer": "奥村豊",
+        "umapiaId": "1146",
+        "wins": 30
+      },
+      {
+        "rank": 17,
+        "trainer": "鮫島一歩",
+        "umapiaId": "1046",
+        "wins": 30
+      },
+      {
+        "rank": 19,
+        "trainer": "大久保龍志",
+        "umapiaId": "1058",
+        "wins": 29
+      },
+      {
+        "rank": 20,
+        "trainer": "南井克巳",
+        "umapiaId": "1049",
+        "wins": 28
+      },
+      {
+        "rank": 20,
+        "trainer": "高野友和",
+        "umapiaId": "1117",
+        "wins": 28
+      },
+      {
+        "rank": 22,
+        "trainer": "武市康男",
+        "umapiaId": "1089",
+        "wins": 27
+      },
+      {
+        "rank": 22,
+        "trainer": "牧浦充徳",
+        "umapiaId": "1113",
+        "wins": 27
+      },
+      {
+        "rank": 22,
+        "trainer": "相沢郁",
+        "umapiaId": "1020",
+        "wins": 27
+      },
+      {
+        "rank": 22,
+        "trainer": "角居勝彦",
+        "umapiaId": "1053",
+        "wins": 27
+      },
+      {
+        "rank": 22,
+        "trainer": "角田晃一",
+        "umapiaId": "1121",
+        "wins": 27
+      },
+      {
+        "rank": 22,
+        "trainer": "高木登",
+        "umapiaId": "1088",
+        "wins": 27
+      },
+      {
+        "rank": 22,
+        "trainer": "鹿戸雄一",
+        "umapiaId": "1097",
+        "wins": 27
+      },
+      {
+        "rank": 29,
+        "trainer": "古賀慎明",
+        "umapiaId": "1079",
+        "wins": 26
+      },
+      {
+        "rank": 29,
+        "trainer": "木村哲也",
+        "umapiaId": "1126",
+        "wins": 26
+      },
+      {
+        "rank": 29,
+        "trainer": "浅見秀一",
+        "umapiaId": "411",
+        "wins": 26
+      },
+      {
+        "rank": 29,
+        "trainer": "萩原清",
+        "umapiaId": "1017",
+        "wins": 26
+      },
+      {
+        "rank": 29,
+        "trainer": "須貝尚介",
+        "umapiaId": "1105",
+        "wins": 26
+      },
+      {
+        "rank": 34,
+        "trainer": "奥村武",
+        "umapiaId": "1145",
+        "wins": 25
+      },
+      {
+        "rank": 34,
+        "trainer": "尾関知人",
+        "umapiaId": "1103",
+        "wins": 25
+      },
+      {
+        "rank": 34,
+        "trainer": "岩戸孝樹",
+        "umapiaId": "1051",
+        "wins": 25
+      },
+      {
+        "rank": 34,
+        "trainer": "牧光二",
+        "umapiaId": "1106",
+        "wins": 25
+      },
+      {
+        "rank": 34,
+        "trainer": "高橋義忠",
+        "umapiaId": "1129",
+        "wins": 25
+      },
+      {
+        "rank": 39,
+        "trainer": "加藤征弘",
+        "umapiaId": "1059",
+        "wins": 24
+      },
+      {
+        "rank": 39,
+        "trainer": "安田隆行",
+        "umapiaId": "438",
+        "wins": 24
+      },
+      {
+        "rank": 39,
+        "trainer": "岡田稲男",
+        "umapiaId": "1066",
+        "wins": 24
+      },
+      {
+        "rank": 39,
+        "trainer": "村山明",
+        "umapiaId": "1107",
+        "wins": 24
+      },
+      {
+        "rank": 39,
+        "trainer": "橋口慎介",
+        "umapiaId": "1154",
+        "wins": 24
+      },
+      {
+        "rank": 39,
+        "trainer": "牧田和弥",
+        "umapiaId": "1123",
+        "wins": 24
+      },
+      {
+        "rank": 39,
+        "trainer": "高橋亮",
+        "umapiaId": "1136",
+        "wins": 24
+      },
+      {
+        "rank": 46,
+        "trainer": "加用正",
+        "umapiaId": "425",
+        "wins": 23
+      },
+      {
+        "rank": 46,
+        "trainer": "川村禎彦",
+        "umapiaId": "1003",
+        "wins": 23
+      },
+      {
+        "rank": 46,
+        "trainer": "木原一良",
+        "umapiaId": "1033",
+        "wins": 23
+      },
+      {
+        "rank": 46,
+        "trainer": "杉山晴紀",
+        "umapiaId": "1157",
+        "wins": 23
+      },
+      {
+        "rank": 46,
+        "trainer": "松永昌博",
+        "umapiaId": "1083",
+        "wins": 23
+      }
+    ],
+    "2018": [
+      {
+        "rank": 1,
+        "trainer": "藤原英昭",
+        "umapiaId": "1055",
+        "wins": 46
+      },
+      {
+        "rank": 2,
+        "trainer": "堀宣行",
+        "umapiaId": "1070",
+        "wins": 44
+      },
+      {
+        "rank": 3,
+        "trainer": "池江泰寿",
+        "umapiaId": "1071",
+        "wins": 42
+      },
+      {
+        "rank": 4,
+        "trainer": "角居勝彦",
+        "umapiaId": "1053",
+        "wins": 41
+      },
+      {
+        "rank": 5,
+        "trainer": "藤沢和雄",
+        "umapiaId": "386",
+        "wins": 40
+      },
+      {
+        "rank": 6,
+        "trainer": "音無秀孝",
+        "umapiaId": "1002",
+        "wins": 39
+      },
+      {
+        "rank": 7,
+        "trainer": "須貝尚介",
+        "umapiaId": "1105",
+        "wins": 37
+      },
+      {
+        "rank": 8,
+        "trainer": "国枝栄",
+        "umapiaId": "399",
+        "wins": 36
+      },
+      {
+        "rank": 8,
+        "trainer": "木村哲也",
+        "umapiaId": "1126",
+        "wins": 36
+      },
+      {
+        "rank": 8,
+        "trainer": "矢作芳人",
+        "umapiaId": "1075",
+        "wins": 36
+      },
+      {
+        "rank": 11,
+        "trainer": "中内田充正",
+        "umapiaId": "1137",
+        "wins": 34
+      },
+      {
+        "rank": 11,
+        "trainer": "友道康夫",
+        "umapiaId": "1061",
+        "wins": 34
+      },
+      {
+        "rank": 11,
+        "trainer": "森秀行",
+        "umapiaId": "427",
+        "wins": 34
+      },
+      {
+        "rank": 14,
+        "trainer": "安田隆行",
+        "umapiaId": "438",
+        "wins": 33
+      },
+      {
+        "rank": 14,
+        "trainer": "萩原清",
+        "umapiaId": "1017",
+        "wins": 33
+      },
+      {
+        "rank": 16,
+        "trainer": "中竹和也",
+        "umapiaId": "1039",
+        "wins": 32
+      },
+      {
+        "rank": 16,
+        "trainer": "松永幹夫",
+        "umapiaId": "1092",
+        "wins": 32
+      },
+      {
+        "rank": 16,
+        "trainer": "田村康仁",
+        "umapiaId": "1027",
+        "wins": 32
+      },
+      {
+        "rank": 19,
+        "trainer": "大久保龍志",
+        "umapiaId": "1058",
+        "wins": 31
+      },
+      {
+        "rank": 19,
+        "trainer": "高野友和",
+        "umapiaId": "1117",
+        "wins": 31
+      },
+      {
+        "rank": 21,
+        "trainer": "加藤征弘",
+        "umapiaId": "1059",
+        "wins": 30
+      },
+      {
+        "rank": 21,
+        "trainer": "鹿戸雄一",
+        "umapiaId": "1097",
+        "wins": 30
+      },
+      {
+        "rank": 23,
+        "trainer": "浅見秀一",
+        "umapiaId": "411",
+        "wins": 29
+      },
+      {
+        "rank": 24,
+        "trainer": "今野貞一",
+        "umapiaId": "1128",
+        "wins": 28
+      },
+      {
+        "rank": 24,
+        "trainer": "寺島良",
+        "umapiaId": "1158",
+        "wins": 28
+      },
+      {
+        "rank": 24,
+        "trainer": "藤岡健一",
+        "umapiaId": "1062",
+        "wins": 28
+      },
+      {
+        "rank": 27,
+        "trainer": "吉村圭司",
+        "umapiaId": "1130",
+        "wins": 27
+      },
+      {
+        "rank": 27,
+        "trainer": "尾関知人",
+        "umapiaId": "1103",
+        "wins": 27
+      },
+      {
+        "rank": 27,
+        "trainer": "相沢郁",
+        "umapiaId": "1020",
+        "wins": 27
+      },
+      {
+        "rank": 27,
+        "trainer": "鈴木伸尋",
+        "umapiaId": "1026",
+        "wins": 27
+      },
+      {
+        "rank": 27,
+        "trainer": "高橋義忠",
+        "umapiaId": "1129",
+        "wins": 27
+      },
+      {
+        "rank": 32,
+        "trainer": "戸田博文",
+        "umapiaId": "1054",
+        "wins": 26
+      },
+      {
+        "rank": 32,
+        "trainer": "村山明",
+        "umapiaId": "1107",
+        "wins": 26
+      },
+      {
+        "rank": 32,
+        "trainer": "梅田智之",
+        "umapiaId": "1084",
+        "wins": 26
+      },
+      {
+        "rank": 32,
+        "trainer": "角田晃一",
+        "umapiaId": "1121",
+        "wins": 26
+      },
+      {
+        "rank": 36,
+        "trainer": "坂口智康",
+        "umapiaId": "1170",
+        "wins": 25
+      },
+      {
+        "rank": 36,
+        "trainer": "庄野靖志",
+        "umapiaId": "1087",
+        "wins": 25
+      },
+      {
+        "rank": 36,
+        "trainer": "松永昌博",
+        "umapiaId": "1083",
+        "wins": 25
+      },
+      {
+        "rank": 36,
+        "trainer": "栗田徹",
+        "umapiaId": "1127",
+        "wins": 25
+      },
+      {
+        "rank": 36,
+        "trainer": "河内洋",
+        "umapiaId": "1072",
+        "wins": 25
+      },
+      {
+        "rank": 36,
+        "trainer": "石坂正",
+        "umapiaId": "1022",
+        "wins": 25
+      },
+      {
+        "rank": 36,
+        "trainer": "石坂公一",
+        "umapiaId": "1166",
+        "wins": 25
+      },
+      {
+        "rank": 36,
+        "trainer": "菊沢隆徳",
+        "umapiaId": "1115",
+        "wins": 25
+      },
+      {
+        "rank": 36,
+        "trainer": "高木登",
+        "umapiaId": "1088",
+        "wins": 25
+      },
+      {
+        "rank": 45,
+        "trainer": "和田正一郎",
+        "umapiaId": "1114",
+        "wins": 24
+      },
+      {
+        "rank": 45,
+        "trainer": "小島茂之",
+        "umapiaId": "1068",
+        "wins": 24
+      },
+      {
+        "rank": 45,
+        "trainer": "斉藤崇史",
+        "umapiaId": "1151",
+        "wins": 24
+      },
+      {
+        "rank": 45,
+        "trainer": "高橋亮",
+        "umapiaId": "1136",
+        "wins": 24
+      },
+      {
+        "rank": 49,
+        "trainer": "古賀慎明",
+        "umapiaId": "1079",
+        "wins": 23
+      },
+      {
+        "rank": 49,
+        "trainer": "岩戸孝樹",
+        "umapiaId": "1051",
+        "wins": 23
+      }
+    ],
+    "2019": [
+      {
+        "rank": 1,
+        "trainer": "堀宣行",
+        "umapiaId": "1070",
+        "wins": 51
+      },
+      {
+        "rank": 2,
+        "trainer": "安田隆行",
+        "umapiaId": "438",
+        "wins": 46
+      },
+      {
+        "rank": 2,
+        "trainer": "矢作芳人",
+        "umapiaId": "1075",
+        "wins": 46
+      },
+      {
+        "rank": 4,
+        "trainer": "国枝栄",
+        "umapiaId": "399",
+        "wins": 43
+      },
+      {
+        "rank": 5,
+        "trainer": "松永幹夫",
+        "umapiaId": "1092",
+        "wins": 39
+      },
+      {
+        "rank": 6,
+        "trainer": "池江泰寿",
+        "umapiaId": "1071",
+        "wins": 38
+      },
+      {
+        "rank": 6,
+        "trainer": "音無秀孝",
+        "umapiaId": "1002",
+        "wins": 38
+      },
+      {
+        "rank": 8,
+        "trainer": "西村真幸",
+        "umapiaId": "1148",
+        "wins": 37
+      },
+      {
+        "rank": 9,
+        "trainer": "高野友和",
+        "umapiaId": "1117",
+        "wins": 36
+      },
+      {
+        "rank": 10,
+        "trainer": "斎藤誠",
+        "umapiaId": "1086",
+        "wins": 35
+      },
+      {
+        "rank": 10,
+        "trainer": "清水久詞",
+        "umapiaId": "1110",
+        "wins": 35
+      },
+      {
+        "rank": 12,
+        "trainer": "大久保龍志",
+        "umapiaId": "1058",
+        "wins": 33
+      },
+      {
+        "rank": 13,
+        "trainer": "加藤征弘",
+        "umapiaId": "1059",
+        "wins": 32
+      },
+      {
+        "rank": 14,
+        "trainer": "中内田充正",
+        "umapiaId": "1137",
+        "wins": 31
+      },
+      {
+        "rank": 15,
+        "trainer": "手塚貴久",
+        "umapiaId": "1038",
+        "wins": 30
+      },
+      {
+        "rank": 15,
+        "trainer": "木村哲也",
+        "umapiaId": "1126",
+        "wins": 30
+      },
+      {
+        "rank": 15,
+        "trainer": "池添学",
+        "umapiaId": "1144",
+        "wins": 30
+      },
+      {
+        "rank": 15,
+        "trainer": "西園正都",
+        "umapiaId": "1028",
+        "wins": 30
+      },
+      {
+        "rank": 15,
+        "trainer": "高柳瑞樹",
+        "umapiaId": "1118",
+        "wins": 30
+      },
+      {
+        "rank": 20,
+        "trainer": "杉山晴紀",
+        "umapiaId": "1157",
+        "wins": 28
+      },
+      {
+        "rank": 20,
+        "trainer": "田中博康",
+        "umapiaId": "1162",
+        "wins": 28
+      },
+      {
+        "rank": 20,
+        "trainer": "角居勝彦",
+        "umapiaId": "1053",
+        "wins": 28
+      },
+      {
+        "rank": 23,
+        "trainer": "友道康夫",
+        "umapiaId": "1061",
+        "wins": 27
+      },
+      {
+        "rank": 23,
+        "trainer": "庄野靖志",
+        "umapiaId": "1087",
+        "wins": 27
+      },
+      {
+        "rank": 23,
+        "trainer": "本田優",
+        "umapiaId": "1099",
+        "wins": 27
+      },
+      {
+        "rank": 23,
+        "trainer": "藤岡健一",
+        "umapiaId": "1062",
+        "wins": 27
+      },
+      {
+        "rank": 23,
+        "trainer": "鈴木伸尋",
+        "umapiaId": "1026",
+        "wins": 27
+      },
+      {
+        "rank": 23,
+        "trainer": "鈴木孝志",
+        "umapiaId": "1111",
+        "wins": 27
+      },
+      {
+        "rank": 29,
+        "trainer": "伊藤圭三",
+        "umapiaId": "1023",
+        "wins": 26
+      },
+      {
+        "rank": 29,
+        "trainer": "寺島良",
+        "umapiaId": "1158",
+        "wins": 26
+      },
+      {
+        "rank": 29,
+        "trainer": "岡田稲男",
+        "umapiaId": "1066",
+        "wins": 26
+      },
+      {
+        "rank": 29,
+        "trainer": "武井亮",
+        "umapiaId": "1147",
+        "wins": 26
+      },
+      {
+        "rank": 29,
+        "trainer": "相沢郁",
+        "umapiaId": "1020",
+        "wins": 26
+      },
+      {
+        "rank": 34,
+        "trainer": "中竹和也",
+        "umapiaId": "1039",
+        "wins": 25
+      },
+      {
+        "rank": 34,
+        "trainer": "大竹正博",
+        "umapiaId": "1102",
+        "wins": 25
+      },
+      {
+        "rank": 34,
+        "trainer": "尾関知人",
+        "umapiaId": "1103",
+        "wins": 25
+      },
+      {
+        "rank": 34,
+        "trainer": "野中賢二",
+        "umapiaId": "1098",
+        "wins": 25
+      },
+      {
+        "rank": 34,
+        "trainer": "長谷川浩大",
+        "umapiaId": "1173",
+        "wins": 25
+      },
+      {
+        "rank": 34,
+        "trainer": "鹿戸雄一",
+        "umapiaId": "1097",
+        "wins": 25
+      },
+      {
+        "rank": 40,
+        "trainer": "南井克巳",
+        "umapiaId": "1049",
+        "wins": 24
+      },
+      {
+        "rank": 40,
+        "trainer": "栗田徹",
+        "umapiaId": "1127",
+        "wins": 24
+      },
+      {
+        "rank": 40,
+        "trainer": "橋口慎介",
+        "umapiaId": "1154",
+        "wins": 24
+      },
+      {
+        "rank": 40,
+        "trainer": "萩原清",
+        "umapiaId": "1017",
+        "wins": 24
+      },
+      {
+        "rank": 40,
+        "trainer": "角田晃一",
+        "umapiaId": "1121",
+        "wins": 24
+      },
+      {
+        "rank": 45,
+        "trainer": "加用正",
+        "umapiaId": "425",
+        "wins": 23
+      },
+      {
+        "rank": 45,
+        "trainer": "千田輝彦",
+        "umapiaId": "1120",
+        "wins": 23
+      },
+      {
+        "rank": 45,
+        "trainer": "吉田直弘",
+        "umapiaId": "1101",
+        "wins": 23
+      },
+      {
+        "rank": 45,
+        "trainer": "岩戸孝樹",
+        "umapiaId": "1051",
+        "wins": 23
+      },
+      {
+        "rank": 45,
+        "trainer": "金成貴史",
+        "umapiaId": "1132",
+        "wins": 23
+      },
+      {
+        "rank": 45,
+        "trainer": "高木登",
+        "umapiaId": "1088",
+        "wins": 23
+      }
+    ],
+    "2020": [
+      {
+        "rank": 1,
+        "trainer": "堀宣行",
+        "umapiaId": "1070",
+        "wins": 44
+      },
+      {
+        "rank": 2,
+        "trainer": "矢作芳人",
+        "umapiaId": "1075",
+        "wins": 43
+      },
+      {
+        "rank": 3,
+        "trainer": "国枝栄",
+        "umapiaId": "399",
+        "wins": 39
+      },
+      {
+        "rank": 3,
+        "trainer": "斉藤崇史",
+        "umapiaId": "1151",
+        "wins": 39
+      },
+      {
+        "rank": 5,
+        "trainer": "友道康夫",
+        "umapiaId": "1061",
+        "wins": 38
+      },
+      {
+        "rank": 5,
+        "trainer": "音無秀孝",
+        "umapiaId": "1002",
+        "wins": 38
+      },
+      {
+        "rank": 7,
+        "trainer": "池江泰寿",
+        "umapiaId": "1071",
+        "wins": 36
+      },
+      {
+        "rank": 8,
+        "trainer": "安田隆行",
+        "umapiaId": "438",
+        "wins": 34
+      },
+      {
+        "rank": 8,
+        "trainer": "清水久詞",
+        "umapiaId": "1110",
+        "wins": 34
+      },
+      {
+        "rank": 10,
+        "trainer": "杉山晴紀",
+        "umapiaId": "1157",
+        "wins": 33
+      },
+      {
+        "rank": 10,
+        "trainer": "石坂公一",
+        "umapiaId": "1166",
+        "wins": 33
+      },
+      {
+        "rank": 12,
+        "trainer": "佐々木晶三",
+        "umapiaId": "429",
+        "wins": 32
+      },
+      {
+        "rank": 12,
+        "trainer": "本田優",
+        "umapiaId": "1099",
+        "wins": 32
+      },
+      {
+        "rank": 12,
+        "trainer": "西村真幸",
+        "umapiaId": "1148",
+        "wins": 32
+      },
+      {
+        "rank": 12,
+        "trainer": "野中賢二",
+        "umapiaId": "1098",
+        "wins": 32
+      },
+      {
+        "rank": 16,
+        "trainer": "大久保龍志",
+        "umapiaId": "1058",
+        "wins": 31
+      },
+      {
+        "rank": 16,
+        "trainer": "藤原英昭",
+        "umapiaId": "1055",
+        "wins": 31
+      },
+      {
+        "rank": 18,
+        "trainer": "池添学",
+        "umapiaId": "1144",
+        "wins": 30
+      },
+      {
+        "rank": 18,
+        "trainer": "高野友和",
+        "umapiaId": "1117",
+        "wins": 30
+      },
+      {
+        "rank": 20,
+        "trainer": "加藤征弘",
+        "umapiaId": "1059",
+        "wins": 29
+      },
+      {
+        "rank": 20,
+        "trainer": "木村哲也",
+        "umapiaId": "1126",
+        "wins": 29
+      },
+      {
+        "rank": 22,
+        "trainer": "西園正都",
+        "umapiaId": "1028",
+        "wins": 28
+      },
+      {
+        "rank": 22,
+        "trainer": "鈴木孝志",
+        "umapiaId": "1111",
+        "wins": 28
+      },
+      {
+        "rank": 22,
+        "trainer": "高橋義忠",
+        "umapiaId": "1129",
+        "wins": 28
+      },
+      {
+        "rank": 25,
+        "trainer": "上村洋行",
+        "umapiaId": "1168",
+        "wins": 27
+      },
+      {
+        "rank": 25,
+        "trainer": "伊藤圭三",
+        "umapiaId": "1023",
+        "wins": 27
+      },
+      {
+        "rank": 27,
+        "trainer": "中舘英二",
+        "umapiaId": "1153",
+        "wins": 26
+      },
+      {
+        "rank": 27,
+        "trainer": "戸田博文",
+        "umapiaId": "1054",
+        "wins": 26
+      },
+      {
+        "rank": 27,
+        "trainer": "手塚貴久",
+        "umapiaId": "1038",
+        "wins": 26
+      },
+      {
+        "rank": 27,
+        "trainer": "森秀行",
+        "umapiaId": "427",
+        "wins": 26
+      },
+      {
+        "rank": 27,
+        "trainer": "牧浦充徳",
+        "umapiaId": "1113",
+        "wins": 26
+      },
+      {
+        "rank": 27,
+        "trainer": "田村康仁",
+        "umapiaId": "1027",
+        "wins": 26
+      },
+      {
+        "rank": 27,
+        "trainer": "須貝尚介",
+        "umapiaId": "1105",
+        "wins": 26
+      },
+      {
+        "rank": 34,
+        "trainer": "中内田充正",
+        "umapiaId": "1137",
+        "wins": 25
+      },
+      {
+        "rank": 34,
+        "trainer": "中竹和也",
+        "umapiaId": "1039",
+        "wins": 25
+      },
+      {
+        "rank": 34,
+        "trainer": "今野貞一",
+        "umapiaId": "1128",
+        "wins": 25
+      },
+      {
+        "rank": 34,
+        "trainer": "奥村豊",
+        "umapiaId": "1146",
+        "wins": 25
+      },
+      {
+        "rank": 34,
+        "trainer": "斎藤誠",
+        "umapiaId": "1086",
+        "wins": 25
+      },
+      {
+        "rank": 34,
+        "trainer": "松永幹夫",
+        "umapiaId": "1092",
+        "wins": 25
+      },
+      {
+        "rank": 34,
+        "trainer": "渡辺薫彦",
+        "umapiaId": "1155",
+        "wins": 25
+      },
+      {
+        "rank": 34,
+        "trainer": "田中博康",
+        "umapiaId": "1162",
+        "wins": 25
+      },
+      {
+        "rank": 34,
+        "trainer": "鹿戸雄一",
+        "umapiaId": "1097",
+        "wins": 25
+      },
+      {
+        "rank": 43,
+        "trainer": "中村直也",
+        "umapiaId": "1186",
+        "wins": 24
+      },
+      {
+        "rank": 43,
+        "trainer": "北出成人",
+        "umapiaId": "1078",
+        "wins": 24
+      },
+      {
+        "rank": 43,
+        "trainer": "和田正一郎",
+        "umapiaId": "1114",
+        "wins": 24
+      },
+      {
+        "rank": 43,
+        "trainer": "尾関知人",
+        "umapiaId": "1103",
+        "wins": 24
+      },
+      {
+        "rank": 43,
+        "trainer": "栗田徹",
+        "umapiaId": "1127",
+        "wins": 24
+      },
+      {
+        "rank": 43,
+        "trainer": "角田晃一",
+        "umapiaId": "1121",
+        "wins": 24
+      },
+      {
+        "rank": 43,
+        "trainer": "高橋亮",
+        "umapiaId": "1136",
+        "wins": 24
+      },
+      {
+        "rank": 50,
+        "trainer": "久保田貴士",
+        "umapiaId": "1067",
+        "wins": 23
+      }
+    ],
+    "2021": [
+      {
+        "rank": 1,
+        "trainer": "矢作芳人",
+        "umapiaId": "1075",
+        "wins": 48
+      },
+      {
+        "rank": 2,
+        "trainer": "中内田充正",
+        "umapiaId": "1137",
+        "wins": 46
+      },
+      {
+        "rank": 3,
+        "trainer": "国枝栄",
+        "umapiaId": "399",
+        "wins": 45
+      },
+      {
+        "rank": 3,
+        "trainer": "斉藤崇史",
+        "umapiaId": "1151",
+        "wins": 45
+      },
+      {
+        "rank": 5,
+        "trainer": "森秀行",
+        "umapiaId": "427",
+        "wins": 42
+      },
+      {
+        "rank": 6,
+        "trainer": "藤岡健一",
+        "umapiaId": "1062",
+        "wins": 38
+      },
+      {
+        "rank": 7,
+        "trainer": "清水久詞",
+        "umapiaId": "1110",
+        "wins": 37
+      },
+      {
+        "rank": 8,
+        "trainer": "友道康夫",
+        "umapiaId": "1061",
+        "wins": 35
+      },
+      {
+        "rank": 8,
+        "trainer": "池江泰寿",
+        "umapiaId": "1071",
+        "wins": 35
+      },
+      {
+        "rank": 8,
+        "trainer": "田村康仁",
+        "umapiaId": "1027",
+        "wins": 35
+      },
+      {
+        "rank": 8,
+        "trainer": "須貝尚介",
+        "umapiaId": "1105",
+        "wins": 35
+      },
+      {
+        "rank": 12,
+        "trainer": "木村哲也",
+        "umapiaId": "1126",
+        "wins": 33
+      },
+      {
+        "rank": 13,
+        "trainer": "中竹和也",
+        "umapiaId": "1039",
+        "wins": 32
+      },
+      {
+        "rank": 13,
+        "trainer": "高野友和",
+        "umapiaId": "1117",
+        "wins": 32
+      },
+      {
+        "rank": 15,
+        "trainer": "伊藤圭三",
+        "umapiaId": "1023",
+        "wins": 31
+      },
+      {
+        "rank": 15,
+        "trainer": "堀宣行",
+        "umapiaId": "1070",
+        "wins": 31
+      },
+      {
+        "rank": 17,
+        "trainer": "安田翔伍",
+        "umapiaId": "1164",
+        "wins": 30
+      },
+      {
+        "rank": 17,
+        "trainer": "手塚貴久",
+        "umapiaId": "1038",
+        "wins": 30
+      },
+      {
+        "rank": 17,
+        "trainer": "杉山晴紀",
+        "umapiaId": "1157",
+        "wins": 30
+      },
+      {
+        "rank": 17,
+        "trainer": "武英智",
+        "umapiaId": "1161",
+        "wins": 30
+      },
+      {
+        "rank": 17,
+        "trainer": "西村真幸",
+        "umapiaId": "1148",
+        "wins": 30
+      },
+      {
+        "rank": 22,
+        "trainer": "斎藤誠",
+        "umapiaId": "1086",
+        "wins": 29
+      },
+      {
+        "rank": 22,
+        "trainer": "栗田徹",
+        "umapiaId": "1127",
+        "wins": 29
+      },
+      {
+        "rank": 22,
+        "trainer": "西園正都",
+        "umapiaId": "1028",
+        "wins": 29
+      },
+      {
+        "rank": 22,
+        "trainer": "高柳大輔",
+        "umapiaId": "1159",
+        "wins": 29
+      },
+      {
+        "rank": 26,
+        "trainer": "久保田貴士",
+        "umapiaId": "1067",
+        "wins": 28
+      },
+      {
+        "rank": 26,
+        "trainer": "佐々木晶三",
+        "umapiaId": "429",
+        "wins": 28
+      },
+      {
+        "rank": 26,
+        "trainer": "岡田稲男",
+        "umapiaId": "1066",
+        "wins": 28
+      },
+      {
+        "rank": 26,
+        "trainer": "武幸四郎",
+        "umapiaId": "1160",
+        "wins": 28
+      },
+      {
+        "rank": 26,
+        "trainer": "池添学",
+        "umapiaId": "1144",
+        "wins": 28
+      },
+      {
+        "rank": 26,
+        "trainer": "萩原清",
+        "umapiaId": "1017",
+        "wins": 28
+      },
+      {
+        "rank": 26,
+        "trainer": "黒岩陽一",
+        "umapiaId": "1133",
+        "wins": 28
+      },
+      {
+        "rank": 33,
+        "trainer": "中村直也",
+        "umapiaId": "1186",
+        "wins": 27
+      },
+      {
+        "rank": 33,
+        "trainer": "大久保龍志",
+        "umapiaId": "1058",
+        "wins": 27
+      },
+      {
+        "rank": 33,
+        "trainer": "大竹正博",
+        "umapiaId": "1102",
+        "wins": 27
+      },
+      {
+        "rank": 33,
+        "trainer": "寺島良",
+        "umapiaId": "1158",
+        "wins": 27
+      },
+      {
+        "rank": 33,
+        "trainer": "橋口慎介",
+        "umapiaId": "1154",
+        "wins": 27
+      },
+      {
+        "rank": 33,
+        "trainer": "藤原英昭",
+        "umapiaId": "1055",
+        "wins": 27
+      },
+      {
+        "rank": 33,
+        "trainer": "音無秀孝",
+        "umapiaId": "1002",
+        "wins": 27
+      },
+      {
+        "rank": 40,
+        "trainer": "上村洋行",
+        "umapiaId": "1168",
+        "wins": 26
+      },
+      {
+        "rank": 40,
+        "trainer": "古賀慎明",
+        "umapiaId": "1079",
+        "wins": 26
+      },
+      {
+        "rank": 42,
+        "trainer": "加藤征弘",
+        "umapiaId": "1059",
+        "wins": 25
+      },
+      {
+        "rank": 42,
+        "trainer": "北出成人",
+        "umapiaId": "1078",
+        "wins": 25
+      },
+      {
+        "rank": 42,
+        "trainer": "和田勇介",
+        "umapiaId": "1165",
+        "wins": 25
+      },
+      {
+        "rank": 42,
+        "trainer": "大橋勇樹",
+        "umapiaId": "1065",
+        "wins": 25
+      },
+      {
+        "rank": 42,
+        "trainer": "奥村豊",
+        "umapiaId": "1146",
+        "wins": 25
+      },
+      {
+        "rank": 42,
+        "trainer": "林徹",
+        "umapiaId": "1163",
+        "wins": 25
+      },
+      {
+        "rank": 42,
+        "trainer": "武藤善則",
+        "umapiaId": "1064",
+        "wins": 25
+      },
+      {
+        "rank": 42,
+        "trainer": "鹿戸雄一",
+        "umapiaId": "1097",
+        "wins": 25
+      },
+      {
+        "rank": 50,
+        "trainer": "中舘英二",
+        "umapiaId": "1153",
+        "wins": 24
+      }
+    ],
+    "2022": [
+      {
+        "rank": 1,
+        "trainer": "矢作芳人",
+        "umapiaId": "1075",
+        "wins": 55
+      },
+      {
+        "rank": 2,
+        "trainer": "清水久詞",
+        "umapiaId": "1110",
+        "wins": 49
+      },
+      {
+        "rank": 3,
+        "trainer": "池江泰寿",
+        "umapiaId": "1071",
+        "wins": 44
+      },
+      {
+        "rank": 4,
+        "trainer": "森秀行",
+        "umapiaId": "427",
+        "wins": 43
+      },
+      {
+        "rank": 5,
+        "trainer": "中内田充正",
+        "umapiaId": "1137",
+        "wins": 40
+      },
+      {
+        "rank": 5,
+        "trainer": "斉藤崇史",
+        "umapiaId": "1151",
+        "wins": 40
+      },
+      {
+        "rank": 5,
+        "trainer": "新谷功一",
+        "umapiaId": "1172",
+        "wins": 40
+      },
+      {
+        "rank": 8,
+        "trainer": "須貝尚介",
+        "umapiaId": "1105",
+        "wins": 38
+      },
+      {
+        "rank": 9,
+        "trainer": "友道康夫",
+        "umapiaId": "1061",
+        "wins": 36
+      },
+      {
+        "rank": 9,
+        "trainer": "国枝栄",
+        "umapiaId": "399",
+        "wins": 36
+      },
+      {
+        "rank": 9,
+        "trainer": "堀宣行",
+        "umapiaId": "1070",
+        "wins": 36
+      },
+      {
+        "rank": 12,
+        "trainer": "池添学",
+        "umapiaId": "1144",
+        "wins": 34
+      },
+      {
+        "rank": 12,
+        "trainer": "西園正都",
+        "umapiaId": "1028",
+        "wins": 34
+      },
+      {
+        "rank": 12,
+        "trainer": "高木登",
+        "umapiaId": "1088",
+        "wins": 34
+      },
+      {
+        "rank": 15,
+        "trainer": "松永幹夫",
+        "umapiaId": "1092",
+        "wins": 33
+      },
+      {
+        "rank": 16,
+        "trainer": "斎藤誠",
+        "umapiaId": "1086",
+        "wins": 32
+      },
+      {
+        "rank": 16,
+        "trainer": "杉山晴紀",
+        "umapiaId": "1157",
+        "wins": 32
+      },
+      {
+        "rank": 16,
+        "trainer": "鹿戸雄一",
+        "umapiaId": "1097",
+        "wins": 32
+      },
+      {
+        "rank": 19,
+        "trainer": "上村洋行",
+        "umapiaId": "1168",
+        "wins": 31
+      },
+      {
+        "rank": 19,
+        "trainer": "奥村豊",
+        "umapiaId": "1146",
+        "wins": 31
+      },
+      {
+        "rank": 21,
+        "trainer": "伊藤圭三",
+        "umapiaId": "1023",
+        "wins": 30
+      },
+      {
+        "rank": 21,
+        "trainer": "大久保龍志",
+        "umapiaId": "1058",
+        "wins": 30
+      },
+      {
+        "rank": 21,
+        "trainer": "奥村武",
+        "umapiaId": "1145",
+        "wins": 30
+      },
+      {
+        "rank": 24,
+        "trainer": "吉村圭司",
+        "umapiaId": "1130",
+        "wins": 29
+      },
+      {
+        "rank": 24,
+        "trainer": "武英智",
+        "umapiaId": "1161",
+        "wins": 29
+      },
+      {
+        "rank": 24,
+        "trainer": "藤原英昭",
+        "umapiaId": "1055",
+        "wins": 29
+      },
+      {
+        "rank": 24,
+        "trainer": "高柳大輔",
+        "umapiaId": "1159",
+        "wins": 29
+      },
+      {
+        "rank": 28,
+        "trainer": "中舘英二",
+        "umapiaId": "1153",
+        "wins": 28
+      },
+      {
+        "rank": 28,
+        "trainer": "宮田敬介",
+        "umapiaId": "1175",
+        "wins": 28
+      },
+      {
+        "rank": 28,
+        "trainer": "木村哲也",
+        "umapiaId": "1126",
+        "wins": 28
+      },
+      {
+        "rank": 28,
+        "trainer": "辻野泰之",
+        "umapiaId": "1183",
+        "wins": 28
+      },
+      {
+        "rank": 28,
+        "trainer": "野中賢二",
+        "umapiaId": "1098",
+        "wins": 28
+      },
+      {
+        "rank": 28,
+        "trainer": "高橋亮",
+        "umapiaId": "1136",
+        "wins": 28
+      },
+      {
+        "rank": 34,
+        "trainer": "渡辺薫彦",
+        "umapiaId": "1155",
+        "wins": 27
+      },
+      {
+        "rank": 35,
+        "trainer": "今野貞一",
+        "umapiaId": "1128",
+        "wins": 26
+      },
+      {
+        "rank": 35,
+        "trainer": "加藤征弘",
+        "umapiaId": "1059",
+        "wins": 26
+      },
+      {
+        "rank": 35,
+        "trainer": "杉山佳明",
+        "umapiaId": "1178",
+        "wins": 26
+      },
+      {
+        "rank": 35,
+        "trainer": "橋口慎介",
+        "umapiaId": "1154",
+        "wins": 26
+      },
+      {
+        "rank": 35,
+        "trainer": "田中博康",
+        "umapiaId": "1162",
+        "wins": 26
+      },
+      {
+        "rank": 35,
+        "trainer": "田中克典",
+        "umapiaId": "1180",
+        "wins": 26
+      },
+      {
+        "rank": 35,
+        "trainer": "高野友和",
+        "umapiaId": "1117",
+        "wins": 26
+      },
+      {
+        "rank": 42,
+        "trainer": "中尾秀正",
+        "umapiaId": "1069",
+        "wins": 25
+      },
+      {
+        "rank": 42,
+        "trainer": "中竹和也",
+        "umapiaId": "1039",
+        "wins": 25
+      },
+      {
+        "rank": 42,
+        "trainer": "安田翔伍",
+        "umapiaId": "1164",
+        "wins": 25
+      },
+      {
+        "rank": 42,
+        "trainer": "松下武士",
+        "umapiaId": "1149",
+        "wins": 25
+      },
+      {
+        "rank": 42,
+        "trainer": "牧浦充徳",
+        "umapiaId": "1113",
+        "wins": 25
+      },
+      {
+        "rank": 42,
+        "trainer": "福永祐一",
+        "umapiaId": "1203",
+        "wins": 25
+      },
+      {
+        "rank": 42,
+        "trainer": "長谷川浩大",
+        "umapiaId": "1173",
+        "wins": 25
+      },
+      {
+        "rank": 49,
+        "trainer": "中村直也",
+        "umapiaId": "1186",
+        "wins": 24
+      },
+      {
+        "rank": 49,
+        "trainer": "林徹",
+        "umapiaId": "1163",
+        "wins": 24
+      }
+    ],
+    "2023": [
+      {
+        "rank": 1,
+        "trainer": "矢作芳人",
+        "umapiaId": "1075",
+        "wins": 47
+      },
+      {
+        "rank": 2,
+        "trainer": "杉山晴紀",
+        "umapiaId": "1157",
+        "wins": 46
+      },
+      {
+        "rank": 3,
+        "trainer": "中内田充正",
+        "umapiaId": "1137",
+        "wins": 45
+      },
+      {
+        "rank": 4,
+        "trainer": "森秀行",
+        "umapiaId": "427",
+        "wins": 41
+      },
+      {
+        "rank": 5,
+        "trainer": "木村哲也",
+        "umapiaId": "1126",
+        "wins": 40
+      },
+      {
+        "rank": 6,
+        "trainer": "友道康夫",
+        "umapiaId": "1061",
+        "wins": 39
+      },
+      {
+        "rank": 7,
+        "trainer": "堀宣行",
+        "umapiaId": "1070",
+        "wins": 38
+      },
+      {
+        "rank": 8,
+        "trainer": "上村洋行",
+        "umapiaId": "1168",
+        "wins": 37
+      },
+      {
+        "rank": 8,
+        "trainer": "国枝栄",
+        "umapiaId": "399",
+        "wins": 37
+      },
+      {
+        "rank": 8,
+        "trainer": "池江泰寿",
+        "umapiaId": "1071",
+        "wins": 37
+      },
+      {
+        "rank": 8,
+        "trainer": "清水久詞",
+        "umapiaId": "1110",
+        "wins": 37
+      },
+      {
+        "rank": 12,
+        "trainer": "斎藤誠",
+        "umapiaId": "1086",
+        "wins": 36
+      },
+      {
+        "rank": 13,
+        "trainer": "大橋勇樹",
+        "umapiaId": "1065",
+        "wins": 35
+      },
+      {
+        "rank": 13,
+        "trainer": "安田翔伍",
+        "umapiaId": "1164",
+        "wins": 35
+      },
+      {
+        "rank": 15,
+        "trainer": "長谷川浩大",
+        "umapiaId": "1173",
+        "wins": 34
+      },
+      {
+        "rank": 16,
+        "trainer": "高木登",
+        "umapiaId": "1088",
+        "wins": 33
+      },
+      {
+        "rank": 17,
+        "trainer": "橋口慎介",
+        "umapiaId": "1154",
+        "wins": 32
+      },
+      {
+        "rank": 17,
+        "trainer": "西園正都",
+        "umapiaId": "1028",
+        "wins": 32
+      },
+      {
+        "rank": 19,
+        "trainer": "吉岡辰弥",
+        "umapiaId": "1176",
+        "wins": 31
+      },
+      {
+        "rank": 19,
+        "trainer": "奥村武",
+        "umapiaId": "1145",
+        "wins": 31
+      },
+      {
+        "rank": 19,
+        "trainer": "武井亮",
+        "umapiaId": "1147",
+        "wins": 31
+      },
+      {
+        "rank": 19,
+        "trainer": "石橋守",
+        "umapiaId": "1140",
+        "wins": 31
+      },
+      {
+        "rank": 19,
+        "trainer": "高野友和",
+        "umapiaId": "1117",
+        "wins": 31
+      },
+      {
+        "rank": 24,
+        "trainer": "吉村圭司",
+        "umapiaId": "1130",
+        "wins": 30
+      },
+      {
+        "rank": 24,
+        "trainer": "大久保龍志",
+        "umapiaId": "1058",
+        "wins": 30
+      },
+      {
+        "rank": 24,
+        "trainer": "斉藤崇史",
+        "umapiaId": "1151",
+        "wins": 30
+      },
+      {
+        "rank": 24,
+        "trainer": "林徹",
+        "umapiaId": "1163",
+        "wins": 30
+      },
+      {
+        "rank": 24,
+        "trainer": "武英智",
+        "umapiaId": "1161",
+        "wins": 30
+      },
+      {
+        "rank": 24,
+        "trainer": "鹿戸雄一",
+        "umapiaId": "1097",
+        "wins": 30
+      },
+      {
+        "rank": 30,
+        "trainer": "中竹和也",
+        "umapiaId": "1039",
+        "wins": 29
+      },
+      {
+        "rank": 30,
+        "trainer": "千田輝彦",
+        "umapiaId": "1120",
+        "wins": 29
+      },
+      {
+        "rank": 30,
+        "trainer": "寺島良",
+        "umapiaId": "1158",
+        "wins": 29
+      },
+      {
+        "rank": 30,
+        "trainer": "田中博康",
+        "umapiaId": "1162",
+        "wins": 29
+      },
+      {
+        "rank": 30,
+        "trainer": "藤原英昭",
+        "umapiaId": "1055",
+        "wins": 29
+      },
+      {
+        "rank": 30,
+        "trainer": "鈴木孝志",
+        "umapiaId": "1111",
+        "wins": 29
+      },
+      {
+        "rank": 30,
+        "trainer": "高柳大輔",
+        "umapiaId": "1159",
+        "wins": 29
+      },
+      {
+        "rank": 37,
+        "trainer": "久保田貴士",
+        "umapiaId": "1067",
+        "wins": 28
+      },
+      {
+        "rank": 37,
+        "trainer": "加藤征弘",
+        "umapiaId": "1059",
+        "wins": 28
+      },
+      {
+        "rank": 37,
+        "trainer": "松下武士",
+        "umapiaId": "1149",
+        "wins": 28
+      },
+      {
+        "rank": 37,
+        "trainer": "田中克典",
+        "umapiaId": "1180",
+        "wins": 28
+      },
+      {
+        "rank": 41,
+        "trainer": "牧浦充徳",
+        "umapiaId": "1113",
+        "wins": 27
+      },
+      {
+        "rank": 41,
+        "trainer": "藤岡健一",
+        "umapiaId": "1062",
+        "wins": 27
+      },
+      {
+        "rank": 43,
+        "trainer": "中村直也",
+        "umapiaId": "1186",
+        "wins": 26
+      },
+      {
+        "rank": 43,
+        "trainer": "大竹正博",
+        "umapiaId": "1102",
+        "wins": 26
+      },
+      {
+        "rank": 43,
+        "trainer": "宮田敬介",
+        "umapiaId": "1175",
+        "wins": 26
+      },
+      {
+        "rank": 43,
+        "trainer": "手塚貴久",
+        "umapiaId": "1038",
+        "wins": 26
+      },
+      {
+        "rank": 43,
+        "trainer": "松永幹夫",
+        "umapiaId": "1092",
+        "wins": 26
+      },
+      {
+        "rank": 48,
+        "trainer": "中舘英二",
+        "umapiaId": "1153",
+        "wins": 25
+      },
+      {
+        "rank": 48,
+        "trainer": "田村康仁",
+        "umapiaId": "1027",
+        "wins": 25
+      },
+      {
+        "rank": 48,
+        "trainer": "石坂公一",
+        "umapiaId": "1166",
+        "wins": 25
+      }
+    ],
+    "2024": [
+      {
+        "rank": 1,
+        "trainer": "須貝尚介",
+        "umapiaId": "1105",
+        "wins": 50
+      },
+      {
+        "rank": 2,
+        "trainer": "友道康夫",
+        "umapiaId": "1061",
+        "wins": 46
+      },
+      {
+        "rank": 3,
+        "trainer": "杉山晴紀",
+        "umapiaId": "1157",
+        "wins": 45
+      },
+      {
+        "rank": 4,
+        "trainer": "田中博康",
+        "umapiaId": "1162",
+        "wins": 42
+      },
+      {
+        "rank": 4,
+        "trainer": "矢作芳人",
+        "umapiaId": "1075",
+        "wins": 42
+      },
+      {
+        "rank": 6,
+        "trainer": "堀宣行",
+        "umapiaId": "1070",
+        "wins": 41
+      },
+      {
+        "rank": 7,
+        "trainer": "上村洋行",
+        "umapiaId": "1168",
+        "wins": 40
+      },
+      {
+        "rank": 8,
+        "trainer": "松永幹夫",
+        "umapiaId": "1092",
+        "wins": 39
+      },
+      {
+        "rank": 9,
+        "trainer": "藤原英昭",
+        "umapiaId": "1055",
+        "wins": 38
+      },
+      {
+        "rank": 10,
+        "trainer": "中内田充正",
+        "umapiaId": "1137",
+        "wins": 37
+      },
+      {
+        "rank": 11,
+        "trainer": "中竹和也",
+        "umapiaId": "1039",
+        "wins": 36
+      },
+      {
+        "rank": 12,
+        "trainer": "大久保龍志",
+        "umapiaId": "1058",
+        "wins": 34
+      },
+      {
+        "rank": 12,
+        "trainer": "鹿戸雄一",
+        "umapiaId": "1097",
+        "wins": 34
+      },
+      {
+        "rank": 14,
+        "trainer": "斉藤崇史",
+        "umapiaId": "1151",
+        "wins": 33
+      },
+      {
+        "rank": 15,
+        "trainer": "木村哲也",
+        "umapiaId": "1126",
+        "wins": 32
+      },
+      {
+        "rank": 16,
+        "trainer": "手塚貴久",
+        "umapiaId": "1038",
+        "wins": 31
+      },
+      {
+        "rank": 16,
+        "trainer": "西園正都",
+        "umapiaId": "1028",
+        "wins": 31
+      },
+      {
+        "rank": 18,
+        "trainer": "菊沢隆徳",
+        "umapiaId": "1115",
+        "wins": 30
+      },
+      {
+        "rank": 19,
+        "trainer": "伊藤圭三",
+        "umapiaId": "1023",
+        "wins": 29
+      },
+      {
+        "rank": 19,
+        "trainer": "斎藤誠",
+        "umapiaId": "1086",
+        "wins": 29
+      },
+      {
+        "rank": 21,
+        "trainer": "国枝栄",
+        "umapiaId": "399",
+        "wins": 28
+      },
+      {
+        "rank": 21,
+        "trainer": "森秀行",
+        "umapiaId": "427",
+        "wins": 28
+      },
+      {
+        "rank": 23,
+        "trainer": "加藤征弘",
+        "umapiaId": "1059",
+        "wins": 27
+      },
+      {
+        "rank": 23,
+        "trainer": "吉岡辰弥",
+        "umapiaId": "1176",
+        "wins": 27
+      },
+      {
+        "rank": 23,
+        "trainer": "武英智",
+        "umapiaId": "1161",
+        "wins": 27
+      },
+      {
+        "rank": 23,
+        "trainer": "池添学",
+        "umapiaId": "1144",
+        "wins": 27
+      },
+      {
+        "rank": 23,
+        "trainer": "清水久詞",
+        "umapiaId": "1110",
+        "wins": 27
+      },
+      {
+        "rank": 23,
+        "trainer": "田中克典",
+        "umapiaId": "1180",
+        "wins": 27
+      },
+      {
+        "rank": 29,
+        "trainer": "寺島良",
+        "umapiaId": "1158",
+        "wins": 25
+      },
+      {
+        "rank": 29,
+        "trainer": "岡田稲男",
+        "umapiaId": "1066",
+        "wins": 25
+      },
+      {
+        "rank": 29,
+        "trainer": "野中賢二",
+        "umapiaId": "1098",
+        "wins": 25
+      },
+      {
+        "rank": 29,
+        "trainer": "高野友和",
+        "umapiaId": "1117",
+        "wins": 25
+      },
+      {
+        "rank": 33,
+        "trainer": "宮田敬介",
+        "umapiaId": "1175",
+        "wins": 24
+      },
+      {
+        "rank": 33,
+        "trainer": "栗田徹",
+        "umapiaId": "1127",
+        "wins": 24
+      },
+      {
+        "rank": 33,
+        "trainer": "藤岡健一",
+        "umapiaId": "1062",
+        "wins": 24
+      },
+      {
+        "rank": 36,
+        "trainer": "新谷功一",
+        "umapiaId": "1172",
+        "wins": 23
+      },
+      {
+        "rank": 36,
+        "trainer": "武井亮",
+        "umapiaId": "1147",
+        "wins": 23
+      },
+      {
+        "rank": 36,
+        "trainer": "牧光二",
+        "umapiaId": "1106",
+        "wins": 23
+      },
+      {
+        "rank": 36,
+        "trainer": "高木登",
+        "umapiaId": "1088",
+        "wins": 23
+      },
+      {
+        "rank": 36,
+        "trainer": "高柳大輔",
+        "umapiaId": "1159",
+        "wins": 23
+      },
+      {
+        "rank": 41,
+        "trainer": "武幸四郎",
+        "umapiaId": "1160",
+        "wins": 22
+      },
+      {
+        "rank": 41,
+        "trainer": "辻野泰之",
+        "umapiaId": "1183",
+        "wins": 22
+      },
+      {
+        "rank": 43,
+        "trainer": "大竹正博",
+        "umapiaId": "1102",
+        "wins": 21
+      },
+      {
+        "rank": 43,
+        "trainer": "奥村豊",
+        "umapiaId": "1146",
+        "wins": 21
+      },
+      {
+        "rank": 43,
+        "trainer": "松下武士",
+        "umapiaId": "1149",
+        "wins": 21
+      },
+      {
+        "rank": 43,
+        "trainer": "池江泰寿",
+        "umapiaId": "1071",
+        "wins": 21
+      },
+      {
+        "rank": 43,
+        "trainer": "角田晃一",
+        "umapiaId": "1121",
+        "wins": 21
+      },
+      {
+        "rank": 48,
+        "trainer": "上原佑紀",
+        "umapiaId": "1192",
+        "wins": 20
+      },
+      {
+        "rank": 48,
+        "trainer": "中舘英二",
+        "umapiaId": "1153",
+        "wins": 20
+      },
+      {
+        "rank": 48,
+        "trainer": "宮本博",
+        "umapiaId": "1073",
+        "wins": 20
+      }
+    ],
+    "2025": [
+      {
+        "rank": 1,
+        "trainer": "杉山晴紀",
+        "umapiaId": "1157",
+        "wins": 61
+      },
+      {
+        "rank": 2,
+        "trainer": "斉藤崇史",
+        "umapiaId": "1151",
+        "wins": 53
+      },
+      {
+        "rank": 3,
+        "trainer": "中内田充正",
+        "umapiaId": "1137",
+        "wins": 49
+      },
+      {
+        "rank": 4,
+        "trainer": "友道康夫",
+        "umapiaId": "1061",
+        "wins": 45
+      },
+      {
+        "rank": 4,
+        "trainer": "矢作芳人",
+        "umapiaId": "1075",
+        "wins": 45
+      },
+      {
+        "rank": 6,
+        "trainer": "木村哲也",
+        "umapiaId": "1126",
+        "wins": 44
+      },
+      {
+        "rank": 7,
+        "trainer": "上村洋行",
+        "umapiaId": "1168",
+        "wins": 43
+      },
+      {
+        "rank": 8,
+        "trainer": "藤原英昭",
+        "umapiaId": "1055",
+        "wins": 40
+      },
+      {
+        "rank": 9,
+        "trainer": "大久保龍志",
+        "umapiaId": "1058",
+        "wins": 38
+      },
+      {
+        "rank": 9,
+        "trainer": "斎藤誠",
+        "umapiaId": "1086",
+        "wins": 38
+      },
+      {
+        "rank": 11,
+        "trainer": "堀宣行",
+        "umapiaId": "1070",
+        "wins": 37
+      },
+      {
+        "rank": 12,
+        "trainer": "四位洋文",
+        "umapiaId": "1184",
+        "wins": 36
+      },
+      {
+        "rank": 12,
+        "trainer": "田中博康",
+        "umapiaId": "1162",
+        "wins": 36
+      },
+      {
+        "rank": 14,
+        "trainer": "手塚貴久",
+        "umapiaId": "1038",
+        "wins": 34
+      },
+      {
+        "rank": 15,
+        "trainer": "松永幹夫",
+        "umapiaId": "1092",
+        "wins": 33
+      },
+      {
+        "rank": 15,
+        "trainer": "長谷川浩大",
+        "umapiaId": "1173",
+        "wins": 33
+      },
+      {
+        "rank": 17,
+        "trainer": "小林真也",
+        "umapiaId": "1185",
+        "wins": 32
+      },
+      {
+        "rank": 17,
+        "trainer": "池江泰寿",
+        "umapiaId": "1071",
+        "wins": 32
+      },
+      {
+        "rank": 17,
+        "trainer": "清水久詞",
+        "umapiaId": "1110",
+        "wins": 32
+      },
+      {
+        "rank": 17,
+        "trainer": "西園翔太",
+        "umapiaId": "1196",
+        "wins": 32
+      },
+      {
+        "rank": 21,
+        "trainer": "石坂公一",
+        "umapiaId": "1166",
+        "wins": 31
+      },
+      {
+        "rank": 22,
+        "trainer": "宮田敬介",
+        "umapiaId": "1175",
+        "wins": 30
+      },
+      {
+        "rank": 22,
+        "trainer": "武英智",
+        "umapiaId": "1161",
+        "wins": 30
+      },
+      {
+        "rank": 22,
+        "trainer": "高野友和",
+        "umapiaId": "1117",
+        "wins": 30
+      },
+      {
+        "rank": 22,
+        "trainer": "鹿戸雄一",
+        "umapiaId": "1097",
+        "wins": 30
+      },
+      {
+        "rank": 22,
+        "trainer": "黒岩陽一",
+        "umapiaId": "1133",
+        "wins": 30
+      },
+      {
+        "rank": 27,
+        "trainer": "吉岡辰弥",
+        "umapiaId": "1176",
+        "wins": 29
+      },
+      {
+        "rank": 27,
+        "trainer": "国枝栄",
+        "umapiaId": "399",
+        "wins": 29
+      },
+      {
+        "rank": 27,
+        "trainer": "福永祐一",
+        "umapiaId": "1203",
+        "wins": 29
+      },
+      {
+        "rank": 27,
+        "trainer": "萩原清",
+        "umapiaId": "1017",
+        "wins": 29
+      },
+      {
+        "rank": 31,
+        "trainer": "須貝尚介",
+        "umapiaId": "1105",
+        "wins": 28
+      },
+      {
+        "rank": 31,
+        "trainer": "高柳大輔",
+        "umapiaId": "1159",
+        "wins": 28
+      },
+      {
+        "rank": 33,
+        "trainer": "上原佑紀",
+        "umapiaId": "1192",
+        "wins": 27
+      },
+      {
+        "rank": 33,
+        "trainer": "中村直也",
+        "umapiaId": "1186",
+        "wins": 27
+      },
+      {
+        "rank": 33,
+        "trainer": "大竹正博",
+        "umapiaId": "1102",
+        "wins": 27
+      },
+      {
+        "rank": 33,
+        "trainer": "森秀行",
+        "umapiaId": "427",
+        "wins": 27
+      },
+      {
+        "rank": 37,
+        "trainer": "奥村豊",
+        "umapiaId": "1146",
+        "wins": 26
+      },
+      {
+        "rank": 37,
+        "trainer": "林徹",
+        "umapiaId": "1163",
+        "wins": 26
+      },
+      {
+        "rank": 37,
+        "trainer": "栗田徹",
+        "umapiaId": "1127",
+        "wins": 26
+      },
+      {
+        "rank": 37,
+        "trainer": "森一誠",
+        "umapiaId": "1201",
+        "wins": 26
+      },
+      {
+        "rank": 37,
+        "trainer": "西園正都",
+        "umapiaId": "1028",
+        "wins": 26
+      },
+      {
+        "rank": 37,
+        "trainer": "辻野泰之",
+        "umapiaId": "1183",
+        "wins": 26
+      },
+      {
+        "rank": 43,
+        "trainer": "伊藤圭三",
+        "umapiaId": "1023",
+        "wins": 25
+      },
+      {
+        "rank": 43,
+        "trainer": "寺島良",
+        "umapiaId": "1158",
+        "wins": 25
+      },
+      {
+        "rank": 43,
+        "trainer": "小栗実",
+        "umapiaId": "1194",
+        "wins": 25
+      },
+      {
+        "rank": 43,
+        "trainer": "高木登",
+        "umapiaId": "1088",
+        "wins": 25
+      },
+      {
+        "rank": 47,
+        "trainer": "安田翔伍",
+        "umapiaId": "1164",
+        "wins": 24
+      },
+      {
+        "rank": 47,
+        "trainer": "武井亮",
+        "umapiaId": "1147",
+        "wins": 24
+      },
+      {
+        "rank": 49,
+        "trainer": "加藤征弘",
+        "umapiaId": "1059",
+        "wins": 23
+      },
+      {
+        "rank": 49,
+        "trainer": "武幸四郎",
+        "umapiaId": "1160",
+        "wins": 23
+      }
+    ]
+  }
+}

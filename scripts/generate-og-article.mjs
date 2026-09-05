@@ -138,6 +138,19 @@ const ARTICLES = {
     chips: ['出走率・獲得賞金で検証', '同じ母の兄姉と比較', '重賞馬の下の成績も'],
     buildChart: clubSiblingsChart,
   },
+  'stable-leading': {
+    // v1は「3歳シーズンのリーディング」基準の記事だった。募集年基準へ作り直したので -v2
+    // （SNSは画像URL単位でキャッシュするため、中身を変えたらファイル名を上げる）。
+    out: 'og-article-stable-leading-v2.png',
+    headline: ['リーディング上位の厩舎に', '入った馬は走るのか？'],
+    lead: 'キャロットクラブ 2017〜2025年募集・JRA所属594頭 × 現在の競走成績',
+    countPlaceholder: '594頭',
+    yearRangePlaceholder: '2017〜2025年',
+    // 結論（「ほとんど変わらない」「出走率は逆に低い」）はチップに焼き込まない。成績更新で
+    // 向きが動きうるうえ、カードだけ古い主張で残ると本文と食い違う。
+    chips: ['重賞馬率・獲得賞金で検証', '募集時点の順位で比較', '東西（美浦・栗東）も'],
+    buildChart: stableLeadingChart,
+  },
 };
 
 const slug = process.argv[2];
@@ -444,6 +457,61 @@ function birthMonthChart() {
   };
 }
 
+/**
+ * 記事と同じ「リーディング上位かどうかの重賞馬率」6本（10位以内/20位以内/30位以内 ×
+ * 該当・非該当）をミニ棒グラフにする（stable-leading.astro と同じ集計・同じ名寄せ）。
+ *
+ * この記事だけは棒の高さが競走成績（`race-results.json`）由来で、成績を取り直すと
+ * わずかに動く。**数値ラベルは焼き込まない**ので、カードに出るのは棒の形だけ。
+ * 数字そのものはカードに載らないため、本文と食い違って見えることはない。
+ * 募集年基準では6本がほぼ同じ高さで並ぶが、それがこの記事の結論
+ * （「ほとんど変わらない」）なので、そのままで正しい絵になる。
+ */
+function stableLeadingChart() {
+  const recruits = JSON.parse(readFileSync(join(repoRoot, 'analysis', 'data', 'recruits.json'), 'utf8'));
+  const results = JSON.parse(
+    readFileSync(join(repoRoot, 'analysis', 'data', 'race-results.json'), 'utf8')
+  ).results;
+  const leading = JSON.parse(
+    readFileSync(join(repoRoot, 'analysis', 'data', 'leading-trainers.json'), 'utf8')
+  ).byYear;
+  const byUrl = new Map(results.map((r) => [r.netkeibaUrl, r]));
+  // 名寄せは記事側（analysis-data.ts）と同じ「氏名の先頭4文字一致」。
+  const key = (name) => [...String(name)].slice(0, 4).join('');
+  const years = Object.keys(leading)
+    .map(Number)
+    .sort((a, b) => a - b);
+  const latest = years[years.length - 1];
+  const rankByYear = new Map(
+    years.map((y) => [y, new Map(leading[String(y)].map((t) => [key(t.trainer), t.rank]))])
+  );
+  // 参照年は記事側（analysis-data.ts の leadingRankOf）と同じ「募集年そのもの」。
+  const rankOf = (h) => {
+    const wanted = h.recruitYear;
+    const table = rankByYear.get(rankByYear.has(wanted) ? wanted : latest);
+    return h.finalTrainer ? (table.get(key(h.finalTrainer)) ?? null) : null;
+  };
+  const jra = recruits.filter((h) => h.region === '東' || h.region === '西');
+  const gradeRate = (rows) => {
+    if (rows.length === 0) return 0;
+    const hits = rows.filter((h) => (byUrl.get(h.netkeibaUrl)?.gradeWins ?? []).length > 0).length;
+    return (100 * hits) / rows.length;
+  };
+  const counts = [];
+  for (const n of [10, 20, 30]) {
+    const hit = jra.filter((h) => rankOf(h) !== null && rankOf(h) <= n);
+    const miss = jra.filter((h) => !(rankOf(h) !== null && rankOf(h) <= n));
+    counts.push(gradeRate(hit), gradeRate(miss));
+  }
+  const recruitYears = [...new Set(recruits.map((r) => r.recruitYear))].sort((a, b) => a - b);
+  return {
+    total: jra.length,
+    yearRangeLabel: `${recruitYears[0]}〜${recruitYears[recruitYears.length - 1]}年`,
+    html: barsHtml(counts),
+    caption: 'リーディング上位かどうかの重賞馬率',
+  };
+}
+
 function cardHtml({ fonts, source, chart }) {
   const headline = article.headline
     .map((line) => `<span class="headline-line">${line.replace(/<em>(.*?)<\/em>/, '<em>$1</em>')}</span>`)
@@ -526,11 +594,12 @@ async function main() {
   };
 
   const chart = article.buildChart();
-  // 見出しの頭数は実データの件数に置き換える（記事本文と食い違わせない）
+  // 見出し・リードの頭数は実データの件数に置き換える（記事本文と食い違わせない）
   if (article.countPlaceholder) {
     article.headline = article.headline.map((line) =>
       line.replace(article.countPlaceholder, `${chart.total}頭`)
     );
+    article.lead = article.lead.replace(article.countPlaceholder, `${chart.total}頭`);
   }
   if (article.yearRangePlaceholder) {
     article.lead = article.lead.replace(article.yearRangePlaceholder, chart.yearRangeLabel);

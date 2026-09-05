@@ -25,6 +25,11 @@
  * 違う指標（管囲記事）で、その注記が無い他記事に数字だけ出ると馬同士を直接比べられる
  * 数値だと誤読されうる。管囲記事（caret-girth.astro）だけが渡す。
  *
+ * 厩舎列（＝現在の担当調教師と所属）も同じ扱いで`showStable`がtrueの時だけ出す（既定false）。
+ * 調教師の個人名が注記なしに8記事の表へ並ぶと「この調教師なら走る/走らない」という読み方を
+ * 招く。厩舎記事（stable-leading.astro）はその点を本文でことわっているので渡してよいが、
+ * **既定オンにしないこと**（他記事の表にも黙って個人名が出る）。
+ *
  * グループ列（＝その馬が記事内のどの分類に入るか）も同じ扱いで、`groupFor`を渡した記事に
  * だけ出る（既定undefined＝列なし）。「大きい/小さい」のような分類の定義は記事ごとに
  * 違うので、判定そのものは呼び出し側の関数に任せる。誕生月記事（birth-month.astro）だけが渡す。
@@ -37,6 +42,7 @@ interface Props {
   showRoi?: boolean;
   showParity?: boolean;
   showCaretGirth?: boolean;
+  showStable?: boolean;
   /** 渡すと「グループ」列が増え、各行にこの関数の戻り値が入る。 */
   groupFor?: (h: RecruitWithResult) => string;
   /** グループ列の見出し。`groupFor`を渡したときだけ使う。 */
@@ -48,9 +54,16 @@ const {
   showRoi = false,
   showParity = false,
   showCaretGirth = false,
+  showStable = false,
   groupFor,
   groupLabel = 'グループ',
 } = Astro.props;
+
+/** 厩舎欄の表示（"堀宣行（美浦）"）。所属が取れていなければ名前だけ。 */
+function stableLabel(h: RecruitWithResult): string {
+  if (!h.finalTrainer) return '—';
+  return h.trainerAffiliation ? `${h.finalTrainer}（${h.trainerAffiliation}）` : h.finalTrainer;
+}
 ---
 
 <div class="table-scroll">
@@ -58,6 +71,7 @@ const {
     <thead>
       <tr>
         <th>馬名</th>
+        {showStable && <th>厩舎</th>}
         {groupFor && <th>{groupLabel}</th>}
         <th>募集年</th>
         <th>誕生月</th>
@@ -79,6 +93,7 @@ const {
         rows.map((h) => (
           <tr>
             <td>{h.displayName}</td>
+            {showStable && <td>{stableLabel(h)}</td>}
             {groupFor && <td class="group-cell">{groupFor(h)}</td>}
             <td>{h.recruitYear}年</td>
             <td>{h.birthDate ? `${Number(h.birthDate.split('-')[1])}月` : '—'}</td>

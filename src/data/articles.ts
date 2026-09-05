@@ -14,6 +14,13 @@ export interface AnalysisArticle {
 
 export const analysisArticles: AnalysisArticle[] = [
   {
+    href: '/articles/stable-leading/',
+    title: 'リーディング上位の厩舎に入った馬は走るのか？',
+    description:
+      '募集時点でリーディング上位の厩舎に入った馬と、そうでない馬。重賞に届く率も獲得賞金の中央値も、ほとんど変わらなかった。線を広げると上位側のほうが低いことさえある。唯一はっきり出たのは、上位側のほうが出走率が低いという予想外の向きだった。',
+    image: '/og-article-stable-leading-v2.png',
+  },
+  {
     href: '/articles/weight/',
     title: '馬体重と成績の関係',
     description:

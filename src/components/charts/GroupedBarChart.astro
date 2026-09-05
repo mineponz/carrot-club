@@ -43,9 +43,25 @@ interface Props {
   /** ツールチップで `n` に付ける行ラベル。 */
   nLabel?: string;
   height?: number;
+  /**
+   * 軸下の母数注記の書式。既定 `'label'` は「入っていた89・入っていなかった505」のように
+   * 系列名を毎グループ書く（既存記事はこれ）。グループ数が多いと1グループぶんの幅が狭くなり、
+   * 系列名を毎回書くと隣のグループとぶつかる（5グループで実際に発生・2026-09-05）。
+   * `'compact'` は数値だけ系列の並び順で「15 / 82」と出す（系列名は凡例だけで示す）。
+   * グループ数の目安ではなく、その記事のラベルの長さで都度判断して渡すこと。
+   */
+  noteFormat?: 'label' | 'compact';
 }
 
-const { title, series, groups, valueLabel, nLabel = '頭数', height = 300 } = Astro.props;
+const {
+  title,
+  series,
+  groups,
+  valueLabel,
+  nLabel = '頭数',
+  height = 300,
+  noteFormat = 'label',
+} = Astro.props;
 
 const width = 640;
 const marginTop = 26;
@@ -78,8 +94,15 @@ const gridLines = [0, 0.25, 0.5, 0.75, 1].map((t) => ({
 }));
 
 const seriesByKey = new Map(series.map((s) => [s.key, s]));
-/** 軸ラベルの下に出す母数の注記（例: "牡127・牝115"）。 */
+/**
+ * 軸ラベルの下に出す母数の注記。既定は "牡127・牝115" のように系列名つき。
+ * `noteFormat="compact"` のときは系列名を省いて "127 / 115" とだけ出す
+ * （系列の対応は凡例・棒の色で示す）。
+ */
 function noteFor(group: Group): string {
+  if (noteFormat === 'compact') {
+    return group.values.map((v) => `${v.n}`).join(' / ');
+  }
   return group.values.map((v) => `${seriesByKey.get(v.seriesKey)?.label ?? v.seriesKey}${v.n}`).join('・');
 }
 ---

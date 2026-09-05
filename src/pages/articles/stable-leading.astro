@@ -1,0 +1,1292 @@
+---
+/**
+ * 分析記事「リーディング上位の厩舎に入った馬は走るのか？」。9本目。
+ * 2017〜2025年募集のうち**現在JRAに所属している594頭**（`analysis/data/recruits.json` の
+ * `region` が東/西）について、担当調教師が**その馬の募集年**のJRAリーディングで上位N位に
+ * 入っていたかで分け、現在の競走成績（`analysis/data/race-results.json`）と突き合わせる。
+ *
+ * ## 分け方は「募集年時点」＝出資を決める人が見られる情報だけ（2026-09-05にここを直した）
+ * 以前は「3歳シーズン（募集年+2）」の順位で分けていたが、その年の勝利数には**その馬自身の
+ * 勝利が入りうる**（測定窓が重なる）。実際、3歳基準では重賞馬率15.7%対4.6%という強い差が
+ * 出ていたのに、募集年基準に直すと7.8%対6.0%（p=0.51）まで縮んだ。
+ * **3歳基準の数値・関数はもう存在しない**ので、過去の記述と混ぜないこと
+ * （vault: `1-projects/carrot-club/tasks/20260903-trainer-region-article.md`）。
+ * 募集年は9年ぶんすべてリーディングの表があるため、参照年の代用はゼロ（アサーション16で検算）。
+ *
+ * ## この記事の主題は「ほとんど関係がなかった」
+ * 重賞馬率も獲得賞金の中央値も、上位の厩舎かどうかでたいして変わらない。線を広げると
+ * むしろ上位側のほうが低い。唯一はっきり出たのは「上位側のほうが出走率が低い」という
+ * 期待とは逆向きの差で、**その理由は書かない**（この集計からは決められないため）。
+ * 弱い結果・逆向きの結果を隠さないことがこの記事の値打ちなので、都合の悪い数字も全部出す。
+ *
+ * ## 調教師個人の優劣の話にしないこと
+ * 分けているのは「募集年のリーディングで上位N位に入っていたか」の一点だけ。本文で厩舎を
+ * 名指しして評価しない（実例の表には厩舎名を列で出すが、それは読者が「同じ調教師が募集年に
+ * よって違う区分に出る」＝分類が年ごとであることに気づける形にするため）。
+ *
+ * ## 書き方の前提
+ * 本文が置いている前提（差が出ない・線の引き方で出たり消えたりする・賞金は逆転する・
+ * 出走率だけ一貫して逆向き・直近5年でも形が同じ・重賞馬37頭の内訳・東西は五分）は
+ * すべてビルド時アサーションにしてある。成績を取り直して前提が崩れたらビルドが落ちる。
+ */
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import BarChart from '../../components/charts/BarChart.astro';
+import GroupedBarChart from '../../components/charts/GroupedBarChart.astro';
+import ChartTooltip from '../../components/charts/ChartTooltip.astro';
+import StatTiles from '../../components/charts/StatTiles.astro';
+import ArticleToc from '../../components/ArticleToc.astro';
+import MethodsLink from '../../components/MethodsLink.astro';
+import TermLink from '../../components/TermLink.astro';
+import AdSlot from '../../components/AdSlot.astro';
+import GradeWinnerTable from '../../components/GradeWinnerTable.astro';
+import {
+  loadRecruitsWithResults,
+  isJraRegion,
+  isLeadingTopN,
+  leadingRankOf,
+  RACE_RESULTS_FETCHED_AT,
+  type RecruitWithResult,
+} from '../../lib/analysis-data.ts';
+import { sireLineOf, SIRE_LINES } from '../../lib/sire-line.ts';
+import { formatResultsAsOf } from '../../lib/sibling-recruits.ts';
+import {
+  median,
+  mannWhitneyU,
+  twoProportionZTest,
+  probabilityOfSuperiority,
+  formatP,
+  formatManYen,
+} from '../../lib/chart-math.ts';
+
+const allRecruits = loadRecruitsWithResults();
+const resultsAsOf = formatResultsAsOf(RACE_RESULTS_FETCHED_AT);
+
+/** 集計対象は現在JRA（美浦・栗東）に所属している馬だけ。募集後に地方へ移った馬は含めない。 */
+const jra = allRecruits.filter(isJraRegion);
+const east = jra.filter((h) => h.region === '東');
+const west = jra.filter((h) => h.region === '西');
+
+const RECRUIT_YEARS = [...new Set(allRecruits.map((h) => h.recruitYear))].sort((a, b) => a - b);
+const LAST_YEAR = RECRUIT_YEARS[RECRUIT_YEARS.length - 1];
+const yearRangeLabel = `${RECRUIT_YEARS[0]}〜${LAST_YEAR}年`;
+/** 「直近5年」の起点。まだ結果が出そろっていない層を切り出して見る用。 */
+const RECENT_FROM = 2021;
+const recent = jra.filter((h) => h.recruitYear >= RECENT_FROM);
+const recentEast = recent.filter((h) => h.region === '東');
+const recentWest = recent.filter((h) => h.region === '西');
+
+/**
+ * リーディングの参照年を代用した頭数。募集年基準では9年ぶんすべて表があるので0になる
+ * （アサーション16で検算し、0でなくなったら「代用した年はない」と書いた本文が嘘になる）。
+ */
+const substitutedCount = jra.filter((h) => leadingRankOf(h).substituted).length;
+
+// ---- 1頭ぶんの指標 ----
+const isGradeWinner = (h: RecruitWithResult) => h.gradeWins.length > 0;
+const hasStarted = (h: RecruitWithResult) => (h.starts ?? 0) > 0;
+const prizeOf = (h: RecruitWithResult) => h.totalPrizeManYen;
+/**
+ * 回収率（％）＝ 獲得賞金合計 ÷ 募集総額。募集総額（一口価格×口数）が取れない馬は null。
+ * `GradeWinnerTable` の回収率列と同じ式・同じ丸めにしてある（本文と表で1%ずれないように）。
+ */
+function roiPctOf(h: RecruitWithResult): number | null {
+  if (h.offeringTotalManYen === null || h.offeringTotalManYen <= 0) return null;
+  return (h.totalPrizeManYen / h.offeringTotalManYen) * 100;
+}
+const roiPcts = (rows: RecruitWithResult[]) =>
+  rows.map(roiPctOf).filter((v): v is number => v !== null);
+
+/** 億円台の賞金を「7億7,663万円」の形にする。 */
+function formatPrize(manYen: number): string {
+  const oku = Math.floor(manYen / 10000);
+  const man = Math.round(manYen - oku * 10000);
+  return oku > 0 ? `${oku}億${man.toLocaleString('ja-JP')}万円` : `${formatManYen(manYen)}万円`;
+}
+
+// ---- 2群の比較 ----
+/**
+ * 比率（重賞馬率・出走率）の比較。正規近似は期待度数が5未満だと信頼できないので、
+ * `usable` が false のときは本文でp値を出さず「頭数が少なく検定に足りない」と書く
+ * （weight記事と同じ扱い）。
+ */
+function rateCompare(
+  a: RecruitWithResult[],
+  b: RecruitWithResult[],
+  hit: (h: RecruitWithResult) => boolean
+) {
+  const x1 = a.filter(hit).length;
+  const x2 = b.filter(hit).length;
+  const pooled = (x1 + x2) / (a.length + b.length);
+  const minExpected = Math.min(
+    pooled * a.length,
+    pooled * b.length,
+    (1 - pooled) * a.length,
+    (1 - pooled) * b.length
+  );
+  return {
+    aHits: x1,
+    bHits: x2,
+    aN: a.length,
+    bN: b.length,
+    aRate: a.length > 0 ? (100 * x1) / a.length : NaN,
+    bRate: b.length > 0 ? (100 * x2) / b.length : NaN,
+    test: twoProportionZTest(x1, a.length, x2, b.length),
+    usable: minExpected >= 5,
+    minExpected,
+  };
+}
+/** 分布が歪む値（賞金・回収率）の比較。中央値とMann-Whitney、a側が上回る優越確率。 */
+function valueCompare(av: number[], bv: number[]) {
+  return {
+    aMed: median(av),
+    bMed: median(bv),
+    aN: av.length,
+    bN: bv.length,
+    mw: mannWhitneyU(av, bv),
+    /** 1頭ずつ選んだときにa側が上回る確率（差が無ければ0.50）。 */
+    superiority: probabilityOfSuperiority(bv, av),
+  };
+}
+const prizeCompare = (a: RecruitWithResult[], b: RecruitWithResult[]) =>
+  valueCompare(a.map(prizeOf), b.map(prizeOf));
+const roiCompare = (a: RecruitWithResult[], b: RecruitWithResult[]) =>
+  valueCompare(roiPcts(a), roiPcts(b));
+/** 比率比較の検定結果を本文に出す形。期待度数が足りない群では数字を出さない。 */
+const ratePText = (r: ReturnType<typeof rateCompare>) =>
+  r.usable ? formatP(r.test.p) : '頭数不足';
+
+// ---- リーディング上位N位で切る（3通り。入れ子になっている） ----
+const LEADING_CUTS = [10, 20, 30];
+function splitByLeading(rows: RecruitWithResult[], n: number) {
+  return {
+    hit: rows.filter((h) => isLeadingTopN(h, n)),
+    miss: rows.filter((h) => !isLeadingTopN(h, n)),
+  };
+}
+function cutStatsOf(rows: RecruitWithResult[]) {
+  return LEADING_CUTS.map((n) => {
+    const { hit, miss } = splitByLeading(rows, n);
+    return {
+      n,
+      label: `${n}位以内`,
+      hit,
+      miss,
+      grade: rateCompare(hit, miss, isGradeWinner),
+      start: rateCompare(hit, miss, hasStarted),
+      prize: prizeCompare(hit, miss),
+      roi: roiCompare(hit, miss),
+    };
+  });
+}
+const cutStats = cutStatsOf(jra);
+const [cut10, cut20, cut30] = cutStats;
+const recentCutStats = cutStatsOf(recent);
+
+const HIT_SERIES = [
+  { key: 'hit', label: '入っていた', colorVar: '--series-1' },
+  { key: 'miss', label: '入っていなかった', colorVar: '--series-2' },
+];
+const gradeRateGroups = cutStats.map((c) => ({
+  label: c.label,
+  values: [
+    { seriesKey: 'hit', value: c.grade.aRate, displayValue: c.grade.aRate.toFixed(1), n: c.grade.aN },
+    { seriesKey: 'miss', value: c.grade.bRate, displayValue: c.grade.bRate.toFixed(1), n: c.grade.bN },
+  ],
+}));
+const prizeMedianGroups = cutStats.map((c) => ({
+  label: c.label,
+  values: [
+    {
+      seriesKey: 'hit',
+      value: Math.round(c.prize.aMed),
+      displayValue: formatManYen(c.prize.aMed),
+      n: c.prize.aN,
+    },
+    {
+      seriesKey: 'miss',
+      value: Math.round(c.prize.bMed),
+      displayValue: formatManYen(c.prize.bMed),
+      n: c.prize.bN,
+    },
+  ],
+}));
+const startRateGroups = cutStats.map((c) => ({
+  label: c.label,
+  values: [
+    { seriesKey: 'hit', value: c.start.aRate, displayValue: c.start.aRate.toFixed(1), n: c.start.aN },
+    { seriesKey: 'miss', value: c.start.bRate, displayValue: c.start.bRate.toFixed(1), n: c.start.bN },
+  ],
+}));
+/** 出走率の差（非該当 − 該当）。線を広げるほど開くことを本文が言っている。 */
+const startGaps = cutStats.map((c) => c.start.bRate - c.start.aRate);
+
+// ---- 重賞を勝った馬の内訳 ----
+const RANK_BUCKETS = ['10位以内', '11〜20位', '21〜30位', '30位外'];
+function rankBucketOf(h: RecruitWithResult): string {
+  const { rank } = leadingRankOf(h);
+  if (rank === null) return '30位外';
+  if (rank <= 10) return '10位以内';
+  if (rank <= 20) return '11〜20位';
+  if (rank <= 30) return '21〜30位';
+  return '30位外';
+}
+const gradeWinners = [...jra]
+  .filter(isGradeWinner)
+  .sort((a, b) => b.totalPrizeManYen - a.totalPrizeManYen);
+const bucketCounts = new Map(
+  RANK_BUCKETS.map((label) => [label, gradeWinners.filter((h) => rankBucketOf(h) === label).length])
+);
+const bucketBars = RANK_BUCKETS.map((label) => {
+  const count = bucketCounts.get(label) as number;
+  return { label, value: count, displayValue: `${count}頭` };
+});
+const outsideWinners = gradeWinners.filter((h) => rankBucketOf(h) === '30位外');
+const insideWinners = gradeWinners.filter((h) => rankBucketOf(h) !== '30位外');
+/** 各側の表に出す頭数（賞金の多い順に上から）。残りは折りたたみへ。 */
+const SIDE_VISIBLE = 6;
+const insideVisible = insideWinners.slice(0, SIDE_VISIBLE);
+const outsideVisible = outsideWinners.slice(0, SIDE_VISIBLE);
+const restWinners = gradeWinners.filter(
+  (h) => !insideVisible.includes(h) && !outsideVisible.includes(h)
+);
+/** 重賞馬37頭のうち、募集年によって違う区分に現れる調教師（本文の根拠）。 */
+const multiBucketTrainers = [
+  ...gradeWinners
+    .reduce((acc, h) => {
+      const name = h.finalTrainer ?? '—';
+      const set = acc.get(name) ?? new Set<string>();
+      set.add(rankBucketOf(h));
+      acc.set(name, set);
+      return acc;
+    }, new Map<string, Set<string>>())
+    .entries(),
+].filter(([, buckets]) => buckets.size > 1);
+
+// ---- 獲得賞金5億円超の6頭（「大物は預け先で線を引けない」の根拠） ----
+/** 5億円（＝50,000万円）の閾値。順位ではなく閾値で書くのは、成績更新で順位が動くため。 */
+const BIG_EARNER_MAN_YEN = 50000;
+const bigEarners = gradeWinners.filter((h) => h.totalPrizeManYen > BIG_EARNER_MAN_YEN);
+const bigEarnerCounts = RANK_BUCKETS.map((label) => ({
+  label,
+  count: bigEarners.filter((h) => rankBucketOf(h) === label).length,
+}));
+/** 5億円超のうち「30位外」区分の馬（本文で名前を出す2頭）。 */
+const bigEarnersOutside = bigEarners.filter((h) => rankBucketOf(h) === '30位外');
+/** 「10位以内」区分でいちばん稼いだ馬。 */
+const top10Winners = gradeWinners.filter((h) => rankBucketOf(h) === '10位以内');
+const top10Best = top10Winners[0];
+const stableOf = (h: RecruitWithResult) =>
+  h.trainerAffiliation ? `${h.finalTrainer}（${h.trainerAffiliation}）` : (h.finalTrainer ?? '—');
+const roiLabel = (h: RecruitWithResult) => {
+  const roi = roiPctOf(h);
+  return roi === null ? '—' : `${Math.round(roi).toLocaleString('ja-JP')}%`;
+};
+
+// ---- 東西（美浦・栗東） ----
+const ewPrize = prizeCompare(west, east); // superiority = 西が上回る確率
+const ewRoi = roiCompare(west, east);
+const ewGrade = rateCompare(east, west, isGradeWinner);
+const ewStart = rateCompare(east, west, hasStarted);
+const ewRecentPrize = prizeCompare(recentWest, recentEast);
+const ewRecentGrade = rateCompare(recentEast, recentWest, isGradeWinner);
+/** 父の系統別の東西比較（獲得賞金の中央値）。系統の分類は `src/lib/sire-line.ts`。 */
+const sireLineRows = SIRE_LINES.map((line) => {
+  const e = east.filter((h) => sireLineOf(h.sire) === line);
+  const w = west.filter((h) => sireLineOf(h.sire) === line);
+  return {
+    line,
+    eastN: e.length,
+    westN: w.length,
+    eastMed: median(e.map(prizeOf)),
+    westMed: median(w.map(prizeOf)),
+  };
+});
+const eastFavorLines = sireLineRows.filter((r) => r.eastMed > r.westMed).map((r) => r.line);
+
+// ---- 本文が置いている前提のビルド時アサーション ----
+// 原稿（sandbox/trainer-region-article-draft-v2.md）の「ビルド時アサーション」20項に対応。
+// 番号はそのまま原稿の項番。ここが落ちたら本文の該当箇所を直すこと。
+const ALPHA = 0.05;
+const premiseErrors: string[] = [];
+const pct = (v: number) => `${v.toFixed(1)}%`;
+
+// 1. 対象頭数 594 = 美浦312 + 栗東282
+if (!(jra.length === east.length + west.length && jra.length === 594)) {
+  premiseErrors.push(
+    `対象頭数が変わった（${jra.length}頭 = 美浦${east.length} + 栗東${west.length}）。` +
+      '本文とOGPの「594頭」を直すこと。'
+  );
+}
+// 2. Top10 の重賞馬率は差が有意でなく、向きは該当 > 非該当
+if (!(cut10.grade.aRate > cut10.grade.bRate && cut10.grade.usable && cut10.grade.test.p >= ALPHA)) {
+  premiseErrors.push(
+    `10位以内の重賞馬率が「差とは呼べない」状態でなくなった（${pct(cut10.grade.aRate)} vs ` +
+      `${pct(cut10.grade.bRate)}・${ratePText(cut10.grade)}）。` +
+      '「いちばん厳しい線で切ってもほぼ横並び」と書いた本文を書き直すこと。'
+  );
+}
+// 3. Top10 の賞金中央値の比が 0.95〜1.05（783 / 781 でほぼ同額）
+{
+  const ratio = cut10.prize.aMed / cut10.prize.bMed;
+  if (!(ratio >= 0.95 && ratio <= 1.05)) {
+    premiseErrors.push(
+      `10位以内の賞金中央値がほぼ同額でなくなった（${formatManYen(cut10.prize.aMed)}万 vs ` +
+        `${formatManYen(cut10.prize.bMed)}万・比${ratio.toFixed(3)}）。「ほぼ同額」と書いた本文を書き直すこと。`
+    );
+  }
+}
+// 4. Top20 の重賞馬率は 該当 > 非該当 かつ p < 0.05（3本のうちここだけ差が出る）
+if (!(cut20.grade.aRate > cut20.grade.bRate && cut20.grade.usable && cut20.grade.test.p < ALPHA)) {
+  premiseErrors.push(
+    `20位以内の重賞馬率の差が消えた（${pct(cut20.grade.aRate)} vs ${pct(cut20.grade.bRate)}・` +
+      `${ratePText(cut20.grade)}）。「差らしい差が出るのは20位以内の線だけ」と書いた本文を書き直すこと。`
+  );
+}
+// 5. Top30 の重賞馬率は差が有意でない（20位で出た差が30位で消える）
+if (!(cut30.grade.usable && cut30.grade.test.p >= ALPHA)) {
+  premiseErrors.push(
+    `30位以内の重賞馬率の差が有意になった（${pct(cut30.grade.aRate)} vs ${pct(cut30.grade.bRate)}・` +
+      `${ratePText(cut30.grade)}）。「30位まで広げると戻ってしまう」と書いた本文を書き直すこと。`
+  );
+}
+// 6. 賞金中央値は Top20・Top30 で該当 < 非該当（逆転）、かつ Top30 の比が 0.5 未満
+for (const c of [cut20, cut30]) {
+  if (!(c.prize.aMed < c.prize.bMed)) {
+    premiseErrors.push(
+      `${c.label}の賞金中央値の逆転が消えた（${formatManYen(c.prize.aMed)}万 vs ` +
+        `${formatManYen(c.prize.bMed)}万）。「線を広げると該当側のほうが低くなる」と書いた本文を書き直すこと。`
+    );
+  }
+}
+if (!(cut30.prize.aMed / cut30.prize.bMed < 0.5)) {
+  premiseErrors.push(
+    `30位以内の賞金中央値の比が0.5以上になった（${(cut30.prize.aMed / cut30.prize.bMed).toFixed(3)}）。` +
+      '「中央値が3分の1近い」と書いた本文を書き直すこと。'
+  );
+}
+// 7. 出走率は3本の線すべてで 該当 < 非該当
+if (!cutStats.every((c) => c.start.aRate < c.start.bRate)) {
+  premiseErrors.push(
+    `出走率の向きが3本でそろわなくなった（${cutStats.map((c) => `${c.label} ${pct(c.start.aRate)}/${pct(c.start.bRate)}`).join(' / ')}）。` +
+      '「3本とも上位側が低い」と書いた本文を書き直すこと。'
+  );
+}
+// 8. 出走率の差（非該当 − 該当）が 10位→20位→30位 と単調に拡大する
+if (!startGaps.every((g, i) => i === 0 || g > startGaps[i - 1])) {
+  premiseErrors.push(
+    `出走率の差が10→20→30位で単調に拡大しなくなった（${startGaps.map((g) => g.toFixed(1) + 'pt').join(' / ')}）。` +
+      '「線を広げるほど差が開く」と書いた本文を書き直すこと。'
+  );
+}
+// 9. 出走率 Top20 は p < 0.05、Top30 は p < 0.001
+if (!(cut20.start.usable && cut20.start.test.p < ALPHA)) {
+  premiseErrors.push(
+    `20位以内の出走率の差が有意でなくなった（${ratePText(cut20.start)}）。本文の検定の書き方を直すこと。`
+  );
+}
+if (!(cut30.start.usable && cut30.start.test.p < 0.001)) {
+  premiseErrors.push(
+    `30位以内の出走率の差が p<0.001 を外れた（${ratePText(cut30.start)}）。本文の検定の書き方を直すこと。`
+  );
+}
+// 10. 直近5年でも賞金中央値・出走率が3本の線すべてで 該当 < 非該当
+for (const c of recentCutStats) {
+  if (!(c.prize.aMed < c.prize.bMed)) {
+    premiseErrors.push(
+      `直近${RECENT_FROM}年以降で${c.label}の賞金中央値の向きが変わった（` +
+        `${formatManYen(c.prize.aMed)}万 vs ${formatManYen(c.prize.bMed)}万）。` +
+        '「3本すべてで上位側のほうが低い」と書いた本文を書き直すこと。'
+    );
+  }
+  if (!(c.start.aRate < c.start.bRate)) {
+    premiseErrors.push(
+      `直近${RECENT_FROM}年以降で${c.label}の出走率の向きが変わった（` +
+        `${pct(c.start.aRate)} vs ${pct(c.start.bRate)}）。「3本とも上位側が低い」と書いた本文を書き直すこと。`
+    );
+  }
+}
+// 11. 直近5年の出走率 Top30 が p < 0.01
+{
+  const r30 = recentCutStats[2];
+  if (!(r30.start.usable && r30.start.test.p < 0.01)) {
+    premiseErrors.push(
+      `直近${RECENT_FROM}年以降の30位以内の出走率が p<0.01 を外れた（${ratePText(r30.start)}）。` +
+        '「30位以内でははっきり出る」と書いた本文を書き直すこと。'
+    );
+  }
+}
+// 12. 重賞馬37頭の区分内訳が 10位以内7 / 11〜20位8 / 21〜30位2 / 30位外20
+{
+  const expected: Record<string, number> = { '10位以内': 7, '11〜20位': 8, '21〜30位': 2, '30位外': 20 };
+  const actual = RANK_BUCKETS.map((b) => `${b} ${bucketCounts.get(b)}`).join(' / ');
+  if (
+    gradeWinners.length !== 37 ||
+    RANK_BUCKETS.some((b) => bucketCounts.get(b) !== expected[b])
+  ) {
+    premiseErrors.push(
+      `重賞馬の区分内訳が変わった（${gradeWinners.length}頭・${actual}）。図④と本文の頭数を直すこと。`
+    );
+  }
+}
+// 13. 30位外が4区分で最多、かつ37頭の過半数
+{
+  const outside = bucketCounts.get('30位外') as number;
+  const maxOther = Math.max(...RANK_BUCKETS.filter((b) => b !== '30位外').map((b) => bucketCounts.get(b) as number));
+  if (!(outside > maxOther && outside > gradeWinners.length / 2)) {
+    premiseErrors.push(
+      `30位外が最多・過半数でなくなった（30位外${outside}頭 / 重賞馬${gradeWinners.length}頭）。` +
+        '「半分以上が30位外の厩舎から出ている」と書いた本文を書き直すこと。'
+    );
+  }
+}
+// 14. 獲得賞金5億円超が6頭、そのうち「10位以内」区分が0頭
+//     （加えて、名前を出す2頭が「30位外」であること・最高額が30位外であることも守る）
+if (!(bigEarners.length === 6 && bigEarners.every((h) => rankBucketOf(h) !== '10位以内'))) {
+  premiseErrors.push(
+    `5億円超の頭数か区分が変わった（${bigEarners.length}頭・` +
+      `${bigEarners.map((h) => `${h.displayName}=${rankBucketOf(h)}`).join(' / ')}）。` +
+      'findingブロックの「6頭」「10位以内はゼロ」を直すこと。'
+  );
+}
+if (!(bigEarnersOutside.length === 2 && rankBucketOf(gradeWinners[0]) === '30位外')) {
+  premiseErrors.push(
+    `5億円超のうち30位外が${bigEarnersOutside.length}頭、最高額は${gradeWinners[0].displayName}` +
+      `（${rankBucketOf(gradeWinners[0])}）になった。findingブロックの本文を直すこと。`
+  );
+}
+// 15. 「10位以内」区分7頭の最高額がクリソベリルで、4億円未満
+if (!(top10Winners.length === 7 && top10Best?.displayName === 'クリソベリル' && top10Best.totalPrizeManYen < 40000)) {
+  premiseErrors.push(
+    `10位以内区分の頭数か最高額が変わった（${top10Winners.length}頭・最高は` +
+      `${top10Best?.displayName ?? '—'}の${formatManYen(top10Best?.totalPrizeManYen ?? 0)}万円）。` +
+      'findingブロックの本文を直すこと。'
+  );
+}
+// 16. リーディング参照年に代用年が1件もない（全馬で募集年の表を参照している）
+if (substitutedCount !== 0) {
+  premiseErrors.push(
+    `リーディングの参照年を代用した馬が${substitutedCount}頭ある。` +
+      '「代用した年はない」と書いた「データについて」を直すこと。'
+  );
+}
+// 17. 東西: 賞金中央値 p < 0.05 かつ 優越確率が 0.50〜0.60
+if (!(ewPrize.mw.p < ALPHA)) {
+  premiseErrors.push(
+    `東西の賞金中央値の差が有意でなくなった（${formatP(ewPrize.mw.p)}）。` +
+      '「p=0.028だが優越確率はほぼ五分」と書いた本文を書き直すこと。'
+  );
+}
+if (!(ewPrize.superiority !== null && ewPrize.superiority >= 0.5 && ewPrize.superiority <= 0.6)) {
+  premiseErrors.push(
+    `東西の賞金の優越確率が0.50〜0.60から外れた（${ewPrize.superiority?.toFixed(3)}）。` +
+      '「ほぼ五分」と書いた本文を書き直すこと。'
+  );
+}
+// 18. 東西: 重賞馬率・出走率が有意でない
+if (!(ewGrade.usable && ewGrade.test.p >= ALPHA && ewStart.usable && ewStart.test.p >= ALPHA)) {
+  premiseErrors.push(
+    `東西の重賞馬率（${ratePText(ewGrade)}）または出走率（${ratePText(ewStart)}）に差が出た。` +
+      '「重賞馬率と出走率には差がない」と書いた本文を書き直すこと。'
+  );
+}
+// 19. 東西: 直近5年の賞金差が有意でない
+if (!(ewRecentPrize.mw.p >= ALPHA)) {
+  premiseErrors.push(
+    `東西の直近5年の賞金差が有意になった（${formatP(ewRecentPrize.mw.p)}）。` +
+      '「直近5年では消える」と書いた本文を書き直すこと。'
+  );
+}
+// 20. 37頭のなかに、複数の区分にまたがって現れる調教師が1人以上いる
+if (multiBucketTrainers.length < 1) {
+  premiseErrors.push(
+    '重賞馬37頭のなかに複数区分にまたがる調教師がいなくなった。' +
+      '「同じ調教師が違う区分に出てくる」と書いた本文を書き直すこと。'
+  );
+}
+
+// --- 付随する前提（本文の細部。上の20項には無いが、文章がそれを言っている箇所） ---
+// 直近5年の重賞馬率は、10位以内・20位以内では検定に足りない（表が「頭数不足」と出る前提）。
+for (const c of recentCutStats.filter((c) => c.n <= 20)) {
+  if (c.grade.usable) {
+    premiseErrors.push(
+      `直近${RECENT_FROM}年以降で${c.label}の重賞馬率が検定に足りる頭数になった（期待成功数 ` +
+        `${c.grade.minExpected.toFixed(1)}）。「検定に足りる頭数にならない」と書いた本文を書き直すこと。`
+    );
+  }
+}
+// 東西を父の系統で切ると向きが揃わない（ロベルト系だけ美浦が上）。
+if (!(eastFavorLines.length === 1 && eastFavorLines[0] === 'ロベルト系')) {
+  premiseErrors.push(
+    `父の系統別で美浦が上回る系統が変わった（${eastFavorLines.join('・') || 'なし'}）。` +
+      '「ロベルト系は美浦のほうが上、それ以外の系統は栗東のほうが上」と書いた本文を書き直すこと。'
+  );
+}
+// 実例の表に出す頭数がそろっているか（片側が足りないと本文の「6頭」がずれる）。
+if (!(insideWinners.length >= SIDE_VISIBLE && outsideWinners.length >= SIDE_VISIBLE)) {
+  premiseErrors.push(
+    `実例の表に出す頭数が足りない（30位以内側${insideWinners.length}頭 / 30位外${outsideWinners.length}頭）。`
+  );
+}
+
+if (premiseErrors.length > 0) {
+  throw new Error(`厩舎記事の前提が崩れた:\n- ${premiseErrors.join('\n- ')}`);
+}
+
+// 広告コードは他の記事と同じもの（vault: 20260821-article-ad-embed-snippets）
+const AD_SP_WIDE_A = 'f81bbb016a82d6366a0e2f70051b1a0c';
+const AD_SP_WIDE_B = 'b4b7d55c89d5fc92c564979491a16ad1';
+const AD_SP_RECT = '24e3e1a24f40d88ee1a0ca315c54a7b9';
+const AD_PC_WIDE_A = 'f0efb5bd6ae3e164bb584a4dbb846f48';
+const AD_PC_WIDE_B = '0a525f6469ec1f40642b4550e53d39cc';
+
+const description = `【非公式】キャロットクラブ${yearRangeLabel}募集のうちJRA所属${jra.length}頭を独自集計。募集時点でリーディング上位の厩舎に入った馬と、そうでない馬。重賞に届く率も獲得賞金の中央値も、ほとんど変わらなかった。線を広げると上位側のほうが低いことさえある。唯一はっきり出たのは、上位側のほうが出走率が低いという予想外の向きだった。`;
+---
+
+<BaseLayout
+  title="リーディング上位の厩舎に入った馬は走るのか？"
+  description={description}
+  breadcrumb={[
+    { label: '分析記事', href: '/articles/' },
+    { label: 'リーディング上位の厩舎に入った馬は走るのか？', href: '/articles/stable-leading/' },
+  ]}
+  showHeaderNotices={false}
+  ogImage="/og-article-stable-leading-v2.png"
+  ogImageAlt="分析記事「リーディング上位の厩舎に入った馬は走るのか？」のカード画像（【非公式】キャロットクラブ出資馬検討ツール）"
+>
+  <article>
+    <h1>リーディング上位の厩舎に入った馬は走るのか？</h1>
+
+    <p>
+      カタログをめくっていて、父や測尺と同じくらい気になるのが「どの厩舎に入るか」だと思う。
+      名前をよく聞く厩舎の欄を見つけると、それだけで少し評価が上がってしまう。
+      逆に知らない名前だと、良さそうに見えていた馬でも手が止まる。
+    </p>
+    <p>では実際のところ、預け先の勢いは募集馬のその後とどれくらい関係しているのか。</p>
+    <p>
+      {yearRangeLabel}募集のうち、いま中央（JRA）に所属している{jra.length}頭について、
+      <strong>その馬の募集年の時点で担当調教師がJRAリーディングの上位に入っていたかどうか</strong>で分け、
+      {resultsAsOf}時点の獲得賞金・通算成績と突き合わせた独自集計。
+    </p>
+    <p>
+      先に結論を書くと、<strong>ほとんど関係がなかった</strong>。
+      重賞に届く率も獲得賞金の中央値も、上位の厩舎かどうかでたいして変わらない。
+      それどころか線の引き方によっては、<strong>上位側のほうが数字が低い</strong>。
+      そしていちばんはっきり出た差は、期待とは逆向きの
+      「<strong>上位の厩舎に入った馬のほうが、そもそも出走にたどり着いていない</strong>」だった。
+    </p>
+    <p>
+      正直、書いていて拍子抜けした。ただ、こういう結果こそ載せる価値があると思うので、
+      弱い数字も逆向きの数字も隠さずに全部出す。
+    </p>
+
+    <StatTiles
+      tiles={[
+        {
+          label: '対象頭数',
+          value: `${jra.length}頭`,
+          note: `美浦${east.length}頭・栗東${west.length}頭`,
+        },
+        {
+          label: '重賞を勝った馬',
+          value: `${gradeWinners.length}頭`,
+          note: `全体の${((100 * gradeWinners.length) / jra.length).toFixed(1)}%`,
+        },
+        {
+          label: '募集時に10位以内の厩舎',
+          value: `${cut10.hit.length}頭`,
+          note: `対象の${((100 * cut10.hit.length) / jra.length).toFixed(1)}%`,
+        },
+        {
+          label: '重賞馬率',
+          value: `${cut10.grade.aRate.toFixed(1)}% vs ${cut10.grade.bRate.toFixed(1)}%`,
+          note: `10位以内 / それ以外・${ratePText(cut10.grade)}`,
+        },
+        {
+          label: '獲得賞金の中央値',
+          value: `${formatManYen(cut10.prize.aMed)}万 vs ${formatManYen(cut10.prize.bMed)}万`,
+          note: '10位以内 / それ以外・ほぼ同額',
+        },
+      ]}
+    />
+
+    <ArticleToc />
+    <MethodsLink />
+
+    <AdSlot sp={AD_SP_WIDE_A} pc={AD_PC_WIDE_A} />
+
+    <h2>「上位の厩舎」をどう分けたか</h2>
+    <p>分け方はできるだけ単純にした。そのうえで、ひとつだけこだわった点がある。</p>
+    <p>
+      JRAは毎年、調教師をその年の勝利数の順に並べた<strong>リーディング</strong>を出している。
+      この記事では、<strong>その馬の募集年の時点でのリーディングで、担当調教師が上位何位までに
+      入っていたか</strong>だけを見る。基準は10位以内・20位以内・30位以内の3通りを用意した。
+      3つは入れ子になっていて、10位以内の馬は20位以内にも30位以内にも含まれる。
+    </p>
+    <p>
+      こだわったのは<strong>「募集年の時点で」</strong>というところだ。
+      出資を決める瞬間に手元にあるのは、その時点までのリーディングだけで、
+      その馬がこの先どう走るかも、厩舎がこの先どう伸びるかも分からない。
+      だから<strong>募集を検討している人が実際に見られる情報だけで分ける</strong>ことにした。
+      そうしないと「結果を見てから振り返れば当たっていた」という話になってしまって、
+      出資の判断材料としては読みようがない。
+    </p>
+    <p>
+      対象の馬はまだ1戦もしていない段階なので、この順位にはその馬自身の成績は一切入っていない。
+      「上位厩舎に入っているか」を募集時点のカタログを見ながら判定するのと、同じ条件になる。
+    </p>
+    <p>成績の側は3つ見る。</p>
+    <ul>
+      <li>
+        <strong>重賞馬率</strong>……中央のG1〜G3・Jpn1〜3と地方重賞を合わせて1勝以上している馬の割合
+        （重賞の勝ち数ではなく、頭数で数える）
+      </li>
+      <li>
+        <strong>獲得賞金合計の<TermLink to="median">中央値</TermLink></strong>……一部の大物に極端に
+        引っ張られるので、平均ではなく中央値で見る
+      </li>
+      <li><strong>出走率</strong>……1走以上した馬の割合</li>
+    </ul>
+    <p>
+      もうひとつ大事な前置き。この記事は<strong>キャロットの募集馬がどの厩舎に入ったか</strong>の話であって、
+      調教師個人の優劣を測ったものではない。分けているのは「募集年のリーディングで上位に入っていたか」
+      という一点だけで、それ以上の細かい分類はしていない。
+    </p>
+
+    <h2>重賞に届く率は、ほとんど変わらない</h2>
+    <p>まず重賞馬率から。3通りの線で切ると、こうなった。</p>
+    <GroupedBarChart
+      title="リーディング順位別の重賞馬率（募集時点）"
+      series={HIT_SERIES}
+      groups={gradeRateGroups}
+      valueLabel="重賞馬率(%)"
+      nLabel="頭数"
+    />
+    <p class="table-note">
+      3つの分け方は入れ子。10位以内の馬は20位以内・30位以内にも含まれる。
+    </p>
+    <p>数字で並べるとこうなる。</p>
+    <div class="table-scroll">
+      <table class="bands">
+        <thead>
+          <tr>
+            <th>募集時のリーディング</th>
+            <th>入っていた</th>
+            <th>入っていなかった</th>
+            <th>差の検定</th>
+          </tr>
+        </thead>
+        <tbody>
+          {cutStats.map((c) => (
+            <tr>
+              <td>{c.label}</td>
+              <td>
+                {c.grade.aRate.toFixed(1)}%（{c.grade.aN}頭中{c.grade.aHits}頭）
+              </td>
+              <td>
+                {c.grade.bRate.toFixed(1)}%（{c.grade.bN}頭中{c.grade.bHits}頭）
+              </td>
+              <td>{ratePText(c.grade)}</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+    <p>
+      <strong>
+        10位以内で切ると、{cut10.grade.aRate.toFixed(1)}%対{cut10.grade.bRate.toFixed(1)}%。
+        {ratePText(cut10.grade)}で差とは呼べない。
+      </strong>
+      いちばん厳しい線で切って、いちばん差が出そうなところなのに、ほぼ横並びだった。
+      （<TermLink to="p-value">p値</TermLink>は「差がまったくないとしたら、これくらいの偏りが
+      偶然出る確率」の目安で、大きいほど「偶然でも普通に起きる」という意味になる。）
+    </p>
+    <p>
+      差らしい差が出るのは20位以内の線だけで、{cut20.grade.aRate.toFixed(1)}%対
+      {cut20.grade.bRate.toFixed(1)}%（{ratePText(cut20.grade)}）。
+      ところが30位まで広げると{cut30.grade.aRate.toFixed(1)}%対{cut30.grade.bRate.toFixed(1)}%
+      （{ratePText(cut30.grade)}）に戻ってしまう。
+    </p>
+    <p>
+      10位で差がなく、20位で出て、30位でまた消える。
+      <strong>線をどこに引くかで出たり消えたりする</strong>わけで、
+      「リーディングの順位と連動している」という形にはなっていない。
+      本当に順位が効いているなら、上位に寄せるほど差が大きくなるはずだ。
+    </p>
+
+    <AdSlot sp={AD_SP_WIDE_B} pc={AD_PC_WIDE_B} />
+
+    <h2>獲得賞金の中央値は、むしろ逆に出る</h2>
+    <p>
+      重賞は稀な出来事なので、もっと日常的な指標でも見ておきたい。
+      獲得賞金合計の中央値はこうなった。
+    </p>
+    <GroupedBarChart
+      title="リーディング順位別の獲得賞金合計の中央値（募集時点）"
+      series={HIT_SERIES}
+      groups={prizeMedianGroups}
+      valueLabel="獲得賞金合計の中央値(万円)"
+      nLabel="頭数"
+    />
+    <div class="table-scroll">
+      <table class="bands">
+        <thead>
+          <tr>
+            <th>募集時のリーディング</th>
+            <th>入っていた</th>
+            <th>入っていなかった</th>
+            <th>差の検定</th>
+          </tr>
+        </thead>
+        <tbody>
+          {cutStats.map((c) => (
+            <tr>
+              <td>{c.label}</td>
+              <td>{formatManYen(c.prize.aMed)}万円</td>
+              <td>{formatManYen(c.prize.bMed)}万円</td>
+              <td>{formatP(c.prize.mw.p)}</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+    <p>
+      10位以内は<strong>{formatManYen(cut10.prize.aMed)}万円対{formatManYen(cut10.prize.bMed)}万円</strong>。
+      ほぼ同額で、ここまで揃うと逆に気持ちがいいくらいだ。
+    </p>
+    <p>
+      20位・30位と線を広げると、今度は<strong>該当側のほうが低くなる</strong>。
+      30位以内では{formatManYen(cut30.prize.aMed)}万円対{formatManYen(cut30.prize.bMed)}万円で、
+      中央値が3分の1近い。
+      ただし検定は{formatP(cut30.prize.mw.p)}で、
+      <strong>「上位側のほうが低い」と言い切れるところまでは行っていない</strong>。
+      賞金は少数の大物と大量の0円組でばらつきが極端に大きいので、
+      中央値が3倍違っても順位検定にはなかなか出てこない。
+    </p>
+    <p>
+      いずれにせよ、<strong>「上位の厩舎に入ると賞金が増える」という向きの数字は、どの線でも出なかった</strong>。
+    </p>
+
+    <div class="ad-rect">
+      <AdSlot sp={AD_SP_RECT} pc={AD_PC_WIDE_A} />
+    </div>
+
+    <h2>いちばんはっきり出たのは、出走率の逆転</h2>
+    <p>
+      一方で、3本の線すべてで向きが揃った指標がひとつだけある。<strong>出走率</strong>だ。
+      しかもそれは、期待とは逆向きだった。
+    </p>
+    <GroupedBarChart
+      title="リーディング順位別の出走率（募集時点）"
+      series={HIT_SERIES}
+      groups={startRateGroups}
+      valueLabel="出走率(%)"
+      nLabel="頭数"
+    />
+    <div class="table-scroll">
+      <table class="bands">
+        <thead>
+          <tr>
+            <th>募集時のリーディング</th>
+            <th>入っていた</th>
+            <th>入っていなかった</th>
+            <th>差の検定</th>
+          </tr>
+        </thead>
+        <tbody>
+          {cutStats.map((c) => (
+            <tr>
+              <td>{c.label}</td>
+              <td>{c.start.aRate.toFixed(1)}%</td>
+              <td>{c.start.bRate.toFixed(1)}%</td>
+              <td>{ratePText(c.start)}</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+    <p>
+      <strong>3本とも上位側が低い。しかも線を広げるほど差が開く。</strong>
+      30位以内で切ると{cut30.start.aRate.toFixed(1)}%対{cut30.start.bRate.toFixed(1)}%で、
+      {Math.floor(startGaps[2])}ポイント以上ひらいている。
+    </p>
+    <p>
+      この記事で出てきた数字のなかで、向きが一貫していて検定もはっきり通ったのは、ここだけだ。
+      そしてそれが「上位の厩舎に入った馬ほど、デビューまでたどり着けていない」という向きなのが、
+      正直いちばん意外なところだった。
+    </p>
+    <p>
+      <strong>なぜそうなるのかは分からない。</strong>
+      厩舎ごとの預かり頭数の構成が違うのかもしれないし、まったく別の要因かもしれないが、
+      この集計からは決められないので、理由は書かないでおく。
+      数字としてこう出た、という以上のことは言えない。
+    </p>
+    <p class="caveat">
+      出走率は「募集年が新しい馬ほど低く出る」指標でもある（まだデビュー前の馬がいるため）。
+      ただし後述のとおり、直近5年（{RECENT_FROM}〜{LAST_YEAR}年募集）だけに絞っても同じ向きが出ている。
+    </p>
+
+    <h2>直近5年だけで見ても、形は変わらない</h2>
+    <p>
+      古い募集ぶんが結果を引っ張っている可能性もあるので、
+      {RECENT_FROM}〜{LAST_YEAR}年募集のJRA所属{recent.length}頭だけでも同じ集計をした。
+    </p>
+    <div class="table-scroll">
+      <table class="bands">
+        <thead>
+          <tr>
+            <th>募集時のリーディング</th>
+            <th>指標</th>
+            <th>入っていた</th>
+            <th>入っていなかった</th>
+            <th>差の検定</th>
+          </tr>
+        </thead>
+        <tbody>
+          {recentCutStats.map((c) => (
+            <>
+              <tr>
+                <td rowspan="3">
+                  {c.label}（n={c.grade.aN} / {c.grade.bN}）
+                </td>
+                <td>重賞馬率</td>
+                <td>
+                  {c.grade.aRate.toFixed(1)}%（{c.grade.aHits}頭）
+                </td>
+                <td>
+                  {c.grade.bRate.toFixed(1)}%（{c.grade.bHits}頭）
+                </td>
+                <td>{ratePText(c.grade)}</td>
+              </tr>
+              <tr>
+                <td>賞金中央値</td>
+                <td>{formatManYen(c.prize.aMed)}万円</td>
+                <td>{formatManYen(c.prize.bMed)}万円</td>
+                <td>{formatP(c.prize.mw.p)}</td>
+              </tr>
+              <tr>
+                <td>出走率</td>
+                <td>{c.start.aRate.toFixed(1)}%</td>
+                <td>{c.start.bRate.toFixed(1)}%</td>
+                <td>{ratePText(c.start)}</td>
+              </tr>
+            </>
+          ))}
+        </tbody>
+      </table>
+    </div>
+    <p>
+      重賞馬率は、直近5年だと重賞馬そのものが
+      {recentCutStats[0].grade.aHits + recentCutStats[0].grade.bHits}頭しかいないので、
+      10位以内・20位以内の線では検定に足りる頭数にならない（数字は参考として載せてある）。
+    </p>
+    <p>
+      賞金中央値は<strong>3本すべてで上位側のほうが低い</strong>。検定はどれも通らないが、向きは揃っている。
+      出走率も9年ぶんと同じで、3本とも上位側が低く、30位以内では{ratePText(recentCutStats[2].start)}と
+      はっきり出る。
+    </p>
+    <p>
+      要するに、<strong>古い募集ぶんを外しても景色は変わらない</strong>。
+      「上位の厩舎だから走る」という形は、どこを切っても出てこなかった。
+    </p>
+
+    <AdSlot sp={AD_SP_WIDE_A} pc={AD_PC_WIDE_A} />
+
+    <h2>実際にどんな馬がいたか</h2>
+    <p>率の話ばかりでも面白くないので、重賞を勝った{gradeWinners.length}頭を実際に並べておく。</p>
+    <p>
+      {jra.length}頭のうち重賞を勝ったのは{gradeWinners.length}頭。
+      募集時点の担当調教師の順位で内訳を取るとこうなる。
+    </p>
+    <BarChart
+      title={`重賞を勝った${gradeWinners.length}頭の内訳（募集時点の担当調教師のリーディング順位）`}
+      bars={bucketBars}
+      valueLabel="頭数"
+    />
+    <p>
+      <strong>
+        {gradeWinners.length}頭のうち{outsideWinners.length}頭、半分以上が30位外の厩舎から出ている。
+      </strong>
+      母数を考えれば当然でもある（30位以内の厩舎に入るのは{jra.length}頭中{cut30.hit.length}頭で、
+      全体の{((100 * cut30.hit.length) / jra.length).toFixed(0)}%）。
+      ただ、率でも差がついていない以上、ここは素直に「どちらからも同じくらい出る」と読める。
+    </p>
+    <p>もうひとつ、賞金の分布を見ると分かりやすい形が出ている。</p>
+    <div class="finding">
+      <p class="finding-lead">
+        獲得賞金5億円を超えた{bigEarners.length}頭に、募集時10位以内の厩舎は1頭もいない
+      </p>
+      <p>
+        {gradeWinners.length}頭のうち、獲得賞金が5億円を超えているのは{bigEarners.length}頭。その内訳は
+        <strong>
+          {bigEarnerCounts
+            .filter((b) => b.count > 0)
+            .map((b) => `${b.label}が${b.count}頭`)
+            .join('・')}
+        </strong>で、
+        <strong>10位以内はゼロ</strong>だった。
+        30位圏外の2頭は<strong>{bigEarnersOutside[0].displayName}</strong>
+        （{bigEarnersOutside[0].recruitYear}年募集・一口{bigEarnersOutside[0].pricePerShare}万円・
+        {stableOf(bigEarnersOutside[0])}厩舎）の
+        <strong>{formatPrize(bigEarnersOutside[0].totalPrizeManYen)}</strong>と、
+        <strong>{bigEarnersOutside[1].displayName}</strong>
+        （{bigEarnersOutside[1].recruitYear}年募集・一口{bigEarnersOutside[1].pricePerShare}万円・
+        {stableOf(bigEarnersOutside[1])}厩舎）の
+        <strong>{formatPrize(bigEarnersOutside[1].totalPrizeManYen)}</strong>で、
+        {gradeWinners.length}頭のなかの最高額もこちら側から出ている。
+        募集価格が安いぶん回収率で見るとさらに極端で、
+        {bigEarnersOutside[0].displayName}は約{roiLabel(bigEarnersOutside[0])}、
+        {bigEarnersOutside[1].displayName}は約{roiLabel(bigEarnersOutside[1])}になる。
+      </p>
+      <p>
+        逆に、募集時10位以内の厩舎に入った{top10Winners.length}頭でいちばん稼いだのは
+        <strong>{top10Best.displayName}</strong>（{top10Best.recruitYear}年募集・
+        一口{top10Best.pricePerShare}万円・{stableOf(top10Best)}厩舎）の
+        <strong>{formatPrize(top10Best.totalPrizeManYen)}</strong>
+        （中央{formatPrize(top10Best.chuoPrizeManYen ?? 0)}＋地方{formatPrize(top10Best.chihoPrizeManYen ?? 0)}）。
+        立派な数字ではあるけれど、いわゆる歴代最高額級はこの{top10Winners.length}頭からは出ていない。
+        <strong>大物を引き当てるという意味では、預け先で線を引けない。</strong>
+      </p>
+    </div>
+    <p class="table-label">
+      <strong>
+        募集時に30位以内だった厩舎側（{insideWinners.length}頭のうち賞金上位{insideVisible.length}頭）
+      </strong>
+    </p>
+    <GradeWinnerTable
+      rows={insideVisible}
+      showRoi
+      showStable
+      groupFor={rankBucketOf}
+      groupLabel="募集時の担当厩舎"
+    />
+    <p class="table-label">
+      <strong>
+        募集時に30位圏外だった厩舎側（{outsideWinners.length}頭のうち賞金上位{outsideVisible.length}頭）
+      </strong>
+    </p>
+    <GradeWinnerTable
+      rows={outsideVisible}
+      showRoi
+      showStable
+      groupFor={rankBucketOf}
+      groupLabel="募集時の担当厩舎"
+    />
+    {restWinners.length > 0 && (
+      <details class="more-winners">
+        <summary>残りの{restWinners.length}頭も見る</summary>
+        <GradeWinnerTable
+          rows={restWinners}
+          showRoi
+          showStable
+          groupFor={rankBucketOf}
+          groupLabel="募集時の担当厩舎"
+        />
+      </details>
+    )}
+    <p class="table-note">
+      上の2つの表と折りたたみを合わせた{gradeWinners.length}頭が、
+      {jra.length}頭のうち重賞を勝った馬のすべて。一口価格は募集時のもの。
+    </p>
+    <p>
+      折りたたみまで開くと分かるが、<strong>同じ調教師が違う区分に出てくる</strong>。
+      リーディングの順位は毎年動くので、ここで見ているのは
+      「その馬を募集した年に、その厩舎がどのあたりにいたか」であって、
+      厩舎そのものに貼ったラベルではない。
+      募集の年に30位圏内にいた厩舎が翌年には落ちていることもあるし、その逆もある。
+      上の分類はそういうものとして見てほしい。
+    </p>
+    <p>
+      ちなみに<a href="/articles/height/">体高の記事</a>で見たとおり、一口価格そのものと成績の関係も
+      ほとんど無い。値段でも預け先でも、そう簡単には決まらないということだと思う。
+    </p>
+
+    <div class="ad-rect">
+      <AdSlot sp={AD_SP_RECT} pc={AD_PC_WIDE_B} />
+    </div>
+
+    <h2>東西（美浦と栗東）は、言うほど差がない</h2>
+    <p>
+      ついでに、よく話題になる東西の別も見ておく。
+      こちらは所属地域なので年によって入れ替わることがなく、素直に比べられる。
+      対象{jra.length}頭の内訳は美浦{east.length}頭・栗東{west.length}頭だ。
+    </p>
+    <StatTiles
+      tiles={[
+        { label: '頭数', value: `${east.length}頭 / ${west.length}頭`, note: '美浦 / 栗東' },
+        {
+          label: '獲得賞金の中央値',
+          value: `${formatManYen(ewPrize.bMed)}万 / ${formatManYen(ewPrize.aMed)}万`,
+          note: formatP(ewPrize.mw.p),
+        },
+        {
+          label: '回収率の中央値',
+          value: `${Math.round(ewRoi.bMed)}% / ${Math.round(ewRoi.aMed)}%`,
+          note: formatP(ewRoi.mw.p),
+        },
+        {
+          label: '重賞馬',
+          value: `${ewGrade.aHits}頭 / ${ewGrade.bHits}頭`,
+          note: `${ewGrade.aRate.toFixed(1)}% / ${ewGrade.bRate.toFixed(1)}%・差なし`,
+        },
+      ]}
+    />
+    <p>
+      9年ぶんをまとめると、獲得賞金の中央値は美浦{formatManYen(ewPrize.bMed)}万円・
+      栗東{formatManYen(ewPrize.aMed)}万円で、検定は{formatP(ewPrize.mw.p)}。
+      数字だけ見ると栗東寄りに出る。
+      ただし<TermLink to="superiority">優越確率</TermLink>は{ewPrize.superiority?.toFixed(2)}だ。
+      これは「両方から1頭ずつ選んだとき栗東のほうが上回る確率」で、
+      差がなければ0.50になる。<strong>{ewPrize.superiority?.toFixed(2)}はほぼ五分</strong>と読むのが
+      正直なところだと思う。
+    </p>
+    <p>
+      そして重賞馬率（{ewGrade.aRate.toFixed(1)}%対{ewGrade.bRate.toFixed(1)}%）と出走率には差がなく、
+      <strong>直近5年（{RECENT_FROM}〜{LAST_YEAR}年募集）だけで見ると賞金の差も消える</strong>
+      （{formatP(ewRecentPrize.mw.p)}）。
+      重賞馬率にいたっては、直近5年ではむしろ美浦のほうが高い
+      （{ewRecentGrade.aRate.toFixed(1)}%対{ewRecentGrade.bRate.toFixed(1)}%）。
+      父の系統で切っても方向はばらついて、エピファネイア・モーリスといったロベルト系は美浦のほうが上、
+      それ以外の系統は栗東のほうが上、と揃わない。
+    </p>
+    <div class="table-scroll">
+      <table class="bands">
+        <thead>
+          <tr>
+            <th>父の系統</th>
+            <th>美浦（頭数・賞金中央値）</th>
+            <th>栗東（頭数・賞金中央値）</th>
+          </tr>
+        </thead>
+        <tbody>
+          {sireLineRows.map((r) => (
+            <tr>
+              <td>{r.line}</td>
+              <td>
+                {r.eastN}頭・{formatManYen(r.eastMed)}万円
+              </td>
+              <td>
+                {r.westN}頭・{formatManYen(r.westMed)}万円
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+    <p class="table-note">
+      父の系統は主要3系統（サンデー系・キングマンボ系・ロベルト系）だけを分類し、
+      残りはすべて「その他」にまとめている。「その他」は中身が混ざった袋なので、
+      系統としての比較には使えない。
+    </p>
+    <p>
+      まとめると、<strong>古い募集ぶんではわずかに栗東寄りの数字が出るが、最近の募集では消えている</strong>。
+      少なくともキャロットの募集馬に関しては、
+      東西のどちらかというだけで出資先を選り分ける材料にはならなさそうだ。
+    </p>
+    <p>
+      ちなみに、数字の大きさだけで言えば<strong>この東西の賞金差のほうが、
+      記事の前半で見たリーディングの差よりまだ出ている</strong>。
+      そのリーディングの差ですら「ほぼ五分」で片付く程度、ということでもある。
+    </p>
+
+    <h2>この記事で言えないこと</h2>
+    <p>弱い結果ほど読み違えられやすいので、限界を書いておきたい。</p>
+    <p>
+      <strong>1. 出走率が上位側で低い理由は、この集計からは分からない。</strong>
+      3本の線すべてで向きが揃い、20位以内・30位以内では検定も通っているので、
+      偶然の揺れとしては片付けにくい。ただし<strong>なぜそうなるのかは別の話</strong>で、
+      厩舎ごとの預かり頭数の構成の違いかもしれないし、まったく別の要因かもしれない。
+      そこは検証していないので、原因については何も主張しない。
+    </p>
+    <p>
+      <strong>2. 単年のリーディング順位は、調教師のキャリア全体の評価ではない。</strong>
+      リーディングはその年の勝利数だけで決まるので、順位は年ごとにかなり動く。
+      ある年に30位圏外だった厩舎が翌年には20位以内、ということも珍しくない。
+      この記事で見ているのは「募集した年に、たまたまどのあたりにいたか」という一点で、
+      その厩舎の実力を測ったものではない。
+    </p>
+    <p>
+      <strong>3. これはキャロットがどの厩舎に預けたか、という話であって、調教師個々の優劣ではない。</strong>
+      分けているのは「募集年のリーディングで上位N位に入っていたか」だけで、
+      個別の厩舎について何かを言える集計ではない。実際、同じ調教師が募集年によって
+      両方の区分に出てくる。
+    </p>
+    <p>
+      <strong>4. 弱い結果なので、「上位厩舎は避けるべき」という逆方向の主張もできない。</strong>
+      ここが一番大事だと思う。3本の線で切って重賞馬率が0.05を下回ったのは20位以内の1本だけで、
+      これは3回試して1回出た程度の話だから、それ自体を強い証拠にはできない。
+      賞金の逆転も{formatP(cut30.prize.mw.p)}止まりだ。<strong>「上位側が有利」も「上位側が不利」も、
+      このデータでは支持されない</strong>というのが正確な読み方で、
+      出走率の逆転だけは無視できない、というくらいの温度感になる。
+    </p>
+    <p>
+      <strong>5. 新しい募集年の馬は、まだ結果が出そろっていない。</strong>
+      賞金は走った年数ぶん積み上がるので、募集年が古い馬ほど数字が大きく出る。
+      {LAST_YEAR - 1}・{LAST_YEAR}年募集の馬は、これから成績が動く。
+    </p>
+
+    <AdSlot sp={AD_SP_WIDE_B} pc={AD_PC_WIDE_B} />
+
+    <h2>まとめ</h2>
+    <ul class="conclusion">
+      <li>
+        募集時点で担当調教師がJRAリーディング<strong>10位以内</strong>だった{cut10.grade.aN}頭の
+        重賞馬率は<strong>{cut10.grade.aRate.toFixed(1)}%</strong>、
+        それ以外{cut10.grade.bN}頭は<strong>{cut10.grade.bRate.toFixed(1)}%</strong>
+        （{ratePText(cut10.grade)}）。獲得賞金の中央値は
+        <strong>{formatManYen(cut10.prize.aMed)}万円対{formatManYen(cut10.prize.bMed)}万円</strong>でほぼ同額。
+        <strong>いちばん厳しい線で切っても差が出なかった。</strong>
+      </li>
+      <li>
+        20位以内で切ると重賞馬率だけ{cut20.grade.aRate.toFixed(1)}%対{cut20.grade.bRate.toFixed(1)}%
+        （{ratePText(cut20.grade)}）と差が出るが、
+        30位まで広げると{cut30.grade.aRate.toFixed(1)}%対{cut30.grade.bRate.toFixed(1)}%
+        （{ratePText(cut30.grade)}）で消える。<strong>線の引き方で出たり消えたりする。</strong>
+      </li>
+      <li>
+        <strong>獲得賞金は、線を広げるほど上位側のほうが低くなる</strong>
+        （30位以内で{formatManYen(cut30.prize.aMed)}万円対{formatManYen(cut30.prize.bMed)}万円・
+        {formatP(cut30.prize.mw.p)}）。
+        「上位に預けると稼ぐ」という向きの数字はどの線でも出なかった。
+      </li>
+      <li>
+        <strong>唯一はっきりしたのは出走率で、しかも逆向き。</strong> 3本の線すべてで上位側が低く、
+        20位以内で{cut20.start.aRate.toFixed(1)}%対{cut20.start.bRate.toFixed(1)}%
+        （{ratePText(cut20.start)}）、30位以内で{cut30.start.aRate.toFixed(1)}%対
+        {cut30.start.bRate.toFixed(1)}%（{ratePText(cut30.start)}）。理由は分からない。
+      </li>
+      <li>
+        <strong>直近5年（{RECENT_FROM}〜{LAST_YEAR}年募集{recent.length}頭）でも形は同じ。</strong>
+        賞金中央値は3本とも上位側が低く、出走率も3本とも上位側が低い
+        （30位以内で{ratePText(recentCutStats[2].start)}）。
+      </li>
+      <li>
+        <strong>重賞を勝った{gradeWinners.length}頭のうち{outsideWinners.length}頭は30位外の厩舎から。</strong>
+        獲得賞金5億円超の{bigEarners.length}頭に募集時10位以内の厩舎は1頭もおらず、
+        圏外側からは{bigEarnersOutside[0].displayName}
+        （{formatPrize(bigEarnersOutside[0].totalPrizeManYen)}）と
+        {bigEarnersOutside[1].displayName}（{formatPrize(bigEarnersOutside[1].totalPrizeManYen)}）が出ている。
+      </li>
+      <li>
+        <strong>東西も言うほど差がない。</strong>
+        9年ぶんでは賞金中央値が美浦{formatManYen(ewPrize.bMed)}万円・栗東{formatManYen(ewPrize.aMed)}万円
+        （{formatP(ewPrize.mw.p)}）だが、優越確率{ewPrize.superiority?.toFixed(2)}とほぼ五分で、
+        直近5年では消える（{formatP(ewRecentPrize.mw.p)}）。
+      </li>
+      <li>
+        実務的には、<a href="/">募集馬一覧</a>の厩舎欄を見るときに、
+        <strong>想像しているほど当てにはならない</strong>、というくらいの重みに下げておくのが、
+        このデータの形には一番合っていると思う。
+        厩舎名で加点も減点もしないぶん、他の材料をじっくり見られる。
+      </li>
+    </ul>
+
+    <h2>データについて</h2>
+    <p>
+      集計対象は{yearRangeLabel}募集のうち<strong>現在JRAに所属している{jra.length}頭</strong>。
+      募集後に地方へ移った馬は含んでいない。
+    </p>
+    <p>
+      「リーディング上位」の判定は、<strong>各馬の募集年のリーディング順位</strong>で行っている。
+      対象9年ぶんすべてに実際のリーディングの表があり、代用した年はない。
+    </p>
+    <p>
+      重賞と獲得賞金は{resultsAsOf}時点の集計で、現役馬はこの先変わっていく。
+      獲得賞金は中央（JRA）と地方（NAR）の合計で、海外レースの賞金は含まない。
+      賞金は走った年数ぶん積み上がるので、募集年が古い馬ほど有利に出る点にも注意がいる。
+      「重賞馬」は中央のG1〜G3・Jpn1〜3と地方重賞を1勝以上した馬の頭数で、重賞の勝ち数ではない。
+      募集総額は一口価格 × 口数で、回収率は獲得賞金合計 ÷ 募集総額。
+      会費・維持費や引退時の売却額は入っていないので、実際の配当ではなく規模感の目安として見てほしい。
+    </p>
+    <p>
+      p値は「差がまったくないとしたら、これくらいの偏りが偶然出る確率」の目安で、
+      小さいほど偶然では説明しづらいことを意味する。詳しくは
+      <a href="/articles/methods/">分析記事の読み方</a>にまとめてある。
+      統計の数字はあくまで傾向の目安で、これだけで「この厩舎なら走る／走らない」と
+      言えるものではない。出資判断の材料というより、趣味の分析として楽しんでもらえたら。
+    </p>
+
+    <p>
+      <a href="/">募集馬一覧へ戻る</a> ／ <a href="/articles/">分析記事一覧へ</a>
+    </p>
+  </article>
+
+  <ChartTooltip />
+</BaseLayout>
+
+<style>
+  article :global(h2) {
+    margin-top: 2.5rem;
+  }
+  .table-note {
+    font-size: 0.8125rem;
+    color: var(--muted);
+  }
+  /* 表が2つ続く節で、どちらの群の表かを見出し代わりに置く（注記より強く出す） */
+  .table-label {
+    margin: 1.5rem 0 0.25rem;
+  }
+  .finding {
+    margin: 1.25rem 0;
+    padding: 0.9rem 1.1rem;
+    background: var(--accent-weak);
+    border-left: 3px solid var(--accent);
+    border-radius: 0 6px 6px 0;
+  }
+  .finding-lead {
+    margin: 0 0 0.5rem;
+    font-weight: 700;
+  }
+  .finding p:last-child {
+    margin-bottom: 0;
+  }
+  /* 直前の主張に添える留保。本文より一段落として、見落とされない程度には残す。 */
+  .caveat {
+    font-size: 0.875rem;
+    color: var(--muted);
+  }
+  .ad-rect {
+    display: flex;
+    justify-content: center;
+    margin: 1.75rem 0 0.5rem;
+  }
+  .conclusion {
+    padding-left: 1.2rem;
+  }
+  .conclusion li {
+    margin-bottom: 0.6rem;
+  }
+  .more-winners {
+    margin: 0.5rem 0 1rem;
+  }
+  .more-winners summary {
+    cursor: pointer;
+    font-size: 0.9375rem;
+    color: var(--accent);
+  }
+  .table-scroll {
+    overflow-x: auto;
+    margin: 1rem 0;
+  }
+  table.bands {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.875rem;
+    white-space: nowrap;
+  }
+  table.bands th,
+  table.bands td {
+    padding: 0.4rem 0.6rem;
+    border-bottom: 1px solid var(--border);
+    text-align: left;
+  }
+  table.bands th {
+    color: var(--muted);
+    font-weight: 600;
+  }
+  /* 直近5年の表は1つの分け方に3行使うので、区分セルの区切りを太くして塊が分かるようにする */
+  table.bands td[rowspan] {
+    border-bottom: 2px solid var(--border);
+    font-weight: 600;
+    vertical-align: top;
+  }
+</style>
