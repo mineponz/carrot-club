@@ -48,6 +48,8 @@ import {
 import { horses2026 } from '../data/horses2026.ts';
 import { TOUR_WEIGHT_AS_OF, TOUR_WEIGHT_BY_ID } from '../data/tourWeight2026.ts';
 import { ENTRY_VOTE_SNAPSHOTS } from '../data/entryVotes2026.ts';
+import { LOTTERY_STATUS_SNAPSHOTS } from '../data/lotteryStatus2026.ts';
+import { lotteryLabel, lotteryStatusRows } from '../lib/lottery-status.ts';
 import { formatDiff } from '../lib/tour-weight-row.ts';
 import { formatManYen } from '../lib/chart-math.ts';
 
@@ -202,6 +204,31 @@ const entryVoteFacts =
     : [];
 
 /**
+ * 抽選ステータス（クラブ公式「抽選ランク発表」・`src/data/lotteryStatus2026.ts`）。2026年募集にしか
+ * 情報源が無い。母馬優先枠の対象馬は「抽選ステータス（母馬優先）」「抽選ステータス（通常枠）」の
+ * 2行、対象外は「抽選ステータス」の1行にする（本人合意・2026-09-05）。残り口数が分かっていれば
+ * 追加で1行足す。全頭を並べた表は `/2026/lottery/`。
+ */
+const lotteryFacts: { term: string; value: string }[] =
+  recruitYear === 2026
+    ? (() => {
+        const [row] = lotteryStatusRows([horse], LOTTERY_STATUS_SNAPSHOTS);
+        const labelOf = (frame: (typeof row)['normal']) =>
+          frame === null ? '発表待ち' : lotteryLabel(frame).text;
+        const rows = row.hasDamPriority
+          ? [
+              { term: '抽選ステータス（母馬優先）', value: labelOf(row.damPriority) },
+              { term: '抽選ステータス（通常枠）', value: labelOf(row.normal) },
+            ]
+          : [{ term: '抽選ステータス', value: labelOf(row.normal) }];
+        if (row.remainingShares !== null) {
+          rows.push({ term: '残り口数', value: `${row.remainingShares}口` });
+        }
+        return rows;
+      })()
+    : [];
+
+/**
  * 定義リストに出す項目。値が無いものは出さない（空欄の行を並べても情報にならない）。
  * `note` は値に添える補足（測尺の順位）。値そのものより弱く見せたいので別に持つ。
  */
@@ -235,6 +262,7 @@ const facts: { term: string; value: string; note?: string }[] = [
   ...entryVoteFacts,
   { term: '兄弟', value: horse.sibling },
   { term: '母優先', value: horse.damPriority ? '対象' : '対象外' },
+  ...lotteryFacts,
 ];
 ---
 
@@ -291,6 +319,13 @@ const facts: { term: string; value: string; note?: string }[] = [
     recruitYear === 2026 && (
       <p class="note votes-link">
         全頭の募集申込票数（中間発表）の一覧は<a href="/2026/votes/">こちら</a>。
+      </p>
+    )
+  }
+  {
+    recruitYear === 2026 && (
+      <p class="note lottery-link">
+        全頭の抽選ステータスの一覧は<a href="/2026/lottery/">こちら</a>。
       </p>
     )
   }
