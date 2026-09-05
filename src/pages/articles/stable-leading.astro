@@ -235,6 +235,17 @@ function rankBucketOf(h: RecruitWithResult): string {
   if (rank <= 30) return '21〜30位';
   return '30位外';
 }
+/**
+ * GradeWinnerTable の「募集時の担当厩舎」列に出す表示用の値。集計・分類には`rankBucketOf`
+ * （4分類のバケット）を使うが、実例テーブルでは具体的な順位が分かる馬にはそのまま出す
+ * （2026-09-05・本人「順位って具体的に出せないの？」）。umapiaのリーディング表は上位約50位
+ * までしか無いため、それより下・掲載無しの馬は順位が分からず「圏外」としか言えない
+ * （`rank === null`。31〜50位で捕捉できた馬は数字で出る）。
+ */
+function rankDisplayOf(h: RecruitWithResult): string {
+  const { rank } = leadingRankOf(h);
+  return rank === null ? '圏外' : `${rank}位`;
+}
 const gradeWinners = [...jra]
   .filter(isGradeWinner)
   .sort((a, b) => b.totalPrizeManYen - a.totalPrizeManYen);
@@ -961,7 +972,7 @@ const description = `【非公式】キャロットクラブ${yearRangeLabel}募
       rows={insideVisible}
       showRoi
       showStable
-      groupFor={rankBucketOf}
+      groupFor={rankDisplayOf}
       groupLabel="募集時の担当厩舎"
     />
     <p class="table-label">
@@ -973,7 +984,7 @@ const description = `【非公式】キャロットクラブ${yearRangeLabel}募
       rows={outsideVisible}
       showRoi
       showStable
-      groupFor={rankBucketOf}
+      groupFor={rankDisplayOf}
       groupLabel="募集時の担当厩舎"
     />
     {restWinners.length > 0 && (
@@ -983,7 +994,7 @@ const description = `【非公式】キャロットクラブ${yearRangeLabel}募
           rows={restWinners}
           showRoi
           showStable
-          groupFor={rankBucketOf}
+          groupFor={rankDisplayOf}
           groupLabel="募集時の担当厩舎"
         />
       </details>
