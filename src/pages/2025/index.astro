@@ -1059,17 +1059,18 @@ const faqJsonLd = {
          （本人了承済み・2026-08-23。SP専用の並び替えバーは元のUIに戻すため取りやめた）。
          列番号は COLUMNS の並び順に対応する（メモを4列目に移したぶん、以前の 5/6/7/15 から
          1つずつ後ろにずれている。さらに産次列を母齢の右隣に追加したぶん、厩舎は16→17に
-         ずれている。horse-row.test.ts に番号を突き合わせるテストがある）。 */
+         ずれている。2026-09-05に抽選列をメモの右隣（5列目）に挿入したぶん、6/7/8/17は
+         さらに7/8/9/18にずれている。horse-row.test.ts に番号を突き合わせるテストがある）。 */
       #horse-table th:nth-child(1),
       #horse-table td:nth-child(1),
-      #horse-table th:nth-child(6),
-      #horse-table td:nth-child(6),
       #horse-table th:nth-child(7),
       #horse-table td:nth-child(7),
       #horse-table th:nth-child(8),
       #horse-table td:nth-child(8),
-      #horse-table th:nth-child(17),
-      #horse-table td:nth-child(17) { display: none; }
+      #horse-table th:nth-child(9),
+      #horse-table td:nth-child(9),
+      #horse-table th:nth-child(18),
+      #horse-table td:nth-child(18) { display: none; }
       /* 3行になるぶん、行の高さを稼ぐ余白は上下に薄く取る */
       #horse-table td { padding-top: 0.35rem; padding-bottom: 0.35rem; }
       #horse-table td:nth-child(2) { vertical-align: top; }

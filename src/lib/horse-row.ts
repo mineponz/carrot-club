@@ -21,6 +21,11 @@ import type { Evaluation } from './evaluations.ts';
 // メモ欄の上限はサーバー側の検証（parseSubmissionBody）と同じ値を使う。
 // 別々に持つと、入力はできるのに同期だけ 400 で失敗する状態になる。
 import { MAX_MEMO_LENGTH } from './evaluation-api.ts';
+// 抽選ステータス（`src/data/lotteryStatus2026.ts`）は2026年募集にしか情報源が無い年度もある
+// データなので `Horse` 型には持たせず、呼び出し側（index.astro）が突き合わせた行を渡す。
+// このファイルは `lottery-status-row.ts` に依存する一方向（逆方向のimportは循環参照になるため禁止）。
+import { lotteryListCellHtml } from './lottery-status-row.ts';
+import type { LotteryStatusRow } from './lottery-status.ts';
 
 /**
  * 表の列定義。`sortKey` があるものは見出しが並べ替えボタンになる。
@@ -49,6 +54,11 @@ export const COLUMNS = [
   // 表を端まで横スクロールする必要があった（本人の指示・2026-08-25）。
   // 既定はセルの中が📝アイコンだけなので、常に出したままでも表の幅をほとんど食わない。
   { key: 'memo', label: 'メモ', cls: 'memo-col' },
+  // 抽選ステータス（本人依頼・2026-09-05）。「ホームの左側」という指定＋No・馬名に近い側に
+  // 置きたいので、固定3列（No・馬名・評価）とメモのすぐ右、netkeibaより左に置く。
+  // 2025年募集には情報源が無いため、その年度の列は常に「—」になる（`horseRowHtml` の
+  // 第4引数を省略した場合の挙動。`手術・既往` 列がデータの無い年に空欄で残る扱いと同じ）。
+  { key: 'lottery', label: '抽選' },
   { key: 'netkeiba', label: 'netkeiba' },
   { key: 'sire', label: '父', sortKey: 'sire' },
   { key: 'broodmareSire', label: '母父', sortKey: 'broodmareSire' },
@@ -163,6 +173,10 @@ export function horseRowHtml(
   horse: Horse,
   evaluation: Evaluation,
   detailBasePath = DEFAULT_DETAIL_BASE_PATH,
+  // 抽選ステータスは2026年募集にしか情報源が無いので省略可能にする（省略時はセルが「—」になる。
+  // `lottery-status-row.ts` の `lotteryListCellHtml(null)` 参照）。呼び出し側（2026/index.astro）が
+  // `lotteryStatusRows()` で突き合わせた行を渡す。
+  lotteryRow: LotteryStatusRow | null = null,
 ): string {
   const ratingOptions = ['', 'A', 'B', 'C', 'D', 'E']
     .map((r) => {
@@ -203,6 +217,7 @@ export function horseRowHtml(
     CSSの ::after で通知ドットを付け、中身はホバー（title）で覗ける。
   -->
   <td data-col="memo" class="memo-col"><button type="button" class="memo-flag" data-field="memo-toggle" data-has-memo="${evaluation.memo !== ''}" title="${memo ? `メモ: ${memo}` : ''}" aria-label="${name}のメモを開く">📝</button><input type="text" class="memo-input" data-field="memo" value="${memo}" placeholder="メモ" aria-label="${name}のメモ" maxlength="${MAX_MEMO_LENGTH}" /></td>
+  <td data-col="lottery" class="lottery-col">${lotteryListCellHtml(lotteryRow)}</td>
   <td data-col="netkeiba" class="links"><a href="${escapeHtml(horse.netkeibaUrl)}" target="_blank" rel="noopener">netkeiba</a></td>
   <td data-col="sire">${escapeHtml(horse.sire)}</td>
   <td data-col="broodmareSire">${escapeHtml(horse.broodmareSire)}</td>

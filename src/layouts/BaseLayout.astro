@@ -579,6 +579,48 @@ const webAppJsonLd = {
         border-color: currentColor;
       }
 
+      /*
+       * 抽選ステータスのバッジ（一覧の「抽選」列・詳細ページのfacts・特設ページで共通）。
+       * 一覧（#horse-table）・特設ページ（#lottery-table）・詳細ページ（.fact-list）の
+       * 3か所から使うので、ページごとの<style>に3重で書かず BaseLayout に1つだけ置く
+       * （`.rating-select[data-rating]` と同じ理由）。マークアップは `lottery-status-row.ts`
+       * の `lotteryListCellHtml()` / `lotteryStatusRowHtml()` が生成する。
+       *
+       * tone は3色に限定し「良い/悪い」の含意は持たせない（票数列の評価的装飾を付けない方針を踏襲）。
+       * strong=抽選が発生（人気で口数の奪い合いになっている）は塗りつぶしで目立たせ、
+       * clear=そのランクで満口・抽選なし（確保）は枠線だけの控えめな見た目にする
+       * （design.md「主要=塗りつぶし／副次=枠線のみ」の階層に合わせた）。
+       * mid（未発表）はバッジにせず地の文にしているので専用の色は無い。
+       */
+      .lottery-badge {
+        display: inline-block;
+        padding: 0.05rem 0.4rem;
+        font-size: 0.7rem;
+        font-weight: 700;
+        border-radius: 4px;
+        white-space: nowrap;
+      }
+      .lottery-badge.tone-strong {
+        color: var(--accent);
+        background: var(--accent-weak);
+      }
+      .lottery-badge.tone-clear {
+        color: var(--info);
+        background: transparent;
+        border: 1px solid var(--info);
+      }
+      /* 母馬優先対象馬の一覧セル内2行表示（「母優先: ◯◯」「通常: ◯◯」）。 */
+      .lottery-line {
+        display: block;
+        font-size: 0.75rem;
+        line-height: 1.6;
+        white-space: nowrap;
+      }
+      .lottery-line-label {
+        color: var(--muted);
+        margin-right: 0.15rem;
+      }
+
       /* 棒グラフは aria-hidden なので、同じ内容をテキストでも置いている（読み上げ用） */
       .visually-hidden {
         position: absolute;

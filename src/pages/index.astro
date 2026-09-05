@@ -28,6 +28,8 @@ import { DEFAULT_EVALUATION } from '../lib/evaluations.ts';
 import { RATINGS } from '../lib/evaluation-api.ts';
 import { COLUMNS, horseRowHtml, toggleableColumns } from '../lib/horse-row.ts';
 import { analysisArticles } from '../data/articles.ts';
+import { LOTTERY_STATUS_SNAPSHOTS } from '../data/lotteryStatus2026.ts';
+import { lotteryStatusRows } from '../lib/lottery-status.ts';
 
 // 個別ページは年度ごとに別ルート（`/2026/horses/{id}/`）。一覧トップ（`/`）は「最新募集年度の
 // 一覧」という意味が年をまたいでも変わらないので年度なしのままだが、**個別ページは年度付きが正本**
@@ -64,10 +66,16 @@ const columns: readonly {
 // 「表示設定」で出す列（No・馬名・評価・メモ以外）。並びは表と同じにする。
 const columnOptions = toggleableColumns();
 
+// 抽選ステータス（本人依頼・2026-09-05）。馬ID→行データのMapにしておき、行を作るたびに引く。
+// `lotteryStatusRows()` は最新snapshotの結果を突き合わせるだけの純関数（`src/lib/lottery-status.ts`）。
+const lotteryById = new Map(
+  lotteryStatusRows(horses2026, LOTTERY_STATUS_SNAPSHOTS).map((row) => [row.id, row]),
+);
+
 // 初期表示はクライアント側の既定（id昇順）と揃える。評価は端末ごとの値なので
 // 初期HTMLでは未評価（DEFAULT_EVALUATION）で描き、読み込み後に上書きする。
 const initialRowsHtml = sortHorses(horses2026, 'id', 'asc')
-  .map((horse) => horseRowHtml(horse, DEFAULT_EVALUATION, DETAIL_BASE_PATH))
+  .map((horse) => horseRowHtml(horse, DEFAULT_EVALUATION, DETAIL_BASE_PATH, lotteryById.get(horse.id) ?? null))
   .join('\n');
 
 const total = horses2026.length;
@@ -155,7 +163,7 @@ const faqs = [
   },
   {
     q: 'このツールに独自の評価やおすすめは載っていますか？',
-    a: `載っていません。掲載しているのは馬名・性別・父・母父・母齢・誕生日・厩舎・一口価格・体高・胸囲・管囲・馬体重・兄弟・母優先${hasSurgeryData ? '・手術や既往の記載' : ''}といった客観データのみで、点数付けや順位付けは一切していません。評価は利用者自身が入力します。`,
+    a: `載っていません。掲載しているのは馬名・性別・父・母父・母齢・誕生日・厩舎・一口価格・体高・胸囲・管囲・馬体重・兄弟・母優先・抽選ステータス（クラブ公式発表を反映）${hasSurgeryData ? '・手術や既往の記載' : ''}といった客観データのみで、点数付けや順位付けは一切していません。評価は利用者自身が入力します。`,
   },
 ];
 
@@ -209,6 +217,8 @@ const faqJsonLd = {
 
   <p class="year-switch">
     <a href="/2026/tour-weight/">ツアー後馬体重を見る</a>
+    ・
+    <a href="/2026/lottery/">抽選ステータスを見る</a>
     ・
     <a href="/2025/">2025年募集馬の一覧</a>
   </p>
@@ -538,6 +548,15 @@ const faqJsonLd = {
     絞り込みの「母優先」で「あり」を選ぶと該当馬だけ、「なし」を選ぶと該当しない馬だけに絞り込めます。
   </p>
 
+  <h2>「抽選ステータス」とは</h2>
+  <p>
+    申込締切後にクラブが発表する「抽選ランク発表」（最優先×2・最優先×1・最優先×なし・一般の
+    どのランクまで抽選になったか）を、一覧の「抽選」列・各馬の個別ページ・
+    <a href="/2026/lottery/">抽選ステータス一覧</a>に反映しています。母馬優先枠がある馬は
+    母馬優先枠と通常枠を分けて表示します。クラブ公式の会員限定ページの発表を都度手入力しているため、
+    発表前は「発表待ち」と表示されます。
+  </p>
+
   <AdSlot sp={AD_SLOT_SP} pc={AD_SLOT_PC} />
 
   <h2>掲載しているデータ</h2>
@@ -556,6 +575,9 @@ const faqJsonLd = {
       }
     </li>
     <li>兄弟欄に記載のない馬は{noSiblingCount}頭</li>
+    <li>
+      抽選ステータス（一覧の「抽選」列）はクラブ公式の会員限定ページ「抽選ランク発表」を都度手入力しています。発表前は「発表待ち」と表示され、詳しくは<a href="/2026/lottery/">抽選ステータス一覧</a>をご覧ください
+    </li>
     {
       cancelledRecruits2026.length > 0 && (
         <li>
@@ -1316,17 +1338,18 @@ const faqJsonLd = {
          （本人了承済み・2026-08-23。SP専用の並び替えバーは元のUIに戻すため取りやめた）。
          列番号は COLUMNS の並び順に対応する（メモを4列目に移したぶん、以前の 5/6/7/15 から
          1つずつ後ろにずれている。さらに産次列を母齢の右隣に追加したぶん、厩舎は16→17に
-         ずれている。horse-row.test.ts に番号を突き合わせるテストがある）。 */
+         ずれている。2026-09-05に抽選列をメモの右隣（5列目）に挿入したぶん、6/7/8/17は
+         さらに7/8/9/18にずれている。horse-row.test.ts に番号を突き合わせるテストがある）。 */
       #horse-table th:nth-child(1),
       #horse-table td:nth-child(1),
-      #horse-table th:nth-child(6),
-      #horse-table td:nth-child(6),
       #horse-table th:nth-child(7),
       #horse-table td:nth-child(7),
       #horse-table th:nth-child(8),
       #horse-table td:nth-child(8),
-      #horse-table th:nth-child(17),
-      #horse-table td:nth-child(17) { display: none; }
+      #horse-table th:nth-child(9),
+      #horse-table td:nth-child(9),
+      #horse-table th:nth-child(18),
+      #horse-table td:nth-child(18) { display: none; }
       /* 3行になるぶん、行の高さを稼ぐ余白は上下に薄く取る */
       #horse-table td { padding-top: 0.35rem; padding-bottom: 0.35rem; }
       #horse-table td:nth-child(2) { vertical-align: top; }
@@ -1358,6 +1381,8 @@ const faqJsonLd = {
     // 行のマークアップはビルド時と共有する。ここで別に組み立てると二重管理になり、
     // 初期HTML（＝クローラーが見る内容）と描き直した後の表がずれる。
     import { COLUMNS, horseRowHtml } from '../lib/horse-row.ts';
+    import { LOTTERY_STATUS_SNAPSHOTS } from '../data/lotteryStatus2026.ts';
+    import { lotteryStatusRows } from '../lib/lottery-status.ts';
     import { queueEvaluationSync } from '../lib/evaluation-client.ts';
     import { EVALUATIONS_RESTORED_EVENT } from '../lib/sync.ts';
     import {
@@ -1459,6 +1484,10 @@ const faqJsonLd = {
     // frontmatter の定数はクライアント側から参照できないので同じ値をここにも置く
     const DETAIL_BASE_PATH = '/2026/horses/';
     const RECRUIT_YEAR = 2026;
+    // 抽選ステータスも frontmatter と同じ組み立て（馬ID→行データのMap）をここに置く
+    const lotteryById = new Map(
+      lotteryStatusRows(horses2026, LOTTERY_STATUS_SNAPSHOTS).map((row) => [row.id, row]),
+    );
 
     // 評価・父・性別のチェックボックスは value で見分けるのでidを持たない（群としてまとめて
     // 保存する）。条件の保存はidを鍵にするので、idを持つチェックだけ分けておく。
@@ -1609,7 +1638,9 @@ const faqJsonLd = {
         list.length === 0
           ? `<tr><td colspan="${COLUMNS.length}">条件に一致する馬がいません。</td></tr>`
           : list
-              .map((h) => horseRowHtml(h, getEvaluation(evaluations, h.id), DETAIL_BASE_PATH))
+              .map((h) =>
+                horseRowHtml(h, getEvaluation(evaluations, h.id), DETAIL_BASE_PATH, lotteryById.get(h.id) ?? null),
+              )
               .join('');
       resultCount.textContent = `${list.length} / ${horses2026.length} 頭`;
       // 行を作り直すとメモ欄の開閉状態も消えるので、一括表示がONのときだけ開き直す

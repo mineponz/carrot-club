@@ -155,6 +155,13 @@ test('COLUMNS: メモは評価のすぐ隣（4列目）に置く', () => {
   assert.equal(labels[3], 'メモ');
 });
 
+test('COLUMNS: 抽選はメモのすぐ隣（5列目、netkeibaより左）に置く', () => {
+  const labels = COLUMNS.map((c) => c.label);
+  assert.equal(labels.indexOf('抽選'), labels.indexOf('メモ') + 1);
+  assert.equal(labels[4], '抽選');
+  assert.ok(labels.indexOf('抽選') < labels.indexOf('netkeiba'));
+});
+
 test('COLUMNS: 列のkeyは重複しない（表示設定の保存が別の列に効かないように）', () => {
   const keys = COLUMNS.map((c) => c.key);
   assert.equal(new Set(keys).size, keys.length);
@@ -194,8 +201,10 @@ test('COLUMNS: SP幅で馬名見出しを押したときは No（id）で並べ�
 test('COLUMNS: SPで隠す列（No・父・母父・性・厩舎）の位置がページのCSSと一致する', () => {
   // index.astro / 2025/index.astro の @media (max-width: 40rem) が nth-child の番号で
   // 列を隠しているので、列を入れ替えたらここも一緒に直す（ずれると別の列が消える）。
+  // 2026-09-05に抽選列を5列目に挿入したぶん、以前の 1/6/7/8/17 から後ろの4つが1つずつ
+  // 後ろにずれている（No自体は1列目のまま）。
   const labels = COLUMNS.map((c) => c.label);
-  const hiddenOnSp = [1, 6, 7, 8, 17].map((n) => labels[n - 1]);
+  const hiddenOnSp = [1, 7, 8, 9, 18].map((n) => labels[n - 1]);
   assert.deepEqual(hiddenOnSp, ['No', '父', '母父', '性', '厩舎']);
 });
 
@@ -215,6 +224,27 @@ test('horseRowHtml: 手術・既往は有無を◯で出すだけにする（全
 
 test('horseRowHtml: 手術・既往の記載が無ければ◯を出さない', () => {
   assert.match(horseRowHtml(horse, DEFAULT_EVALUATION), /<td data-col="surgery" class="surgery" title=""><\/td>/);
+});
+
+test('horseRowHtml: 抽選ステータスの行を渡さなければ「—」（2025年募集など情報源が無い年度）', () => {
+  const html = horseRowHtml(horse, DEFAULT_EVALUATION);
+  assert.match(html, /<td data-col="lottery" class="lottery-col">—<\/td>/);
+});
+
+test('horseRowHtml: 抽選ステータスの行を渡すと一覧セルに反映される', () => {
+  const html = horseRowHtml(horse, DEFAULT_EVALUATION, undefined, {
+    id: horse.id,
+    name: horse.name,
+    sire: horse.sire,
+    sex: horse.sex,
+    hasDamPriority: true,
+    damPriority: { cutoffRank: 'x2', lotteryOccurred: true, note: null },
+    normal: { cutoffRank: 'general', lotteryOccurred: false, note: null },
+    remainingShares: null,
+  });
+  const cell = html.match(/<td data-col="lottery"[^]*?<\/td>/)![0];
+  assert.match(cell, /最優先×2抽選/);
+  assert.match(cell, /一般で確保/);
 });
 
 test('shortStableLabel: 地方馬の長い表記はトラック名だけにする', () => {
