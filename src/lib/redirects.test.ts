@@ -30,6 +30,12 @@ test('redirectTarget: 年度なしの募集申込票数ページも年度付き�
   assert.equal(redirectTarget('/votes/index.html'), '/2026/votes/');
 });
 
+test('redirectTarget: 年度なしの抽選ステータス一覧ページも年度付きへ301', () => {
+  assert.equal(redirectTarget('/lottery/'), '/2026/lottery/');
+  assert.equal(redirectTarget('/lottery'), '/2026/lottery/');
+  assert.equal(redirectTarget('/lottery/index.html'), '/2026/lottery/');
+});
+
 test('redirectTarget: /2026/ は最新年度の別名なので一覧トップへ301', () => {
   assert.equal(redirectTarget('/2026/'), '/');
   assert.equal(redirectTarget('/2026'), '/');
@@ -41,6 +47,7 @@ test('redirectTarget: 正本URLはリダイレクトしない（301のチェー�
   assert.equal(redirectTarget('/2026/horses/1/'), null);
   assert.equal(redirectTarget('/2026/tour-weight/'), null);
   assert.equal(redirectTarget('/2026/votes/'), null);
+  assert.equal(redirectTarget('/2026/lottery/'), null);
   assert.equal(redirectTarget('/'), null);
 });
 
@@ -86,6 +93,10 @@ test('redirectTargetForHost: 旧ドメイン＋旧パスは1ホップで正本�
   assert.deepEqual(redirectTargetForHost(LEGACY_HOSTNAME, '/tour-weight/'), {
     hostname: CANONICAL_HOSTNAME,
     pathname: '/2026/tour-weight/',
+  });
+  assert.deepEqual(redirectTargetForHost(LEGACY_HOSTNAME, '/lottery/'), {
+    hostname: CANONICAL_HOSTNAME,
+    pathname: '/2026/lottery/',
   });
   assert.deepEqual(redirectTargetForHost(LEGACY_HOSTNAME, '/2026/'), {
     hostname: CANONICAL_HOSTNAME,

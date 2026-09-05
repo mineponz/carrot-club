@@ -1,0 +1,353 @@
+---
+/**
+ * 抽選ステータス一覧ページ（`/2026/lottery/`）。
+ *
+ * キャロットクラブが申込締切後に会員限定ページで発表する「抽選ランク発表」（最優先×2・
+ * 最優先×1・最優先×なし・一般のどのランクまで抽選になったか）を、全93頭の表に載せて
+ * 見比べるための単独ページ（本人依頼・2026-09-05）。データは `src/data/lotteryStatus2026.ts` の
+ * `LOTTERY_STATUS_SNAPSHOTS`（発表ごとのスナップショット配列。表示には最新だけを使う）。
+ * 発表が来たら配列に1つ足すだけで反映される。
+ *
+ * `/2026/votes/`・`/2026/tour-weight/` と同じく**中身が100%2026年募集馬**なので、
+ * 年度付きURLが正本。年度なしの `/lottery/` は `src/lib/redirects.ts` で301するだけの別名。
+ *
+ * 表の行はビルド時とブラウザ側の両方で `lotteryStatusRowHtml()` から作る。ビルド時に
+ * 全頭を埋め込んでおかないと、サーバーが返すHTMLに1件もデータが含まれず
+ * （クローラーには空の表しか見えない）検索に載らない。
+ *
+ * 初期表示は「抽選が発生している馬（tone:'strong'）を上」（本人依頼の主旨）にするため、
+ * `normal`（通常枠）の severity 降順にしている。母馬優先枠だけ抽選が発生している馬を
+ * 見落とさないよう、見出しから「母馬優先枠」列でも並べ替えられる。
+ */
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import { horses2026 } from '../../data/horses2026.ts';
+import { LOTTERY_STATUS_SNAPSHOTS } from '../../data/lotteryStatus2026.ts';
+import { lotteryStatusRows, sortLotteryStatusRows } from '../../lib/lottery-status.ts';
+import { LOTTERY_STATUS_COLUMNS, lotteryStatusRowHtml } from '../../lib/lottery-status-row.ts';
+
+// 馬名から飛ぶ個別ページも年度付きが正本。既定値まかせにせず年度ごとに明示する（tour-weight/votesと同じ書き方）
+const DETAIL_BASE_PATH = '/2026/horses/';
+
+const rows = lotteryStatusRows(horses2026, LOTTERY_STATUS_SNAPSHOTS);
+const total = rows.length;
+
+// まだ抽選ランク発表が1件も無い（配列自体が空）状態か。器の段階ではここが true。
+const noSnapshotPublished = LOTTERY_STATUS_SNAPSHOTS.length === 0;
+const latestSnapshot = LOTTERY_STATUS_SNAPSHOTS.at(-1) ?? null;
+// 発表済み（通常枠の結果が付いている）頭数
+const publishedCount = rows.filter((r) => r.normal !== null).length;
+const lotteryOccurredCount = rows.filter(
+  (r) => r.normal?.lotteryOccurred === true || r.damPriority?.lotteryOccurred === true,
+).length;
+
+// 初期表示は「抽選が発生している馬を上」（本人依頼の主旨）。未発表は常に末尾に落ちる。
+const initialRowsHtml = sortLotteryStatusRows(rows, 'normal', 'desc')
+  .map((row) => lotteryStatusRowHtml(row, DETAIL_BASE_PATH))
+  .join('\n');
+
+const title = '抽選ステータス一覧';
+const description = `【非公式】キャロットクラブ2026年募集馬${total}頭について、クラブが申込締切後に発表する「抽選ランク発表」（母馬優先枠・通常枠それぞれどのランクまで抽選になったか）を見比べられる非公式ツールです。株式会社キャロットクラブとは関係ありません。`;
+---
+
+<BaseLayout title={title} description={description}>
+  <h1>{title}</h1>
+  <p class="lead">
+    キャロットクラブが申込締切後に会員限定ページで発表する「抽選ランク発表」（最優先×2・最優先×1・
+    最優先×なし・一般のどのランクまで抽選になったか）をまとめています。
+    母がキャロット出身馬の場合にある「母馬優先枠」は、通常枠（最優先＋一般）と別に結果が出ます。
+    見出しをクリックすると並べ替えられます（もう一度押すと昇順・降順が入れ替わります）。馬名から各馬の個別ページに飛べます。
+  </p>
+  <p class="source-note">
+    抽選ランクの出所:{' '}
+    {/* TODO(データ投入時に確定): 発表ページの正確なURLへ差し替える。会員限定ページのため暫定でトップを貼っている。 */}
+    <a href="https://carrotclub.net/" target="_blank" rel="noopener">キャロットクラブ公式サイト（会員限定）「抽選ランク発表」</a>。
+    クラブ公式の発表を都度手入力しています。発表前・未掲載の枠は「発表待ち」と表示しています。
+  </p>
+
+  <p class="year-switch">
+    <a href="/">一覧に戻る</a>
+  </p>
+
+  {
+    noSnapshotPublished ? (
+      <p class="placeholder">抽選ランク発表はまだ行われていません。発表後にここへ反映します。</p>
+    ) : (
+      <p class="result-count">
+        {latestSnapshot && `${latestSnapshot.asOf}時点（${latestSnapshot.label}）・`}
+        {total}頭中、抽選結果が発表されているのは{publishedCount}頭（うち抽選が発生しているのは{lotteryOccurredCount}頭）です。
+      </p>
+    )
+  }
+
+  <div class="table-wrap">
+    <table id="lottery-table">
+      <caption class="visually-hidden">
+        2026年募集馬{total}頭の抽選ステータス（抽選ランク発表）の一覧
+      </caption>
+      <thead>
+        <tr>
+          {
+            LOTTERY_STATUS_COLUMNS.map((col) => (
+              <th data-col={col.key} class:list={[col.align === 'num' && 'num']}>
+                <button
+                  type="button"
+                  class="sort-btn"
+                  data-sort-key={col.sortKey}
+                  data-sort-key-sp={col.spSortKey}
+                >
+                  {col.label}
+                </button>
+              </th>
+            ))
+          }
+        </tr>
+      </thead>
+      <tbody id="lottery-tbody" set:html={initialRowsHtml} />
+    </table>
+  </div>
+
+  <p class="note">
+    データは掲載時点のものです。最新の抽選状況や実際の募集条件は必ずクラブ公式でご確認ください。
+    抽選の有無は人気の一材料であり、良し悪しを示すものではありません。
+  </p>
+
+  <style>
+    .lead { color: var(--muted); margin-top: 0; }
+    .source-note {
+      margin-block: 0 0.5rem;
+      font-size: 0.8125rem;
+      color: var(--muted);
+    }
+    .year-switch { margin-block: 0 0.5rem; font-size: 0.875rem; color: var(--muted); }
+    .placeholder {
+      margin-block: 0 0.75rem;
+      padding: 0.75rem 1rem;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      font-size: 0.875rem;
+      color: var(--muted);
+    }
+    .result-count {
+      color: var(--muted);
+      font-size: 0.8125rem;
+      margin: 0 0 0.35rem;
+    }
+    .note { color: var(--muted); font-size: 0.875rem; }
+    .table-wrap {
+      overflow: auto;
+      max-height: calc(100vh - 2rem);
+      max-height: calc(100dvh - 2rem);
+      overscroll-behavior: auto;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      background: var(--surface);
+    }
+    /* PC幅では表を固定幅（下の #lottery-table 参照）にするので、枠も表の幅ぶんに縮める。
+       表が画面より広ければ 100% で頭打ちにして中で横スクロール。SP幅は従来どおり全幅。 */
+    @media (min-width: 40.0625rem) {
+      .table-wrap {
+        width: fit-content;
+        max-width: 100%;
+      }
+    }
+    .visually-hidden {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      overflow: hidden;
+      clip-path: inset(50%);
+      white-space: nowrap;
+    }
+  </style>
+
+  <!--
+    表の行はクライアント側のscriptがinnerHTMLで描き直すため、Astroのスコープ属性が付かない。
+    votes/tour-weight ページと同じ理由で、表まわりだけ is:global にする。
+  -->
+  <style is:global>
+    #lottery-table {
+      border-collapse: collapse;
+      width: 100%;
+      font-size: 0.8125rem;
+    }
+    #lottery-table th,
+    #lottery-table td {
+      padding: 0.4rem 0.6rem;
+      border-bottom: 1px solid var(--border);
+      text-align: left;
+      vertical-align: middle;
+      white-space: nowrap;
+    }
+    #lottery-table thead th {
+      background: var(--accent-weak);
+      position: sticky;
+      top: 0;
+      z-index: 2;
+    }
+    #lottery-table th.num,
+    #lottery-table td.num { text-align: right; }
+    #lottery-table tbody tr:hover td { background: var(--accent-weak); }
+
+    #lottery-table .sort-btn {
+      font: inherit;
+      font-weight: 700;
+      background: none;
+      border: none;
+      padding: 0;
+      cursor: pointer;
+      color: var(--text);
+    }
+    #lottery-table .sort-btn:hover { color: var(--accent); }
+    #lottery-table .sort-btn[data-active='true'] { color: var(--accent); }
+
+    /* 馬名セルに重ねてあるSP用の行は、広い画面では列として並んでいるので出さない */
+    #lottery-table .sp-no,
+    #lottery-table .sp-line { display: none; }
+
+    /* 馬名は途切れさせず、長い馬名は折り返す（tour-weight/votesと同じ）。 */
+    #lottery-table [data-col="name"] {
+      white-space: normal;
+      overflow-wrap: anywhere;
+    }
+    #lottery-table [data-col="sire"] {
+      white-space: normal;
+      overflow-wrap: anywhere;
+    }
+
+    /* ---- 馬名列は画面幅を問わず左端に固定する（tour-weight/votesと同じ考え方） ---- */
+    #lottery-table [data-col="name"] {
+      position: sticky;
+      left: 0;
+      background: var(--surface);
+      z-index: 1;
+      box-shadow: 6px 0 5px -5px rgb(0 0 0 / 0.28);
+    }
+    #lottery-table thead [data-col="name"] {
+      background: var(--accent-weak);
+      z-index: 3;
+    }
+    #lottery-table tbody tr:hover [data-col="name"] { background: var(--accent-weak); }
+
+    /* ---- 狭い画面（SP）: No・父・牡牝を馬名セルに畳む ---- */
+    @media (max-width: 40rem) {
+      #lottery-table .sp-no {
+        display: inline;
+        color: var(--muted);
+        margin-right: 0.2rem;
+      }
+      #lottery-table .sp-line {
+        display: block;
+        font-size: 0.6875rem;
+        font-weight: 400;
+        color: var(--muted);
+      }
+      #lottery-table [data-col="id"],
+      #lottery-table [data-col="sire"],
+      #lottery-table [data-col="sex"] { display: none; }
+      #lottery-table td[data-col="name"] { vertical-align: top; }
+    }
+
+    /* 広い画面（40remより広い）: 固定レイアウトにして各列の幅を積み上げる。
+       これをしないと余った横幅が無指定の列にぶら下がり、馬名と結果が離れて見える
+       （votes/tour-weightで実際に踏んだ問題。本人の指摘・2026-09-02）。
+       総幅 = No 3 + 馬名 13 + 父 8 + 牡牝 3 + 母馬優先枠 8 + 通常枠 8 + 残り口数 5 = 48rem。 */
+    @media (min-width: 40.0625rem) {
+      #lottery-table {
+        table-layout: fixed;
+        width: 48rem;
+      }
+      #lottery-table col[data-col="id"],
+      #lottery-table th[data-col="id"],
+      #lottery-table td[data-col="id"] { width: 3rem; }
+      #lottery-table th[data-col="name"],
+      #lottery-table td[data-col="name"] { width: 13rem; }
+      #lottery-table th[data-col="sire"],
+      #lottery-table td[data-col="sire"] { width: 8rem; }
+      #lottery-table th[data-col="sex"],
+      #lottery-table td[data-col="sex"] { width: 3rem; }
+      #lottery-table th[data-col="damPriority"],
+      #lottery-table td[data-col="damPriority"] { width: 8rem; }
+      #lottery-table th[data-col="normal"],
+      #lottery-table td[data-col="normal"] { width: 8rem; }
+      #lottery-table th[data-col="remainingShares"],
+      #lottery-table td[data-col="remainingShares"] { width: 5rem; }
+
+      /* No 列も表示されるので、No・馬名の2列を左端に固定する（votes/tour-weightと同じ） */
+      #lottery-table [data-col="id"] {
+        position: sticky;
+        left: 0;
+        background: var(--surface);
+        z-index: 1;
+      }
+      #lottery-table [data-col="name"] {
+        left: 3rem;
+      }
+      #lottery-table thead [data-col="id"] {
+        background: var(--accent-weak);
+        z-index: 3;
+      }
+      #lottery-table tbody tr:hover [data-col="id"] { background: var(--accent-weak); }
+    }
+  </style>
+
+  <script>
+    import { horses2026 } from '../../data/horses2026.ts';
+    import { LOTTERY_STATUS_SNAPSHOTS } from '../../data/lotteryStatus2026.ts';
+    import {
+      lotteryStatusRows,
+      sortLotteryStatusRows,
+      type LotteryStatusSortKey,
+      type SortDirection,
+    } from '../../lib/lottery-status.ts';
+    // 行のマークアップはビルド時と共有する（二重管理にすると初期HTMLとずれる）
+    import { lotteryStatusRowHtml } from '../../lib/lottery-status-row.ts';
+
+    // frontmatter の定数はクライアント側から参照できないので同じ値をここにも置く
+    const DETAIL_BASE_PATH = '/2026/horses/';
+
+    const rows = lotteryStatusRows(horses2026, LOTTERY_STATUS_SNAPSHOTS);
+
+    const tbody = document.getElementById('lottery-tbody')!;
+    const sortButtons = document.querySelectorAll<HTMLButtonElement>('.sort-btn');
+
+    let sortKey: LotteryStatusSortKey = 'normal';
+    let sortDirection: SortDirection = 'desc';
+
+    // No列を隠すSP幅（40rem）は上のCSSの境界と必ず同じ値にする（votes/tour-weightと同じ理由）
+    const SP_MEDIA_QUERY = '(max-width: 40rem)';
+    function sortKeyOf(btn: HTMLButtonElement): LotteryStatusSortKey {
+      const spKey = btn.dataset.sortKeySp;
+      if (spKey && window.matchMedia(SP_MEDIA_QUERY).matches) return spKey as LotteryStatusSortKey;
+      return btn.dataset.sortKey as LotteryStatusSortKey;
+    }
+
+    function render() {
+      const sorted = sortLotteryStatusRows(rows, sortKey, sortDirection);
+      tbody.innerHTML = sorted.map((r) => lotteryStatusRowHtml(r, DETAIL_BASE_PATH)).join('');
+      for (const btn of sortButtons) {
+        const active = sortKeyOf(btn) === sortKey;
+        btn.setAttribute('data-active', String(active));
+        const label = btn.textContent!.trim().replace(/\s*[▲▼]$/u, '');
+        btn.textContent = active ? `${label} ${sortDirection === 'asc' ? '▲' : '▼'}` : label;
+      }
+    }
+
+    for (const btn of sortButtons) {
+      btn.addEventListener('click', () => {
+        const key = sortKeyOf(btn);
+        if (sortKey === key) {
+          sortDirection = sortDirection === 'asc' ? 'desc' : 'asc';
+        } else {
+          sortKey = key;
+          // 抽選発生・残り口数は「多い順」で見たいことが多いので初手を降順に、文字列列は昇順にする
+          sortDirection = key === 'name' || key === 'sire' || key === 'sex' || key === 'id' ? 'asc' : 'desc';
+        }
+        render();
+      });
+    }
+
+    // 初期表示（normal 降順）を見出しのアクティブ表示に反映する
+    render();
+  </script>
+</BaseLayout>
