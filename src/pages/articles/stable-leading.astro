@@ -182,9 +182,14 @@ const cutStats = cutStatsOf(jra);
 const [cut10, cut20, cut30] = cutStats;
 const recentCutStats = cutStatsOf(recent);
 
+/**
+ * 「入っていた/入っていなかった」だけだと何に入っていたのか分からない、という指摘
+ * （2026-09-05・本人）を受けて「厩舎が上位/厩舎が上位外」に変更。凡例・軸下の注記・
+ * 表の見出しに共通で使うラベルなので、主語（厩舎）と対象（上位）の両方を短く入れる。
+ */
 const HIT_SERIES = [
-  { key: 'hit', label: '入っていた', colorVar: '--series-1' },
-  { key: 'miss', label: '入っていなかった', colorVar: '--series-2' },
+  { key: 'hit', label: '厩舎が上位', colorVar: '--series-1' },
+  { key: 'miss', label: '厩舎が上位外', colorVar: '--series-2' },
 ];
 const gradeRateGroups = cutStats.map((c) => ({
   label: c.label,
@@ -670,8 +675,8 @@ const description = `【非公式】キャロットクラブ${yearRangeLabel}募
         <thead>
           <tr>
             <th>募集時のリーディング</th>
-            <th>入っていた</th>
-            <th>入っていなかった</th>
+            <th>厩舎が上位</th>
+            <th>厩舎が上位外</th>
             <th>差の検定</th>
           </tr>
         </thead>
@@ -732,8 +737,8 @@ const description = `【非公式】キャロットクラブ${yearRangeLabel}募
         <thead>
           <tr>
             <th>募集時のリーディング</th>
-            <th>入っていた</th>
-            <th>入っていなかった</th>
+            <th>厩舎が上位</th>
+            <th>厩舎が上位外</th>
             <th>差の検定</th>
           </tr>
         </thead>
@@ -787,8 +792,8 @@ const description = `【非公式】キャロットクラブ${yearRangeLabel}募
         <thead>
           <tr>
             <th>募集時のリーディング</th>
-            <th>入っていた</th>
-            <th>入っていなかった</th>
+            <th>厩舎が上位</th>
+            <th>厩舎が上位外</th>
             <th>差の検定</th>
           </tr>
         </thead>
@@ -836,8 +841,8 @@ const description = `【非公式】キャロットクラブ${yearRangeLabel}募
           <tr>
             <th>募集時のリーディング</th>
             <th>指標</th>
-            <th>入っていた</th>
-            <th>入っていなかった</th>
+            <th>厩舎が上位</th>
+            <th>厩舎が上位外</th>
             <th>差の検定</th>
           </tr>
         </thead>
