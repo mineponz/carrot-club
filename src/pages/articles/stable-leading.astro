@@ -8,15 +8,16 @@
  * ## 分け方は「募集年時点」＝出資を決める人が見られる情報だけ（2026-09-05にここを直した）
  * 以前は「3歳シーズン（募集年+2）」の順位で分けていたが、その年の勝利数には**その馬自身の
  * 勝利が入りうる**（測定窓が重なる）。実際、3歳基準では重賞馬率15.7%対4.6%という強い差が
- * 出ていたのに、募集年基準に直すと7.8%対6.0%（p=0.51）まで縮んだ。
+ * 出ていたのに、募集年基準に直すと8.0%対5.9%（p=0.4478）まで縮んだ。
  * **3歳基準の数値・関数はもう存在しない**ので、過去の記述と混ぜないこと
  * （vault: `1-projects/carrot-club/tasks/20260903-trainer-region-article.md`）。
  * 募集年は9年ぶんすべてリーディングの表があるため、参照年の代用はゼロ（アサーション16で検算）。
  *
  * ## この記事の主題は「ほとんど関係がなかった」
  * 重賞馬率も獲得賞金の中央値も、上位の厩舎かどうかでたいして変わらない。線を広げると
- * むしろ上位側のほうが低い。唯一はっきり出たのは「上位側のほうが出走率が低い」という
- * 期待とは逆向きの差で、**その理由は書かない**（この集計からは決められないため）。
+ * むしろ上位側のほうが低いことさえある。いちばんはっきり出たのは「上位側のほうが出走率が低い」
+ * という期待とは逆向きの差だが、3本の線のうち検定が通るのは30位以内の1本だけで、
+ * **その理由は書かない**（この集計からは決められないため）。
  * 弱い結果・逆向きの結果を隠さないことがこの記事の値打ちなので、都合の悪い数字も全部出す。
  *
  * ## 調教師個人の優劣の話にしないこと
@@ -25,8 +26,9 @@
  * よって違う区分に出る」＝分類が年ごとであることに気づける形にするため）。
  *
  * ## 書き方の前提
- * 本文が置いている前提（差が出ない・線の引き方で出たり消えたりする・賞金は逆転する・
- * 出走率だけ一貫して逆向き・直近5年でも形が同じ・重賞馬37頭の内訳・東西は五分）は
+ * 本文が置いている前提（差が出ない・線の引き方で出たり消えたりする・賞金は10位以内だと
+ * わずかに該当側が高いが誤差で線を広げると逆に出る・出走率は3本とも上位側が低いが有意なのは
+ * 30位以内だけ・直近5年は賞金の向きが揃わないが出走率は同じ形・重賞馬37頭の内訳・東西は五分）は
  * すべてビルド時アサーションにしてある。成績を取り直して前提が崩れたらビルドが落ちる。
  */
 import BaseLayout from '../../layouts/BaseLayout.astro';
@@ -238,9 +240,8 @@ function rankBucketOf(h: RecruitWithResult): string {
 /**
  * GradeWinnerTable の「募集時の担当厩舎」列に出す表示用の値。集計・分類には`rankBucketOf`
  * （4分類のバケット）を使うが、実例テーブルでは具体的な順位が分かる馬にはそのまま出す
- * （2026-09-05・本人「順位って具体的に出せないの？」）。umapiaのリーディング表は上位約50位
- * までしか無いため、それより下・掲載無しの馬は順位が分からず「圏外」としか言えない
- * （`rank === null`。31〜50位で捕捉できた馬は数字で出る）。
+ * （2026-09-05・本人「順位って具体的に出せないの？」）。リーディング表に掲載がなく
+ * 順位が特定できない馬だけ「圏外」になる（`rank === null`）。
  */
 function rankDisplayOf(h: RecruitWithResult): string {
   const { rank } = leadingRankOf(h);
@@ -258,6 +259,16 @@ const bucketBars = RANK_BUCKETS.map((label) => {
 });
 const outsideWinners = gradeWinners.filter((h) => rankBucketOf(h) === '30位外');
 const insideWinners = gradeWinners.filter((h) => rankBucketOf(h) !== '30位外');
+/**
+ * 「30位外」でも具体的な順位が分かる馬とそうでない（`rank === null`＝圏外）馬の内訳。
+ * 「30位外＝リーディングに名前が出てこない」ではないことを本文で説明するための数字。
+ */
+const outsideRanked = outsideWinners
+  .map((h) => leadingRankOf(h).rank)
+  .filter((r): r is number => r !== null);
+const outsideUnrankedCount = outsideWinners.length - outsideRanked.length;
+const outsideRankMin = outsideRanked.length > 0 ? Math.min(...outsideRanked) : null;
+const outsideRankMax = outsideRanked.length > 0 ? Math.max(...outsideRanked) : null;
 /** 各側の表に出す頭数（賞金の多い順に上から）。残りは折りたたみへ。 */
 const SIDE_VISIBLE = 6;
 const insideVisible = insideWinners.slice(0, SIDE_VISIBLE);
@@ -286,8 +297,11 @@ const bigEarnerCounts = RANK_BUCKETS.map((label) => ({
   label,
   count: bigEarners.filter((h) => rankBucketOf(h) === label).length,
 }));
-/** 5億円超のうち「30位外」区分の馬（本文で名前を出す2頭）。 */
-const bigEarnersOutside = bigEarners.filter((h) => rankBucketOf(h) === '30位外');
+/** 獲得賞金5億円超6頭のうち、区分ごとの頭数がいちばん多い区分（本文の「いちばん多いのは〜」の根拠）。 */
+const maxBigEarnerBucket = bigEarnerCounts.reduce(
+  (max, b) => (b.count > max.count ? b : max),
+  bigEarnerCounts[0]
+);
 /** 「10位以内」区分でいちばん稼いだ馬。 */
 const top10Winners = gradeWinners.filter((h) => rankBucketOf(h) === '10位以内');
 const top10Best = top10Winners[0];
@@ -341,13 +355,14 @@ if (!(cut10.grade.aRate > cut10.grade.bRate && cut10.grade.usable && cut10.grade
       '「いちばん厳しい線で切ってもほぼ横並び」と書いた本文を書き直すこと。'
   );
 }
-// 3. Top10 の賞金中央値の比が 0.95〜1.05（783 / 781 でほぼ同額）
+// 3. Top10 の賞金中央値の比が 1.00〜1.20（該当側が1割ほど高い）、かつ検定は非有意
 {
   const ratio = cut10.prize.aMed / cut10.prize.bMed;
-  if (!(ratio >= 0.95 && ratio <= 1.05)) {
+  if (!(ratio >= 1.0 && ratio <= 1.2 && cut10.prize.mw.p >= ALPHA)) {
     premiseErrors.push(
-      `10位以内の賞金中央値がほぼ同額でなくなった（${formatManYen(cut10.prize.aMed)}万 vs ` +
-        `${formatManYen(cut10.prize.bMed)}万・比${ratio.toFixed(3)}）。「ほぼ同額」と書いた本文を書き直すこと。`
+      `10位以内の賞金中央値が「1割ほど高いが誤差」でなくなった（${formatManYen(cut10.prize.aMed)}万 vs ` +
+        `${formatManYen(cut10.prize.bMed)}万・比${ratio.toFixed(3)}・${formatP(cut10.prize.mw.p)}）。` +
+        '本文を書き直すこと。'
     );
   }
 }
@@ -374,10 +389,10 @@ for (const c of [cut20, cut30]) {
     );
   }
 }
-if (!(cut30.prize.aMed / cut30.prize.bMed < 0.5)) {
+if (!(cut30.prize.aMed / cut30.prize.bMed < 0.85)) {
   premiseErrors.push(
-    `30位以内の賞金中央値の比が0.5以上になった（${(cut30.prize.aMed / cut30.prize.bMed).toFixed(3)}）。` +
-      '「中央値が3分の1近い」と書いた本文を書き直すこと。'
+    `30位以内の賞金中央値の比が0.85以上になった（${(cut30.prize.aMed / cut30.prize.bMed).toFixed(3)}）。` +
+      '「4分の3ほどの水準」と書いた本文を書き直すこと。'
   );
 }
 // 7. 出走率は3本の線すべてで 該当 < 非該当
@@ -387,33 +402,52 @@ if (!cutStats.every((c) => c.start.aRate < c.start.bRate)) {
       '「3本とも上位側が低い」と書いた本文を書き直すこと。'
   );
 }
-// 8. 出走率の差（非該当 − 該当）が 10位→20位→30位 と単調に拡大する
-if (!startGaps.every((g, i) => i === 0 || g > startGaps[i - 1])) {
+// 8. 出走率の差（非該当 − 該当）は、30位以内が3本の中でいちばん大きく、かつ8pt以上ひらく
+if (!(startGaps[2] === Math.max(...startGaps) && startGaps[2] >= 8)) {
   premiseErrors.push(
-    `出走率の差が10→20→30位で単調に拡大しなくなった（${startGaps.map((g) => g.toFixed(1) + 'pt').join(' / ')}）。` +
-      '「線を広げるほど差が開く」と書いた本文を書き直すこと。'
+    `出走率の差で30位以内がいちばん大きく開かなくなった（${startGaps.map((g) => g.toFixed(1) + 'pt').join(' / ')}）。` +
+      '「30位以内でいちばん大きく開く」と書いた本文を書き直すこと。'
   );
 }
-// 9. 出走率 Top20 は p < 0.05、Top30 は p < 0.001
-if (!(cut20.start.usable && cut20.start.test.p < ALPHA)) {
+// 9. 出走率 Top20 は非有意、Top30 は p < 0.01
+if (!(cut20.start.usable && cut20.start.test.p >= ALPHA)) {
   premiseErrors.push(
-    `20位以内の出走率の差が有意でなくなった（${ratePText(cut20.start)}）。本文の検定の書き方を直すこと。`
+    `20位以内の出走率の差が有意になった（${ratePText(cut20.start)}）。` +
+      '「通ったのは30位以内の1本だけ」と書いた本文を直すこと。'
   );
 }
-if (!(cut30.start.usable && cut30.start.test.p < 0.001)) {
+if (!(cut30.start.usable && cut30.start.test.p < 0.01)) {
   premiseErrors.push(
-    `30位以内の出走率の差が p<0.001 を外れた（${ratePText(cut30.start)}）。本文の検定の書き方を直すこと。`
+    `30位以内の出走率の差が p<0.01 を外れた（${ratePText(cut30.start)}）。本文の検定の書き方を直すこと。`
   );
 }
-// 10. 直近5年でも賞金中央値・出走率が3本の線すべてで 該当 < 非該当
-for (const c of recentCutStats) {
-  if (!(c.prize.aMed < c.prize.bMed)) {
+// 10. 直近5年の賞金中央値は向きが揃わない（10位・30位以内は該当<非該当、20位以内だけ逆）。
+//     出走率は3本の線すべてで 該当 < 非該当。
+{
+  const [r10, r20, r30] = recentCutStats;
+  if (!(r10.prize.aMed < r10.prize.bMed)) {
     premiseErrors.push(
-      `直近${RECENT_FROM}年以降で${c.label}の賞金中央値の向きが変わった（` +
-        `${formatManYen(c.prize.aMed)}万 vs ${formatManYen(c.prize.bMed)}万）。` +
-        '「3本すべてで上位側のほうが低い」と書いた本文を書き直すこと。'
+      `直近${RECENT_FROM}年以降で${r10.label}の賞金中央値の向きが変わった（` +
+        `${formatManYen(r10.prize.aMed)}万 vs ${formatManYen(r10.prize.bMed)}万）。` +
+        '「直近5年の賞金は向きが揃わない」と書いた本文を直すこと。'
     );
   }
+  if (!(r20.prize.aMed > r20.prize.bMed)) {
+    premiseErrors.push(
+      `直近${RECENT_FROM}年以降で${r20.label}だけ賞金中央値が逆転しなくなった（` +
+        `${formatManYen(r20.prize.aMed)}万 vs ${formatManYen(r20.prize.bMed)}万）。` +
+        '「直近5年の賞金は向きが揃わない（20位以内だけ上位側が高い）」と書いた本文を直すこと。'
+    );
+  }
+  if (!(r30.prize.aMed < r30.prize.bMed)) {
+    premiseErrors.push(
+      `直近${RECENT_FROM}年以降で${r30.label}の賞金中央値の向きが変わった（` +
+        `${formatManYen(r30.prize.aMed)}万 vs ${formatManYen(r30.prize.bMed)}万）。` +
+        '「直近5年の賞金は向きが揃わない」と書いた本文を直すこと。'
+    );
+  }
+}
+for (const c of recentCutStats) {
   if (!(c.start.aRate < c.start.bRate)) {
     premiseErrors.push(
       `直近${RECENT_FROM}年以降で${c.label}の出走率の向きが変わった（` +
@@ -421,19 +455,19 @@ for (const c of recentCutStats) {
     );
   }
 }
-// 11. 直近5年の出走率 Top30 が p < 0.01
+// 11. 直近5年の出走率 Top30 が p < 0.05
 {
   const r30 = recentCutStats[2];
-  if (!(r30.start.usable && r30.start.test.p < 0.01)) {
+  if (!(r30.start.usable && r30.start.test.p < ALPHA)) {
     premiseErrors.push(
-      `直近${RECENT_FROM}年以降の30位以内の出走率が p<0.01 を外れた（${ratePText(r30.start)}）。` +
+      `直近${RECENT_FROM}年以降の30位以内の出走率が p<0.05 を外れた（${ratePText(r30.start)}）。` +
         '「30位以内でははっきり出る」と書いた本文を書き直すこと。'
     );
   }
 }
-// 12. 重賞馬37頭の区分内訳が 10位以内7 / 11〜20位8 / 21〜30位2 / 30位外20
+// 12. 重賞馬37頭の区分内訳が 10位以内7 / 11〜20位10 / 21〜30位1 / 30位外19
 {
-  const expected: Record<string, number> = { '10位以内': 7, '11〜20位': 8, '21〜30位': 2, '30位外': 20 };
+  const expected: Record<string, number> = { '10位以内': 7, '11〜20位': 10, '21〜30位': 1, '30位外': 19 };
   const actual = RANK_BUCKETS.map((b) => `${b} ${bucketCounts.get(b)}`).join(' / ');
   if (
     gradeWinners.length !== 37 ||
@@ -455,28 +489,60 @@ for (const c of recentCutStats) {
     );
   }
 }
-// 14. 獲得賞金5億円超が6頭、そのうち「10位以内」区分が0頭
-//     （加えて、名前を出す2頭が「30位外」であること・最高額が30位外であることも守る）
-if (!(bigEarners.length === 6 && bigEarners.every((h) => rankBucketOf(h) !== '10位以内'))) {
+// 14. 獲得賞金5億円超が6頭、区分内訳が 10位以内1 / 11〜20位2 / 21〜30位0 / 30位外3、
+//     かつ最高額（gradeWinners[0]）が30位外であること
+{
+  const expectedBig: Record<string, number> = { '10位以内': 1, '11〜20位': 2, '21〜30位': 0, '30位外': 3 };
+  const actualBig = bigEarnerCounts.map((b) => `${b.label} ${b.count}`).join(' / ');
+  if (
+    bigEarners.length !== 6 ||
+    bigEarnerCounts.some((b) => b.count !== expectedBig[b.label])
+  ) {
+    premiseErrors.push(
+      `5億円超の頭数か区分内訳が変わった（${bigEarners.length}頭・${actualBig}）。` +
+        'findingブロックの内訳を直すこと。'
+    );
+  }
+}
+if (!(rankBucketOf(gradeWinners[0]) === '30位外')) {
   premiseErrors.push(
-    `5億円超の頭数か区分が変わった（${bigEarners.length}頭・` +
-      `${bigEarners.map((h) => `${h.displayName}=${rankBucketOf(h)}`).join(' / ')}）。` +
-      'findingブロックの「6頭」「10位以内はゼロ」を直すこと。'
+    `5億円超のなかの最高額が30位外でなくなった（最高額は${gradeWinners[0].displayName}・` +
+      `${rankBucketOf(gradeWinners[0])}）。findingブロックの本文を直すこと。`
   );
 }
-if (!(bigEarnersOutside.length === 2 && rankBucketOf(gradeWinners[0]) === '30位外')) {
-  premiseErrors.push(
-    `5億円超のうち30位外が${bigEarnersOutside.length}頭、最高額は${gradeWinners[0].displayName}` +
-      `（${rankBucketOf(gradeWinners[0])}）になった。findingブロックの本文を直すこと。`
-  );
-}
-// 15. 「10位以内」区分7頭の最高額がクリソベリルで、4億円未満
-if (!(top10Winners.length === 7 && top10Best?.displayName === 'クリソベリル' && top10Best.totalPrizeManYen < 40000)) {
+// 15. 「10位以内」区分7頭の最高額がサートゥルナーリアで5億円超、その一口価格が37頭中の最高値、
+//     その回収率が bigEarners のなかで最小であること
+if (
+  !(
+    top10Winners.length === 7 &&
+    top10Best?.displayName === 'サートゥルナーリア' &&
+    top10Best.totalPrizeManYen > BIG_EARNER_MAN_YEN
+  )
+) {
   premiseErrors.push(
     `10位以内区分の頭数か最高額が変わった（${top10Winners.length}頭・最高は` +
       `${top10Best?.displayName ?? '—'}の${formatManYen(top10Best?.totalPrizeManYen ?? 0)}万円）。` +
       'findingブロックの本文を直すこと。'
   );
+}
+{
+  const maxPricePerShare = Math.max(...gradeWinners.map((h) => h.pricePerShare ?? 0));
+  if (!(top10Best?.pricePerShare === maxPricePerShare)) {
+    premiseErrors.push(
+      `10位以内区分の最高額馬の一口価格が37頭中の最高値でなくなった（` +
+        `${top10Best?.pricePerShare ?? '—'}万円 / 最高${maxPricePerShare}万円）。` +
+        'findingブロックの「37頭のなかで最も高い募集価格」を直すこと。'
+    );
+  }
+  const bigEarnerRois = bigEarners.map((h) => roiPctOf(h)).filter((v): v is number => v !== null);
+  const top10BestRoi = top10Best ? roiPctOf(top10Best) : null;
+  if (!(top10BestRoi !== null && top10BestRoi === Math.min(...bigEarnerRois))) {
+    premiseErrors.push(
+      `10位以内区分の最高額馬の回収率が5億円超のなかで最小でなくなった（` +
+        `${top10BestRoi?.toFixed(1) ?? '—'}% / 最小${Math.min(...bigEarnerRois).toFixed(1)}%）。` +
+        'findingブロックの回収率の記述を直すこと。'
+    );
+  }
 }
 // 16. リーディング参照年に代用年が1件もない（全馬で募集年の表を参照している）
 if (substitutedCount !== 0) {
@@ -543,6 +609,22 @@ if (!(insideWinners.length >= SIDE_VISIBLE && outsideWinners.length >= SIDE_VISI
     `実例の表に出す頭数が足りない（30位以内側${insideWinners.length}頭 / 30位外${outsideWinners.length}頭）。`
   );
 }
+// 30位外19頭のうち、具体的な順位が分かるのが17頭・分からない（圏外）のが2頭、
+// 分かる範囲は31位〜163位であること（本文の「17頭は具体的な順位が分かる／31位から163位まで」の根拠）。
+if (
+  !(
+    outsideRanked.length === 17 &&
+    outsideUnrankedCount === 2 &&
+    outsideRankMin === 31 &&
+    outsideRankMax === 163
+  )
+) {
+  premiseErrors.push(
+    `30位外のうち順位が分かる頭数・範囲が変わった（順位判明${outsideRanked.length}頭・` +
+      `圏外${outsideUnrankedCount}頭・範囲${outsideRankMin ?? '—'}位〜${outsideRankMax ?? '—'}位）。` +
+      '「17頭は具体的な順位が分かる／31位から163位まで」と書いた本文を書き直すこと。'
+  );
+}
 
 if (premiseErrors.length > 0) {
   throw new Error(`厩舎記事の前提が崩れた:\n- ${premiseErrors.join('\n- ')}`);
@@ -555,7 +637,7 @@ const AD_SP_RECT = '24e3e1a24f40d88ee1a0ca315c54a7b9';
 const AD_PC_WIDE_A = 'f0efb5bd6ae3e164bb584a4dbb846f48';
 const AD_PC_WIDE_B = '0a525f6469ec1f40642b4550e53d39cc';
 
-const description = `【非公式】キャロットクラブ${yearRangeLabel}募集のうちJRA所属${jra.length}頭を独自集計。募集時点でリーディング上位の厩舎に入った馬と、そうでない馬。重賞に届く率も獲得賞金の中央値も、ほとんど変わらなかった。線を広げると上位側のほうが低いことさえある。唯一はっきり出たのは、上位側のほうが出走率が低いという予想外の向きだった。`;
+const description = `【非公式】キャロットクラブ${yearRangeLabel}募集のうちJRA所属${jra.length}頭を独自集計。募集時点でリーディング上位の厩舎に入った馬と、そうでない馬。重賞に届く率も獲得賞金の中央値も、ほとんど変わらなかった。線を広げると上位側のほうが低いことさえある。いちばんはっきり出たのは、上位側のほうが出走率が低いという予想外の向きだった。`;
 ---
 
 <BaseLayout
@@ -620,7 +702,7 @@ const description = `【非公式】キャロットクラブ${yearRangeLabel}募
         {
           label: '獲得賞金の中央値',
           value: `${formatManYen(cut10.prize.aMed)}万 vs ${formatManYen(cut10.prize.bMed)}万`,
-          note: '10位以内 / それ以外・ほぼ同額',
+          note: `10位以内 / それ以外・${formatP(cut10.prize.mw.p)}`,
         },
       ]}
     />
@@ -731,7 +813,7 @@ const description = `【非公式】キャロットクラブ${yearRangeLabel}募
 
     <AdSlot sp={AD_SP_WIDE_B} pc={AD_PC_WIDE_B} />
 
-    <h2>獲得賞金の中央値は、むしろ逆に出る</h2>
+    <h2>獲得賞金の中央値は、線を広げると逆に出る</h2>
     <p>
       重賞は稀な出来事なので、もっと日常的な指標でも見ておきたい。
       獲得賞金合計の中央値はこうなった。
@@ -767,19 +849,21 @@ const description = `【非公式】キャロットクラブ${yearRangeLabel}募
     </div>
     <p>
       10位以内は<strong>{formatManYen(cut10.prize.aMed)}万円対{formatManYen(cut10.prize.bMed)}万円</strong>。
-      ほぼ同額で、ここまで揃うと逆に気持ちがいいくらいだ。
+      該当側のほうが1割ほど高いが、検定は{formatP(cut10.prize.mw.p)}で、
+      差と呼べるほどのものではない。重賞馬率と同じで、いちばん厳しい線で切ってもこの程度だ。
     </p>
     <p>
       20位・30位と線を広げると、今度は<strong>該当側のほうが低くなる</strong>。
       30位以内では{formatManYen(cut30.prize.aMed)}万円対{formatManYen(cut30.prize.bMed)}万円で、
-      中央値が3分の1近い。
+      4分の3ほどの水準まで下がる。
       ただし検定は{formatP(cut30.prize.mw.p)}で、
-      <strong>「上位側のほうが低い」と言い切れるところまでは行っていない</strong>。
-      賞金は少数の大物と大量の0円組でばらつきが極端に大きいので、
-      中央値が3倍違っても順位検定にはなかなか出てこない。
+      <strong>「上位側のほうが低い」とは何も言えていない</strong>。
+      賞金は少数の大物と大量の0円組でばらつきが極端に大きいので、中央値が2割違っても
+      順位検定にはまったく出てこない。中央値の位置がずれただけ、という見方が正確だと思う。
     </p>
     <p>
-      いずれにせよ、<strong>「上位の厩舎に入ると賞金が増える」という向きの数字は、どの線でも出なかった</strong>。
+      いずれにせよ、<strong>「上位の厩舎に入ると賞金が増える」と言える数字は、どの線でも出なかった</strong>。
+      10位以内でわずかに上回るが誤差の範囲で、線を広げれば向きは逆になる。
     </p>
 
     <div class="ad-rect">
@@ -821,14 +905,24 @@ const description = `【非公式】キャロットクラブ${yearRangeLabel}募
       </table>
     </div>
     <p>
-      <strong>3本とも上位側が低い。しかも線を広げるほど差が開く。</strong>
-      30位以内で切ると{cut30.start.aRate.toFixed(1)}%対{cut30.start.bRate.toFixed(1)}%で、
-      {Math.floor(startGaps[2])}ポイント以上ひらいている。
+      <strong>3本とも上位側が低い。</strong>ただし差の大きさは線の引き方でかなり動く。
+      10位以内では{cut10.start.aRate.toFixed(1)}%対{cut10.start.bRate.toFixed(1)}%で
+      {Math.abs(startGaps[0]).toFixed(1)}ポイント、20位以内では{cut20.start.aRate.toFixed(1)}%対
+      {cut20.start.bRate.toFixed(1)}%で{Math.abs(startGaps[1]).toFixed(1)}ポイントしかなく、
+      どちらも検定は通らない（{ratePText(cut10.start)}、{ratePText(cut20.start)}）。
     </p>
     <p>
-      この記事で出てきた数字のなかで、向きが一貫していて検定もはっきり通ったのは、ここだけだ。
+      <strong>はっきり通ったのは30位以内の1本だけだ。</strong>
+      {cut30.start.aRate.toFixed(1)}%対{cut30.start.bRate.toFixed(1)}%で10ポイント以上ひらき、
+      {ratePText(cut30.start)}。この記事で出てきた数字のなかでは、いちばん小さいp値になる。
       そしてそれが「上位の厩舎に入った馬ほど、デビューまでたどり着けていない」という向きなのが、
       正直いちばん意外なところだった。
+    </p>
+    <p>
+      3本のうち通ったのが1本だけである以上、強い主張にはできない。
+      ただ、<strong>向きが3本とも同じで、しかもいちばん幅の広い線でいちばん大きく出ている</strong>のは、
+      重賞馬率や賞金のように「線を動かすと向きごと入れ替わる」指標とは明らかに様子が違う。
+      ここだけは、偶然の揺れとして片付けにくいと思う。
     </p>
     <p>
       <strong>なぜそうなるのかは分からない。</strong>
@@ -841,7 +935,7 @@ const description = `【非公式】キャロットクラブ${yearRangeLabel}募
       ただし後述のとおり、直近5年（{RECENT_FROM}〜{LAST_YEAR}年募集）だけに絞っても同じ向きが出ている。
     </p>
 
-    <h2>直近5年だけで見ても、形は変わらない</h2>
+    <h2>直近5年だけで見ても、上位が強い形にはならない</h2>
     <p>
       古い募集ぶんが結果を引っ張っている可能性もあるので、
       {RECENT_FROM}〜{LAST_YEAR}年募集のJRA所属{recent.length}頭だけでも同じ集計をした。
@@ -896,13 +990,29 @@ const description = `【非公式】キャロットクラブ${yearRangeLabel}募
       10位以内・20位以内の線では検定に足りる頭数にならない（数字は参考として載せてある）。
     </p>
     <p>
-      賞金中央値は<strong>3本すべてで上位側のほうが低い</strong>。検定はどれも通らないが、向きは揃っている。
-      出走率も9年ぶんと同じで、3本とも上位側が低く、30位以内では{ratePText(recentCutStats[2].start)}と
-      はっきり出る。
+      賞金中央値は、9年ぶんと違って<strong>向きが揃わない</strong>。
+      10位以内は{formatManYen(recentCutStats[0].prize.aMed)}万円対
+      {formatManYen(recentCutStats[0].prize.bMed)}万円でほぼ同額、
+      30位以内は{formatManYen(recentCutStats[2].prize.aMed)}万円対
+      {formatManYen(recentCutStats[2].prize.bMed)}万円で上位側が低いが、
+      20位以内だけは{formatManYen(recentCutStats[1].prize.aMed)}万円対
+      {formatManYen(recentCutStats[1].prize.bMed)}万円と<strong>上位側のほうが高い</strong>。
+      ただしどれも検定は通らず（{formatP(recentCutStats[0].prize.mw.p)}／
+      {formatP(recentCutStats[1].prize.mw.p)}／{formatP(recentCutStats[2].prize.mw.p)}）、
+      頭数が減ったぶん中央値が動きやすくなっているだけ、と読むのが妥当なところだ。
+      どちらに転んでも、線の引き方ひとつで向きが変わる程度の差しかない。
     </p>
     <p>
-      要するに、<strong>古い募集ぶんを外しても景色は変わらない</strong>。
-      「上位の厩舎だから走る」という形は、どこを切っても出てこなかった。
+      一方、出走率は9年ぶんと同じ形になった。3本とも上位側が低く
+      （{recentCutStats[0].start.aRate.toFixed(1)}%対{recentCutStats[0].start.bRate.toFixed(1)}%、
+      {recentCutStats[1].start.aRate.toFixed(1)}%対{recentCutStats[1].start.bRate.toFixed(1)}%、
+      {recentCutStats[2].start.aRate.toFixed(1)}%対{recentCutStats[2].start.bRate.toFixed(1)}%）、
+      <strong>通ったのはやはり30位以内の1本だけ</strong>（{ratePText(recentCutStats[2].start)}）。
+      9年ぶんで見えた形が、直近5年に絞っても同じ場所に残っている。
+    </p>
+    <p>
+      要するに、<strong>古い募集ぶんを外しても「上位の厩舎だから走る」という形は出てこない</strong>。
+      出てくるのは、相変わらず出走率の逆向きだけだ。
     </p>
 
     <AdSlot sp={AD_SP_WIDE_A} pc={AD_PC_WIDE_A} />
@@ -926,10 +1036,16 @@ const description = `【非公式】キャロットクラブ${yearRangeLabel}募
       全体の{((100 * cut30.hit.length) / jra.length).toFixed(0)}%）。
       ただ、率でも差がついていない以上、ここは素直に「どちらからも同じくらい出る」と読める。
     </p>
+    <p>
+      なお「30位外」といっても、{outsideWinners.length}頭のうち{outsideRanked.length}頭は
+      具体的な順位まで分かっていて、{outsideRankMin}位から{outsideRankMax}位まで幅広く散らばっている。
+      リーディングにまったく名前が出てこない（順位が付かない）のは
+      {outsideUnrankedCount}頭だけだ。下の表では、その具体的な順位をそのまま出している。
+    </p>
     <p>もうひとつ、賞金の分布を見ると分かりやすい形が出ている。</p>
     <div class="finding">
       <p class="finding-lead">
-        獲得賞金5億円を超えた{bigEarners.length}頭に、募集時10位以内の厩舎は1頭もいない
+        獲得賞金5億円超の{bigEarners.length}頭は、募集時の順位がばらばらに散らばっている
       </p>
       <p>
         {gradeWinners.length}頭のうち、獲得賞金が5億円を超えているのは{bigEarners.length}頭。その内訳は
@@ -938,29 +1054,44 @@ const description = `【非公式】キャロットクラブ${yearRangeLabel}募
             .filter((b) => b.count > 0)
             .map((b) => `${b.label}が${b.count}頭`)
             .join('・')}
-        </strong>で、
-        <strong>10位以内はゼロ</strong>だった。
-        30位圏外の2頭は<strong>{bigEarnersOutside[0].displayName}</strong>
-        （{bigEarnersOutside[0].recruitYear}年募集・一口{bigEarnersOutside[0].pricePerShare}万円・
-        {stableOf(bigEarnersOutside[0])}厩舎）の
-        <strong>{formatPrize(bigEarnersOutside[0].totalPrizeManYen)}</strong>と、
-        <strong>{bigEarnersOutside[1].displayName}</strong>
-        （{bigEarnersOutside[1].recruitYear}年募集・一口{bigEarnersOutside[1].pricePerShare}万円・
-        {stableOf(bigEarnersOutside[1])}厩舎）の
-        <strong>{formatPrize(bigEarnersOutside[1].totalPrizeManYen)}</strong>で、
-        {gradeWinners.length}頭のなかの最高額もこちら側から出ている。
-        募集価格が安いぶん回収率で見るとさらに極端で、
-        {bigEarnersOutside[0].displayName}は約{roiLabel(bigEarnersOutside[0])}、
-        {bigEarnersOutside[1].displayName}は約{roiLabel(bigEarnersOutside[1])}になる。
+        </strong>
+        で、いちばん多いのは{maxBigEarnerBucket.label}だった。
+        最高額は<strong>{gradeWinners[0].displayName}</strong>
+        （{gradeWinners[0].recruitYear}年募集・一口{gradeWinners[0].pricePerShare}万円・
+        {stableOf(gradeWinners[0])}厩舎・募集時{rankDisplayOf(gradeWinners[0])}）の
+        <strong>{formatPrize(gradeWinners[0].totalPrizeManYen)}</strong>。
+        以下、<strong>{bigEarners[1].displayName}</strong>
+        （{bigEarners[1].recruitYear}年募集・一口{bigEarners[1].pricePerShare}万円・
+        {stableOf(bigEarners[1])}厩舎・募集時{rankDisplayOf(bigEarners[1])}）の
+        <strong>{formatPrize(bigEarners[1].totalPrizeManYen)}</strong>、
+        <strong>{bigEarners[2].displayName}</strong>
+        （{bigEarners[2].recruitYear}年募集・一口{bigEarners[2].pricePerShare}万円・
+        {stableOf(bigEarners[2])}厩舎・募集時{rankDisplayOf(bigEarners[2])}）の
+        <strong>{formatPrize(bigEarners[2].totalPrizeManYen)}</strong>と続く。
+        この{bigEarners.length}頭だけで、
+        {bigEarnerCounts
+          .filter((b) => b.count > 0)
+          .map((b) => b.label)
+          .join('・')}
+        の{bigEarnerCounts.filter((b) => b.count > 0).length}区分すべてに顔を出している。
       </p>
       <p>
-        逆に、募集時10位以内の厩舎に入った{top10Winners.length}頭でいちばん稼いだのは
+        募集時10位以内の厩舎からも大物は出ている。この区分の{top10Winners.length}頭でいちばん稼いだのは
         <strong>{top10Best.displayName}</strong>（{top10Best.recruitYear}年募集・
-        一口{top10Best.pricePerShare}万円・{stableOf(top10Best)}厩舎）の
-        <strong>{formatPrize(top10Best.totalPrizeManYen)}</strong>
-        （中央{formatPrize(top10Best.chuoPrizeManYen ?? 0)}＋地方{formatPrize(top10Best.chihoPrizeManYen ?? 0)}）。
-        立派な数字ではあるけれど、いわゆる歴代最高額級はこの{top10Winners.length}頭からは出ていない。
-        <strong>大物を引き当てるという意味では、預け先で線を引けない。</strong>
+        一口{top10Best.pricePerShare}万円・{stableOf(top10Best)}厩舎・
+        募集時{rankDisplayOf(top10Best)}）の
+        <strong>{formatPrize(top10Best.totalPrizeManYen)}</strong>だ。
+        ただし一口{top10Best.pricePerShare}万円は{gradeWinners.length}頭のなかで最も高い募集価格で、
+        回収率にすると約{roiLabel(top10Best)}になる。5億円超の{bigEarners.length}頭のなかでは
+        いちばん低い（{gradeWinners[0].displayName}は約{roiLabel(gradeWinners[0])}、
+        {bigEarners[2].displayName}は約{roiLabel(bigEarners[2])}、
+        {bigEarners[1].displayName}は約{roiLabel(bigEarners[1])}）。
+      </p>
+      <p>
+        つまり、<strong>大物そのものは預け先の順位で線を引けない</strong>。
+        どの区分からも出ているし、区分ごとの頭数の差も母数を考えれば説明がつく範囲だ。
+        むしろ差が出ているのは回収率のほうで、そちらは「安く募集された馬が大化けした」
+        圏外側に分がある。
       </p>
     </div>
     <p class="table-label">
@@ -1108,7 +1239,7 @@ const description = `【非公式】キャロットクラブ${yearRangeLabel}募
     <p>弱い結果ほど読み違えられやすいので、限界を書いておきたい。</p>
     <p>
       <strong>1. 出走率が上位側で低い理由は、この集計からは分からない。</strong>
-      3本の線すべてで向きが揃い、20位以内・30位以内では検定も通っているので、
+      3本の線すべてで向きが揃い、30位以内では検定も通っている（{ratePText(cut30.start)}）ので、
       偶然の揺れとしては片付けにくい。ただし<strong>なぜそうなるのかは別の話</strong>で、
       厩舎ごとの預かり頭数の構成の違いかもしれないし、まったく別の要因かもしれない。
       そこは検証していないので、原因については何も主張しない。
@@ -1129,8 +1260,10 @@ const description = `【非公式】キャロットクラブ${yearRangeLabel}募
     <p>
       <strong>4. 弱い結果なので、「上位厩舎は避けるべき」という逆方向の主張もできない。</strong>
       ここが一番大事だと思う。3本の線で切って重賞馬率が0.05を下回ったのは20位以内の1本だけで、
-      これは3回試して1回出た程度の話だから、それ自体を強い証拠にはできない。
-      賞金の逆転も{formatP(cut30.prize.mw.p)}止まりだ。<strong>「上位側が有利」も「上位側が不利」も、
+      10位に寄せても30位に広げても消える。順位が本当に効いているなら上位に寄せるほど
+      差が大きくなるはずで、その形にはなっていない。
+      賞金の逆転にいたっては{formatP(cut30.prize.mw.p)}で、差の証拠としては何も残らない。
+      <strong>「上位側が有利」も「上位側が不利」も、
       このデータでは支持されない</strong>というのが正確な読み方で、
       出走率の逆転だけは無視できない、というくらいの温度感になる。
     </p>
@@ -1149,7 +1282,8 @@ const description = `【非公式】キャロットクラブ${yearRangeLabel}募
         重賞馬率は<strong>{cut10.grade.aRate.toFixed(1)}%</strong>、
         それ以外{cut10.grade.bN}頭は<strong>{cut10.grade.bRate.toFixed(1)}%</strong>
         （{ratePText(cut10.grade)}）。獲得賞金の中央値は
-        <strong>{formatManYen(cut10.prize.aMed)}万円対{formatManYen(cut10.prize.bMed)}万円</strong>でほぼ同額。
+        <strong>{formatManYen(cut10.prize.aMed)}万円対{formatManYen(cut10.prize.bMed)}万円</strong>で、
+        1割ほど上位側が高いが{formatP(cut10.prize.mw.p)}。
         <strong>いちばん厳しい線で切っても差が出なかった。</strong>
       </li>
       <li>
@@ -1159,28 +1293,29 @@ const description = `【非公式】キャロットクラブ${yearRangeLabel}募
         （{ratePText(cut30.grade)}）で消える。<strong>線の引き方で出たり消えたりする。</strong>
       </li>
       <li>
-        <strong>獲得賞金は、線を広げるほど上位側のほうが低くなる</strong>
+        <strong>獲得賞金は、線を広げると上位側のほうが低くなる</strong>
         （30位以内で{formatManYen(cut30.prize.aMed)}万円対{formatManYen(cut30.prize.bMed)}万円・
         {formatP(cut30.prize.mw.p)}）。
-        「上位に預けると稼ぐ」という向きの数字はどの線でも出なかった。
+        ただし検定には何も出ておらず、「上位に預けると稼ぐ」という向きの数字もどの線でも出なかった。
       </li>
       <li>
         <strong>唯一はっきりしたのは出走率で、しかも逆向き。</strong> 3本の線すべてで上位側が低く、
-        20位以内で{cut20.start.aRate.toFixed(1)}%対{cut20.start.bRate.toFixed(1)}%
-        （{ratePText(cut20.start)}）、30位以内で{cut30.start.aRate.toFixed(1)}%対
-        {cut30.start.bRate.toFixed(1)}%（{ratePText(cut30.start)}）。理由は分からない。
+        30位以内では{cut30.start.aRate.toFixed(1)}%対{cut30.start.bRate.toFixed(1)}%
+        （{ratePText(cut30.start)}）と10ポイント以上ひらく。
+        10位以内（{cut10.start.aRate.toFixed(1)}%対{cut10.start.bRate.toFixed(1)}%・{ratePText(cut10.start)}）・
+        20位以内（{cut20.start.aRate.toFixed(1)}%対{cut20.start.bRate.toFixed(1)}%・{ratePText(cut20.start)}）
+        では検定に届かないので、通ったのは30位以内の1本だけ。理由は分からない。
       </li>
       <li>
-        <strong>直近5年（{RECENT_FROM}〜{LAST_YEAR}年募集{recent.length}頭）でも形は同じ。</strong>
-        賞金中央値は3本とも上位側が低く、出走率も3本とも上位側が低い
-        （30位以内で{ratePText(recentCutStats[2].start)}）。
+        <strong>直近5年（{RECENT_FROM}〜{LAST_YEAR}年募集{recent.length}頭）でも、上位が強い形にはならない。</strong>
+        賞金中央値は向きが揃わず（20位以内だけ上位側が高い）、出走率は3本とも上位側が低くて
+        30位以内で{ratePText(recentCutStats[2].start)}。
       </li>
       <li>
         <strong>重賞を勝った{gradeWinners.length}頭のうち{outsideWinners.length}頭は30位外の厩舎から。</strong>
-        獲得賞金5億円超の{bigEarners.length}頭に募集時10位以内の厩舎は1頭もおらず、
-        圏外側からは{bigEarnersOutside[0].displayName}
-        （{formatPrize(bigEarnersOutside[0].totalPrizeManYen)}）と
-        {bigEarnersOutside[1].displayName}（{formatPrize(bigEarnersOutside[1].totalPrizeManYen)}）が出ている。
+        獲得賞金5億円超の{bigEarners.length}頭は10位以内1頭・11〜20位2頭・30位外3頭とばらけていて、
+        最高額は{gradeWinners[0].displayName}
+        （{formatPrize(gradeWinners[0].totalPrizeManYen)}・募集時{rankDisplayOf(gradeWinners[0])}）だった。
       </li>
       <li>
         <strong>東西も言うほど差がない。</strong>

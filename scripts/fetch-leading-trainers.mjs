@@ -1,4 +1,11 @@
 /**
+ * **不使用（2026-09-05〜）**: `scripts/fetch-leading-trainers-netkeiba.mjs` に置き換え済み。
+ * umapiaの表はJRA上位およそ50位までしか無く、それより下の調教師が「圏外」表示になっていた
+ * （stable-leading記事）。netkeiba db.netkeiba.com/trainer/trainer_leading_jra.html
+ * （ページ送りで各年5〜6ページ・200位超まで取得可）に切り替えた。削除するか残すかは未確認
+ * （vault: `1-projects/carrot-club/tasks/20260905-stable-leading-netkeiba-source.md`）。
+ * 以下は旧スクリプトの説明（参考として残す）。
+ *
  * 年別のJRA調教師リーディングを取得して `analysis/data/leading-trainers.json` に書き出す。
  * 9本目の分析記事「東西＋調教師」追加カットA用（vault: 20260902-trainer-region-article-scan.md）。
  *

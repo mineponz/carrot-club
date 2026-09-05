@@ -200,13 +200,21 @@ export function loadDamRoster(): Map<string, RawDam> {
 
 /* ===================== JRAリーディング（年別の調教師順位）との結合 =====================
  *
- * `analysis/data/leading-trainers.json`（umapia の年別JRAリーディング上位50・2017〜2025）を、
- * 各馬の担当調教師と突き合わせる。厩舎記事（`src/pages/articles/stable-leading.astro`）用。
+ * `analysis/data/leading-trainers.json`（netkeiba db.netkeiba.com/trainer/trainer_leading_jra.html
+ * の年別JRAリーディング・ページ送りで各年5〜6ページぶん・2017〜2025）を、各馬の担当調教師と
+ * 突き合わせる。厩舎記事（`src/pages/articles/stable-leading.astro`）用。
+ * 以前はumapia（上位およそ50位まで）が出所で、それより下は「圏外」表示だった。netkeiba版は
+ * ページ送りで1年あたり200位超まで取れるため「圏外」が大きく減る
+ * （vault: `1-projects/carrot-club/tasks/20260905-stable-leading-netkeiba-source.md`）。
  *
- * ## 名寄せは「氏名の先頭4文字一致」
- * netkeibaの個体ページは長い調教師名を4文字に切って出す（"中内田充正" → "中内田充"）ため、
- * IDでは突き合わせられない（umapia側のIDはnetkeibaのIDと別系統）。両方を先頭4文字にして
- * 突き合わせる。**同じ年の上位内で先頭4文字が衝突したらビルドを落とす**（下の索引作成時に検算）。
+ * ## 名寄せは「netkeiba調教師IDが優先、無い/一致しないときだけ氏名先頭4文字一致」
+ * netkeibaのリーディング表は調教師の個体ページID（例 "01157"）を持っており、これは
+ * `recruits.json` の `finalTrainerId`（馬の個体ページから取得済み）と同じ体系（5桁ゼロ埋め）
+ * なので、IDでそのまま突き合わせられる（衝突しない）。`finalTrainerId` が無い馬、または
+ * そのIDがその年のリーディング表に無い場合だけ、氏名の先頭4文字一致にフォールバックする
+ * （netkeibaの個体ページは長い調教師名を4文字に切って出す "中内田充正" → "中内田充" ため）。
+ * **同じ年の上位内で先頭4文字が衝突したらビルドを落とす**（下の索引作成時に検算、フォールバック
+ * 経路にのみ影響する）。
  *
  * ## 参照する年は「募集年そのもの」
  * 出資を検討する人がその時点で見られる情報だけで分けるため（2026-09-05にこの基準へ切り替えた）。
@@ -221,8 +229,8 @@ export function loadDamRoster(): Map<string, RawDam> {
 interface LeadingTrainerEntry {
   rank: number;
   trainer: string;
-  umapiaId: string;
-  wins: number;
+  trainerId: string | null;
+  wins: number | null;
 }
 
 const leadingFile = leadingTrainersJson as unknown as {
@@ -243,62 +251,88 @@ export const LEADING_TRAINER_YEARS: number[] = Object.keys(leadingFile.byYear)
 export const LEADING_TRAINERS_LATEST_YEAR: number =
   LEADING_TRAINER_YEARS[LEADING_TRAINER_YEARS.length - 1];
 
-/** 調教師名の突き合わせキー（netkeibaが4文字に切るので両方を4文字にする）。 */
+/** 調教師名の突き合わせキー（netkeibaが4文字に切るので両方を4文字にする。IDのフォールバック用）。 */
 function trainerKey(name: string): string {
   return [...name].slice(0, 4).join('');
 }
 
-let leadingIndexCache: Map<number, Map<string, number>> | null = null;
+interface YearIndex {
+  /** netkeiba調教師ID → 順位（優先経路）。 */
+  byId: Map<string, number>;
+  /** 氏名先頭4文字 → 順位（IDが無い/不一致のときのフォールバック）。 */
+  byKey: Map<string, number>;
+}
 
-/** 年 → （調教師キー → 順位）の索引。 */
-function leadingIndex(): Map<number, Map<string, number>> {
+let leadingIndexCache: Map<number, YearIndex> | null = null;
+
+/** 年 → （ID索引・氏名キー索引）の索引。 */
+function leadingIndex(): Map<number, YearIndex> {
   if (leadingIndexCache) return leadingIndexCache;
-  const index = new Map<number, Map<string, number>>();
+  const index = new Map<number, YearIndex>();
   for (const year of LEADING_TRAINER_YEARS) {
+    const byId = new Map<string, number>();
     const byKey = new Map<string, number>();
-    const seen = new Map<string, string>();
+    const seenByKey = new Map<string, string>();
     for (const entry of leadingFile.byYear[String(year)]) {
+      if (entry.trainerId) {
+        if (!byId.has(entry.trainerId) || entry.rank < (byId.get(entry.trainerId) as number)) {
+          byId.set(entry.trainerId, entry.rank);
+        }
+      }
       const key = trainerKey(entry.trainer);
-      const already = seen.get(key);
+      const already = seenByKey.get(key);
       if (already !== undefined && already !== entry.trainer) {
-        // 先頭4文字が衝突すると、別人の順位を掴んだまま記事が出てしまう。
+        // 先頭4文字が衝突すると、フォールバック時に別人の順位を掴む恐れがある。
         throw new Error(
           `${year}年のリーディングで調教師名の先頭4文字が衝突した（${already} と ${entry.trainer}）。` +
-            'analysis-data.ts の名寄せ（先頭4文字一致）を作り直すこと。'
+            'analysis-data.ts の名寄せ（先頭4文字一致フォールバック）を作り直すこと。'
         );
       }
-      seen.set(key, entry.trainer);
-      // 同名の重複は無い前提だが、万一あっても上位の順位を残す。
+      seenByKey.set(key, entry.trainer);
       if (!byKey.has(key) || entry.rank < (byKey.get(key) as number)) byKey.set(key, entry.rank);
     }
-    index.set(year, byKey);
+    index.set(year, { byId, byKey });
   }
   leadingIndexCache = index;
   return index;
 }
 
 export interface LeadingRank {
-  /** その年のJRAリーディング順位。表の圏外（上位50位外）・調教師不明なら null。 */
+  /** その年のJRAリーディング順位。表に無い・調教師不明なら null。 */
   rank: number | null;
   /** 実際に参照した年。 */
   year: number;
   /** 募集年の表が無く、最新年で代用したか（2017〜2025年募集では起きない）。 */
   substituted: boolean;
+  /** IDで突き合わせられず氏名4文字一致にフォールバックしたか（診断用）。 */
+  matchedBy: 'id' | 'name' | 'none';
 }
 
 /** **その馬の募集年**のリーディングでの、担当調教師の順位（募集時点で見られる情報）。 */
-export function leadingRankOf(h: Pick<Recruit, 'recruitYear' | 'finalTrainer'>): LeadingRank {
+export function leadingRankOf(
+  h: Pick<Recruit, 'recruitYear' | 'finalTrainer' | 'finalTrainerId'>
+): LeadingRank {
   const index = leadingIndex();
   const wanted = h.recruitYear;
   const substituted = !index.has(wanted);
   const year = substituted ? LEADING_TRAINERS_LATEST_YEAR : wanted;
-  const byKey = index.get(year);
-  const rank = h.finalTrainer && byKey ? (byKey.get(trainerKey(h.finalTrainer)) ?? null) : null;
-  return { rank, year, substituted };
+  const yearIndex = index.get(year);
+  if (!yearIndex) return { rank: null, year, substituted, matchedBy: 'none' };
+
+  const byId = h.finalTrainerId ? yearIndex.byId.get(h.finalTrainerId) : undefined;
+  if (byId !== undefined) return { rank: byId, year, substituted, matchedBy: 'id' };
+
+  const byName = h.finalTrainer ? yearIndex.byKey.get(trainerKey(h.finalTrainer)) : undefined;
+  if (byName !== undefined) return { rank: byName, year, substituted, matchedBy: 'name' };
+
+  return { rank: null, year, substituted, matchedBy: 'none' };
 }
 
 /** 募集年時点で担当調教師がリーディングN位以内だったか。 */
-export function isLeadingTopN(h: Pick<Recruit, 'recruitYear' | 'finalTrainer'>, n: number): boolean {
+export function isLeadingTopN(
+  h: Pick<Recruit, 'recruitYear' | 'finalTrainer' | 'finalTrainerId'>,
+  n: number
+): boolean {
   const { rank } = leadingRankOf(h);
   return rank !== null && rank <= n;
 }
