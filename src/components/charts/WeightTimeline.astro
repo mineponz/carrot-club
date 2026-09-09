@@ -80,6 +80,24 @@ const sortedTraining = [...training].sort((a, b) => (a.date < b.date ? -1 : 1));
 const linePoints = poly(training);
 const raceLinePoints = poly(races);
 
+/**
+ * レース点の見た目（着順の4段階）。テンプレート側で `f <= 3` と書くと Astro が `<` を
+ * タグの開始と誤読して astro(1002) になるため、比較はここ（frontmatter）で済ませる。
+ */
+const racePoints = races.map((p) => {
+  const f = typeof p.finish === 'number' ? p.finish : null;
+  const placed = f !== null && f < 4;
+  const board = f !== null && f > 3 && f < 6;
+  return {
+    p,
+    isWin: f === 1,
+    placed,
+    label: placed ? `${f}着` : null,
+    r: f === 1 ? 7.5 : placed ? 6 : board ? 4.5 : 3.5,
+    cls: f === 1 ? 'viz-race-win' : placed ? 'viz-race-placed' : board ? 'viz-race-board' : 'viz-race-out',
+  };
+});
+
 const tip = (p: Point, kind: string) =>
   JSON.stringify({
     title: p.date.replace(/-/g, '/'),
@@ -125,32 +143,19 @@ const tip = (p: Point, kind: string) =>
     ))}
 
     {raceLinePoints && <polyline points={raceLinePoints} class="viz-race-line" />}
-    {races.map((p) => {
-      const f = typeof p.finish === 'number' ? p.finish : null;
-      const placed = f !== null && f <= 3;
-      const board = f !== null && f >= 4 && f <= 5;
-      const cls = f === 1 ? 'viz-race-win' : placed ? 'viz-race-placed' : board ? 'viz-race-board' : 'viz-race-out';
-      return (
-        <>
-          <circle
-            cx={x(p.date)}
-            cy={y(p.weightKg)}
-            r={f === 1 ? 7.5 : placed ? 6 : board ? 4.5 : 3.5}
-            class={`viz-race-dot ${cls}`}
-          />
-          {placed && (
-            <text
-              x={x(p.date)}
-              y={y(p.weightKg) - (f === 1 ? 14 : 12)}
-              class={`viz-place-label ${f === 1 ? 'is-win' : ''}`}
-              text-anchor="middle"
-            >
-              {f}着
-            </text>
-          )}
-        </>
-      );
-    })}
+    {racePoints.map((d) => (
+      <circle cx={x(d.p.date)} cy={y(d.p.weightKg)} r={d.r} class={`viz-race-dot ${d.cls}`} />
+    ))}
+    {racePoints.filter((d) => d.label).map((d) => (
+      <text
+        x={x(d.p.date)}
+        y={y(d.p.weightKg) - (d.isWin ? 14 : 12)}
+        class={`viz-place-label ${d.isWin ? 'is-win' : ''}`}
+        text-anchor="middle"
+      >
+        {d.label}
+      </text>
+    ))}
     {races.map((p) => (
       <circle cx={x(p.date)} cy={y(p.weightKg)} r="12" class="viz-hit" tabindex="0" data-tip={tip(p, 'レース')} />
     ))}

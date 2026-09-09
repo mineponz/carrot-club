@@ -80,6 +80,15 @@ const measures = [
   { label: '管囲', value: horse.caretGirth ?? recruit?.caretGirth ?? null, unit: 'cm' },
 ];
 
+/** 着順の4段階。テンプレートで `<=` を書くと Astro が `<` をタグ開始と誤読するのでここで判定する。 */
+function finishTier(finish: number | string | null): string {
+  if (typeof finish !== 'number') return 'out';
+  if (finish === 1) return '1';
+  if (finish < 4) return '23';
+  if (finish < 6) return '45';
+  return 'out';
+}
+
 /** JRAの慣例に合わせたグレードの段階。GI/JpnI→1, GII→2, GIII→3, OP・Lは色なし。 */
 function gradeClass(g: string | null): string {
   if (!g) return '';
@@ -110,6 +119,7 @@ const description = `【非公式】${horse.name}（${horse.recruitYear}年募�
   {/* PCでは写真の右に情報を寄せて、写真の横にできる空きを埋める（本人指摘・2026-09-09）。
       狭い画面では1列に落ちる。 */}
   <div class="horse-head">
+    <div class="horse-head-photo">
     {photo && (
       /* 読み込めなければ figure ごと隠す（このサイトはCSP未導入なので onerror 属性が使える）。 */
       <figure class="horse-photo">
@@ -133,6 +143,7 @@ const description = `【非公式】${horse.name}（${horse.recruitYear}年募�
         </a>
       </p>
     )}
+    </div>
 
     <div class="horse-head-info">
       <p class="pedigree">
@@ -189,9 +200,7 @@ const description = `【非公式】${horse.name}（${horse.recruitYear}年募�
         </thead>
         <tbody>
           {inFund.map((r) => {
-            const tier = typeof r.finish === 'number'
-              ? (r.finish === 1 ? '1' : r.finish <= 3 ? '23' : r.finish <= 5 ? '45' : 'out')
-              : 'out';
+            const tier = finishTier(r.finish);
             return (
             <tr class={`row-${tier}`}>
               <td class="nowrap sub">{r.date}</td>
@@ -290,6 +299,9 @@ const description = `【非公式】${horse.name}（${horse.recruitYear}年募�
   @media (max-width: 720px) {
     .horse-head { grid-template-columns: 1fr; gap: 0.75rem; }
   }
+  /* 写真とギャラリー導線で1列。ここを div でまとめないと導線がグリッドの3つ目の子になり、
+     右列に入るはずの血統・成績・測尺が写真の下へ落ちる（2026-09-10に発生）。 */
+  .horse-head-photo { min-width: 0; }
   .horse-head-info { min-width: 0; }
   /* 写真の真下に置いて、上から読み始めた人がギャラリーの存在に気づけるようにする。 */
   .gallery-link { margin: 0.5rem 0 0; font-size: 0.875rem; font-weight: 700; }

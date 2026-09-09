@@ -76,14 +76,31 @@ export interface MyRace {
   raceId: string | null;
   date: string | null;
   venue: string | null;
+  weather: string | null;
   raceNumber: number | null;
-  course: string | null;
   raceName: string | null;
+  /** GI / GII / GIII / JpnI〜III / OP / L。netkeibaの表記に合わせてローマ数字。 */
   grade: string | null;
-  finish: number | string | null;
+  headcount: number | null;
+  horseNumber: number | null;
+  odds: number | null;
   popularity: number | null;
+  /** 着順。中止・除外・取消は文字列で入る。 */
+  finish: number | string | null;
   jockey: string | null;
   carriedWeight: number | null;
+  /** 「ダ2000」「芝1600」。 */
+  course: string | null;
+  /** 馬場状態（良・稍・重・不）。 */
+  condition: string | null;
+  time: string | null;
+  margin: string | null;
+  passing: string | null;
+  last3f: number | null;
+  bodyWeight: number | null;
+  bodyWeightDiff: number | null;
+  winner: string | null;
+  prizeManYen: number;
   /** ファンド在籍中の1走か。false は解散後（移籍先での走り）。 */
   inFund: boolean;
 }
@@ -92,12 +109,18 @@ export interface MyHorse {
   name: string;
   slug: string;
   horseId: string;
+  /** クラブ側のコード（生年下2桁＋募集番号3桁）。写真URLに使う。 */
+  clubId: string;
   recruitYear: number;
   no: string;
   sex: string;
-  sire: string | null;
-  weight: number | null;
+  recruitName: string | null;
   trainer: string | null;
+  sire: string | null;
+  damName: string | null;
+  broodmareSire: string | null;
+  /** 募集時の馬体重。 */
+  weight: number | null;
   offeringTotalManYen: number | null;
   /** 口数が実データに無い年度は400口で近似している。 */
   shareCountEstimated?: boolean;
@@ -115,8 +138,6 @@ export interface MyHorse {
   status: HorseStatus;
   /** 命名権を行使して名前を付けた馬。`/about/` の所有馬リストで注記する。 */
   namedByOwner?: boolean;
-  /** クラブ側のコード（生年下2桁＋募集番号3桁）。写真URLに使う。 */
-  clubId: string;
   /** 引退日／ファンド解散の時期。 */
   fundEndedAt: string | null;
   retiredReason: string | null;
@@ -129,6 +150,7 @@ export interface MyHorse {
   ownerPrizeManYen: number;
   recoveryRatePct: number | null;
   transferredToNar: boolean;
+  /** 地方の一般競走を初めて走った日。これ以降はファンド解散後（移籍馬のみ）。 */
   narDebutDate: string | null;
   races: MyRace[];
 }

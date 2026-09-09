@@ -32,6 +32,15 @@ const rows = inFundRaces(horses);
 // カードは9枚並ぶので原寸(約400KB)ではなくサムネイル(約45KB)を使う。
 const photos = loadRecruitPhotos();
 
+/** 着順の4段階。テンプレートで `<=` を書くと Astro が `<` をタグ開始と誤読するのでここで判定する。 */
+function finishTier(finish: number | string | null): string {
+  if (typeof finish !== 'number') return 'out';
+  if (finish === 1) return '1';
+  if (finish < 4) return '23';
+  if (finish < 6) return '45';
+  return 'out';
+}
+
 /** JRAの慣例に合わせたグレードの段階。GI/JpnI→1, GII→2, GIII→3, OP・Lは色なし。 */
 function gradeClass(g: string | null): string {
   if (!g) return '';
@@ -182,9 +191,7 @@ const description = `【非公式】管理人みねらるがキャロットク�
       </thead>
       <tbody>
         {rows.map(({ horse, race }) => {
-          const tier = typeof race.finish === 'number'
-            ? (race.finish === 1 ? '1' : race.finish <= 3 ? '23' : race.finish <= 5 ? '45' : 'out')
-            : 'out';
+          const tier = finishTier(race.finish);
           return (
           <tr class={`row-${tier}`}>
             <td class="nowrap">{race.date}</td>
