@@ -185,7 +185,7 @@ const description = `【非公式】管理人みねらるがキャロットク�
     <table class="race-table">
       <thead>
         <tr>
-          <th>日付</th><th>馬名</th><th>開催</th><th>レース</th><th>距離</th>
+          <th>馬名</th><th>レース</th><th>距離</th>
           <th>着順</th><th>人気</th><th>騎手</th><th>斤量</th>
         </tr>
       </thead>
@@ -194,18 +194,19 @@ const description = `【非公式】管理人みねらるがキャロットク�
           const tier = finishTier(race.finish);
           return (
           <tr class={`row-${tier}`}>
-            <td class="nowrap">{race.date}</td>
-            <td class="nowrap">{horse.name}</td>
-            <td class="nowrap">{race.venue}{race.raceNumber}R</td>
-            <td>
-              {race.raceName}
-              {race.grade && <span class={`grade ${gradeClass(race.grade)}`}>{race.grade}</span>}
+            <td class="nowrap horse-cell">{horse.name}</td>
+            <td class="race-cell">
+              <span class="race-meta">{race.date}　{race.venue}{race.raceNumber}R</span>
+              <span class="race-title">
+                {race.raceName}
+                {race.grade && <span class={`grade ${gradeClass(race.grade)}`}>{race.grade}</span>}
+              </span>
             </td>
-            <td class="nowrap">{race.course}</td>
-            <td class="num"><span class={`finish finish-${tier}`}>{race.finish}</span></td>
-            <td class="num">{race.popularity}</td>
-            <td class="nowrap">{race.jockey}</td>
-            <td class="num">{race.carriedWeight}</td>
+            <td class="nowrap" data-label="距離">{race.course}</td>
+            <td class="num finish-cell"><span class={`finish finish-${tier}`}>{race.finish}</span></td>
+            <td class="num" data-label="人気">{race.popularity}</td>
+            <td class="nowrap" data-label="騎手">{race.jockey}</td>
+            <td class="num" data-label="斤量">{race.carriedWeight}</td>
           </tr>
           );
         })}
@@ -313,6 +314,63 @@ const description = `【非公式】管理人みねらるがキャロットク�
   .race-table td { padding: 0.4rem 0.6rem; border-bottom: 1px solid var(--border); text-align: left; }
   .race-table thead th { background: var(--surface); white-space: nowrap; }
   .race-table .nowrap { white-space: nowrap; }
+  /* SPで14列は横スクロールしないと何も読めないので、日付・開催・レース名を1セルに畳む
+     （本人指摘・2026-09-10）。1行目に日付と開催を小さく、2行目にレース名を主役として置く。 */
+  .race-cell { min-width: 11rem; }
+  /*
+   * SPでは12列でも768px必要で横スクロールが400px近く出る（本人指摘・2026-09-10）。
+   * 640px以下ではテーブルをやめて1走=1ブロックのカードにする。
+   * 見出し行は消し、各セルは `data-label` を前置きして意味が分かるようにする。
+   * レース名は行頭に、着順は右上に固定して、まず「どのレースで何着」が読めるようにする。
+   */
+  @media (max-width: 640px) {
+    .race-table-wrap { overflow-x: visible; }
+    .race-table { font-size: 0.8125rem; }
+    .race-table thead { display: none; }
+    .race-table tbody tr {
+      display: block;
+      position: relative;
+      padding: 0.6rem 3.2rem 0.6rem 0;
+      border-bottom: 1px solid var(--border);
+    }
+    /* inline だと「騎手 西村淳也」が行末で分断される。inline-block + nowrap で
+       ラベルと値を1かたまりにして、かたまり単位で折り返させる。 */
+    .race-table tbody td {
+      display: inline-block;
+      padding: 0;
+      border: none;
+      white-space: nowrap;
+      margin-right: 0.7rem;
+    }
+    .race-table tbody td:not(.race-cell):not(.finish-cell)::before {
+      content: attr(data-label) " ";
+      color: var(--muted);
+      font-size: 0.6875rem;
+    }
+    .race-table .race-cell { display: block; min-width: 0; margin-bottom: 0.15rem; white-space: normal; }
+    .race-table .finish-cell {
+      position: absolute;
+      top: 0.6rem;
+      right: 0;
+      text-align: right;
+    }
+    .race-table .sub { font-size: 0.75rem; }
+  }
+  @media (max-width: 640px) {
+    /* 一覧は馬名が主役なので行頭に太字で出す */
+    .race-table .horse-cell { display: block; font-weight: 700; }
+  }
+  .race-cell .race-meta {
+    display: block;
+    color: var(--muted);
+    font-size: 0.6875rem;
+    line-height: 1.4;
+  }
+  .race-cell .race-title {
+    display: block;
+    font-weight: 600;
+    line-height: 1.4;
+  }
   .race-table .num { text-align: right; font-variant-numeric: tabular-nums; }
   /* 着順は表の中でいちばん探される列なので、数字だけでなくバッジにして段階を付ける。
      グラフ（WeightTimeline）と同じ4段階: 1着 / 2〜3着 / 4〜5着（掲示板）/ 6着以下。
