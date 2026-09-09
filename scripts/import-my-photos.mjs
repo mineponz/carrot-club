@@ -113,15 +113,28 @@ for (const dir of readdirSync(SRC)) {
     }
     const outName = `${best.iso}-${String(parsed.seq).padStart(2, '0')}.jpg`;
     const outPath = join(outDir, outName);
+    let dim = null;
     if (!DRY) {
       execFileSync('sips', ['-Z', String(MAX_PX), '--setProperty', 'format', 'jpeg', join(abs, file), '--out', outPath], {
         stdio: 'ignore',
       });
       bytes += statSync(outPath).size;
+      // 寸法をデータに残して <img width height> を出せるようにする。
+      // 寸法が無いと読み込み前の高さが0になり、loading="lazy" が発火せず画像が出ない
+      // （2026-09-10に実機で発生）。場所を確保しておけばレイアウトのガタつきも防げる。
+      const info = execFileSync('sips', ['--getProperty', 'pixelWidth', '--getProperty', 'pixelHeight', outPath], {
+        encoding: 'utf-8',
+      });
+      dim = {
+        width: Number(info.match(/pixelWidth:\s*(\d+)/)?.[1] ?? 0) || null,
+        height: Number(info.match(/pixelHeight:\s*(\d+)/)?.[1] ?? 0) || null,
+      };
     }
     copied++;
     items.push({
       file: outName,
+      width: dim?.width ?? null,
+      height: dim?.height ?? null,
       date: best.iso,
       raceName: best.race.raceName,
       grade: best.race.grade,

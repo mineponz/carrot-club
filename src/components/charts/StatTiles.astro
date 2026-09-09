@@ -6,11 +6,13 @@ interface Tile {
 }
 interface Props {
   tiles: Tile[];
+  /** 小さめに出す。本文の主役ではなく脇に添える場所（出資馬ページ）向け。 */
+  compact?: boolean;
 }
-const { tiles } = Astro.props;
+const { tiles, compact = false } = Astro.props;
 ---
 
-<ul class="stat-tiles">
+<ul class={`stat-tiles${compact ? ' is-compact' : ''}`}>
   {tiles.map((t) => (
     <li>
       <p class="stat-value">{t.value}</p>
@@ -29,6 +31,15 @@ const { tiles } = Astro.props;
     margin: 1.25rem 0;
     padding: 0;
   }
+  .stat-tiles.is-compact {
+    grid-template-columns: repeat(auto-fit, minmax(7rem, 1fr));
+    gap: 0.5rem;
+    margin: 0.75rem 0;
+  }
+  .stat-tiles.is-compact li { padding: 0.55rem 0.7rem; }
+  .stat-tiles.is-compact .stat-value { font-size: 1.15rem; }
+  .stat-tiles.is-compact .stat-label,
+  .stat-tiles.is-compact .stat-note { font-size: 0.75rem; }
   .stat-tiles li {
     background: var(--surface);
     border: 1px solid var(--border);

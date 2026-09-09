@@ -80,6 +80,13 @@ const measures = [
   { label: '管囲', value: horse.caretGirth ?? recruit?.caretGirth ?? null, unit: 'cm' },
 ];
 
+/** JRAの慣例に合わせたグレードの段階。GI/JpnI→1, GII→2, GIII→3, OP・Lは色なし。 */
+function gradeClass(g: string | null): string {
+  if (!g) return '';
+  const m = g.match(/^(?:G|Jpn)(I{1,3})$/);
+  return m ? `grade-${m[1].length}` : 'grade-op';
+}
+
 const WRITTEN = new Set(['sweet-lydia']);
 const asOf = new Date(MY_HORSES_FETCHED_AT).toLocaleDateString('ja-JP', {
   year: 'numeric',
@@ -100,68 +107,67 @@ const description = `【非公式】${horse.name}（${horse.recruitYear}年募�
     {horse.name}
     <span class={`badge badge-${horse.status}`}>{STATUS_LABEL[horse.status]}</span>
   </h1>
-  {photo && (
-    /* 読み込めなければ figure ごと隠す（このサイトはCSP未導入なので onerror 属性が使える）。 */
-    <figure class="horse-photo">
-      <img
-        src={recruitPhotoUrl(photo.clubId, photo.file)}
-        alt={`${horse.name}の募集時の馬体写真`}
-        loading="eager"
-        referrerpolicy="no-referrer"
-        onerror="this.closest('figure').hidden = true"
+  {/* PCでは写真の右に情報を寄せて、写真の横にできる空きを埋める（本人指摘・2026-09-09）。
+      狭い画面では1列に落ちる。 */}
+  <div class="horse-head">
+    {photo && (
+      /* 読み込めなければ figure ごと隠す（このサイトはCSP未導入なので onerror 属性が使える）。 */
+      <figure class="horse-photo">
+        <img
+          src={recruitPhotoUrl(photo.clubId, photo.file)}
+          alt={`${horse.name}の募集時の馬体写真`}
+          loading="eager"
+          referrerpolicy="no-referrer"
+          onerror="this.closest('figure').hidden = true"
+        />
+        <figcaption>
+          募集時（{photo.date.replace(/-/g, '/')}・{photo.place}）の馬体写真。
+          キャロットクラブより許可をもらって転載しています。
+        </figcaption>
+      </figure>
+    )}
+
+    <div class="horse-head-info">
+      <p class="pedigree">
+        父 <strong>{horse.sire}</strong><br />
+        母 <strong>{horse.damName}</strong>
+        <span class="bms">（母父 {horse.broodmareSire}）</span>
+      </p>
+      <p class="recruit-line">
+        {horse.recruitYear}年募集{horse.no}番{horse.supplementary ? '（追加募集）' : ''}
+        {horse.offeringTotalManYen ? ` ・ 募集総額 ${formatPrizeJa(horse.offeringTotalManYen)}` : ''}
+        {horse.status !== 'active' && horse.fundEndedAt
+          ? ` ・ ${horse.status === 'retired' ? '引退' : 'ファンド解散'} ${horse.fundEndedAt.replace(/-/g, '/')}`
+          : ''}
+        {horse.retiredReason ? `（${horse.retiredReason}）` : ''}
+      </p>
+
+      <StatTiles
+        compact
+        tiles={[
+          { label: '成績', value: inFund.length ? `${inFund.length}戦${wins}勝` : '未出走' },
+          { label: '獲得賞金', value: formatPrizeJa(horse.ownerPrizeManYen) },
+          {
+            label: '回収率',
+            value: horse.recoveryRatePct === null ? '—' : `${horse.recoveryRatePct}%`,
+            note: horse.offeringTotalManYen ? `募集 ${formatPrizeJa(horse.offeringTotalManYen)}` : undefined,
+          },
+        ]}
       />
-      <figcaption>
-        募集時（{photo.date.replace(/-/g, '/')}・{photo.place}）／キャロットクラブ提供
-      </figcaption>
-    </figure>
-  )}
 
-  <p class="pedigree">
-    父 <strong>{horse.sire}</strong> ／ 母 <strong>{horse.damName}</strong>
-    （母父 {horse.broodmareSire}）
-  </p>
-  <p class="recruit-line">
-    {horse.recruitYear}年募集{horse.no}番{horse.supplementary ? '（追加募集）' : ''}
-    {horse.offeringTotalManYen ? ` ・ 募集総額 ${formatPrizeJa(horse.offeringTotalManYen)}` : ''}
-    {horse.status !== 'active' && horse.fundEndedAt
-      ? ` ・ ${horse.status === 'retired' ? '引退' : 'ファンド解散'} ${horse.fundEndedAt.replace(/-/g, '/')}`
-      : ''}
-    {horse.retiredReason ? `（${horse.retiredReason}）` : ''}
-  </p>
-
-  <StatTiles
-    tiles={[
-      { label: '成績', value: inFund.length ? `${inFund.length}戦${wins}勝` : '未出走' },
-      { label: '獲得賞金', value: formatPrizeJa(horse.ownerPrizeManYen) },
-      {
-        label: '回収率',
-        value: horse.recoveryRatePct === null ? '—' : `${horse.recoveryRatePct}%`,
-        note: horse.offeringTotalManYen ? `募集 ${formatPrizeJa(horse.offeringTotalManYen)}` : undefined,
-      },
-    ]}
-  />
-
-  <h2>{measuredAt ? '募集時の測尺（2歳春）' : '募集時の測尺（1歳8月）'}</h2>
-  <table class="measure-table">
-    <tbody>
-      <tr>
-        {measures.map((m) => (
-          <th scope="col">{m.label}</th>
-        ))}
-      </tr>
-      <tr>
-        {measures.map((m) => (
-          <td>{m.value === null ? '—' : `${m.value}${m.unit}`}</td>
-        ))}
-      </tr>
-    </tbody>
-  </table>
-  {measuredAt && (
-    <p class="note">
-      追加募集のため、カタログではなくクラブの近況に載った{measuredAt.replace(/-/g, '/')}時点の計測です。
-      通常募集の馬（1歳8月の計測）とは時期が違うので、そのまま比べられません。
-    </p>
-  )}
+      <table class="measure-table">
+        <tbody>
+          <tr>{measures.map((m) => <th scope="col">{m.label}</th>)}</tr>
+          <tr>{measures.map((m) => <td>{m.value === null ? '—' : `${m.value}${m.unit}`}</td>)}</tr>
+        </tbody>
+      </table>
+      <p class="measure-note">
+        {measuredAt
+          ? `募集時の測尺（${measuredAt.replace(/-/g, '/')}・追加募集のためカタログではなく近況より。通常募集の1歳8月とは時期が違います）`
+          : '募集時の測尺（1歳8月）'}
+      </p>
+    </div>
+  </div>
 
   <h2>馬体重の推移</h2>
   {training.length || raceWeights.length ? (
@@ -184,12 +190,18 @@ const description = `【非公式】${horse.name}（${horse.recruitYear}年募�
         <section class="own-group">
           <p class="own-caption">
             {g.date.replace(/-/g, '/')}　{g.race.venue}　{g.race.raceName}
-            {g.race.grade && <span class="grade">{g.race.grade}</span>}
+            {g.race.grade && <span class={`grade ${gradeClass(g.race.grade)}`}>{g.race.grade}</span>}
             <span class="own-finish">{g.race.finish}着</span>
           </p>
           <div class="own-grid">
             {g.items.map((p) => (
-              <img src={ownPhotoUrl(slug, p.file)} alt={`${horse.name} ${g.race.raceName}`} loading="lazy" />
+              <img
+                src={ownPhotoUrl(slug, p.file)}
+                alt={`${horse.name} ${g.race.raceName}`}
+                width={p.width ?? undefined}
+                height={p.height ?? undefined}
+                loading="lazy"
+              />
             ))}
           </div>
         </section>
@@ -215,19 +227,20 @@ const description = `【非公式】${horse.name}（${horse.recruitYear}年募�
               : 'out';
             return (
             <tr class={`row-${tier}`}>
-              <td class="nowrap">{r.date}</td>
-              <td class="nowrap">{r.venue}{r.raceNumber}R</td>
-              <td>{r.raceName}{r.grade && <span class="grade">{r.grade}</span>}</td>
-              <td class="nowrap">{r.course}</td>
-              <td class="nowrap">{r.condition}</td>
-              <td class="num">{r.headcount}</td>
-              <td class="num">{r.popularity}</td>
+              <td class="nowrap sub">{r.date}</td>
+              <td class="nowrap sub">{r.venue}{r.raceNumber}R</td>
+              <td class="race-name">{r.raceName}{r.grade && <span class={`grade ${gradeClass(r.grade)}`}>{r.grade}</span>}</td>
+              <td class="nowrap sub">{r.course}</td>
+              <td class="nowrap sub">{r.condition}</td>
+              <td class="num sub">{r.headcount}</td>
+              <td class="num sub">{r.popularity}</td>
               <td class="num"><span class={`finish finish-${tier}`}>{r.finish}</span></td>
               <td class="nowrap">{r.jockey}</td>
-              <td class="num">{r.carriedWeight}</td>
-              <td class="nowrap">{r.time}</td>
-              <td class="num">{r.last3f}</td>
-              <td class="nowrap">{r.bodyWeight ? `${r.bodyWeight}(${r.bodyWeightDiff! > 0 ? '+' : ''}${r.bodyWeightDiff})` : '—'}</td>
+              <td class="num sub">{r.carriedWeight}</td>
+              <td class="nowrap time">{r.time}</td>
+              {/* 上りは 37 ではなく 37.0 と桁を揃える（本人指摘・2026-09-09）。 */}
+              <td class="num">{r.last3f === null ? '—' : r.last3f.toFixed(1)}</td>
+              <td class="nowrap sub">{r.bodyWeight ? `${r.bodyWeight}(${r.bodyWeightDiff! > 0 ? '+' : ''}${r.bodyWeightDiff})` : '—'}</td>
               <td class="num">{r.prizeManYen ? `${r.prizeManYen.toLocaleString()}万` : '—'}</td>
             </tr>
             );
@@ -260,11 +273,21 @@ const description = `【非公式】${horse.name}（${horse.recruitYear}年募�
   .badge-active { background: var(--info-weak); color: var(--info); }
   .badge-retired,
   .badge-transferred { background: var(--accent-weak); color: var(--muted); }
-  .horse-photo { margin: 0 0 1rem; }
+  .horse-head {
+    display: grid;
+    grid-template-columns: minmax(0, 22rem) minmax(0, 1fr);
+    gap: 1.25rem;
+    align-items: start;
+    margin-bottom: 1.5rem;
+  }
+  @media (max-width: 720px) {
+    .horse-head { grid-template-columns: 1fr; gap: 0.75rem; }
+  }
+  .horse-head-info { min-width: 0; }
+  .horse-photo { margin: 0; }
   .horse-photo img {
     display: block;
     width: 100%;
-    max-width: 30rem;
     height: auto;
     border-radius: 10px;
   }
@@ -273,13 +296,15 @@ const description = `【非公式】${horse.name}（${horse.recruitYear}年募�
     color: var(--muted);
     font-size: 0.75rem;
   }
-  .pedigree { font-size: 1rem; margin-bottom: 0.2rem; }
-  .recruit-line { color: var(--muted); font-size: 0.875rem; margin-top: 0; }
-  .measure-table { border-collapse: collapse; margin: 0.75rem 0; }
+  .pedigree { font-size: 1.05rem; margin: 0 0 0.2rem; line-height: 1.6; }
+  .pedigree .bms { color: var(--muted); font-size: 0.875rem; }
+  .recruit-line { color: var(--muted); font-size: 0.8125rem; margin: 0 0 0.5rem; }
+  .measure-note { margin: 0.3rem 0 0; color: var(--muted); font-size: 0.75rem; line-height: 1.6; }
+  .measure-table { border-collapse: collapse; margin: 0.75rem 0 0; width: 100%; }
   .measure-table th,
   .measure-table td {
     border: 1px solid var(--border);
-    padding: 0.45rem 1.1rem;
+    padding: 0.35rem 0.5rem;
     text-align: center;
     font-variant-numeric: tabular-nums;
   }
@@ -302,12 +327,19 @@ const description = `【非公式】${horse.name}（${horse.recruitYear}年募�
     height: auto;
     border-radius: 8px;
   }
+  /* 募集時の写真も同じ理由で寸法が要るが、外部ホストのため取得できない。
+     縦横比を先に決めて場所を確保する。 */
   .race-table-wrap { overflow-x: auto; margin: 1rem 0; }
   .race-table { width: 100%; border-collapse: collapse; font-size: 0.8125rem; }
   .race-table th,
   .race-table td { padding: 0.4rem 0.55rem; border-bottom: 1px solid var(--border); text-align: left; }
   .race-table thead th { background: var(--surface); white-space: nowrap; }
   .race-table .nowrap { white-space: nowrap; }
+  /* netkeibaの個体ページと同じで、脇の条件（日付・開催・距離・馬場・頭数・人気・斤量・馬体重）は
+     一段落として、レース名・着順・タイムを前に出す。 */
+  .race-table .sub { color: var(--muted); font-size: 0.75rem; }
+  .race-table .race-name { font-weight: 600; }
+  .race-table .time { font-variant-numeric: tabular-nums; font-weight: 600; }
   .race-table .num { text-align: right; font-variant-numeric: tabular-nums; }
   /* 着順は表の中でいちばん探される列なので、数字だけでなくバッジにして段階を付ける。
      グラフ（WeightTimeline）と同じ4段階: 1着 / 2〜3着 / 4〜5着（掲示板）/ 6着以下。
@@ -326,15 +358,34 @@ const description = `【非公式】${horse.name}（${horse.recruitYear}年募�
   .finish-out { color: var(--muted); }
   /* 好走した行そのものも薄く持ち上げて、流し読みで拾えるようにする */
   tr.row-1 { background: var(--info-weak); }
-  tr.row-23 td { font-weight: 600; }
+  /* 行全体を太字にすると騎手名まで太くなって列ごとに太さが揺れる（本人指摘・2026-09-10）。
+     強調はレース名・着順・タイムに限り、行は薄い地色だけで示す。 */
+  tr.row-23 { background: color-mix(in srgb, var(--info-weak) 45%, transparent); }
   tr.row-out td { color: var(--muted); }
+  /*
+   * グレードの色はJRAの慣例に合わせる（G1=青 / G2=赤 / G3=緑）。JpnI〜III も同じ。
+   * netkeibaの表記はローマ数字なので `I` の数で段階を判定する。
+   * 白文字のコントラストは light で 7.03 / 6.52 / 5.37、dark は濃い文字に反転して
+   * 6.92 / 6.28 / 8.00（いずれも4.5以上）。OP・L は色を持たせず枠線だけ。
+   */
   .grade {
-    margin-left: 0.3rem;
-    padding: 0 0.3rem;
-    border: 1px solid var(--info);
+    display: inline-block;
+    margin-left: 0.35rem;
+    padding: 0.05rem 0.35rem;
     border-radius: 3px;
-    color: var(--info);
     font-size: 0.6875rem;
+    font-weight: 700;
+    line-height: 1.5;
+    white-space: nowrap;
+  }
+  .grade-1 { background: #1258a8; color: #fff; }
+  .grade-2 { background: #b32626; color: #fff; }
+  .grade-3 { background: #157a48; color: #fff; }
+  .grade-op { border: 1px solid var(--border); color: var(--muted); }
+  @media (prefers-color-scheme: dark) {
+    .grade-1 { background: #5aa3e8; color: #12140f; }
+    .grade-2 { background: #e8736f; color: #12140f; }
+    .grade-3 { background: #4fbe89; color: #12140f; }
   }
   .article-link { margin-top: 1.5rem; font-weight: 700; }
   .asof { color: var(--muted); font-size: 0.8125rem; }

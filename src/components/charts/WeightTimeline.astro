@@ -100,6 +100,7 @@ const tip = (p: Point, kind: string) =>
     <li><span class="key key-dot key-board"></span>4〜5着</li>
     <li><span class="key key-dot key-out"></span>6着以下</li>
   </ul>
+  <div class="viz-scroll">
   <svg viewBox={`0 0 ${width} ${height}`} role="img" aria-label={title} class="viz-svg">
     {yTicks.map((w) => (
       <>
@@ -157,6 +158,7 @@ const tip = (p: Point, kind: string) =>
     <line x1={marginLeft} x2={width - marginRight} y1={marginTop + plotH} y2={marginTop + plotH} class="viz-baseline" />
     <text x={marginLeft} y={height - 4} class="viz-axis-title">kg</text>
   </svg>
+  </div>
   <p class="visually-hidden">
     {title}:{' '}
     {[...training.map((p) => ({ ...p, k: '育成' })), ...races.map((p) => ({ ...p, k: 'レース' }))]
@@ -216,7 +218,17 @@ const tip = (p: Point, kind: string) =>
     box-shadow: inset 0 0 0 1.5px var(--series-2);
     opacity: 0.5;
   }
+  /*
+   * スマホでは viewBox(720) が画面幅まで縮んで軸ラベルが5.5pxになり読めなくなる
+   * （430px端末で実測・2026-09-09）。表と同じように横スクロールさせて、
+   * 最低幅を確保することで文字サイズを保つ。
+   */
+  .viz-scroll { overflow-x: auto; }
   .viz-svg { width: 100%; height: auto; display: block; overflow: visible; }
+  @media (max-width: 640px) {
+    .viz-svg { min-width: 600px; }
+  }
+  .viz-legend { flex-wrap: wrap; }
   .viz-grid { stroke: var(--border); stroke-width: 1; }
   .viz-baseline { stroke: var(--muted); stroke-width: 1; }
   .viz-line { fill: none; stroke: var(--series-1); stroke-width: 2; stroke-linejoin: round; }

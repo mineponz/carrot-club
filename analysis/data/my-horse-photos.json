@@ -62,6 +62,8 @@
   "windstille": [
    {
     "file": "2025-04-12-01.jpg",
+    "width": 675,
+    "height": 1200,
     "date": "2025-04-12",
     "raceName": "4歳以上1勝クラス",
     "grade": null,
@@ -70,22 +72,28 @@
    },
    {
     "file": "2024-05-19-01.jpg",
+    "width": 1200,
+    "height": 800,
     "date": "2024-05-19",
-    "raceName": "優駿牝馬(GI)",
-    "grade": null,
+    "raceName": "優駿牝馬",
+    "grade": "GI",
     "venue": "東京",
     "finish": 18
    },
    {
     "file": "2024-05-19-02.jpg",
+    "width": 1200,
+    "height": 800,
     "date": "2024-05-19",
-    "raceName": "優駿牝馬(GI)",
-    "grade": null,
+    "raceName": "優駿牝馬",
+    "grade": "GI",
     "venue": "東京",
     "finish": 18
    },
    {
     "file": "2024-03-09-01.jpg",
+    "width": 1200,
+    "height": 675,
     "date": "2024-03-09",
     "raceName": "3歳未勝利",
     "grade": null,
@@ -96,6 +104,8 @@
   "sonnenblume": [
    {
     "file": "2026-06-13-01.jpg",
+    "width": 1200,
+    "height": 675,
     "date": "2026-06-13",
     "raceName": "3歳未勝利",
     "grade": null,
@@ -104,6 +114,8 @@
    },
    {
     "file": "2025-10-25-01.jpg",
+    "width": 1200,
+    "height": 675,
     "date": "2025-10-25",
     "raceName": "2歳新馬",
     "grade": null,
@@ -114,6 +126,8 @@
   "diogenite": [
    {
     "file": "2025-02-01-01.jpg",
+    "width": 1200,
+    "height": 675,
     "date": "2025-02-01",
     "raceName": "4歳以上1勝クラス",
     "grade": null,
@@ -122,6 +136,8 @@
    },
    {
     "file": "2024-03-31-01.jpg",
+    "width": 1200,
+    "height": 675,
     "date": "2024-03-31",
     "raceName": "3歳未勝利",
     "grade": null,
@@ -130,6 +146,8 @@
    },
    {
     "file": "2024-03-02-01.jpg",
+    "width": 1200,
+    "height": 800,
     "date": "2024-03-02",
     "raceName": "3歳未勝利",
     "grade": null,
@@ -140,6 +158,8 @@
   "river-valate": [
    {
     "file": "2025-09-28-01.jpg",
+    "width": 1200,
+    "height": 800,
     "date": "2025-09-28",
     "raceName": "3歳以上1勝クラス",
     "grade": null,
@@ -148,6 +168,8 @@
    },
    {
     "file": "2025-09-28-02.jpg",
+    "width": 1200,
+    "height": 800,
     "date": "2025-09-28",
     "raceName": "3歳以上1勝クラス",
     "grade": null,
@@ -156,6 +178,8 @@
    },
    {
     "file": "2025-04-19-01.jpg",
+    "width": 1200,
+    "height": 675,
     "date": "2025-04-19",
     "raceName": "3歳未勝利",
     "grade": null,
@@ -164,6 +188,8 @@
    },
    {
     "file": "2025-01-05-01.jpg",
+    "width": 1200,
+    "height": 800,
     "date": "2025-01-05",
     "raceName": "3歳新馬",
     "grade": null,
@@ -172,6 +198,8 @@
    },
    {
     "file": "2025-01-05-02.jpg",
+    "width": 1200,
+    "height": 800,
     "date": "2025-01-05",
     "raceName": "3歳新馬",
     "grade": null,
@@ -180,6 +208,8 @@
    },
    {
     "file": "2025-01-05-03.jpg",
+    "width": 1200,
+    "height": 800,
     "date": "2025-01-05",
     "raceName": "3歳新馬",
     "grade": null,
@@ -190,6 +220,8 @@
   "raging-wave": [
    {
     "file": "2022-09-19-01.jpg",
+    "width": 1200,
+    "height": 675,
     "date": "2022-09-19",
     "raceName": "2歳新馬",
     "grade": null,
@@ -200,6 +232,8 @@
   "rock-ptarmigan": [
    {
     "file": "2026-06-10-01.jpg",
+    "width": 1200,
+    "height": 675,
     "date": "2026-06-10",
     "raceName": "東京ダービー競走",
     "grade": "JpnI",
@@ -208,6 +242,8 @@
    },
    {
     "file": "2026-04-29-01.jpg",
+    "width": 900,
+    "height": 1200,
     "date": "2026-04-29",
     "raceName": "羽田盃競走",
     "grade": "JpnI",
@@ -216,6 +252,8 @@
    },
    {
     "file": "2026-04-29-02.jpg",
+    "width": 1200,
+    "height": 675,
     "date": "2026-04-29",
     "raceName": "羽田盃競走",
     "grade": "JpnI",
@@ -224,6 +262,8 @@
    },
    {
     "file": "2026-03-25-01.jpg",
+    "width": 675,
+    "height": 1200,
     "date": "2026-03-25",
     "raceName": "京浜盃競走",
     "grade": "JpnII",
@@ -232,6 +272,8 @@
    },
    {
     "file": "2026-03-25-02.jpg",
+    "width": 675,
+    "height": 1200,
     "date": "2026-03-25",
     "raceName": "京浜盃競走",
     "grade": "JpnII",
@@ -240,6 +282,8 @@
    },
    {
     "file": "2025-09-27-01.jpg",
+    "width": 1200,
+    "height": 800,
     "date": "2025-09-27",
     "raceName": "芙蓉S",
     "grade": "OP",
@@ -248,6 +292,8 @@
    },
    {
     "file": "2025-09-27-02.jpg",
+    "width": 1200,
+    "height": 800,
     "date": "2025-09-27",
     "raceName": "芙蓉S",
     "grade": "OP",
@@ -256,5 +302,5 @@
    }
   ]
  },
- "ownFetchedAt": "2026-09-09T14:43:12.582Z"
+ "ownFetchedAt": "2026-09-09T15:26:09.499Z"
 }

@@ -53,6 +53,9 @@ export function loadRecruitPhotos(): Record<string, RecruitPhoto> {
 /** 自分で撮った写真。`scripts/import-my-photos.mjs` が `public/my-horses/<slug>/` へ入れる。 */
 export interface OwnPhoto {
   file: string;
+  /** 出力後の寸法。`<img width height>` に出して読み込み前の高さを確保する。 */
+  width: number | null;
+  height: number | null;
   /** レース日。ファイル名ではなく成績データ側の日付（ファイル名は誤りうる）。 */
   date: string;
   raceName: string | null;

@@ -99,8 +99,11 @@ function parseRaces(tableHtml) {
     const raceId = tr.match(/\/race\/(\d{12})\//)?.[1] ?? null;
     const c = tds.map(strip);
     // レース名は「不来方賞(JpnII)」のようにグレードが括弧で付く。
+    // netkeibaの表記はローマ数字（GI / GII / GIII / JpnI…）。アラビア数字で書くと
+    // 優駿牝馬(GI) や ラジオN杯京都2歳S(GIII) を取りこぼす（2026-09-10に判明）。
+    // 括弧には地方の条件（C1・B2・1勝クラス等）も入るので、グレードだけを拾う。
     const nameRaw = c[COL.raceName];
-    const grade = nameRaw.match(/\((G[123]|Jpn[IV]+|OP|L)\)\s*$/)?.[1] ?? null;
+    const grade = nameRaw.match(/\((G[I]{1,3}|Jpn[I]{1,3}|OP|L)\)\s*$/)?.[1] ?? null;
     // 馬体重は「552(+12)」。増減は別に持つ（体重推移のグラフで使う）。
     const bw = c[COL.bodyWeight].match(/^(\d{3})\(([-+]?\d+)\)$/);
     const finishRaw = c[COL.finish];
