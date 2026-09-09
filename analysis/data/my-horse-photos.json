@@ -1,0 +1,260 @@
+{
+ "fetchedAt": "2026-09-09T12:56:12.584310+00:00",
+ "source": "carrotclub.net/horse/photo_all.asp?id=<clubId>&ct=1（PHOTOSバックナンバーの最古＝募集時）",
+ "note": "ファイル名は年ごとに規則が違い計算できないため実名を保存する（21-48BD.jpg / 23037photobd.jpg / yoko_24072.jpg など）。原寸は /upfile/<clubId>/<file>、サムネイルは /upfile/<clubId>/mob/<file>。",
+ "photos": {
+  "raging-wave": {
+   "clubId": "2148",
+   "file": "21-48BD.jpg",
+   "date": "2021-08-26",
+   "place": "ＮＦイヤリング"
+  },
+  "windstille": {
+   "clubId": "2217",
+   "file": "22_BD_017.jpg",
+   "date": "2022-08-23",
+   "place": "ＮＦイヤリング"
+  },
+  "diogenite": {
+   "clubId": "21097",
+   "file": "22_BD_097Ad.jpg",
+   "date": "2023-04-05",
+   "place": "ＮＦ早来"
+  },
+  "river-valate": {
+   "clubId": "22007",
+   "file": "22007JB.jpg",
+   "date": "2023-08-29",
+   "place": "ＮＦイヤリング"
+  },
+  "sonnenblume": {
+   "clubId": "23037",
+   "file": "23037photobd.jpg",
+   "date": "2024-08-26",
+   "place": "ＮＦイヤリング"
+  },
+  "rock-ptarmigan": {
+   "clubId": "23084",
+   "file": "23084photobd.jpg",
+   "date": "2024-08-26",
+   "place": "白老Ｆイヤリング"
+  },
+  "eir": {
+   "clubId": "23100",
+   "file": "23100photobd-ad.jpg",
+   "date": "2025-04-02",
+   "place": "ＮＦ早来"
+  },
+  "assemblage": {
+   "clubId": "24067",
+   "file": "yoko_24067.jpg",
+   "date": "2025-08-19",
+   "place": "ＮＦイヤリング"
+  },
+  "sweet-lydia": {
+   "clubId": "24072",
+   "file": "yoko_24072.jpg",
+   "date": "2025-08-19",
+   "place": "ＮＦイヤリング"
+  }
+ },
+ "own": {
+  "windstille": [
+   {
+    "file": "2025-04-12-01.jpg",
+    "date": "2025-04-12",
+    "raceName": "4歳以上1勝クラス",
+    "grade": null,
+    "venue": "中山",
+    "finish": 8
+   },
+   {
+    "file": "2024-05-19-01.jpg",
+    "date": "2024-05-19",
+    "raceName": "優駿牝馬(GI)",
+    "grade": null,
+    "venue": "東京",
+    "finish": 18
+   },
+   {
+    "file": "2024-05-19-02.jpg",
+    "date": "2024-05-19",
+    "raceName": "優駿牝馬(GI)",
+    "grade": null,
+    "venue": "東京",
+    "finish": 18
+   },
+   {
+    "file": "2024-03-09-01.jpg",
+    "date": "2024-03-09",
+    "raceName": "3歳未勝利",
+    "grade": null,
+    "venue": "中山",
+    "finish": 4
+   }
+  ],
+  "sonnenblume": [
+   {
+    "file": "2026-06-13-01.jpg",
+    "date": "2026-06-13",
+    "raceName": "3歳未勝利",
+    "grade": null,
+    "venue": "東京",
+    "finish": 5
+   },
+   {
+    "file": "2025-10-25-01.jpg",
+    "date": "2025-10-25",
+    "raceName": "2歳新馬",
+    "grade": null,
+    "venue": "東京",
+    "finish": 8
+   }
+  ],
+  "diogenite": [
+   {
+    "file": "2025-02-01-01.jpg",
+    "date": "2025-02-01",
+    "raceName": "4歳以上1勝クラス",
+    "grade": null,
+    "venue": "東京",
+    "finish": 2
+   },
+   {
+    "file": "2024-03-31-01.jpg",
+    "date": "2024-03-31",
+    "raceName": "3歳未勝利",
+    "grade": null,
+    "venue": "中山",
+    "finish": 1
+   },
+   {
+    "file": "2024-03-02-01.jpg",
+    "date": "2024-03-02",
+    "raceName": "3歳未勝利",
+    "grade": null,
+    "venue": "中山",
+    "finish": 2
+   }
+  ],
+  "river-valate": [
+   {
+    "file": "2025-09-28-01.jpg",
+    "date": "2025-09-28",
+    "raceName": "3歳以上1勝クラス",
+    "grade": null,
+    "venue": "中山",
+    "finish": 1
+   },
+   {
+    "file": "2025-09-28-02.jpg",
+    "date": "2025-09-28",
+    "raceName": "3歳以上1勝クラス",
+    "grade": null,
+    "venue": "中山",
+    "finish": 1
+   },
+   {
+    "file": "2025-04-19-01.jpg",
+    "date": "2025-04-19",
+    "raceName": "3歳未勝利",
+    "grade": null,
+    "venue": "中山",
+    "finish": 1
+   },
+   {
+    "file": "2025-01-05-01.jpg",
+    "date": "2025-01-05",
+    "raceName": "3歳新馬",
+    "grade": null,
+    "venue": "中京",
+    "finish": 2
+   },
+   {
+    "file": "2025-01-05-02.jpg",
+    "date": "2025-01-05",
+    "raceName": "3歳新馬",
+    "grade": null,
+    "venue": "中京",
+    "finish": 2
+   },
+   {
+    "file": "2025-01-05-03.jpg",
+    "date": "2025-01-05",
+    "raceName": "3歳新馬",
+    "grade": null,
+    "venue": "中京",
+    "finish": 2
+   }
+  ],
+  "raging-wave": [
+   {
+    "file": "2022-09-19-01.jpg",
+    "date": "2022-09-19",
+    "raceName": "2歳新馬",
+    "grade": null,
+    "venue": "中京",
+    "finish": 10
+   }
+  ],
+  "rock-ptarmigan": [
+   {
+    "file": "2026-06-10-01.jpg",
+    "date": "2026-06-10",
+    "raceName": "東京ダービー競走",
+    "grade": "JpnI",
+    "venue": "大井",
+    "finish": 4
+   },
+   {
+    "file": "2026-04-29-01.jpg",
+    "date": "2026-04-29",
+    "raceName": "羽田盃競走",
+    "grade": "JpnI",
+    "venue": "大井",
+    "finish": 2
+   },
+   {
+    "file": "2026-04-29-02.jpg",
+    "date": "2026-04-29",
+    "raceName": "羽田盃競走",
+    "grade": "JpnI",
+    "venue": "大井",
+    "finish": 2
+   },
+   {
+    "file": "2026-03-25-01.jpg",
+    "date": "2026-03-25",
+    "raceName": "京浜盃競走",
+    "grade": "JpnII",
+    "venue": "大井",
+    "finish": 1
+   },
+   {
+    "file": "2026-03-25-02.jpg",
+    "date": "2026-03-25",
+    "raceName": "京浜盃競走",
+    "grade": "JpnII",
+    "venue": "大井",
+    "finish": 1
+   },
+   {
+    "file": "2025-09-27-01.jpg",
+    "date": "2025-09-27",
+    "raceName": "芙蓉S",
+    "grade": "OP",
+    "venue": "中山",
+    "finish": 4
+   },
+   {
+    "file": "2025-09-27-02.jpg",
+    "date": "2025-09-27",
+    "raceName": "芙蓉S",
+    "grade": "OP",
+    "venue": "中山",
+    "finish": 4
+   }
+  ]
+ },
+ "ownFetchedAt": "2026-09-09T14:43:12.582Z"
+}

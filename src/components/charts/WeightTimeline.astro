@@ -1,0 +1,254 @@
+---
+/**
+ * 馬体重の推移（時系列）。出資馬ページ用。
+ *
+ * 2系列を1枚に重ねる:
+ *  - **育成・放牧中**（クラブの近況バックナンバー）… 折れ線。2週〜1か月おきの計測。
+ *  - **レース当日**… 折れ線＋点。輸送で絞れるので育成中より軽く出るのが普通で、育成の線と
+ *    つないで1本にすると「急に減った」ように誤読される。だから**2本の線**として重ねる。
+ *
+ * 色は `ScatterChart` / `GroupedBarChart` と同じ `--series-1` / `--series-2`。
+ * dataviz検証器（light/dark両モード）で6項目すべてPASSを確認済み（2026-09-09）。
+ * 2系列なので凡例は常時表示。点は色だけで区別させず、形（線 vs 点）でも分けている。
+ *
+ * ## 着順は色を増やさず「大きさ・塗り・ラベル」で表す
+ * レース点を着順で3色にすると、色覚特性のある読者と印刷で区別が消える。同じ色相のまま
+ * 大きさ・塗り・不透明度・ラベルを重ねて4段階にする:
+ *   1着     … 最大の実点 ＋ 太字ラベル
+ *   2〜3着  … 実点 ＋ 着順ラベル
+ *   4〜5着  … やや小さい実点を淡く（掲示板入り。ラベルは付けない）
+ *   6着以下 … 小さい中抜きをさらに淡く、背景へ退かせる
+ * 直接ラベルは複勝圏だけ。全点に数字を振ると線が読めなくなるので、掲示板以下は付けない。
+ */
+interface Point {
+  date: string;
+  weightKg: number;
+  /** 育成なら滞在場所、レースならレース名。ツールチップに出す。 */
+  label?: string | null;
+  /** レース当日のみ。前走からの増減。 */
+  diff?: number | null;
+  /** レース当日のみ。着順。1着＝強調、2〜3着＝実点、それ以外＝中抜き。 */
+  finish?: number | string | null;
+}
+
+interface Props {
+  title: string;
+  training: Point[];
+  races: Point[];
+  height?: number;
+}
+
+const { title, training, races, height = 300 } = Astro.props;
+
+const width = 720;
+const marginTop = 16;
+const marginRight = 12;
+const marginBottom = 34;
+const marginLeft = 44;
+const plotW = width - marginLeft - marginRight;
+const plotH = height - marginTop - marginBottom;
+
+const all = [...training, ...races].filter((p) => p.date && Number.isFinite(p.weightKg));
+const times = all.map((p) => new Date(p.date).getTime());
+const minT = Math.min(...times);
+const maxT = Math.max(...times);
+const weights = all.map((p) => p.weightKg);
+// 目盛りは10kg刻みに丸めて、上下に1目盛りぶん余白を取る。
+const loW = Math.floor(Math.min(...weights) / 10) * 10 - 10;
+const hiW = Math.ceil(Math.max(...weights) / 10) * 10 + 10;
+
+const x = (d: string) =>
+  marginLeft + (plotW * (new Date(d).getTime() - minT)) / Math.max(1, maxT - minT);
+const y = (w: number) => marginTop + plotH * (1 - (w - loW) / Math.max(1, hiW - loW));
+
+const yTicks: number[] = [];
+for (let w = loW; w <= hiW; w += Math.max(10, Math.round((hiW - loW) / 5 / 10) * 10)) yTicks.push(w);
+
+// x軸は年の頭で刻む。育成〜引退まで数年に渡る馬がいるので月刻みだと潰れる。
+const years: { t: number; label: string }[] = [];
+for (let yr = new Date(minT).getFullYear(); yr <= new Date(maxT).getFullYear(); yr++) {
+  const t = new Date(`${yr}-01-01`).getTime();
+  if (t >= minT && t <= maxT) years.push({ t, label: `${yr}` });
+}
+
+const poly = (ps: Point[]) =>
+  [...ps]
+    .sort((a, b) => (a.date < b.date ? -1 : 1))
+    .map((p) => `${x(p.date).toFixed(1)},${y(p.weightKg).toFixed(1)}`)
+    .join(' ');
+const sortedTraining = [...training].sort((a, b) => (a.date < b.date ? -1 : 1));
+const linePoints = poly(training);
+const raceLinePoints = poly(races);
+
+const tip = (p: Point, kind: string) =>
+  JSON.stringify({
+    title: p.date.replace(/-/g, '/'),
+    rows: [
+      ['馬体重', `${p.weightKg}kg${p.diff != null ? `（${p.diff > 0 ? '+' : ''}${p.diff}）` : ''}`],
+      [kind, p.label ?? '—'],
+    ],
+  });
+---
+
+<div class="viz-root">
+  <p class="viz-title">{title}</p>
+  <ul class="viz-legend">
+    <li><span class="key key-line"></span>育成・放牧中</li>
+    <li><span class="key key-raceline"></span>レース当日</li>
+    <li><span class="key key-dot key-win"></span>勝ち</li>
+    <li><span class="key key-dot"></span>2〜3着</li>
+    <li><span class="key key-dot key-board"></span>4〜5着</li>
+    <li><span class="key key-dot key-out"></span>6着以下</li>
+  </ul>
+  <svg viewBox={`0 0 ${width} ${height}`} role="img" aria-label={title} class="viz-svg">
+    {yTicks.map((w) => (
+      <>
+        <line x1={marginLeft} x2={width - marginRight} y1={y(w)} y2={y(w)} class="viz-grid" />
+        <text x={marginLeft - 8} y={y(w)} class="viz-tick" text-anchor="end" dominant-baseline="middle">
+          {w}
+        </text>
+      </>
+    ))}
+    {years.map((yr) => (
+      <text x={x(new Date(yr.t).toISOString().slice(0, 10))} y={height - marginBottom + 18} class="viz-tick" text-anchor="middle">
+        {yr.label}
+      </text>
+    ))}
+
+    {linePoints && <polyline points={linePoints} class="viz-line" />}
+    {sortedTraining.map((p) => (
+      <circle cx={x(p.date)} cy={y(p.weightKg)} r="2.5" class="viz-train-dot" />
+    ))}
+    {sortedTraining.map((p) => (
+      <circle cx={x(p.date)} cy={y(p.weightKg)} r="10" class="viz-hit" tabindex="0" data-tip={tip(p, '滞在先')} />
+    ))}
+
+    {raceLinePoints && <polyline points={raceLinePoints} class="viz-race-line" />}
+    {races.map((p) => {
+      const f = typeof p.finish === 'number' ? p.finish : null;
+      const placed = f !== null && f <= 3;
+      const board = f !== null && f >= 4 && f <= 5;
+      const cls = f === 1 ? 'viz-race-win' : placed ? 'viz-race-placed' : board ? 'viz-race-board' : 'viz-race-out';
+      return (
+        <>
+          <circle
+            cx={x(p.date)}
+            cy={y(p.weightKg)}
+            r={f === 1 ? 7.5 : placed ? 6 : board ? 4.5 : 3.5}
+            class={`viz-race-dot ${cls}`}
+          />
+          {placed && (
+            <text
+              x={x(p.date)}
+              y={y(p.weightKg) - (f === 1 ? 14 : 12)}
+              class={`viz-place-label ${f === 1 ? 'is-win' : ''}`}
+              text-anchor="middle"
+            >
+              {f}着
+            </text>
+          )}
+        </>
+      );
+    })}
+    {races.map((p) => (
+      <circle cx={x(p.date)} cy={y(p.weightKg)} r="12" class="viz-hit" tabindex="0" data-tip={tip(p, 'レース')} />
+    ))}
+
+    <line x1={marginLeft} x2={width - marginRight} y1={marginTop + plotH} y2={marginTop + plotH} class="viz-baseline" />
+    <text x={marginLeft} y={height - 4} class="viz-axis-title">kg</text>
+  </svg>
+  <p class="visually-hidden">
+    {title}:{' '}
+    {[...training.map((p) => ({ ...p, k: '育成' })), ...races.map((p) => ({ ...p, k: 'レース' }))]
+      .sort((a, b) => (a.date < b.date ? -1 : 1))
+      .map((p) => `${p.date} ${p.k} ${p.weightKg}kg`)
+      .join('、 ')}
+  </p>
+</div>
+
+<style>
+  .viz-root {
+    --series-1: #2a78d6;
+    --series-1-dark: #3987e5;
+    --series-2: #eb6834;
+    --series-2-dark: #d95926;
+    position: relative;
+    margin: 1.25rem 0;
+  }
+  @media (prefers-color-scheme: dark) {
+    .viz-root {
+      --series-1: var(--series-1-dark);
+      --series-2: var(--series-2-dark);
+    }
+  }
+  .viz-title {
+    margin: 0 0 0.35rem;
+    font-weight: 600;
+    font-size: 0.9375rem;
+    color: var(--text);
+  }
+  .viz-legend {
+    display: flex;
+    gap: 1rem;
+    margin: 0 0 0.35rem;
+    padding: 0;
+    list-style: none;
+    font-size: 0.8125rem;
+    color: var(--muted);
+  }
+  .viz-legend li { display: flex; align-items: center; gap: 0.35rem; }
+  .key { display: inline-block; }
+  .key-line { width: 14px; height: 2px; background: var(--series-1); }
+  .key-raceline { width: 14px; height: 2px; background: var(--series-2); }
+  .key-dot {
+    width: 9px;
+    height: 9px;
+    border-radius: 50%;
+    background: var(--series-2);
+  }
+  .key-win { width: 13px; height: 13px; }
+  .key-board { width: 7.5px; height: 7.5px; opacity: 0.62; }
+  /* 着外は凡例でも本体と同じく小さく淡い中抜きにする */
+  .key-out {
+    width: 6px;
+    height: 6px;
+    background: var(--surface);
+    box-shadow: inset 0 0 0 1.5px var(--series-2);
+    opacity: 0.5;
+  }
+  .viz-svg { width: 100%; height: auto; display: block; overflow: visible; }
+  .viz-grid { stroke: var(--border); stroke-width: 1; }
+  .viz-baseline { stroke: var(--muted); stroke-width: 1; }
+  .viz-line { fill: none; stroke: var(--series-1); stroke-width: 2; stroke-linejoin: round; }
+  .viz-race-line { fill: none; stroke: var(--series-2); stroke-width: 2; stroke-linejoin: round; }
+  .viz-train-dot { fill: var(--series-1); }
+  /* レース点は線の上に重なるので、面の色で縁取って線から浮かせる */
+  .viz-race-dot { fill: var(--series-2); stroke: var(--surface); stroke-width: 2; }
+  /* 掲示板（4〜5着）は実点のまま少し淡く。複勝圏と着外の中間に置く */
+  .viz-race-board { opacity: 0.62; }
+  /* 6着以下は小さい中抜き＋さらに淡く、背景へ退かせる */
+  .viz-race-out {
+    fill: var(--surface);
+    stroke: var(--series-2);
+    stroke-width: 1.5;
+    opacity: 0.5;
+  }
+  .viz-place-label {
+    font-size: 10.5px;
+    font-weight: 600;
+    fill: var(--series-2);
+  }
+  .viz-place-label.is-win { font-size: 12px; font-weight: 800; }
+  .viz-hit { fill: transparent; cursor: pointer; }
+  .viz-hit:focus-visible { outline: none; fill: rgba(128, 128, 128, 0.18); }
+  .viz-tick { font-size: 11px; fill: var(--muted); }
+  .viz-axis-title { font-size: 10px; fill: var(--muted); }
+  .visually-hidden {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+  }
+</style>

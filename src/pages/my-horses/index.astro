@@ -1,0 +1,331 @@
+---
+/**
+ * 出資馬のハブ（`/my-horses/`）。
+ *
+ * `/articles/` の分析記事とは別カテゴリ。分析記事は「募集馬を選ぶための一般則」を一般読者に
+ * 出すもので、こちらは**すでに出資した9頭**の実データを並べる。
+ *
+ * ## URL設計
+ * ここは9頭のサマリーと全出走の一覧。読み物は `/my-horses/article/<馬>/`、
+ * 馬ごとの詳細（成績・馬体重推移）は `/my-horses/<馬>/`（未実装・URLだけ空けてある）。
+ *
+ * ## ファンド在籍中かどうかで分ける
+ * 地方移籍した2頭は解散後も走っているが、その賞金は出資者に還元されない。回収率の分母分子も
+ * 出走一覧も在籍中と解散後を分ける。数字はページ内で計算する（手打ちすると再取得時に古くなる）。
+ */
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import StatTiles from '../../components/charts/StatTiles.astro';
+import {
+  recruitPhotoUrl,
+  loadRecruitPhotos,
+  loadMyHorses,
+  summarize,
+  inFundRaces,
+  STATUS_LABEL,
+  MY_HORSES_FETCHED_AT,
+} from '../../lib/my-horses.ts';
+import { formatPrizeJa } from '../../lib/chart-math.ts';
+
+const horses = loadMyHorses();
+const s = summarize(horses);
+const rows = inFundRaces(horses);
+// カードは9枚並ぶので原寸(約400KB)ではなくサムネイル(約45KB)を使う。
+const photos = loadRecruitPhotos();
+
+const ORDER = { active: 0, retired: 1, transferred: 2 } as const;
+const sorted = [...horses].sort(
+  (a, b) => ORDER[a.status] - ORDER[b.status] || b.ownerPrizeManYen - a.ownerPrizeManYen,
+);
+const active = sorted.filter((h) => h.status === 'active');
+const past = sorted.filter((h) => h.status !== 'active');
+
+/**
+ * netkeibaの「主な勝ち鞍」は移籍後も含めた全キャリアの値。在籍中に1勝もしていない馬に出すと
+ * 「在籍中4戦0勝／主な勝ち鞍 C2 1組」のように矛盾して見える（レイジングウェイブの名古屋での勝利）。
+ * 在籍中の勝ちがある馬にだけ出す。
+ */
+const showMainWins = (h: (typeof horses)[number]) =>
+  !!h.mainWins &&
+  h.mainWins !== '-' &&
+  h.races.some((r) => r.inFund && r.finish === 1);
+
+const asOf = new Date(MY_HORSES_FETCHED_AT).toLocaleDateString('ja-JP', {
+  year: 'numeric',
+  month: 'long',
+  day: 'numeric',
+});
+/** "2026-09-09"→"2026年9月9日"、"2023-09"→"2023年9月"。月までしか分からない馬がいる。 */
+const jpDate = (d: string | null) => {
+  if (!d) return '';
+  const [y, m, day] = d.split('-');
+  return `${Number(y)}年${Number(m)}月${day ? `${Number(day)}日` : ''}`;
+};
+
+const description = `【非公式】管理人みねらるがキャロットクラブで出資した${s.horses}頭の競走成績と回収率をまとめたページ。`;
+---
+
+<BaseLayout title="管理人みねらるの出資馬" description={description}>
+  <h1>管理人みねらるの出資馬</h1>
+
+  <StatTiles
+    tiles={[
+      { label: '出資した頭数', value: `${s.horses}頭`, note: `現役${s.active}頭` },
+      { label: '通算成績', value: `${s.starts}戦${s.wins}勝` },
+      { label: '獲得賞金', value: formatPrizeJa(s.prize) },
+      {
+        label: '出資総額に対する回収',
+        value: `${s.recoveryPct}%`,
+        note: `募集総額 ${formatPrizeJa(s.offering)}`,
+      },
+    ]}
+  />
+
+  <h2>現役（{active.length}頭）</h2>
+  <ul class="horse-grid">
+    {active.map((h) => (
+      <li class="horse-card">
+        {photos[h.slug] && (
+          <a class="horse-card-photo" href={`/my-horses/${h.slug}/`}>
+            <img
+              src={recruitPhotoUrl(photos[h.slug].clubId, photos[h.slug].file, true)}
+              alt={`${h.name}の募集時の馬体写真`}
+              loading="lazy"
+              referrerpolicy="no-referrer"
+              onerror="this.closest('a').hidden = true"
+            />
+          </a>
+        )}
+        <p class="horse-card-head">
+          <a href={`/my-horses/${h.slug}/`}>{h.name}</a>
+          <span class={`badge badge-${h.status}`}>{STATUS_LABEL[h.status]}</span>
+        </p>
+        <p class="horse-card-meta">
+          {h.recruitYear}年募集{h.no}番{h.supplementary ? '（追加募集）' : ''}
+        </p>
+        <p class="horse-card-ped">
+          父{h.sire} ／ 母{h.damName}
+          {h.broodmareSire ? <span class="bms">（母父{h.broodmareSire}）</span> : null}
+        </p>
+        <dl class="horse-card-stats">
+          <div><dt>成績</dt><dd>{h.record ?? '未出走'}</dd></div>
+          <div><dt>賞金</dt><dd>{formatPrizeJa(h.ownerPrizeManYen)}</dd></div>
+          <div><dt>募集</dt><dd>{h.offeringTotalManYen ? formatPrizeJa(h.offeringTotalManYen) : '—'}</dd></div>
+          <div><dt>回収率</dt><dd class={h.recoveryRatePct && h.recoveryRatePct >= 100 ? 'plus' : ''}>
+            {h.recoveryRatePct === null ? '—' : `${h.recoveryRatePct}%`}
+          </dd></div>
+        </dl>
+        {showMainWins(h) && <p class="horse-card-wins">主な勝ち鞍: {h.mainWins}</p>}
+      </li>
+    ))}
+  </ul>
+
+  <h2>手を離れた馬（{past.length}頭）</h2>
+  <ul class="horse-grid">
+    {past.map((h) => (
+      <li class="horse-card is-past">
+        {photos[h.slug] && (
+          <a class="horse-card-photo" href={`/my-horses/${h.slug}/`}>
+            <img
+              src={recruitPhotoUrl(photos[h.slug].clubId, photos[h.slug].file, true)}
+              alt={`${h.name}の募集時の馬体写真`}
+              loading="lazy"
+              referrerpolicy="no-referrer"
+              onerror="this.closest('a').hidden = true"
+            />
+          </a>
+        )}
+        <p class="horse-card-head">
+          <a href={`/my-horses/${h.slug}/`}>{h.name}</a>
+          <span class={`badge badge-${h.status}`}>{STATUS_LABEL[h.status]}</span>
+        </p>
+        <p class="horse-card-meta">
+          {h.recruitYear}年募集{h.no}番{h.supplementary ? '（追加募集）' : ''}
+        </p>
+        <p class="horse-card-ped">
+          父{h.sire} ／ 母{h.damName}
+          {h.broodmareSire ? <span class="bms">（母父{h.broodmareSire}）</span> : null}
+        </p>
+        <dl class="horse-card-stats">
+          <div><dt>成績</dt><dd>{h.races.filter((r) => r.inFund).length}戦{h.races.filter((r) => r.inFund && r.finish === 1).length}勝</dd></div>
+          <div><dt>賞金</dt><dd>{formatPrizeJa(h.ownerPrizeManYen)}</dd></div>
+          <div><dt>募集</dt><dd>{h.offeringTotalManYen ? formatPrizeJa(h.offeringTotalManYen) : '—'}</dd></div>
+          <div><dt>回収率</dt><dd>{h.recoveryRatePct === null ? '—' : `${h.recoveryRatePct}%`}</dd></div>
+        </dl>
+        {showMainWins(h) && <p class="horse-card-wins">主な勝ち鞍: {h.mainWins}</p>}
+        <p class="horse-card-note">
+          {h.status === 'retired' && h.retiredReason
+            ? `${jpDate(h.fundEndedAt)}に引退（${h.retiredReason}）`
+            : h.status === 'retired'
+              ? `${jpDate(h.fundEndedAt)}に引退`
+              : `${jpDate(h.fundEndedAt)}にファンド解散`}
+        </p>
+      </li>
+    ))}
+  </ul>
+
+  <h2>全出走（{rows.length}走）</h2>
+  <p class="table-note">新しい順。</p>
+  <div class="race-table-wrap">
+    <table class="race-table">
+      <thead>
+        <tr>
+          <th>日付</th><th>馬名</th><th>開催</th><th>レース</th><th>距離</th>
+          <th>着順</th><th>人気</th><th>騎手</th><th>斤量</th>
+        </tr>
+      </thead>
+      <tbody>
+        {rows.map(({ horse, race }) => {
+          const tier = typeof race.finish === 'number'
+            ? (race.finish === 1 ? '1' : race.finish <= 3 ? '23' : race.finish <= 5 ? '45' : 'out')
+            : 'out';
+          return (
+          <tr class={`row-${tier}`}>
+            <td class="nowrap">{race.date}</td>
+            <td class="nowrap">{horse.name}</td>
+            <td class="nowrap">{race.venue}{race.raceNumber}R</td>
+            <td>
+              {race.raceName}
+              {race.grade && <span class="grade">{race.grade}</span>}
+            </td>
+            <td class="nowrap">{race.course}</td>
+            <td class="num"><span class={`finish finish-${tier}`}>{race.finish}</span></td>
+            <td class="num">{race.popularity}</td>
+            <td class="nowrap">{race.jockey}</td>
+            <td class="num">{race.carriedWeight}</td>
+          </tr>
+          );
+        })}
+      </tbody>
+    </table>
+  </div>
+
+  <p class="asof">
+    成績は{asOf}時点。回収率は「獲得賞金 ÷ 募集総額」で、
+    出走手当は含みません。口数が公表されていない年度の募集総額は400口で計算しています。
+  </p>
+</BaseLayout>
+
+<style>
+  .horse-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(19rem, 1fr));
+    gap: 1rem;
+    margin: 1.25rem 0 2rem;
+    padding: 0;
+    list-style: none;
+  }
+  .horse-card-photo { display: block; margin: -1rem -1.1rem 0.75rem; }
+  .horse-card-photo img {
+    display: block;
+    width: 100%;
+    height: 9.5rem;
+    object-fit: cover;
+    border-radius: 10px 10px 0 0;
+  }
+  .horse-card {
+    overflow: hidden;
+    padding: 1rem 1.1rem;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    background: var(--surface);
+  }
+  .horse-card.is-past { opacity: 0.85; }
+  .horse-card-head {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin: 0 0 0.2rem;
+    font-size: 1.1rem;
+    font-weight: 700;
+  }
+  .badge {
+    padding: 0.1rem 0.5rem;
+    border-radius: 999px;
+    font-size: 0.6875rem;
+    font-weight: 700;
+  }
+  .badge-active { background: var(--info-weak); color: var(--info); }
+  .badge-retired { background: var(--accent-weak); color: var(--text); }
+  .badge-transferred { background: var(--accent-weak); color: var(--muted); }
+  .horse-card-meta { margin: 0 0 0.15rem; color: var(--muted); font-size: 0.8125rem; }
+  /* 父母はカードで一番見られる情報なので、募集番号より一段強くする（本人要望・2026-09-09） */
+  .horse-card-ped {
+    margin: 0 0 0.6rem;
+    font-size: 0.875rem;
+    line-height: 1.5;
+  }
+  .horse-card-ped .bms { color: var(--muted); font-size: 0.8125rem; }
+  /* 2列に詰めると「成 績」のように項目名が折り返るので、行は1列で確保する。
+     数字は右寄せ・等幅にして、カードを縦に並べたとき桁が揃って見えるようにする。 */
+  .horse-card-stats {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 0.3rem;
+    margin: 0;
+  }
+  .horse-card-stats div {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    gap: 0.75rem;
+  }
+  .horse-card-stats dt {
+    flex: none;
+    color: var(--muted);
+    font-size: 0.8125rem;
+    white-space: nowrap;
+  }
+  .horse-card-stats dd {
+    margin: 0;
+    font-size: 0.875rem;
+    font-weight: 600;
+    font-variant-numeric: tabular-nums;
+    text-align: right;
+  }
+  .horse-card-stats .plus { color: var(--info); }
+  .horse-card-wins,
+  .horse-card-note,
+  .horse-card-link {
+    margin: 0.6rem 0 0;
+    font-size: 0.8125rem;
+    color: var(--muted);
+    line-height: 1.6;
+  }
+  .horse-card-link a { font-weight: 700; }
+  .table-note { color: var(--muted); font-size: 0.875rem; }
+  .race-table-wrap { overflow-x: auto; margin: 1rem 0; }
+  .race-table { width: 100%; border-collapse: collapse; font-size: 0.8125rem; }
+  .race-table th,
+  .race-table td { padding: 0.4rem 0.6rem; border-bottom: 1px solid var(--border); text-align: left; }
+  .race-table thead th { background: var(--surface); white-space: nowrap; }
+  .race-table .nowrap { white-space: nowrap; }
+  .race-table .num { text-align: right; font-variant-numeric: tabular-nums; }
+  /* 着順は表の中でいちばん探される列なので、数字だけでなくバッジにして段階を付ける。
+     グラフ（WeightTimeline）と同じ4段階: 1着 / 2〜3着 / 4〜5着（掲示板）/ 6着以下。
+     色だけに頼らず、塗り・枠・太さでも差を付けている。 */
+  .finish {
+    display: inline-block;
+    min-width: 2.1em;
+    padding: 0.1rem 0.4rem;
+    border-radius: 5px;
+    text-align: center;
+    font-variant-numeric: tabular-nums;
+  }
+  .finish-1 { background: var(--info); color: #fff; font-weight: 800; }
+  .finish-23 { background: var(--info-weak); color: var(--info); font-weight: 700; }
+  .finish-45 { border: 1px solid var(--border); color: var(--text); font-weight: 600; }
+  .finish-out { color: var(--muted); }
+  /* 好走した行そのものも薄く持ち上げて、流し読みで拾えるようにする */
+  tr.row-1 { background: var(--info-weak); }
+  tr.row-23 td { font-weight: 600; }
+  tr.row-out td { color: var(--muted); }
+  .grade {
+    margin-left: 0.3rem;
+    padding: 0 0.3rem;
+    border: 1px solid var(--info);
+    border-radius: 3px;
+    color: var(--info);
+    font-size: 0.6875rem;
+  }
+  .asof { color: var(--muted); font-size: 0.8125rem; line-height: 1.7; }
+</style>

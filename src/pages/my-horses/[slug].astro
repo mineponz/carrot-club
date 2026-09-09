@@ -1,0 +1,341 @@
+---
+/**
+ * 出資馬の個別ページ（`/my-horses/<馬>/`）。
+ *
+ * 中身は本人の指定（2026-09-09）で4点:
+ *  父・母・母父 / 競走成績 / 馬体重の推移（放牧・育成・レース） / 募集時の測尺
+ *
+ * 読み物（`/my-horses/article/<馬>/`）とはURLを分けてある。ここはデータのページで、
+ * 記事は別。記事がある馬だけ相互リンクする。
+ *
+ * ## 馬体重の出どころが2つある
+ * 育成・放牧中の体重はクラブの近況（`my-horse-training-weights.json`）、レース当日の体重は
+ * netkeibaの競走成績（`my-horse-races.json`）。輸送で絞れるぶんレース当日は軽く出るので、
+ * 1本の線でつながず線と点に分けている（`WeightTimeline.astro`）。
+ *
+ * ## 成績はファンド在籍中のみ
+ * 地方移籍した馬は解散後も走るが、出資者と関係が切れているので表にも集計にも入れない。
+ */
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import WeightTimeline from '../../components/charts/WeightTimeline.astro';
+import ChartTooltip from '../../components/charts/ChartTooltip.astro';
+import StatTiles from '../../components/charts/StatTiles.astro';
+import {
+  loadMyHorses,
+  STATUS_LABEL,
+  MY_HORSES_FETCHED_AT,
+  recruitPhotoUrl,
+  loadRecruitPhotos,
+  loadOwnPhotos,
+  ownPhotoUrl,
+} from '../../lib/my-horses.ts';
+import { loadRecruitsWithResults } from '../../lib/analysis-data.ts';
+import { formatPrizeJa } from '../../lib/chart-math.ts';
+import trainingJson from '../../../analysis/data/my-horse-training-weights.json';
+
+export async function getStaticPaths() {
+  const { loadMyHorses: load } = await import('../../lib/my-horses.ts');
+  return load().map((h) => ({ params: { slug: h.slug }, props: { slug: h.slug } }));
+}
+
+const { slug } = Astro.props as { slug: string };
+const horse = loadMyHorses().find((h) => h.slug === slug)!;
+
+/**
+ * 測尺の出どころは2つある。通常募集は募集カタログ（`recruits.json`・1歳8月）、
+ * 追加募集はクラブの近況の初回コメント（2歳春）。計測時期が違うので見出しも分ける。
+ */
+const recruit = loadRecruitsWithResults().find(
+  (r) => r.recruitYear === horse.recruitYear && r.no === horse.no,
+);
+const measuredAt = horse.measuredAt ?? null;
+const photo = loadRecruitPhotos()[slug] ?? null;
+// 自分で撮った写真はレース単位でまとめる（同じレースで複数枚あるため）。
+const ownPhotos = loadOwnPhotos()[slug] ?? [];
+const ownByRace = [...new Map(
+  ownPhotos.map((p) => [p.date, ownPhotos.filter((q) => q.date === p.date)]),
+).entries()].map(([date, items]) => ({ date, items, race: items[0] }));
+
+const training = (
+  (trainingJson as { horses: Record<string, { points: { date: string; weightKg: number; place: string }[] }> })
+    .horses[slug]?.points ?? []
+).map((p) => ({ date: p.date, weightKg: p.weightKg, label: p.place }));
+
+const inFund = horse.races.filter((r) => r.inFund);
+const raceWeights = inFund
+  .filter((r) => r.bodyWeight && r.date)
+  .map((r) => ({
+    date: r.date!.replace(/\//g, '-'),
+    weightKg: r.bodyWeight!,
+    label: r.raceName,
+    diff: r.bodyWeightDiff,
+    finish: r.finish,
+  }));
+
+const wins = inFund.filter((r) => r.finish === 1).length;
+const measures = [
+  { label: '馬体重', value: horse.weight, unit: 'kg' },
+  { label: '体高', value: horse.height ?? recruit?.height ?? null, unit: 'cm' },
+  { label: '胸囲', value: horse.chestGirth ?? recruit?.chestGirth ?? null, unit: 'cm' },
+  { label: '管囲', value: horse.caretGirth ?? recruit?.caretGirth ?? null, unit: 'cm' },
+];
+
+const WRITTEN = new Set(['sweet-lydia']);
+const asOf = new Date(MY_HORSES_FETCHED_AT).toLocaleDateString('ja-JP', {
+  year: 'numeric',
+  month: 'long',
+  day: 'numeric',
+});
+
+const description = `【非公式】${horse.name}（${horse.recruitYear}年募集${horse.no}番・父${horse.sire}）の競走成績と馬体重の推移。育成中とレース当日の馬体重を1枚のグラフにまとめています。`;
+---
+
+<BaseLayout
+  title={horse.name}
+  description={description}
+  breadcrumb={[{ label: '管理人みねらるの出資馬', href: '/my-horses/' }]}
+  breadcrumbLabel={horse.name}
+>
+  <h1 class="horse-title">
+    {horse.name}
+    <span class={`badge badge-${horse.status}`}>{STATUS_LABEL[horse.status]}</span>
+  </h1>
+  {photo && (
+    /* 読み込めなければ figure ごと隠す（このサイトはCSP未導入なので onerror 属性が使える）。 */
+    <figure class="horse-photo">
+      <img
+        src={recruitPhotoUrl(photo.clubId, photo.file)}
+        alt={`${horse.name}の募集時の馬体写真`}
+        loading="eager"
+        referrerpolicy="no-referrer"
+        onerror="this.closest('figure').hidden = true"
+      />
+      <figcaption>
+        募集時（{photo.date.replace(/-/g, '/')}・{photo.place}）／キャロットクラブ提供
+      </figcaption>
+    </figure>
+  )}
+
+  <p class="pedigree">
+    父 <strong>{horse.sire}</strong> ／ 母 <strong>{horse.damName}</strong>
+    （母父 {horse.broodmareSire}）
+  </p>
+  <p class="recruit-line">
+    {horse.recruitYear}年募集{horse.no}番{horse.supplementary ? '（追加募集）' : ''}
+    {horse.offeringTotalManYen ? ` ・ 募集総額 ${formatPrizeJa(horse.offeringTotalManYen)}` : ''}
+    {horse.status !== 'active' && horse.fundEndedAt
+      ? ` ・ ${horse.status === 'retired' ? '引退' : 'ファンド解散'} ${horse.fundEndedAt.replace(/-/g, '/')}`
+      : ''}
+    {horse.retiredReason ? `（${horse.retiredReason}）` : ''}
+  </p>
+
+  <StatTiles
+    tiles={[
+      { label: '成績', value: inFund.length ? `${inFund.length}戦${wins}勝` : '未出走' },
+      { label: '獲得賞金', value: formatPrizeJa(horse.ownerPrizeManYen) },
+      {
+        label: '回収率',
+        value: horse.recoveryRatePct === null ? '—' : `${horse.recoveryRatePct}%`,
+        note: horse.offeringTotalManYen ? `募集 ${formatPrizeJa(horse.offeringTotalManYen)}` : undefined,
+      },
+    ]}
+  />
+
+  <h2>{measuredAt ? '募集時の測尺（2歳春）' : '募集時の測尺（1歳8月）'}</h2>
+  <table class="measure-table">
+    <tbody>
+      <tr>
+        {measures.map((m) => (
+          <th scope="col">{m.label}</th>
+        ))}
+      </tr>
+      <tr>
+        {measures.map((m) => (
+          <td>{m.value === null ? '—' : `${m.value}${m.unit}`}</td>
+        ))}
+      </tr>
+    </tbody>
+  </table>
+  {measuredAt && (
+    <p class="note">
+      追加募集のため、カタログではなくクラブの近況に載った{measuredAt.replace(/-/g, '/')}時点の計測です。
+      通常募集の馬（1歳8月の計測）とは時期が違うので、そのまま比べられません。
+    </p>
+  )}
+
+  <h2>馬体重の推移</h2>
+  {training.length || raceWeights.length ? (
+    <>
+      <WeightTimeline
+        title={`${horse.name}の馬体重`}
+        training={training}
+        races={raceWeights}
+      />
+      <p class="note">レース当日は輸送で絞れるぶん、育成中より軽く出ます。</p>
+    </>
+  ) : (
+    <p class="note">記録がありません。</p>
+  )}
+
+  {ownByRace.length > 0 && (
+    <>
+      <h2>撮った写真</h2>
+      {ownByRace.map((g) => (
+        <section class="own-group">
+          <p class="own-caption">
+            {g.date.replace(/-/g, '/')}　{g.race.venue}　{g.race.raceName}
+            {g.race.grade && <span class="grade">{g.race.grade}</span>}
+            <span class="own-finish">{g.race.finish}着</span>
+          </p>
+          <div class="own-grid">
+            {g.items.map((p) => (
+              <img src={ownPhotoUrl(slug, p.file)} alt={`${horse.name} ${g.race.raceName}`} loading="lazy" />
+            ))}
+          </div>
+        </section>
+      ))}
+    </>
+  )}
+
+  <h2>競走成績</h2>
+  {inFund.length ? (
+    <div class="race-table-wrap">
+      <table class="race-table">
+        <thead>
+          <tr>
+            <th>日付</th><th>開催</th><th>レース</th><th>距離</th><th>馬場</th>
+            <th>頭数</th><th>人気</th><th>着順</th><th>騎手</th><th>斤量</th>
+            <th>タイム</th><th>上り</th><th>馬体重</th><th>賞金</th>
+          </tr>
+        </thead>
+        <tbody>
+          {inFund.map((r) => {
+            const tier = typeof r.finish === 'number'
+              ? (r.finish === 1 ? '1' : r.finish <= 3 ? '23' : r.finish <= 5 ? '45' : 'out')
+              : 'out';
+            return (
+            <tr class={`row-${tier}`}>
+              <td class="nowrap">{r.date}</td>
+              <td class="nowrap">{r.venue}{r.raceNumber}R</td>
+              <td>{r.raceName}{r.grade && <span class="grade">{r.grade}</span>}</td>
+              <td class="nowrap">{r.course}</td>
+              <td class="nowrap">{r.condition}</td>
+              <td class="num">{r.headcount}</td>
+              <td class="num">{r.popularity}</td>
+              <td class="num"><span class={`finish finish-${tier}`}>{r.finish}</span></td>
+              <td class="nowrap">{r.jockey}</td>
+              <td class="num">{r.carriedWeight}</td>
+              <td class="nowrap">{r.time}</td>
+              <td class="num">{r.last3f}</td>
+              <td class="nowrap">{r.bodyWeight ? `${r.bodyWeight}(${r.bodyWeightDiff! > 0 ? '+' : ''}${r.bodyWeightDiff})` : '—'}</td>
+              <td class="num">{r.prizeManYen ? `${r.prizeManYen.toLocaleString()}万` : '—'}</td>
+            </tr>
+            );
+          })}
+        </tbody>
+      </table>
+    </div>
+  ) : (
+    <p class="note">まだ出走していません。</p>
+  )}
+
+  {WRITTEN.has(horse.slug) && (
+    <p class="article-link">
+      <a href={`/my-horses/article/${horse.slug}/`}>この馬について書いたもの →</a>
+    </p>
+  )}
+
+  <p class="asof">成績は{asOf}時点。</p>
+  <ChartTooltip />
+</BaseLayout>
+
+<style>
+  .horse-title { display: flex; align-items: center; gap: 0.6rem; flex-wrap: wrap; }
+  .badge {
+    padding: 0.15rem 0.6rem;
+    border-radius: 999px;
+    font-size: 0.75rem;
+    font-weight: 700;
+  }
+  .badge-active { background: var(--info-weak); color: var(--info); }
+  .badge-retired,
+  .badge-transferred { background: var(--accent-weak); color: var(--muted); }
+  .horse-photo { margin: 0 0 1rem; }
+  .horse-photo img {
+    display: block;
+    width: 100%;
+    max-width: 30rem;
+    height: auto;
+    border-radius: 10px;
+  }
+  .horse-photo figcaption {
+    margin-top: 0.3rem;
+    color: var(--muted);
+    font-size: 0.75rem;
+  }
+  .pedigree { font-size: 1rem; margin-bottom: 0.2rem; }
+  .recruit-line { color: var(--muted); font-size: 0.875rem; margin-top: 0; }
+  .measure-table { border-collapse: collapse; margin: 0.75rem 0; }
+  .measure-table th,
+  .measure-table td {
+    border: 1px solid var(--border);
+    padding: 0.45rem 1.1rem;
+    text-align: center;
+    font-variant-numeric: tabular-nums;
+  }
+  .measure-table th { background: var(--surface); font-size: 0.8125rem; color: var(--muted); }
+  .measure-table td { font-weight: 600; }
+  .note { color: var(--muted); font-size: 0.875rem; line-height: 1.7; }
+  .own-group { margin: 1.25rem 0 1.75rem; }
+  .own-caption { margin: 0 0 0.5rem; font-size: 0.9375rem; font-weight: 600; }
+  .own-finish { margin-left: 0.5rem; color: var(--muted); font-weight: 400; font-size: 0.875rem; }
+  /* 同じレースの複数枚を横に並べる。1枚だけのときは大きくなりすぎないよう上限を付ける。 */
+  .own-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(16rem, 1fr));
+    gap: 0.6rem;
+  }
+  .own-grid img {
+    display: block;
+    width: 100%;
+    max-width: 28rem;
+    height: auto;
+    border-radius: 8px;
+  }
+  .race-table-wrap { overflow-x: auto; margin: 1rem 0; }
+  .race-table { width: 100%; border-collapse: collapse; font-size: 0.8125rem; }
+  .race-table th,
+  .race-table td { padding: 0.4rem 0.55rem; border-bottom: 1px solid var(--border); text-align: left; }
+  .race-table thead th { background: var(--surface); white-space: nowrap; }
+  .race-table .nowrap { white-space: nowrap; }
+  .race-table .num { text-align: right; font-variant-numeric: tabular-nums; }
+  /* 着順は表の中でいちばん探される列なので、数字だけでなくバッジにして段階を付ける。
+     グラフ（WeightTimeline）と同じ4段階: 1着 / 2〜3着 / 4〜5着（掲示板）/ 6着以下。
+     色だけに頼らず、塗り・枠・太さでも差を付けている。 */
+  .finish {
+    display: inline-block;
+    min-width: 2.1em;
+    padding: 0.1rem 0.4rem;
+    border-radius: 5px;
+    text-align: center;
+    font-variant-numeric: tabular-nums;
+  }
+  .finish-1 { background: var(--info); color: #fff; font-weight: 800; }
+  .finish-23 { background: var(--info-weak); color: var(--info); font-weight: 700; }
+  .finish-45 { border: 1px solid var(--border); color: var(--text); font-weight: 600; }
+  .finish-out { color: var(--muted); }
+  /* 好走した行そのものも薄く持ち上げて、流し読みで拾えるようにする */
+  tr.row-1 { background: var(--info-weak); }
+  tr.row-23 td { font-weight: 600; }
+  tr.row-out td { color: var(--muted); }
+  .grade {
+    margin-left: 0.3rem;
+    padding: 0 0.3rem;
+    border: 1px solid var(--info);
+    border-radius: 3px;
+    color: var(--info);
+    font-size: 0.6875rem;
+  }
+  .article-link { margin-top: 1.5rem; font-weight: 700; }
+  .asof { color: var(--muted); font-size: 0.8125rem; }
+</style>

@@ -1,0 +1,444 @@
+---
+/**
+ * 出資馬コンテンツ「スイートリディアは走ってくれるだろうか」。
+ *
+ * `/articles/*` の分析記事とは別ジャンル。分析記事が「募集馬を選ぶための一般則」を扱うのに対し、
+ * こちらは**すでに出資が決まっている自分の馬**を、分析記事で得た物差しに当てて読む読み物。
+ * そのため一人称・出資者としての心情を書いてよいが、数字と因果の扱いは分析記事と同じ厳密さを保つ
+ * （とくに「本州入りの早さ」は因果ではなく、牧場側の判断が日付に現れたもの。逆に読まない）。
+ *
+ * 数字は全部このページで計算する。ハードコードすると翌年データが増えたときに古い数字が残る。
+ */
+import BaseLayout from '../../../layouts/BaseLayout.astro';
+import BarChart from '../../../components/charts/BarChart.astro';
+import StatTiles from '../../../components/charts/StatTiles.astro';
+import MethodsLink from '../../../components/MethodsLink.astro';
+import TermLink from '../../../components/TermLink.astro';
+import AdSlot from '../../../components/AdSlot.astro';
+import { AD_SP_WIDE_A, AD_SP_WIDE_B, AD_PC_WIDE_A, AD_PC_WIDE_B } from '../../../data/ad-slots.ts';
+import { loadRecruitsWithResults, RACE_RESULTS_FETCHED_AT } from '../../../lib/analysis-data.ts';
+import { formatResultsAsOf } from '../../../lib/sibling-recruits.ts';
+import {
+  loadMilestones,
+  findMilestone,
+  honshuArrivalDays,
+  percentileOf,
+} from '../../../lib/kinkyo-milestones.ts';
+import { median, formatManYen, histogram } from '../../../lib/chart-math.ts';
+import { recruitPhotoUrl, loadRecruitPhotos } from '../../../lib/my-horses.ts';
+
+const resultsAsOf = formatResultsAsOf(RACE_RESULTS_FETCHED_AT);
+
+const RECRUIT_YEAR = 2025;
+const RECRUIT_NO = '72';
+const HORSE_NAME = 'スイートリディア';
+
+const all = loadRecruitsWithResults();
+const me = all.find((h) => h.recruitYear === RECRUIT_YEAR && h.no === RECRUIT_NO)!;
+const myMilestone = findMilestone(RECRUIT_YEAR, RECRUIT_NO)!;
+const myArrival = honshuArrivalDays(myMilestone)!;
+
+// ---- 物差しになる母集団: 成績が固まった2017〜2022年募集の牝馬 ----
+// 2023年募集以降は現役で賞金が積み上がっている途中なので、混ぜると新しい世代ほど不利に見える。
+const cohort = all.filter(
+  (h) => h.sex === '牝' && h.recruitYear >= 2017 && h.recruitYear <= 2022 && h.starts !== null,
+);
+const resultByKey = new Map(cohort.map((h) => [`${h.recruitYear}-${Number(h.no)}`, h]));
+
+/**
+ * 測尺の位置は「下から51%」のような言い方だと読み手が上下どちらの話か迷う（本人指摘・2026-09-06）。
+ * 「N頭中の何番目か」と「中央値との差」に置き換える。順位は大きい順（1番＝いちばん大きい）。
+ */
+function placeOf(
+  value: number | null,
+  pick: (h: (typeof cohort)[number]) => number | null,
+): { rank: number; n: number; med: number } | null {
+  if (value === null) return null;
+  const xs = cohort.map(pick).filter((x): x is number => x !== null).sort((a, b) => b - a);
+  if (!xs.length) return null;
+  return { rank: xs.filter((x) => x > value).length + 1, n: xs.length, med: median(xs) };
+}
+const myTotalPrice = me.offeringTotalManYen;
+const measures = [
+  { label: '馬体重', unit: 'kg', value: me.weight, place: placeOf(me.weight, (h) => h.weight) },
+  { label: '体高', unit: 'cm', value: me.height, place: placeOf(me.height, (h) => h.height) },
+  { label: '胸囲', unit: 'cm', value: me.chestGirth, place: placeOf(me.chestGirth, (h) => h.chestGirth) },
+  { label: '管囲', unit: 'cm', value: me.caretGirth, place: placeOf(me.caretGirth, (h) => h.caretGirth) },
+  {
+    label: '募集総額',
+    unit: '万円',
+    value: myTotalPrice,
+    place: placeOf(myTotalPrice, (h) => h.offeringTotalManYen),
+  },
+];
+
+// ---- 本州入りの早さ ----
+const cohortArrivals = loadMilestones()
+  .filter((m) => m.sex === '牝' && m.recruitYear >= 2017 && m.recruitYear <= 2022)
+  .map((m) => ({ m, days: honshuArrivalDays(m), horse: resultByKey.get(`${m.recruitYear}-${Number(m.no)}`) }))
+  .filter(
+    (r): r is { m: (typeof r)['m']; days: number; horse: NonNullable<(typeof r)['horse']> } =>
+      r.days !== null && !!r.horse,
+  );
+const arrivalDays = cohortArrivals.map((r) => r.days).sort((a, b) => a - b);
+const myArrivalPct = percentileOf(myArrival, arrivalDays);
+// 「下から42%」ではなく「262頭中111番目に早い」と言う。早い＝日数が小さい順。
+const myArrivalRank = arrivalDays.filter((d) => d < myArrival).length + 1;
+const arrivalMedian = median(arrivalDays);
+
+// 4分位。早い順に並べて4等分する。
+const sorted = [...cohortArrivals].sort((a, b) => a.days - b.days);
+const q = Math.floor(sorted.length / 4);
+const groups = [0, 1, 2, 3].map((i) => {
+  const slice = i === 3 ? sorted.slice(3 * q) : sorted.slice(i * q, (i + 1) * q);
+  const prizes = slice.map((r) => r.horse.totalPrizeManYen);
+  const won = slice.filter((r) => (r.horse.wins ?? 0) > 0).length;
+  return {
+    index: i,
+    lo: slice[0].days,
+    hi: slice[slice.length - 1].days,
+    n: slice.length,
+    medianPrize: median(prizes),
+    winRate: (100 * won) / slice.length,
+  };
+});
+const myGroup = groups.find((g) => myArrival >= g.lo && myArrival <= g.hi) ?? groups[1];
+const cohortWinRate = (100 * cohort.filter((h) => (h.wins ?? 0) > 0).length) / cohort.length;
+
+const monthsOf = (d: number) => (d / 30.44).toFixed(1);
+
+/** 分布の中の位置を見せるヒストグラム。値の入る階級をひとつ強調する。 */
+function binsFor(values: number[], binWidth: number, mine: number) {
+  const lo = Math.floor(Math.min(...values) / binWidth) * binWidth;
+  const hi = Math.ceil(Math.max(...values) / binWidth) * binWidth;
+  const raw = histogram(values, binWidth, lo, hi);
+  const idx = raw.findIndex((b) => mine >= b.binStart && mine < b.binEnd);
+  return { bins: raw, index: idx === -1 ? raw.length - 1 : idx };
+}
+
+const weightValues = cohort.map((h) => h.weight).filter((w): w is number => w !== null);
+const weightHist = binsFor(weightValues, 10, me.weight as number);
+// 移動が極端に遅い数頭（1,000日超）まで階級を伸ばすと本体が潰れるので、600日以降はまとめる。
+const ARRIVAL_CAP = 600;
+const arrivalCapped = arrivalDays.map((d) => Math.min(d, ARRIVAL_CAP));
+const arrivalHist = binsFor(arrivalCapped, 30, Math.min(myArrival, ARRIVAL_CAP));
+
+// 本文で「中央値と比べてどうか」を書くので、中央値そのものも計算して埋める（手打ちしない）。
+const cohortMedianWeight = median(
+  cohort.map((h) => h.weight).filter((w): w is number => w !== null),
+);
+const weightDiff = (me.weight as number) - cohortMedianWeight;
+
+const photo = loadRecruitPhotos()['sweet-lydia'];
+
+const title = `${HORSE_NAME}は走ってくれるだろうか`;
+const description = `出資している2歳牝馬スイートリディアを、2017〜2022年募集の牝馬データに当ててみた。測尺も価格も半兄姉もきれいに中央値。ひとつだけ平均を超えていたのは、北海道を出た時期だった。`;
+---
+
+<BaseLayout
+  title={title}
+  description={description}
+  breadcrumb={[{ label: '出資馬の話', href: '/my-horses/' }]}
+  breadcrumbLabel={HORSE_NAME}
+>
+  <article class="horse-essay">
+    <h1>{title}</h1>
+    <p class="lede">
+      キャロットクラブで出資している2歳牝馬の話です。{HORSE_NAME}（{RECRUIT_YEAR}年募集{RECRUIT_NO}番・
+      父アドマイヤマーズ×母クラシックリディア）は、この記事を書いている時点でまだ1度も走っていません。
+      デビュー前の馬について語れることは本来そう多くないのですが、
+      せっかく<a href="/articles/">募集馬のデータ</a>を集めているので、
+      自分の馬をその物差しに当てたらどう見えるのか、正直にやってみました。
+    </p>
+
+    <figure class="horse-photo">
+      <img
+        src={recruitPhotoUrl(photo.clubId, photo.file)}
+        alt={`${HORSE_NAME}の募集時の馬体写真`}
+        loading="lazy"
+        referrerpolicy="no-referrer"
+        onerror="this.closest('figure').hidden = true"
+      />
+      <figcaption>
+        募集時（{photo.date.replace(/-/g, '/')}・{photo.place}）／キャロットクラブ提供
+      </figcaption>
+    </figure>
+
+    <h2>測尺は、きれいに全部まんなかだった</h2>
+    <p>
+      まず1歳8月の測尺から。{cohort.length}頭（2017〜2022年募集の牝馬）の中で、
+      {HORSE_NAME}がどのあたりにいるかを並べます。
+    </p>
+    <div class="measure-table-wrap">
+      <table class="measure-table">
+        <thead>
+          <tr>
+            <th>項目</th>
+            <th>{HORSE_NAME}</th>
+            <th>大きい順の順位</th>
+            <th>牝馬{cohort.length}頭の中央値</th>
+          </tr>
+        </thead>
+        <tbody>
+          {measures.map((m) => (
+            <tr>
+              <th scope="row">{m.label}</th>
+              <td class="num">{m.value === null ? '—' : `${m.value.toLocaleString()}${m.unit}`}</td>
+              <td class="num">
+                {m.place === null ? '—' : `${m.place.n}頭中 ${m.place.rank}番目`}
+              </td>
+              <td class="num">
+                {m.place === null ? '—' : `${m.place.med.toLocaleString()}${m.unit}`}
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+    <BarChart
+      title={`募集時の馬体重の分布（2017〜2022年募集の牝馬${weightValues.length}頭）`}
+      valueLabel="頭数"
+      bars={weightHist.bins.map((b) => ({
+        label: `${b.binStart}`,
+        value: b.count,
+        displayValue: `${b.count}頭`,
+      }))}
+      highlightIndex={weightHist.index}
+      highlightLabel={HORSE_NAME}
+      labelEvery={2}
+      height={230}
+    />
+    <p class="fig-note">
+      横軸は募集時の馬体重（kg・10kg刻み。目盛りは20kgおき）。色の濃い階級が{HORSE_NAME}の入るところで、
+      分布のちょうど山のてっぺんにあたります。
+    </p>
+
+    <p>
+      見事なまでにまんなかです。とくに馬体重は、
+      <a href="/articles/weight/">牝馬でだけ成績と結びつく測尺</a>なので一番気にしていたのですが、
+      {me.weight}kgは牝馬の中央値{cohortMedianWeight}kgのちょうど{Math.abs(weightDiff)}kg
+      {weightDiff >= 0 ? '上' : '下'}。上でも下でもない、ど真ん中でした。
+      価格も、体高も、胸囲も、管囲も、揃って平均的。
+      正直なところ、この表を作ったときは少し笑ってしまいました。
+      これほど何の主張もない数字が並ぶことがあるのかと。
+    </p>
+
+    <AdSlot sp={AD_SP_WIDE_A} pc={AD_PC_WIDE_A} />
+
+    <h2>母は堅実に走る馬を出している。でも、それは当てにならない</h2>
+    <p>
+      では血統はどうか。母クラシックリディアの産駒は、実はよく走っています。
+      2021年生まれのアバンデルが14戦2勝で4,506万円、2022年生まれのウィルサヴァイブが
+      18戦2勝で5,484万円。走った4頭のうち3頭が勝ち上がっていて、賞金の中央値は
+      キャロット全体の水準を上回ります。
+    </p>
+    <p>
+      ここに期待したくなります。というより、私は最初これを一番の材料だと思っていました。
+      ところが調べてみると、<strong>先に生まれた半兄姉がどれだけ稼いだかは、
+      その後に生まれた馬の成績をほとんど予測しません</strong>。
+      牝馬で<TermLink to="spearman">順位相関</TermLink>+0.064、
+      <TermLink to="p-value">p値</TermLink>は0.308。
+      賞金の多い半兄姉を持つ群と、少ない半兄姉を持つ群で、本人の成績はきれいに入れ替わってしまいます。
+    </p>
+    <p>
+      効くのは「重賞を勝った半兄姉がいるかどうか」という一点だけで、それも牝馬限定。
+      該当する牝馬は本人も重賞に届く率が10.3%、いない牝馬は2.7%と差が出ます。
+      {HORSE_NAME}の半兄姉に重賞勝ち馬はいないので、ここは残念ながら低い側です。
+    </p>
+
+    <h2>ひとつだけ、平均を超えていたもの</h2>
+    <p>
+      測尺も価格も血統も中央値。じゃあ何も言えないのか——と思っていたところで、
+      ひとつだけ平均より上のものが見つかりました。<strong>北海道を出た時期</strong>です。
+    </p>
+    <StatTiles
+      tiles={[
+        {
+          label: '測尺から本州入りまで',
+          value: `${myArrival}日`,
+          note: `約${monthsOf(myArrival)}か月`,
+        },
+        {
+          label: '牝馬の中での位置',
+          value: `${arrivalDays.length}頭中${myArrivalRank}番目`,
+          note: `早い順。中央値は${arrivalMedian.toFixed(0)}日`,
+        },
+        {
+          label: '同じ群の勝ち上がり率',
+          value: `${myGroup.winRate.toFixed(1)}%`,
+          note: `牝馬全体は${cohortWinRate.toFixed(1)}%`,
+        },
+      ]}
+    />
+    <BarChart
+      title={`測尺から本州入りまでの日数の分布（2017〜2022年募集の牝馬${arrivalDays.length}頭）`}
+      valueLabel="頭数"
+      bars={arrivalHist.bins.map((b) => ({
+        label: `${b.binStart}`,
+        value: b.count,
+        displayValue: `${b.count}頭`,
+      }))}
+      highlightIndex={arrivalHist.index}
+      highlightLabel={HORSE_NAME}
+      labelEvery={2}
+      height={230}
+    />
+    <p class="fig-note">
+      横軸は測尺日から本州入りまでの日数（30日刻み・目盛りは60日おき。600日より遅い数頭は右端にまとめています）。
+      さきほどの馬体重と違い、こちらは山のてっぺんより<strong>左（＝早い側）</strong>にいます。
+    </p>
+
+    <p>
+      {HORSE_NAME}は2026年6月13日にＮＦ天栄へ移動しました。1歳8月の測尺日から数えて{myArrival}日、
+      約{monthsOf(myArrival)}か月です。{arrivalDays.length}頭の牝馬を早い順に並べると
+      {myArrivalRank}番目——ちょうど真ん中（{Math.round(arrivalDays.length / 2)}番目）より
+      <strong>{Math.round(arrivalDays.length / 2) - myArrivalRank}頭ぶん早い側</strong>にいます。
+      これまで全部まんなかだったので、初めて平均を超えたことになります。
+    </p>
+
+    <h2>北海道を出る時期は、何を意味するのか</h2>
+    <p>
+      なぜこれが材料になるのか。{arrivalDays.length}頭を移動の早さで4等分すると、こうなります。
+    </p>
+    <BarChart
+      title="本州入りの早さ別・獲得賞金の中央値（2017〜2022年募集の牝馬）"
+      valueLabel="獲得賞金の中央値"
+      nLabel="頭数"
+      noteLabel="勝ち上がり率"
+      bars={groups.map((g) => ({
+        label: `${monthsOf(g.lo)}〜${monthsOf(g.hi)}か月`,
+        value: g.medianPrize,
+        displayValue: formatManYen(g.medianPrize),
+        n: g.n,
+        note: `${g.winRate.toFixed(1)}%`,
+      }))}
+    />
+    <p>
+      早い群ほど走っています。一番早い群は賞金中央値{formatManYen(groups[0].medianPrize)}・
+      勝ち上がり{groups[0].winRate.toFixed(1)}%、一番遅い群は
+      {formatManYen(groups[3].medianPrize)}・{groups[3].winRate.toFixed(1)}%。
+      順位相関は-0.262（p&lt;0.0001）で、<strong>牝馬でいちばん効くとされる募集時馬体重（+0.230）より強い</strong>。
+      しかも馬体重を<TermLink to="partial">統制</TermLink>しても-0.206（p=0.0009）が残るので、
+      体重の言い換えではありません。牡馬でも同じ向きに出ていて、
+      牡は測尺がまったく効かない（馬体重×賞金 -0.012・p=0.86）中で、これだけが効きます。
+    </p>
+    <p>
+      理由は考えてみれば当たり前で、<strong>これは馬の能力の指標ではなく、
+      現場の判断が日付になって現れたもの</strong>だからです。
+      牧場が本州に送り出すのは「態勢が整った」と判断したからで、北海道に残るのは
+      成長を待つ必要があるか、どこかに不安があるから。プロが毎日その馬を見て下している評価が、
+      移動日という形で外から見えている、というだけの話です。
+    </p>
+
+    <AdSlot sp={AD_SP_WIDE_B} pc={AD_PC_WIDE_B} />
+
+    <h2>いまのところの見通し</h2>
+    <p>
+      材料を並べ直すと、{HORSE_NAME}はこうなります。測尺は平均的、価格も平均的、
+      血統は「よく走る半兄姉がいるが、その情報自体に予測力がない」。
+      そして移動時期は平均より早い側。
+    </p>
+    <p>
+      移動が早い側の牝馬は、勝ち上がり率が{myGroup.winRate.toFixed(1)}%
+      （牝馬全体は{cohortWinRate.toFixed(1)}%）、賞金の中央値が
+      {formatManYen(myGroup.medianPrize)}。
+      重賞まで届く確率は、正直に言えば数%です。半兄姉に重賞勝ち馬がいない分を差し引くと3%前後。
+      これは特別悪い数字ではなく、キャロットの牝馬としてごく普通の期待値です。
+    </p>
+    <p>
+      つまり<strong>「勝ち上がりは十分に期待していい。重賞は夢を見る領域」</strong>というあたり。
+      派手な結論ではありませんが、データに当ててこれ以上のことは言えません。
+      むしろ、全部まんなかの馬にひとつだけ平均超えの材料が見つかったのは、
+      出資者としては素直に嬉しいところです。走ってくれるかもなあ、と思いながら見ています。
+    </p>
+
+    <h2>気をつけていること</h2>
+    <ul class="caveats">
+      <li>
+        <strong>因果を逆に読まないこと。</strong>「早く移動させれば走るようになる」ではありません。
+        走れそうな状態だから早く動かせた、という順番です。
+      </li>
+      <li>
+        <strong>確率であって宣告ではないこと。</strong>4分位で一番厳しい群からも重賞馬は出ていますし、
+        一番良い群でも4頭に1頭は勝ち上がれていません。
+      </li>
+      <li>
+        <strong>募集馬を選ぶときには使えないこと。</strong>移動日は出資を決めた後にしか分からないので、
+        カタログを見比べる場面では役に立ちません。すでに出資している馬を眺めるための物差しです。
+      </li>
+    </ul>
+
+    <h2>これから見るところ</h2>
+    <p>
+      {HORSE_NAME}は7月8日にゲート試験へ一発合格したあと、いったんＮＦしがらきへ戻って
+      乗り込みを重ねています。馬体重は5月の444kgから8月には465kgまで増えました。
+      負荷を上げながら増えているので良い形に見えるのですが、
+      <strong>育成期の体重の増え方が成績を予測するかを16頭で調べたところ、差は出ませんでした</strong>
+      （増加量トップ2はどちらも未勝利、最小の馬はシンザン記念を勝っています）。
+      なので、この21kgは眺めて楽しむだけにしておきます。
+    </p>
+    <p>
+      入厩はまだで、10月の京都開催（Bコース）を目標にしていると聞いています。
+      トレセンに入って坂路でどんな時計を出すのかが、
+      データではなく本人の能力を直接に映す最初の数字になります。
+    </p>
+    <p>
+      正直なところ、ここまで調べてきて分かったのは「ごく普通の牝馬です」ということでした。
+      それでも、測尺を眺めていた1年前より、いまのほうがずっと楽しみです。
+      数字が平均的でも走る馬は走りますし、何より、この馬がどんな競馬をするのかは
+      まだ誰も知りません。デビューが待ち遠しいです。
+    </p>
+
+    <MethodsLink />
+    <p class="asof">
+      成績は{resultsAsOf}時点。募集時データは2017〜2025年募集の全頭、
+      育成の節目はクラブの近況バックナンバーから集計しています。
+    </p>
+  </article>
+</BaseLayout>
+
+<style>
+  .horse-essay { line-height: 1.9; }
+  .lede {
+    font-size: 1.05rem;
+    padding: 0.9rem 1.1rem;
+    background: var(--accent-weak);
+    border-radius: 8px;
+  }
+  .horse-photo { margin: 1.25rem 0; }
+  .horse-photo img {
+    display: block;
+    width: 100%;
+    max-width: 30rem;
+    height: auto;
+    border-radius: 10px;
+  }
+  .horse-photo figcaption {
+    margin-top: 0.3rem;
+    color: var(--muted);
+    font-size: 0.75rem;
+  }
+  .measure-table-wrap { overflow-x: auto; margin: 1.25rem 0; }
+  .measure-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.9375rem;
+  }
+  .measure-table th,
+  .measure-table td {
+    border: 1px solid var(--border);
+    padding: 0.5rem 0.75rem;
+    text-align: left;
+  }
+  .measure-table thead th { background: var(--surface); }
+  .measure-table .num { text-align: right; font-variant-numeric: tabular-nums; }
+  .fig-note {
+    margin-top: -0.5rem;
+    color: var(--muted);
+    font-size: 0.875rem;
+    line-height: 1.7;
+  }
+  .caveats { padding-left: 1.2rem; }
+  .caveats li { margin-bottom: 0.6rem; }
+  .asof { color: var(--muted); font-size: 0.875rem; }
+</style>

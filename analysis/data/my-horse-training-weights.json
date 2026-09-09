@@ -1,0 +1,932 @@
+{
+ "fetchedAt": "2026-09-08T15:40:55.684276+00:00",
+ "source": "carrotclub.net/horse/kinkyo_all.asp（近況バックナンバー・会員ページ）",
+ "note": "クラブの近況に載る育成/放牧中の馬体重。会員ログインが要るため自動再取得のスクリプトは無く、手動更新。レース当日の馬体重は my-horse-races.json 側にある。",
+ "horses": {
+  "raging-wave": {
+   "clubId": "2148",
+   "points": [
+    {
+     "date": "2021-08-26",
+     "weightKg": 403,
+     "place": "イヤリング"
+    },
+    {
+     "date": "2021-09-30",
+     "weightKg": 442,
+     "place": "早来"
+    },
+    {
+     "date": "2021-10-29",
+     "weightKg": 446,
+     "place": "早来"
+    },
+    {
+     "date": "2021-11-30",
+     "weightKg": 440,
+     "place": "早来"
+    },
+    {
+     "date": "2021-12-27",
+     "weightKg": 460,
+     "place": "早来"
+    },
+    {
+     "date": "2022-01-14",
+     "weightKg": 465,
+     "place": "早来"
+    },
+    {
+     "date": "2022-02-15",
+     "weightKg": 456,
+     "place": "早来"
+    },
+    {
+     "date": "2022-03-15",
+     "weightKg": 458,
+     "place": "早来"
+    },
+    {
+     "date": "2022-04-15",
+     "weightKg": 466,
+     "place": "早来"
+    },
+    {
+     "date": "2022-05-13",
+     "weightKg": 479,
+     "place": "早来"
+    },
+    {
+     "date": "2022-06-28",
+     "weightKg": 473,
+     "place": "しがらき"
+    },
+    {
+     "date": "2022-07-26",
+     "weightKg": 491,
+     "place": "しがらき"
+    },
+    {
+     "date": "2022-09-27",
+     "weightKg": 477,
+     "place": "しがらき"
+    },
+    {
+     "date": "2022-12-01",
+     "weightKg": 518,
+     "place": "早来"
+    },
+    {
+     "date": "2022-12-22",
+     "weightKg": 509,
+     "place": "早来"
+    },
+    {
+     "date": "2023-01-26",
+     "weightKg": 525,
+     "place": "早来"
+    },
+    {
+     "date": "2023-03-02",
+     "weightKg": 518,
+     "place": "早来"
+    },
+    {
+     "date": "2023-07-25",
+     "weightKg": 498,
+     "place": "しがらき"
+    }
+   ]
+  },
+  "windstille": {
+   "clubId": "2217",
+   "points": [
+    {
+     "date": "2022-08-23",
+     "weightKg": 480,
+     "place": "イヤリング"
+    },
+    {
+     "date": "2022-09-30",
+     "weightKg": 496,
+     "place": "空港"
+    },
+    {
+     "date": "2022-10-31",
+     "weightKg": 486,
+     "place": "空港"
+    },
+    {
+     "date": "2022-11-30",
+     "weightKg": 465,
+     "place": "空港"
+    },
+    {
+     "date": "2022-12-27",
+     "weightKg": 460,
+     "place": "空港"
+    },
+    {
+     "date": "2023-01-13",
+     "weightKg": 478,
+     "place": "空港"
+    },
+    {
+     "date": "2023-02-15",
+     "weightKg": 469,
+     "place": "空港"
+    },
+    {
+     "date": "2023-03-15",
+     "weightKg": 454,
+     "place": "空港"
+    },
+    {
+     "date": "2023-04-14",
+     "weightKg": 452,
+     "place": "空港"
+    },
+    {
+     "date": "2023-07-04",
+     "weightKg": 467,
+     "place": "天栄"
+    },
+    {
+     "date": "2023-09-12",
+     "weightKg": 462,
+     "place": "天栄"
+    },
+    {
+     "date": "2023-11-07",
+     "weightKg": 456,
+     "place": "天栄"
+    },
+    {
+     "date": "2024-01-30",
+     "weightKg": 467,
+     "place": "天栄"
+    },
+    {
+     "date": "2024-06-04",
+     "weightKg": 458,
+     "place": "天栄"
+    },
+    {
+     "date": "2024-06-20",
+     "weightKg": 477,
+     "place": "空港"
+    },
+    {
+     "date": "2024-07-03",
+     "weightKg": 473,
+     "place": "空港"
+    },
+    {
+     "date": "2024-07-24",
+     "weightKg": 469,
+     "place": "空港"
+    },
+    {
+     "date": "2024-08-08",
+     "weightKg": 490,
+     "place": "空港"
+    },
+    {
+     "date": "2024-08-22",
+     "weightKg": 482,
+     "place": "空港"
+    },
+    {
+     "date": "2025-01-28",
+     "weightKg": 504,
+     "place": "天栄"
+    },
+    {
+     "date": "2025-02-25",
+     "weightKg": 509,
+     "place": "天栄"
+    },
+    {
+     "date": "2025-04-30",
+     "weightKg": 494,
+     "place": "天栄"
+    },
+    {
+     "date": "2025-07-01",
+     "weightKg": 480,
+     "place": "天栄"
+    },
+    {
+     "date": "2025-09-09",
+     "weightKg": 487,
+     "place": "天栄"
+    }
+   ]
+  },
+  "diogenite": {
+   "clubId": "21097",
+   "points": [
+    {
+     "date": "2023-04-05",
+     "weightKg": 428,
+     "place": "早来"
+    },
+    {
+     "date": "2023-04-14",
+     "weightKg": 425,
+     "place": "早来"
+    },
+    {
+     "date": "2023-05-15",
+     "weightKg": 436,
+     "place": "早来"
+    },
+    {
+     "date": "2023-06-15",
+     "weightKg": 443,
+     "place": "早来"
+    },
+    {
+     "date": "2023-08-08",
+     "weightKg": 446,
+     "place": "天栄"
+    },
+    {
+     "date": "2023-10-17",
+     "weightKg": 434,
+     "place": "天栄"
+    },
+    {
+     "date": "2023-11-07",
+     "weightKg": 442,
+     "place": "天栄"
+    },
+    {
+     "date": "2024-01-30",
+     "weightKg": 449,
+     "place": "天栄"
+    },
+    {
+     "date": "2024-04-30",
+     "weightKg": 453,
+     "place": "天栄"
+    },
+    {
+     "date": "2024-06-04",
+     "weightKg": 449,
+     "place": "天栄"
+    },
+    {
+     "date": "2024-07-17",
+     "weightKg": 439,
+     "place": "天栄"
+    },
+    {
+     "date": "2024-12-24",
+     "weightKg": 452,
+     "place": "天栄"
+    },
+    {
+     "date": "2025-02-25",
+     "weightKg": 452,
+     "place": "天栄"
+    },
+    {
+     "date": "2025-04-01",
+     "weightKg": 452,
+     "place": "天栄"
+    },
+    {
+     "date": "2025-04-30",
+     "weightKg": 459,
+     "place": "天栄"
+    },
+    {
+     "date": "2025-06-03",
+     "weightKg": 466,
+     "place": "天栄"
+    },
+    {
+     "date": "2025-07-01",
+     "weightKg": 456,
+     "place": "天栄"
+    },
+    {
+     "date": "2025-07-29",
+     "weightKg": 460,
+     "place": "天栄"
+    },
+    {
+     "date": "2025-09-09",
+     "weightKg": 450,
+     "place": "天栄"
+    },
+    {
+     "date": "2025-11-04",
+     "weightKg": 460,
+     "place": "天栄"
+    },
+    {
+     "date": "2026-01-27",
+     "weightKg": 469,
+     "place": "天栄"
+    },
+    {
+     "date": "2026-03-03",
+     "weightKg": 460,
+     "place": "天栄"
+    },
+    {
+     "date": "2026-03-31",
+     "weightKg": 485,
+     "place": "天栄"
+    },
+    {
+     "date": "2026-05-05",
+     "weightKg": 477,
+     "place": "天栄"
+    },
+    {
+     "date": "2026-06-17",
+     "weightKg": 487,
+     "place": "早来"
+    },
+    {
+     "date": "2026-08-06",
+     "weightKg": 479,
+     "place": "早来"
+    },
+    {
+     "date": "2026-08-25",
+     "weightKg": 476,
+     "place": "早来"
+    }
+   ]
+  },
+  "river-valate": {
+   "clubId": "22007",
+   "points": [
+    {
+     "date": "2023-08-22",
+     "weightKg": 400,
+     "place": "イヤリング"
+    },
+    {
+     "date": "2023-09-29",
+     "weightKg": 415,
+     "place": "イヤリング"
+    },
+    {
+     "date": "2023-10-31",
+     "weightKg": 415,
+     "place": "空港"
+    },
+    {
+     "date": "2023-11-30",
+     "weightKg": 429,
+     "place": "空港"
+    },
+    {
+     "date": "2023-12-27",
+     "weightKg": 432,
+     "place": "空港"
+    },
+    {
+     "date": "2024-01-15",
+     "weightKg": 425,
+     "place": "空港"
+    },
+    {
+     "date": "2024-02-15",
+     "weightKg": 427,
+     "place": "空港"
+    },
+    {
+     "date": "2024-03-15",
+     "weightKg": 435,
+     "place": "空港"
+    },
+    {
+     "date": "2024-04-15",
+     "weightKg": 433,
+     "place": "空港"
+    },
+    {
+     "date": "2024-05-15",
+     "weightKg": 434,
+     "place": "空港"
+    },
+    {
+     "date": "2024-06-14",
+     "weightKg": 445,
+     "place": "空港"
+    },
+    {
+     "date": "2024-07-12",
+     "weightKg": 455,
+     "place": "空港"
+    },
+    {
+     "date": "2024-08-15",
+     "weightKg": 460,
+     "place": "空港"
+    },
+    {
+     "date": "2024-09-24",
+     "weightKg": 452,
+     "place": "しがらき"
+    },
+    {
+     "date": "2024-10-29",
+     "weightKg": 476,
+     "place": "しがらき"
+    },
+    {
+     "date": "2024-11-26",
+     "weightKg": 472,
+     "place": "しがらき"
+    },
+    {
+     "date": "2025-01-28",
+     "weightKg": 467,
+     "place": "しがらき"
+    },
+    {
+     "date": "2025-02-25",
+     "weightKg": 474,
+     "place": "しがらき"
+    },
+    {
+     "date": "2025-04-29",
+     "weightKg": 460,
+     "place": "しがらき"
+    },
+    {
+     "date": "2025-05-27",
+     "weightKg": 490,
+     "place": "しがらき"
+    },
+    {
+     "date": "2025-06-24",
+     "weightKg": 495,
+     "place": "しがらき"
+    },
+    {
+     "date": "2025-07-29",
+     "weightKg": 504,
+     "place": "しがらき"
+    },
+    {
+     "date": "2025-10-28",
+     "weightKg": 488,
+     "place": "しがらき"
+    },
+    {
+     "date": "2025-12-23",
+     "weightKg": 475,
+     "place": "しがらき"
+    },
+    {
+     "date": "2026-01-27",
+     "weightKg": 485,
+     "place": "しがらき"
+    },
+    {
+     "date": "2026-02-24",
+     "weightKg": 485,
+     "place": "しがらき"
+    },
+    {
+     "date": "2026-04-28",
+     "weightKg": 481,
+     "place": "しがらき"
+    },
+    {
+     "date": "2026-06-18",
+     "weightKg": 484,
+     "place": "空港"
+    },
+    {
+     "date": "2026-07-02",
+     "weightKg": 482,
+     "place": "空港"
+    },
+    {
+     "date": "2026-07-22",
+     "weightKg": 489,
+     "place": "空港"
+    },
+    {
+     "date": "2026-08-05",
+     "weightKg": 482,
+     "place": "空港"
+    },
+    {
+     "date": "2026-08-20",
+     "weightKg": 492,
+     "place": "空港"
+    }
+   ]
+  },
+  "sonnenblume": {
+   "clubId": "23037",
+   "points": [
+    {
+     "date": "2024-08-20",
+     "weightKg": 461,
+     "place": "イヤリング"
+    },
+    {
+     "date": "2024-09-30",
+     "weightKg": 451,
+     "place": "早来"
+    },
+    {
+     "date": "2024-10-31",
+     "weightKg": 456,
+     "place": "早来"
+    },
+    {
+     "date": "2024-11-29",
+     "weightKg": 470,
+     "place": "早来"
+    },
+    {
+     "date": "2024-12-27",
+     "weightKg": 454,
+     "place": "早来"
+    },
+    {
+     "date": "2025-01-15",
+     "weightKg": 460,
+     "place": "早来"
+    },
+    {
+     "date": "2025-02-14",
+     "weightKg": 452,
+     "place": "早来"
+    },
+    {
+     "date": "2025-03-14",
+     "weightKg": 469,
+     "place": "早来"
+    },
+    {
+     "date": "2025-04-15",
+     "weightKg": 466,
+     "place": "早来"
+    },
+    {
+     "date": "2025-05-15",
+     "weightKg": 472,
+     "place": "早来"
+    },
+    {
+     "date": "2025-06-13",
+     "weightKg": 472,
+     "place": "早来"
+    },
+    {
+     "date": "2025-07-15",
+     "weightKg": 482,
+     "place": "早来"
+    },
+    {
+     "date": "2025-09-09",
+     "weightKg": 486,
+     "place": "天栄"
+    },
+    {
+     "date": "2025-11-04",
+     "weightKg": 495,
+     "place": "天栄"
+    },
+    {
+     "date": "2025-12-03",
+     "weightKg": 510,
+     "place": "天栄"
+    },
+    {
+     "date": "2025-12-23",
+     "weightKg": 506,
+     "place": "天栄"
+    },
+    {
+     "date": "2026-03-03",
+     "weightKg": 515,
+     "place": "天栄"
+    },
+    {
+     "date": "2026-03-31",
+     "weightKg": 511,
+     "place": "天栄"
+    },
+    {
+     "date": "2026-07-07",
+     "weightKg": 514,
+     "place": "天栄"
+    }
+   ]
+  },
+  "rock-ptarmigan": {
+   "clubId": "23084",
+   "points": [
+    {
+     "date": "2024-08-20",
+     "weightKg": 516,
+     "place": "白老Fイヤリング"
+    },
+    {
+     "date": "2024-09-30",
+     "weightKg": 532,
+     "place": "早来"
+    },
+    {
+     "date": "2024-10-31",
+     "weightKg": 524,
+     "place": "早来"
+    },
+    {
+     "date": "2024-11-29",
+     "weightKg": 530,
+     "place": "早来"
+    },
+    {
+     "date": "2024-12-27",
+     "weightKg": 524,
+     "place": "早来"
+    },
+    {
+     "date": "2025-01-15",
+     "weightKg": 548,
+     "place": "早来"
+    },
+    {
+     "date": "2025-02-14",
+     "weightKg": 542,
+     "place": "早来"
+    },
+    {
+     "date": "2025-03-14",
+     "weightKg": 542,
+     "place": "早来"
+    },
+    {
+     "date": "2025-04-15",
+     "weightKg": 534,
+     "place": "早来"
+    },
+    {
+     "date": "2025-05-27",
+     "weightKg": 547,
+     "place": "しがらき"
+    },
+    {
+     "date": "2025-06-24",
+     "weightKg": 570,
+     "place": "しがらき"
+    },
+    {
+     "date": "2025-08-26",
+     "weightKg": 569,
+     "place": "しがらき"
+    },
+    {
+     "date": "2025-10-28",
+     "weightKg": 569,
+     "place": "しがらき"
+    },
+    {
+     "date": "2026-01-27",
+     "weightKg": 567,
+     "place": "しがらき"
+    },
+    {
+     "date": "2026-03-31",
+     "weightKg": 539,
+     "place": "しがらき"
+    },
+    {
+     "date": "2026-06-30",
+     "weightKg": 585,
+     "place": "しがらき"
+    },
+    {
+     "date": "2026-07-28",
+     "weightKg": 589,
+     "place": "しがらき"
+    }
+   ]
+  },
+  "eir": {
+   "clubId": "23100",
+   "points": [
+    {
+     "date": "2025-04-02",
+     "weightKg": 447,
+     "place": "早来"
+    },
+    {
+     "date": "2025-04-15",
+     "weightKg": 445,
+     "place": "早来"
+    },
+    {
+     "date": "2025-05-15",
+     "weightKg": 458,
+     "place": "早来"
+    },
+    {
+     "date": "2025-06-13",
+     "weightKg": 474,
+     "place": "早来"
+    },
+    {
+     "date": "2025-07-15",
+     "weightKg": 474,
+     "place": "早来"
+    },
+    {
+     "date": "2025-08-15",
+     "weightKg": 477,
+     "place": "早来"
+    },
+    {
+     "date": "2025-09-04",
+     "weightKg": 495,
+     "place": "早来"
+    },
+    {
+     "date": "2025-09-18",
+     "weightKg": 502,
+     "place": "早来"
+    },
+    {
+     "date": "2025-10-02",
+     "weightKg": 493,
+     "place": "早来"
+    },
+    {
+     "date": "2025-12-18",
+     "weightKg": 475,
+     "place": "早来"
+    },
+    {
+     "date": "2026-01-22",
+     "weightKg": 480,
+     "place": "早来"
+    },
+    {
+     "date": "2026-02-12",
+     "weightKg": 477,
+     "place": "早来"
+    },
+    {
+     "date": "2026-03-05",
+     "weightKg": 482,
+     "place": "早来"
+    },
+    {
+     "date": "2026-03-19",
+     "weightKg": 474,
+     "place": "早来"
+    }
+   ]
+  },
+  "assemblage": {
+   "clubId": "24067",
+   "points": [
+    {
+     "date": "2025-08-19",
+     "weightKg": 455,
+     "place": "イヤリング"
+    },
+    {
+     "date": "2025-09-30",
+     "weightKg": 461,
+     "place": "早来"
+    },
+    {
+     "date": "2025-10-31",
+     "weightKg": 442,
+     "place": "早来"
+    },
+    {
+     "date": "2025-11-28",
+     "weightKg": 436,
+     "place": "早来"
+    },
+    {
+     "date": "2025-12-26",
+     "weightKg": 427,
+     "place": "早来"
+    },
+    {
+     "date": "2026-01-15",
+     "weightKg": 430,
+     "place": "早来"
+    },
+    {
+     "date": "2026-02-13",
+     "weightKg": 440,
+     "place": "早来"
+    },
+    {
+     "date": "2026-03-13",
+     "weightKg": 431,
+     "place": "早来"
+    },
+    {
+     "date": "2026-04-15",
+     "weightKg": 430,
+     "place": "早来"
+    },
+    {
+     "date": "2026-05-15",
+     "weightKg": 442,
+     "place": "早来"
+    },
+    {
+     "date": "2026-06-15",
+     "weightKg": 443,
+     "place": "早来"
+    },
+    {
+     "date": "2026-07-15",
+     "weightKg": 462,
+     "place": "早来"
+    },
+    {
+     "date": "2026-08-14",
+     "weightKg": 472,
+     "place": "早来"
+    }
+   ]
+  },
+  "sweet-lydia": {
+   "clubId": "24072",
+   "points": [
+    {
+     "date": "2025-08-19",
+     "weightKg": 438,
+     "place": "イヤリング"
+    },
+    {
+     "date": "2025-09-30",
+     "weightKg": 453,
+     "place": "空港"
+    },
+    {
+     "date": "2025-10-31",
+     "weightKg": 430,
+     "place": "空港"
+    },
+    {
+     "date": "2025-11-28",
+     "weightKg": 434,
+     "place": "空港"
+    },
+    {
+     "date": "2025-12-26",
+     "weightKg": 439,
+     "place": "空港"
+    },
+    {
+     "date": "2026-01-15",
+     "weightKg": 447,
+     "place": "空港"
+    },
+    {
+     "date": "2026-02-13",
+     "weightKg": 441,
+     "place": "空港"
+    },
+    {
+     "date": "2026-03-13",
+     "weightKg": 441,
+     "place": "空港"
+    },
+    {
+     "date": "2026-04-15",
+     "weightKg": 442,
+     "place": "空港"
+    },
+    {
+     "date": "2026-05-15",
+     "weightKg": 444,
+     "place": "空港"
+    },
+    {
+     "date": "2026-07-28",
+     "weightKg": 461,
+     "place": "しがらき"
+    },
+    {
+     "date": "2026-08-25",
+     "weightKg": 465,
+     "place": "しがらき"
+    }
+   ]
+  }
+ }
+}
