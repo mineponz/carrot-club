@@ -126,6 +126,13 @@ const description = `【非公式】${horse.name}（${horse.recruitYear}年募�
         </figcaption>
       </figure>
     )}
+    {ownByRace.length > 0 && (
+      <p class="gallery-link">
+        <a href="#gallery">
+          レースで撮った写真 {ownPhotos.length}枚を見る <span aria-hidden="true">↓</span>
+        </a>
+      </p>
+    )}
 
     <div class="horse-head-info">
       <p class="pedigree">
@@ -168,46 +175,6 @@ const description = `【非公式】${horse.name}（${horse.recruitYear}年募�
       </p>
     </div>
   </div>
-
-  <h2>馬体重の推移</h2>
-  {training.length || raceWeights.length ? (
-    <>
-      <WeightTimeline
-        title={`${horse.name}の馬体重`}
-        training={training}
-        races={raceWeights}
-      />
-      <p class="note">レース当日は輸送で絞れるぶん、育成中より軽く出ます。</p>
-    </>
-  ) : (
-    <p class="note">記録がありません。</p>
-  )}
-
-  {ownByRace.length > 0 && (
-    <>
-      <h2>撮った写真</h2>
-      {ownByRace.map((g) => (
-        <section class="own-group">
-          <p class="own-caption">
-            {g.date.replace(/-/g, '/')}　{g.race.venue}　{g.race.raceName}
-            {g.race.grade && <span class={`grade ${gradeClass(g.race.grade)}`}>{g.race.grade}</span>}
-            <span class="own-finish">{g.race.finish}着</span>
-          </p>
-          <div class="own-grid">
-            {g.items.map((p) => (
-              <img
-                src={ownPhotoUrl(slug, p.file)}
-                alt={`${horse.name} ${g.race.raceName}`}
-                width={p.width ?? undefined}
-                height={p.height ?? undefined}
-                loading="lazy"
-              />
-            ))}
-          </div>
-        </section>
-      ))}
-    </>
-  )}
 
   <h2>競走成績</h2>
   {inFund.length ? (
@@ -252,6 +219,46 @@ const description = `【非公式】${horse.name}（${horse.recruitYear}年募�
     <p class="note">まだ出走していません。</p>
   )}
 
+  <h2>馬体重の推移</h2>
+  {training.length || raceWeights.length ? (
+    <>
+      <WeightTimeline
+        title={`${horse.name}の馬体重`}
+        training={training}
+        races={raceWeights}
+      />
+      <p class="note">レース当日は輸送で絞れるぶん、育成中より軽く出ます。</p>
+    </>
+  ) : (
+    <p class="note">記録がありません。</p>
+  )}
+
+  {ownByRace.length > 0 && (
+    <>
+      <h2 id="gallery">ギャラリー</h2>
+      {ownByRace.map((g) => (
+        <section class="own-group">
+          <p class="own-caption">
+            {g.date.replace(/-/g, '/')}　{g.race.venue}　{g.race.raceName}
+            {g.race.grade && <span class={`grade ${gradeClass(g.race.grade)}`}>{g.race.grade}</span>}
+            <span class="own-finish">{g.race.finish}着</span>
+          </p>
+          <div class="own-grid">
+            {g.items.map((p) => (
+              <img
+                src={ownPhotoUrl(slug, p.file)}
+                alt={`${horse.name} ${g.race.raceName}`}
+                width={p.width ?? undefined}
+                height={p.height ?? undefined}
+                loading="lazy"
+              />
+            ))}
+          </div>
+        </section>
+      ))}
+    </>
+  )}
+
   {WRITTEN.has(horse.slug) && (
     <p class="article-link">
       <a href={`/my-horses/article/${horse.slug}/`}>この馬について書いたもの →</a>
@@ -284,6 +291,10 @@ const description = `【非公式】${horse.name}（${horse.recruitYear}年募�
     .horse-head { grid-template-columns: 1fr; gap: 0.75rem; }
   }
   .horse-head-info { min-width: 0; }
+  /* 写真の真下に置いて、上から読み始めた人がギャラリーの存在に気づけるようにする。 */
+  .gallery-link { margin: 0.5rem 0 0; font-size: 0.875rem; font-weight: 700; }
+  /* アンカーで飛んだとき見出しがヘッダーに隠れないよう余白を取る */
+  #gallery { scroll-margin-top: 1rem; }
   .horse-photo { margin: 0; }
   .horse-photo img {
     display: block;
