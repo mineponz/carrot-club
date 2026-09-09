@@ -225,6 +225,7 @@ const webAppJsonLd = {
       <p class="brand-line">
         <span class="unofficial-badge">非公式</span>
         <a href="/" class="wordmark">{SITE_TITLE}</a>
+        <a href="/about/" class="owner-room">管理人の部屋</a>
       </p>
       <p class="tagline">{tagline}</p>
       {showHeaderNotices && (
@@ -469,6 +470,31 @@ const webAppJsonLd = {
         text-decoration: none;
       }
       .wordmark:hover { color: var(--accent); }
+
+      /*
+       * 運営者ページ（/about/）への導線。ヘッダー右端に置いて全ページから辿れる。
+       * 「管理人の部屋」は個人サイトでは自己紹介ページを指す言い方なので、出資馬データ
+       * （/my-horses/）ではなく /about/ に向ける。出資馬へは /about/ の所有馬リストから辿る。
+       * 個人サイトの「管理人の部屋」の位置取りで、ツール本体の導線とは役割が違うことが
+       * 見た目で分かるよう、ワードマークより一段小さく控えめにする。
+       * `margin-left: auto` で右端へ。brand-line が折り返す幅でも右寄せのまま次行に落ちる。
+       */
+      .owner-room {
+        margin-left: auto;
+        padding: 0.25rem 0.7rem;
+        border: 1px solid var(--border);
+        border-radius: 999px;
+        background: var(--surface);
+        color: var(--muted);
+        font-size: 0.8125rem;
+        text-decoration: none;
+        white-space: nowrap;
+      }
+      .owner-room:hover,
+      .owner-room:focus-visible {
+        border-color: var(--accent);
+        color: var(--accent);
+      }
 
       /* クラブ公式と誤認されないよう、サイト名の直前に常に出す */
       .unofficial-badge {

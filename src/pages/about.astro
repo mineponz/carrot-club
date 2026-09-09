@@ -11,19 +11,29 @@
  * プロフィール文・所有馬リストは本人提供のまま。
  */
 import BaseLayout from '../layouts/BaseLayout.astro';
+import { loadMyHorses } from '../lib/my-horses.ts';
+
+const allMyHorses = loadMyHorses();
 
 const title = '運営者について';
 const description =
   '【非公式】キャロットクラブ出資馬検討ツールの運営者プロフィール。都内でエンジニア／プロダクトマネージャーをしている一口馬主で、2021年からキャロットクラブに出資しています。株式会社キャロットクラブとは関係ありません。';
 
 // 本人提供（2026-09-01）。産年（募集年ではなく仔の生まれ年）順。
-const ownedHorses: { foalYear: string; names: string }[] = [
-  { foalYear: '20年産', names: 'レイジングウェイブ' },
-  { foalYear: '21年産', names: 'ヴィントシュティレ、ダイオジェナイト' },
-  { foalYear: '22年産', names: 'リバーバレイト' },
-  { foalYear: '23年産', names: 'ロックターミガン、ゾネブルーム、エイル' },
-  { foalYear: '24年産', names: 'スイートリディア（命名馬）、アッサンブラージュ' },
-];
+/**
+ * 所有馬は `analysis/data/my-horses.json`（= `/my-horses/` と同じ出どころ）から作る。
+ * 以前はこのファイルに配列を手書きしていたが、出資馬ページを作ったことで二重管理になり、
+ * 馬が増減したとき片方だけ直し忘れる形だった（2026-09-09に解消）。
+ * 産年は「募集年 - 1」。追加募集の馬も同じ式で合う。
+ */
+const byFoalYear = new Map<number, typeof allMyHorses>();
+for (const h of allMyHorses) {
+  const y = h.recruitYear - 1;
+  byFoalYear.set(y, [...(byFoalYear.get(y) ?? []), h]);
+}
+const ownedHorses = [...byFoalYear.entries()]
+  .sort((a, b) => a[0] - b[0])
+  .map(([year, horses]) => ({ foalYear: `${String(year).slice(2)}年産`, horses }));
 ---
 
 <BaseLayout title={title} description={description}>
@@ -41,10 +51,22 @@ const ownedHorses: { foalYear: string; names: string }[] = [
     {ownedHorses.map((h) => (
       <div class="owned-horses-row">
         <dt>{h.foalYear}</dt>
-        <dd>{h.names}</dd>
+        <dd>
+          {h.horses.map((horse, i) => (
+            <>
+              {i > 0 && '、'}
+              <a href={`/my-horses/${horse.slug}/`}>{horse.name}</a>
+              {horse.namedByOwner && <span class="named">（命名馬）</span>}
+            </>
+          ))}
+        </dd>
       </div>
     ))}
   </dl>
+
+  <p class="owned-horses-note">
+    各馬の競走成績・馬体重の推移・募集時の測尺は<a href="/my-horses/">出資馬のページ</a>にまとめています。
+  </p>
 
   <h2>リンク</h2>
   <ul class="links">
@@ -115,4 +137,5 @@ const ownedHorses: { foalYear: string; names: string }[] = [
     padding: 0.6rem 0.85rem;
     border-radius: 0 4px 4px 0;
   }
+  .named { color: var(--muted); font-size: 0.8125rem; }
 </style>
