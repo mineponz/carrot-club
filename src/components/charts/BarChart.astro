@@ -27,6 +27,19 @@ interface Props {
   noteLabel?: string;
   height?: number;
   /**
+   * 強調する棒のindex。分布の中で特定の1頭がどこにいるかを示すヒストグラム用。
+   * 指定すると、その棒だけ通常色・他は淡色になり、値ラベルも強調した棒にだけ出る
+   * （階級が10個以上あるヒストグラムで全部に数字を振ると読めなくなるため）。
+   */
+  highlightIndex?: number;
+  /** 強調した棒に添える短い注記（例: "スイートリディア"）。`highlightIndex` と併用する。 */
+  highlightLabel?: string;
+  /**
+   * 軸ラベルを何本おきに出すか（既定1＝全部）。ヒストグラムのように階級が10個以上あるグラフでは
+   * 2以上にして間引く。既存の分析記事は階級5個前後なので既定のままで影響しない。
+   */
+  labelEvery?: number;
+  /**
    * 縦軸の上限を明示する。2枚のグラフ（牡だけ／牝だけ、等）を並べて高さを見比べさせたい時に、
    * 両方へ同じ値を渡して物差しを揃える（既定はグラフごとに自前の最大値から決めるので、
    * 別々の物差しになり「牝の方が高く見える」ような誤読が起きる）。
@@ -42,17 +55,24 @@ const {
   noteLabel = '内訳',
   height = 260,
   axisMax,
+  highlightIndex,
+  highlightLabel,
+  labelEvery = 1,
 } = Astro.props;
+
+const hasHighlight = highlightIndex !== undefined;
 
 const width = 640;
 const marginTop = 24;
 // note を出す時は軸ラベルの下にもう1行入るぶん下余白を広げる
 const hasNotes = bars.some((b) => b.note);
 const marginBottom = hasNotes ? 56 : 40;
+// 強調ラベル（"スイートリディア ▼"）を棒の上に出すぶん、上余白を広げる
+const topPad = hasHighlight && highlightLabel ? 18 : 0;
 const marginLeft = 8;
 const marginRight = 8;
 const plotWidth = width - marginLeft - marginRight;
-const plotHeight = height - marginTop - marginBottom;
+const plotHeight = height - marginTop - marginBottom - topPad;
 
 const maxValue = Math.max(1, ...bars.map((b) => b.value));
 // axisMax を渡された時もデータがそれを超えていたら棒が枠外に伸びてしまうので、実データの最大値で下支えする。
@@ -63,11 +83,11 @@ const barWidth = Math.min(56, plotWidth / bars.length - barGap);
 const step = plotWidth / bars.length;
 
 function yFor(value: number) {
-  return marginTop + plotHeight * (1 - value / niceMax);
+  return marginTop + topPad + plotHeight * (1 - value / niceMax);
 }
 
 const gridLines = [0, 0.25, 0.5, 0.75, 1].map((t) => ({
-  y: marginTop + plotHeight * (1 - t),
+  y: marginTop + topPad + plotHeight * (1 - t),
   value: Math.round(niceMax * t),
 }));
 ---
@@ -82,7 +102,10 @@ const gridLines = [0, 0.25, 0.5, 0.75, 1].map((t) => ({
       const cx = marginLeft + step * i + step / 2;
       const x = cx - barWidth / 2;
       const y = yFor(bar.value);
-      const barHeight = marginTop + plotHeight - y;
+      const barHeight = marginTop + topPad + plotHeight - y;
+      const isHighlighted = hasHighlight && i === highlightIndex;
+      // 強調指定がある時は、その棒以外の値ラベルを出さない（数字だらけにしない）
+      const showValue = !hasHighlight || isHighlighted;
       const rows: [string, string][] = [[valueLabel, bar.displayValue]];
       if (bar.n !== undefined) rows.push([nLabel, `${bar.n}頭`]);
       if (bar.note) rows.push([noteLabel, bar.note]);
@@ -90,7 +113,7 @@ const gridLines = [0, 0.25, 0.5, 0.75, 1].map((t) => ({
       return (
         <g>
           <rect
-            class="viz-hit viz-bar"
+            class={`viz-hit viz-bar${hasHighlight && !isHighlighted ? ' viz-bar-dim' : ''}`}
             x={x}
             y={y}
             width={barWidth}
@@ -100,12 +123,21 @@ const gridLines = [0, 0.25, 0.5, 0.75, 1].map((t) => ({
             tabindex="0"
             data-tip={tip}
           />
-          <text x={cx} y={y - 8} class="viz-bar-label" text-anchor="middle">
-            {bar.displayValue}
-          </text>
-          <text x={cx} y={height - marginBottom + 18} class="viz-axis-label" text-anchor="middle">
-            {bar.label}
-          </text>
+          {showValue && (
+            <text x={cx} y={y - 8} class="viz-bar-label" text-anchor="middle">
+              {bar.displayValue}
+            </text>
+          )}
+          {isHighlighted && highlightLabel && (
+            <text x={cx} y={y - 24} class="viz-highlight-label" text-anchor="middle">
+              {highlightLabel} ▼
+            </text>
+          )}
+          {i % labelEvery === 0 && (
+            <text x={cx} y={height - marginBottom + 18} class="viz-axis-label" text-anchor="middle">
+              {bar.label}
+            </text>
+          )}
           {bar.note && (
             <text x={cx} y={height - marginBottom + 33} class="viz-axis-note" text-anchor="middle">
               {bar.note}
@@ -117,8 +149,8 @@ const gridLines = [0, 0.25, 0.5, 0.75, 1].map((t) => ({
     <line
       x1={marginLeft}
       x2={width - marginRight}
-      y1={marginTop + plotHeight}
-      y2={marginTop + plotHeight}
+      y1={marginTop + topPad + plotHeight}
+      y2={marginTop + topPad + plotHeight}
       class="viz-baseline"
     />
   </svg>
@@ -162,6 +194,17 @@ const gridLines = [0, 0.25, 0.5, 0.75, 1].map((t) => ({
   .viz-bar:focus-visible {
     opacity: 0.75;
     outline: none;
+  }
+  /* 強調していない棒。色相は変えず不透明度だけ落として、強調した1本を前に出す。
+     color-mix(... var(--surface)) だとトークンが解決できず宣言ごと無効になり、
+     淡色化が効かなかった（2026-09-06）。SVGでは fill-opacity が確実。 */
+  .viz-bar-dim { fill-opacity: 0.3; }
+  .viz-bar-dim:hover,
+  .viz-bar-dim:focus-visible { fill-opacity: 0.55; }
+  .viz-highlight-label {
+    font-size: 11.5px;
+    font-weight: 700;
+    fill: var(--series-1);
   }
   .viz-bar-label {
     font-size: 12px;

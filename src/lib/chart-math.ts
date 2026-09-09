@@ -157,6 +157,20 @@ export function formatManYen(value: number): string {
   return Math.round(value).toLocaleString('ja-JP');
 }
 
+/**
+ * 賞金を日本語の読みで整形する。`formatManYen` は数値だけを返す（呼び出し側で「万」を足す）が、
+ * 出資馬ページのように1億を超える額が並ぶ場所では「15,155万円」より「1億5,155万円」が読みやすい。
+ * 単位まで含めて返すので、テンプレート側で「万」を足さないこと。
+ */
+export function formatPrizeJa(manYen: number): string {
+  const v = Math.round(manYen);
+  if (v === 0) return '0円';
+  const oku = Math.floor(v / 10000);
+  const man = v % 10000;
+  if (!oku) return `${man.toLocaleString('ja-JP')}万円`;
+  return man ? `${oku}億${man.toLocaleString('ja-JP')}万円` : `${oku}億円`;
+}
+
 /** 標準正規分布の累積分布関数（Abramowitz-Stegunの近似式）。 */
 function normCdf(x: number): number {
   const sign = x < 0 ? -1 : 1;
