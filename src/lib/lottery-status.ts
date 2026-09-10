@@ -46,19 +46,26 @@ export interface LotteryLabel {
  *
  * - `outcome === null`（未確定・未発表）→ 「発表待ち」/ rank:'mid'
  * - `lotteryOccurred === true`（そのランクで抽選が発生）→ 「◯◯抽選」
- * - `lotteryOccurred === false`（一般枠で申込者が口数に届かなかった）→ 「残口あり」
- *   （`LotteryOutcome`の型上、これが起こりうるのは一般枠だけ）。**「一般で確保」のような
- *   「ちょうど満口」を思わせる文言は使わない**（本人指摘・2026-09-05「ぴったりじゃないと
- *   この表現ない」——実際にはぴったり満口になることは稀で、大半は口数が余る。
- *   これは1.5次募集の目安である`remainingShares`と同じ状態を指すため「残口あり」で表す）。
+ * - `lotteryOccurred === false`（申込者が口数に届かず、そのランクで無条件出資できた）→
+ *   **通常枠は「残口あり」、母馬優先枠は「当選」**（本人指摘・2026-09-10）。
+ *   母馬優先枠の口数は「募集総口数の半数が最大」という上限にすぎず、そこで需要が
+ *   埋まらなければ余り分はその場で通常枠に吸収される（1.5次募集まで持ち越す「残口」には
+ *   ならない）。1.5次募集の目安である`remainingShares`と同じ状態を指すのは通常枠だけなので、
+ *   「残口あり」は通常枠に限定する。
+ *   （本人指摘・2026-09-05「ぴったりじゃないとこの表現ない」——通常枠側でも実際にぴったり
+ *   満口になることは稀で、大半は口数が余るため「残口あり」で表す。「一般で確保」のような
+ *   「ちょうど満口」を思わせる文言は使わない）。
  */
-export function lotteryLabel(frame: FrameLotteryResult): LotteryLabel {
+export function lotteryLabel(
+  frame: FrameLotteryResult,
+  frameKind: 'damPriority' | 'normal' = 'normal',
+): LotteryLabel {
   if (frame.outcome === null) {
     return { text: '発表待ち', rank: 'mid' };
   }
   const { rank, lotteryOccurred } = frame.outcome;
   if (!lotteryOccurred) {
-    return { text: '残口あり', rank };
+    return { text: frameKind === 'damPriority' ? '当選' : '残口あり', rank };
   }
   const text = `${LOTTERY_RANK_LABELS[rank]}抽選`;
   return { text, rank };

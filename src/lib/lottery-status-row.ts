@@ -30,11 +30,13 @@ function horseDetailHref(horseId: string, detailBasePath = DEFAULT_DETAIL_BASE_P
 /**
  * 結果が確定している枠をバッジHTMLに、「発表待ち」（rank:'mid'）はバッジにせず地の文で返す。
  * クラスは `rank-${ランク}`（濃淡はCSS側。×2が最も濃い）＋ `occurred`（抽選発生・塗りつぶし）
- * か `secured`（一般枠で確保・枠線のみ。最優先ランクにはこの状態は無い＝型上 outcome が
+ * か `secured`（抽選なしで確保・枠線のみ。最優先ランクにはこの状態は無い＝型上 outcome が
  * `{ rank: 'general', lotteryOccurred: false }` の場合しか secured にならない）のどちらか。
+ * 文言は枠（母馬優先／通常）で変わる（`lotteryLabel()` 参照。通常枠は「残口あり」、
+ * 母馬優先枠は「当選」）。
  */
-function frameHtml(frame: FrameLotteryResult): string {
-  const label = lotteryLabel(frame);
+function frameHtml(frame: FrameLotteryResult, frameKind: 'damPriority' | 'normal'): string {
+  const label = lotteryLabel(frame, frameKind);
   if (label.rank === 'mid' || frame.outcome === null) return label.text;
   const occurredClass = frame.outcome.lotteryOccurred ? 'occurred' : 'secured';
   return `<span class="lottery-badge rank-${label.rank} ${occurredClass}">${escapeHtml(label.text)}</span>`;
@@ -42,13 +44,13 @@ function frameHtml(frame: FrameLotteryResult): string {
 
 /** 通常枠セルの中身。未発表（このsnapshotにまだ載っていない）なら「発表待ち」。 */
 function normalCellHtml(row: LotteryStatusRow): string {
-  return row.normal === null ? '発表待ち' : frameHtml(row.normal);
+  return row.normal === null ? '発表待ち' : frameHtml(row.normal, 'normal');
 }
 
 /** 母馬優先枠セルの中身。対象外の馬は「—」、対象だが未発表は「発表待ち」。 */
 function damPriorityCellHtml(row: LotteryStatusRow): string {
   if (!row.hasDamPriority) return '—';
-  return row.damPriority === null ? '発表待ち' : frameHtml(row.damPriority);
+  return row.damPriority === null ? '発表待ち' : frameHtml(row.damPriority, 'damPriority');
 }
 
 /** 残り口数セルの中身。未確定は「—」。 */
