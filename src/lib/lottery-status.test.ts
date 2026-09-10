@@ -44,9 +44,9 @@ test('lotteryLabel: outcomeがnullなら発表待ち/rank:mid', () => {
   assert.deepEqual(label, { text: '発表待ち', rank: 'mid' });
 });
 
-test('lotteryLabel: 抽選発生ならランク名+抽選', () => {
+test('lotteryLabel: 抽選発生ならランク名+抽選（x2/x1/noneは「最優先」を付けない）', () => {
   assert.deepEqual(lotteryLabel(frame({ rank: 'x2', lotteryOccurred: true })), {
-    text: '最優先×2抽選',
+    text: '×2抽選',
     rank: 'x2',
   });
   assert.deepEqual(lotteryLabel(frame({ rank: 'general', lotteryOccurred: true })), {

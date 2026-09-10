@@ -19,11 +19,16 @@ import type {
 /** 強い順（x2 → x1 → none → general）。ランクの妥当性チェック・ソートの基準に使う。 */
 export const ALL_LOTTERY_RANKS: readonly LotteryRank[] = ['x2', 'x1', 'none', 'general'];
 
-/** ランク→日本語表記。表示文言の唯一の出所（ここ以外でランク名を書かない）。 */
+/**
+ * ランク→日本語表記。表示文言の唯一の出所（ここ以外でランク名を書かない）。
+ * x2/x1/noneは「最優先」を付けない（本人指摘・2026-09-10「バツは最優先って言わなくても
+ * わかる」）。「最優先」の説明は初出時（`/2026/lottery/`のリード文・トップの抽選ランクFAQ）
+ * だけで足り、行ごとに毎回書くと冗長なため。
+ */
 export const LOTTERY_RANK_LABELS: Readonly<Record<LotteryRank, string>> = {
-  x2: '最優先×2',
-  x1: '最優先×1',
-  none: '最優先×なし',
+  x2: '×2',
+  x1: '×1',
+  none: '×なし',
   general: '一般',
 };
 
