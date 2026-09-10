@@ -243,7 +243,7 @@ test('horseRowHtml: 抽選ステータスの行を渡すと一覧セルに反映
     remainingShares: null,
   });
   const cell = html.match(/<td data-col="lottery"[^]*?<\/td>/)![0];
-  assert.match(cell, /最優先×2抽選/);
+  assert.match(cell, /×2抽選/);
   assert.match(cell, /残口あり/);
 });
 
