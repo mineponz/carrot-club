@@ -55,9 +55,20 @@ test('lotteryLabel: 抽選発生ならランク名+抽選', () => {
   });
 });
 
-test('lotteryLabel: 一般枠で口数に届かなければ「残口あり」（「確保」等ぴったり満口を思わせる文言は使わない）', () => {
+test('lotteryLabel: 通常枠で口数に届かなければ「残口あり」（「確保」等ぴったり満口を思わせる文言は使わない、既定はnormal扱い）', () => {
   assert.deepEqual(lotteryLabel(frame({ rank: 'general', lotteryOccurred: false })), {
     text: '残口あり',
+    rank: 'general',
+  });
+  assert.deepEqual(lotteryLabel(frame({ rank: 'general', lotteryOccurred: false }), 'normal'), {
+    text: '残口あり',
+    rank: 'general',
+  });
+});
+
+test('lotteryLabel: 母馬優先枠で口数に届かなければ「当選」（母馬優先枠の口数は上限にすぎず、1.5次に持ち越す残口という概念が無い）', () => {
+  assert.deepEqual(lotteryLabel(frame({ rank: 'general', lotteryOccurred: false }), 'damPriority'), {
+    text: '当選',
     rank: 'general',
   });
 });

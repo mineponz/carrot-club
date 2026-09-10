@@ -38,7 +38,7 @@ test('lotteryListCellHtml: 母馬優先対象外の馬は通常枠のバッジ1�
   assert.ok(!html.includes('lottery-line-label'));
 });
 
-test('lotteryListCellHtml: 母馬優先対象馬は「母優先」「通常」の2行', () => {
+test('lotteryListCellHtml: 母馬優先対象馬は「母優先」「通常」の2行（lotteryOccurred:falseの文言は枠で変わる: 母優先は「当選」・通常は「残口あり」）', () => {
   const html = lotteryListCellHtml(
     makeRow({
       hasDamPriority: true,
@@ -46,9 +46,16 @@ test('lotteryListCellHtml: 母馬優先対象馬は「母優先」「通常」�
       normal: frame({ rank: 'general', lotteryOccurred: true }),
     }),
   );
-  assert.match(html, /母優先:.*残口あり/);
+  assert.match(html, /母優先:.*当選/);
   assert.match(html, /通常:.*一般抽選/);
   assert.equal((html.match(/lottery-line-label/g) ?? []).length, 2);
+});
+
+test('lotteryListCellHtml: 通常枠のlotteryOccurred:falseは「残口あり」', () => {
+  const html = lotteryListCellHtml(
+    makeRow({ hasDamPriority: false, normal: frame({ rank: 'general', lotteryOccurred: false }) }),
+  );
+  assert.match(html, /class="lottery-badge rank-general secured">残口あり/);
 });
 
 test('lotteryListCellHtml: 未発表（normalがnull）は「発表待ち」', () => {
