@@ -1,9 +1,11 @@
 /**
- * 2026年募集馬の客観データ（93頭）。
+ * 2026年募集馬の客観データ（92頭）。
  *
  * このファイルは本来 `scripts/fetch-2026-data.mjs` が生成するが、No.56
- * 「マルシュロレーヌの25」は募集取り消しになったため2026-08-22に手で削除した
- * （本人からのチャット報告）。再生成すると元CSVにまだ載っていた場合は復活するので、
+ * 「マルシュロレーヌの25」は募集取り消しになったため2026-08-22に、No.62
+ * 「ドナウエレンの25」も募集取り消しになったため2026-09-10に手で削除した
+ * （本人からのチャット報告／抽選ランク発表PDFの脚注「No.56、No.62は募集取り下げ」）。
+ * 再生成すると元CSVにまだ載っていた場合は復活するので、
  * 次回スクリプトを再実行する際はクラブ公式リストの最新版（取り消し反映済みのもの）を使うこと。
  * 元CSV（クラブ公式・Shift-JIS）はリポジトリにコミットしていない。
  * netkeibaUrl / damUrl / damAge / sibling は netkeiba から自動取得した値。
@@ -1336,28 +1338,6 @@ export const horses2026: Horse[] = [
     "damPriority": false,
     "surgery": "",
     "xSearchUrl": "https://x.com/search?q=エクシードリミッツ&src=typed_query"
-  },
-  {
-    "id": "62",
-    "name": "ドナウエレンの25",
-    "sex": "牡",
-    "netkeibaUrl": "https://db.netkeiba.com/horse/2025107184/",
-    "damUrl": "https://db.netkeiba.com/horse/2018105163/",
-    "sire": "サートゥルナーリア",
-    "broodmareSire": "モーリス",
-    "damAge": 7,
-    "damParity": 1,
-    "birthDate": "2025-02-06",
-    "stable": "池江泰寿",
-    "pricePerShare": 12.5,
-    "height": 151,
-    "chestGirth": 178.5,
-    "caretGirth": 21,
-    "weight": 457,
-    "sibling": "",
-    "damPriority": false,
-    "surgery": "",
-    "xSearchUrl": "https://x.com/search?q=ドナウエレン&src=typed_query"
   },
   {
     "id": "63",
