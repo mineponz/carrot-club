@@ -213,14 +213,14 @@ const lotteryFacts: { term: string; value: string }[] =
   recruitYear === 2026
     ? (() => {
         const [row] = lotteryStatusRows([horse], LOTTERY_STATUS_SNAPSHOTS);
-        const labelOf = (frame: (typeof row)['normal']) =>
-          frame === null ? '発表待ち' : lotteryLabel(frame).text;
+        const labelOf = (frame: (typeof row)['normal'], frameKind: 'damPriority' | 'normal') =>
+          frame === null ? '発表待ち' : lotteryLabel(frame, frameKind).text;
         const rows = row.hasDamPriority
           ? [
-              { term: '抽選ステータス（母馬優先）', value: labelOf(row.damPriority) },
-              { term: '抽選ステータス（通常枠）', value: labelOf(row.normal) },
+              { term: '抽選ステータス（母馬優先）', value: labelOf(row.damPriority, 'damPriority') },
+              { term: '抽選ステータス（通常枠）', value: labelOf(row.normal, 'normal') },
             ]
-          : [{ term: '抽選ステータス', value: labelOf(row.normal) }];
+          : [{ term: '抽選ステータス', value: labelOf(row.normal, 'normal') }];
         if (row.remainingShares !== null) {
           rows.push({ term: '残り口数', value: `${row.remainingShares}口` });
         }
