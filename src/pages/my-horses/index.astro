@@ -103,7 +103,9 @@ const description = `【非公式】管理人みねらるがキャロットク�
         {photos[h.slug] && (
           <a class="horse-card-photo" href={`/my-horses/${h.slug}/`}>
             <img
-              src={recruitPhotoUrl(photos[h.slug].clubId, photos[h.slug].file, true)}
+              src={recruitPhotoUrl(h.slug)}
+              width={photos[h.slug].width}
+              height={photos[h.slug].height}
               alt={`${h.name}の募集時の馬体写真`}
               loading="lazy"
               referrerpolicy="no-referrer"
@@ -142,7 +144,9 @@ const description = `【非公式】管理人みねらるがキャロットク�
         {photos[h.slug] && (
           <a class="horse-card-photo" href={`/my-horses/${h.slug}/`}>
             <img
-              src={recruitPhotoUrl(photos[h.slug].clubId, photos[h.slug].file, true)}
+              src={recruitPhotoUrl(h.slug)}
+              width={photos[h.slug].width}
+              height={photos[h.slug].height}
               alt={`${h.name}の募集時の馬体写真`}
               loading="lazy"
               referrerpolicy="no-referrer"
@@ -230,12 +234,16 @@ const description = `【非公式】管理人みねらるがキャロットク�
     list-style: none;
   }
   .horse-card-photo { display: block; margin: -1rem -1.1rem 0.75rem; }
+  /* 高さを固定して cover で切ると顔が切れる（本人指摘・2026-09-10）。
+     写真は9頭とも比率およそ10:7で揃っているので、その比率のまま全身を出す。 */
   .horse-card-photo img {
     display: block;
     width: 100%;
-    height: 9.5rem;
+    height: auto;
+    aspect-ratio: 10 / 7;
     object-fit: cover;
     border-radius: 10px 10px 0 0;
+    background: var(--accent-weak);
   }
   .horse-card {
     overflow: hidden;

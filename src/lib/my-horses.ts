@@ -33,15 +33,23 @@ export function clubFacePhotoUrl(clubId: string): string {
  * 募集年しか生きないが、こちらは生きている。2026-09-09に9頭すべてで確認）。
  *
  * ファイル名は年ごとに規則が違って計算できないので `my-horse-photos.json` に実名を持つ。
- * 原寸は400KB前後あるため、一覧のように何枚も並べる場所では `thumb` を使う。
+ *
+ * 表示にはクラブへのホットリンクではなく、`scripts/fetch-recruit-photos.mjs` で
+ * 取り込んだ手元のファイル（`public/my-horses/<slug>/recruit.jpg`・幅720px）を使う。
+ * クラブ側の `mob/` は238×166pxしかなくカードで粗く、原寸は1枚380KBで9枚並べると重い。
+ * `bd-<code>.jpg` が募集年で消えたように、リンク切れの危険もある。
  */
-export function recruitPhotoUrl(clubId: string, file: string, thumb = false): string {
-  return `https://carrotclub.net/upfile/${clubId}/${thumb ? 'mob/' : ''}${file}`;
+export function recruitPhotoUrl(slug: string): string {
+  return `/my-horses/${slug}/recruit.jpg`;
 }
 
 export interface RecruitPhoto {
   clubId: string;
+  /** クラブ側のファイル名（取り込み元）。 */
   file: string;
+  /** 取り込み後の寸法。9頭とも 720x502〜505（比率およそ 10:7）。 */
+  width?: number;
+  height?: number;
   date: string;
   place: string;
 }

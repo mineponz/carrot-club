@@ -7,55 +7,82 @@
    "clubId": "2148",
    "file": "21-48BD.jpg",
    "date": "2021-08-26",
-   "place": "ＮＦイヤリング"
+   "place": "ＮＦイヤリング",
+   "localFile": "recruit.jpg",
+   "width": 720,
+   "height": 502
   },
   "windstille": {
    "clubId": "2217",
    "file": "22_BD_017.jpg",
    "date": "2022-08-23",
-   "place": "ＮＦイヤリング"
+   "place": "ＮＦイヤリング",
+   "localFile": "recruit.jpg",
+   "width": 720,
+   "height": 503
   },
   "diogenite": {
    "clubId": "21097",
    "file": "22_BD_097Ad.jpg",
    "date": "2023-04-05",
-   "place": "ＮＦ早来"
+   "place": "ＮＦ早来",
+   "localFile": "recruit.jpg",
+   "width": 720,
+   "height": 503
   },
   "river-valate": {
    "clubId": "22007",
    "file": "22007JB.jpg",
    "date": "2023-08-29",
-   "place": "ＮＦイヤリング"
+   "place": "ＮＦイヤリング",
+   "localFile": "recruit.jpg",
+   "width": 720,
+   "height": 505
   },
   "sonnenblume": {
    "clubId": "23037",
    "file": "23037photobd.jpg",
    "date": "2024-08-26",
-   "place": "ＮＦイヤリング"
+   "place": "ＮＦイヤリング",
+   "localFile": "recruit.jpg",
+   "width": 720,
+   "height": 505
   },
   "rock-ptarmigan": {
    "clubId": "23084",
    "file": "23084photobd.jpg",
    "date": "2024-08-26",
-   "place": "白老Ｆイヤリング"
+   "place": "白老Ｆイヤリング",
+   "localFile": "recruit.jpg",
+   "width": 720,
+   "height": 505
   },
   "eir": {
    "clubId": "23100",
    "file": "23100photobd-ad.jpg",
    "date": "2025-04-02",
-   "place": "ＮＦ早来"
+   "place": "ＮＦ早来",
+   "localFile": "recruit.jpg",
+   "width": 720,
+   "height": 505
   },
   "assemblage": {
    "clubId": "24067",
    "file": "yoko_24067.jpg",
    "date": "2025-08-19",
-   "place": "ＮＦイヤリング"
+   "place": "ＮＦイヤリング",
+   "localFile": "recruit.jpg",
+   "width": 720,
+   "height": 505
   },
   "sweet-lydia": {
    "clubId": "24072",
    "file": "yoko_24072.jpg",
    "date": "2025-08-19",
-   "place": "ＮＦイヤリング"
+   "place": "ＮＦイヤリング",
+   "localFile": "recruit.jpg",
+   "width": 720,
+   "height": 505
   }
  },
  "own": {

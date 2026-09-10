@@ -124,7 +124,7 @@ const description = `【非公式】${horse.name}（${horse.recruitYear}年募�
       /* 読み込めなければ figure ごと隠す（このサイトはCSP未導入なので onerror 属性が使える）。 */
       <figure class="horse-photo">
         <img
-          src={recruitPhotoUrl(photo.clubId, photo.file)}
+          src={recruitPhotoUrl(slug)}
           alt={`${horse.name}の募集時の馬体写真`}
           loading="eager"
           referrerpolicy="no-referrer"
