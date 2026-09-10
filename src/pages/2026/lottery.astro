@@ -246,6 +246,12 @@ const description = `【非公式】キャロットクラブ2026年募集馬${to
       #lottery-table [data-col="sire"],
       #lottery-table [data-col="sex"] { display: none; }
       #lottery-table td[data-col="name"] { vertical-align: top; }
+      /* 母馬優先枠・通常枠のバッジ（例:「最優先×2抽選」）は`.lottery-badge`がnowrapで
+         折り返せないため、auto レイアウトのままだと馬名セルがその分だけ圧迫されて
+         1文字ずつ縦に折り返る（実際に踏んだ崩れ・2026-09-10）。votes/tour-weightは
+         隣接列が短い数字だけなのでこの問題が起きないが、lotteryはバッジ列が幅を取るため
+         馬名セルに最低幅を確保し、収まらない分は`.table-wrap`側の横スクロールに任せる。 */
+      #lottery-table [data-col="name"] { min-width: 7rem; }
     }
 
     /* 広い画面（40remより広い）: 固定レイアウトにして各列の幅を積み上げる。
