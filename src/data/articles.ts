@@ -14,6 +14,13 @@ export interface AnalysisArticle {
 
 export const analysisArticles: AnalysisArticle[] = [
   {
+    href: '/articles/secondary-offering/',
+    title: '1.5次募集に回った馬にも、当たりはいるのか？',
+    description:
+      '1次募集で満口にならなかった馬たちのその後を、過去4年ぶんさかのぼって調べた。成績が出そろった3世代とも、同期の獲得賞金トップ10に1頭ずつ入っている。オープンを勝った馬も、募集価格を上回って稼いだ馬もいる。',
+    image: '/og-article-secondary-offering-v1.png',
+  },
+  {
     href: '/articles/stable-leading/',
     title: 'リーディング上位の厩舎に入った馬は走るのか？',
     description:

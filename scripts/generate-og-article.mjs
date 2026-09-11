@@ -138,6 +138,13 @@ const ARTICLES = {
     chips: ['出走率・獲得賞金で検証', '同じ母の兄姉と比較', '重賞馬の下の成績も'],
     buildChart: clubSiblingsChart,
   },
+  'secondary-offering': {
+    out: 'og-article-secondary-offering-v1.png',
+    headline: ['1.5次募集に回った馬にも', '当たりはいるのか？'],
+    lead: 'キャロットクラブ 2022〜2024年度募集の1.5次募集対象馬 × 現在の競走成績',
+    chips: ['過去4年の当たり馬を実名で', '同期トップ10入りが3年連続', '募集価格超えの回収率も'],
+    buildChart: secondaryOfferingChart,
+  },
   'stable-leading': {
     // v1は「3歳シーズンのリーディング」基準の記事だった。募集年基準へ作り直したので -v2
     // （SNSは画像URL単位でキャッシュするため、中身を変えたらファイル名を上げる）。
@@ -351,6 +358,28 @@ function caretGirthChart() {
  * （club-siblings.astro の medianPrizeBars と同じ並び・同じ集計）。
  * 1本目がサンデー・シルク出身で、そこだけ低いのがカードで一目で分かる。
  */
+/**
+ * 記事の年度別「1.5次募集に回った馬」の頭数（11/13/19/23/23）をミニ棒グラフにする。
+ * 出所は `analysis/data/first-offering-leftovers.json`（募集時点で確定するクラブ公式発表の
+ * 数字で、成績を取り直しても変わらない。成績由来の数字はカードに焼き込まない方針
+ * ―― 本文の「安田記念のシックスペンス」等の実名・順位はスナップショットで動くため）。
+ */
+function secondaryOfferingChart() {
+  const file = JSON.parse(
+    readFileSync(join(repoRoot, 'analysis', 'data', 'first-offering-leftovers.json'), 'utf8')
+  );
+  const years = Object.keys(file.byYear)
+    .map(Number)
+    .sort((a, b) => a - b);
+  const counts = years.map((y) => file.byYear[String(y)].count);
+  return {
+    total: counts.reduce((a, b) => a + b, 0),
+    yearRangeLabel: years.length > 0 ? `${years[0]}〜${years[years.length - 1]}年度` : '',
+    html: barsHtml(counts),
+    caption: '1.5次募集に回った馬の頭数（年度別）',
+  };
+}
+
 function clubSiblingsChart() {
   const file = JSON.parse(readFileSync(join(repoRoot, 'analysis', 'data', 'dam-siblings.json'), 'utf8'));
   const MATURE = 2021;

@@ -1,0 +1,666 @@
+---
+/**
+ * 分析記事「1.5次募集に回った馬にも、当たりはいるのか？」。10本目。
+ *
+ * 1次募集で満口にならず1.5次募集に回った馬（`analysis/data/first-offering-leftovers.json`。
+ * 出所はクラブ会員向けニュース「◯年度第1次募集最終集計結果」）を、成績が出そろっている
+ * 2022〜2024年度募集について現在の競走成績（`analysis/data/race-results.json`）と突き合わせる。
+ *
+ * ## 完売組との優劣比較はしない（2026-09-12・本人指示）
+ * 母数として1.5次組の地力が完売組より落ちるのは前提として認めたうえで、「その中にも当たりは
+ * いる、諦めるな」を主題にする。断定調を避け実例で語る（project scope:
+ * [[20260824-article-writing-conventions]]）。唯一の例外は「正直に書いておくこと」節の
+ * 勝ち上がり率比較（本人が明示的に追加を指示）。
+ *
+ * ## データの制約
+ * `analysis/data/recruits.json` は2017〜2025年募集分しか無い（2026年募集はまだ載っていない）。
+ * そのため2026年度の1.5次募集対象馬の実在チェックだけは `recruits.json` ではなく
+ * `horses2026.ts` の募集番号一覧を使う（`first-offering-leftovers.ts` の
+ * `validateLeftoverNos` に渡す `knownNosByYear` を参照）。
+ *
+ * ## 今年（2026年度）の23頭は個別に列挙しない
+ * 既に発表済みの1.5次募集対象馬は `lotteryStatus2026.ts` の `remainingShares` と実質同じ集合
+ * （`remaining-shares.ts`）なので、ここで頭数を二重管理しない。本文では
+ * `first-offering-leftovers.json` 側の頭数を使いつつ、両者が食い違ったらビルドを落とす
+ * アサーションを置き、個々の馬へは `/?remaining=1`（残口ビュー）経由で誘導する。
+ *
+ * ## 本文が置いている前提はすべてビルド時アサーションにしてある
+ * 成績を取り直して前提が崩れたらビルドが落ちる（[[20260825-assert-article-premises-at-build-time]]）。
+ */
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import StatTiles from '../../components/charts/StatTiles.astro';
+import ArticleToc from '../../components/ArticleToc.astro';
+import MethodsLink from '../../components/MethodsLink.astro';
+import TermLink from '../../components/TermLink.astro';
+import AdSlot from '../../components/AdSlot.astro';
+import leftoversJson from '../../../analysis/data/first-offering-leftovers.json';
+import { horses2026 } from '../../data/horses2026.ts';
+import { LOTTERY_STATUS_SNAPSHOTS } from '../../data/lotteryStatus2026.ts';
+import {
+  remainingSharesRows,
+  remainingSharesByHorseId,
+  secondaryOfferingAnnounced,
+} from '../../lib/remaining-shares.ts';
+import {
+  loadRecruitsWithResults,
+  RACE_RESULTS_FETCHED_AT,
+  type RecruitWithResult,
+} from '../../lib/analysis-data.ts';
+import { formatResultsAsOf } from '../../lib/sibling-recruits.ts';
+import { median, formatManYen, formatP, twoProportionZTest } from '../../lib/chart-math.ts';
+import {
+  leftoverYears,
+  leftoverNosOf,
+  leftoverCountOf,
+  leftoverSourceUrlOf,
+  isLeftover,
+  assertLeftoverNosValid,
+  type FirstOfferingLeftoversFile,
+} from '../../lib/first-offering-leftovers.ts';
+
+const leftoversFile = leftoversJson as unknown as FirstOfferingLeftoversFile;
+const allRecruits = loadRecruitsWithResults();
+const resultsAsOf = formatResultsAsOf(RACE_RESULTS_FETCHED_AT);
+
+/** 成績が出そろっている3世代。2025年度産（今の2歳）はまだ結果の話に使わない。 */
+const MATURE_YEARS = [2022, 2023, 2024];
+/** 年度別頭数表に出す全年度（今年含む）。JSONが対象にしている年度をそのまま使う。 */
+const ALL_YEARS = leftoverYears(leftoversFile);
+
+// ---- 実データの整合性チェック（募集取り下げ番号の混入・count転記ミスの検知） ----
+// recruits.json は2017〜2025年募集分しか無いので、2026年度だけは horses2026.ts の
+// 募集番号一覧を「実在する番号」として使う。
+const knownNosByYear = new Map<number, Set<string>>();
+for (const year of [2022, 2023, 2024, 2025]) {
+  knownNosByYear.set(year, new Set(allRecruits.filter((h) => h.recruitYear === year).map((h) => h.no)));
+}
+knownNosByYear.set(2026, new Set(horses2026.map((h) => h.id)));
+assertLeftoverNosValid(leftoversFile, knownNosByYear);
+
+// ---- 年度別の頭数（募集頭数・1.5次募集対象頭数） ----
+const recruitCountByYear = new Map<number, number>();
+for (const year of [2022, 2023, 2024, 2025]) {
+  recruitCountByYear.set(year, allRecruits.filter((h) => h.recruitYear === year).length);
+}
+recruitCountByYear.set(2026, horses2026.length);
+
+const yearRows = ALL_YEARS.map((year) => ({
+  year,
+  recruitCount: recruitCountByYear.get(year) as number,
+  leftoverCount: leftoverCountOf(leftoversFile, year),
+  sourceUrl: leftoverSourceUrlOf(leftoversFile, year),
+}));
+
+const leftoverThisYear = leftoverCountOf(leftoversFile, 2026);
+const matureCount = MATURE_YEARS.reduce((sum, y) => sum + leftoverCountOf(leftoversFile, y), 0);
+
+// ---- 成熟3世代の1.5次組・完売組 ----
+const matureCohort = allRecruits.filter((h) => MATURE_YEARS.includes(h.recruitYear));
+const matureLeftover = matureCohort.filter((h) => isLeftover(leftoversFile, h.recruitYear, h.no));
+const matureSoldOut = matureCohort.filter((h) => !isLeftover(leftoversFile, h.recruitYear, h.no));
+
+const raced = matureLeftover.filter((h) => (h.starts ?? 0) > 0).length;
+const winners = matureLeftover.filter((h) => (h.wins ?? 0) >= 1).length;
+const multiWinners = matureLeftover.filter((h) => (h.wins ?? 0) >= 2).length;
+const threeWinners = matureLeftover.filter((h) => (h.wins ?? 0) >= 3).length;
+const noWin = matureLeftover.length - winners;
+
+const cohortTotal = matureCohort.length;
+const cohortGradeWinners = matureCohort.filter((h) => h.gradeWins.length > 0);
+
+// ---- 回収率（stable-leading.astro の roiPctOf と同じ式） ----
+function roiPctOf(h: RecruitWithResult): number | null {
+  if (h.offeringTotalManYen === null || h.offeringTotalManYen <= 0) return null;
+  return (h.totalPrizeManYen / h.offeringTotalManYen) * 100;
+}
+/** 現在の所属（中央/地方）。東=美浦・西=栗東はまとめて「中央」、それ以外は「地方」。 */
+function regionLabelOf(h: RecruitWithResult): string {
+  return h.region === '東' || h.region === '西' ? '中央' : '地方';
+}
+
+// ---- 同期順位（同じ募集年度の全馬を獲得賞金で並べたときの順位） ----
+function rankMapOf(year: number): Map<string, number> {
+  const sorted = [...matureCohort.filter((h) => h.recruitYear === year)].sort(
+    (a, b) => b.totalPrizeManYen - a.totalPrizeManYen
+  );
+  return new Map(sorted.map((h, i) => [h.no, i + 1]));
+}
+interface RankedLeftover extends RecruitWithResult {
+  rank: number;
+  cohortSize: number;
+}
+const topLeftoverByYear: { year: number; top: RankedLeftover }[] = MATURE_YEARS.map((year) => {
+  const rankMap = rankMapOf(year);
+  const cohortSize = matureCohort.filter((h) => h.recruitYear === year).length;
+  const ranked = matureLeftover
+    .filter((h) => h.recruitYear === year)
+    .map((h) => ({ ...h, rank: rankMap.get(h.no) as number, cohortSize }))
+    .sort((a, b) => a.rank - b.rank);
+  return { year, top: ranked[0] };
+}).sort((a, b) => a.top.rank - b.top.rank);
+
+// ---- 同期の獲得賞金中央値を超えた頭数（年度別） ----
+const aboveMedianByYear = MATURE_YEARS.map((year) => {
+  const cohort = matureCohort.filter((h) => h.recruitYear === year);
+  const med = median(cohort.map((h) => h.totalPrizeManYen));
+  const leftoverOfYear = matureLeftover.filter((h) => h.recruitYear === year);
+  const above = leftoverOfYear.filter((h) => h.totalPrizeManYen > med).length;
+  return { year, n: leftoverOfYear.length, above };
+});
+
+// ---- 回収率100%超の馬 ----
+const roi100Rows = matureLeftover
+  .map((h) => ({ h, roi: roiPctOf(h) }))
+  .filter((r): r is { h: RecruitWithResult; roi: number } => r.roi !== null && r.roi > 100)
+  .sort((a, b) => b.roi - a.roi);
+
+// ---- 勝ち上がり率の比較（1.5次組 vs 1次で満口になった組。分母は対象馬全体） ----
+const soldOutWinners = matureSoldOut.filter((h) => (h.wins ?? 0) >= 1).length;
+const winRateLeftoverPct = (100 * winners) / matureLeftover.length;
+const winRateSoldOutPct = (100 * soldOutWinners) / matureSoldOut.length;
+const winRateGapPt = winRateSoldOutPct - winRateLeftoverPct;
+const winRateTest = twoProportionZTest(
+  winners,
+  matureLeftover.length,
+  soldOutWinners,
+  matureSoldOut.length
+);
+const fmtPct1 = (v: number) => `${v.toFixed(1)}%`;
+
+// ---- 今年（2026年度）の1.5次募集対象と、既存の残口データとの整合性 ----
+const remainingRows = remainingSharesRows(horses2026, LOTTERY_STATUS_SNAPSHOTS);
+const remainingIds = Object.keys(remainingSharesByHorseId(remainingRows))
+  .slice()
+  .sort((a, b) => Number(a) - Number(b));
+const leftover2026Nos = [...leftoverNosOf(leftoversFile, 2026)].sort((a, b) => Number(a) - Number(b));
+
+// ---- 本文が置いている前提のビルド時アサーション ----
+const premiseErrors: string[] = [];
+
+// 1. 各年度の1.5次募集対象頭数
+const EXPECTED_LEFTOVER_COUNTS: Record<number, number> = {
+  2022: 11,
+  2023: 13,
+  2024: 19,
+  2025: 23,
+  2026: 23,
+};
+for (const year of ALL_YEARS) {
+  const actual = leftoverCountOf(leftoversFile, year);
+  if (actual !== EXPECTED_LEFTOVER_COUNTS[year]) {
+    premiseErrors.push(
+      `${year}年度の1.5次募集対象頭数が変わった（${actual}頭 / 期待値${EXPECTED_LEFTOVER_COUNTS[year]}頭）。` +
+        '年度別頭数表と本文の頭数を直すこと。'
+    );
+  }
+}
+
+// 2. 成熟3世代とも、1.5次組から同期賞金トップ10入りが1頭以上
+for (const { year, top } of topLeftoverByYear) {
+  if (!top || top.rank > 10) {
+    premiseErrors.push(
+      `${year}年度で1.5次組の最高順位がトップ10から外れた（${top?.displayName ?? '該当なし'}・` +
+        `${top?.rank ?? '—'}位）。「同期の獲得賞金トップ10に1頭ずつ入っている」と書いた本文を書き直すこと。`
+    );
+  }
+}
+
+// 3. 具体的な馬名・順位（コーチェラバレー=3位、ミルテンベルク=8位、バルセシート=8位）
+const EXPECTED_TOP: Record<number, { name: string; rank: number }> = {
+  2022: { name: 'ミルテンベルク', rank: 8 },
+  2023: { name: 'コーチェラバレー', rank: 3 },
+  2024: { name: 'バルセシート', rank: 8 },
+};
+for (const { year, top } of topLeftoverByYear) {
+  const expected = EXPECTED_TOP[year];
+  if (!top || top.displayName !== expected.name || top.rank !== expected.rank) {
+    premiseErrors.push(
+      `${year}年度のトップ1.5次組が想定と変わった（実際: ${top?.displayName ?? '—'}・${top?.rank ?? '—'}位 / ` +
+        `想定: ${expected.name}・${expected.rank}位）。実例の段落を書き直すこと。`
+    );
+  }
+}
+
+// 4. 中央値超えが 2022=2 / 2023=6 / 2024=10
+const EXPECTED_ABOVE_MEDIAN: Record<number, number> = { 2022: 2, 2023: 6, 2024: 10 };
+for (const { year, above } of aboveMedianByYear) {
+  if (above !== EXPECTED_ABOVE_MEDIAN[year]) {
+    premiseErrors.push(
+      `${year}年度の中央値超え頭数が変わった（${above}頭 / 期待値${EXPECTED_ABOVE_MEDIAN[year]}頭）。` +
+        '「1頭だけたまたま」ではない節の箇条書きを直すこと。'
+    );
+  }
+}
+
+// 5. 回収率100%超が5頭（馬名と並び順も一致させる）
+const EXPECTED_ROI_ORDER = ['ミルテンベルク', 'ジョイフルロック', 'マイスターヴェルク', 'コーチェラバレー', 'ヴェルトラウム'];
+if (
+  roi100Rows.length !== 5 ||
+  roi100Rows.some((r, i) => r.h.displayName !== EXPECTED_ROI_ORDER[i])
+) {
+  premiseErrors.push(
+    `回収率100%超の馬が変わった（${roi100Rows.map((r) => r.h.displayName).join('、')}）。` +
+      '回収率100%超の表を直すこと。'
+  );
+}
+
+// 6. 2022〜2024年度の1.5次組の重賞勝ちが0頭
+const leftoverGradeWinners = matureLeftover.filter((h) => h.gradeWins.length > 0);
+if (leftoverGradeWinners.length !== 0) {
+  premiseErrors.push(
+    `1.5次組から重賞馬が出た（${leftoverGradeWinners.map((h) => h.displayName).join('、')}）。` +
+      '「重賞を勝った馬は1頭も出ていない」と書いた本文を書き直すこと。'
+  );
+}
+
+// 7. 完売組の重賞馬にシックスペンス・ヘデントールが含まれる（「データについて」の実名の根拠）
+const cohortGradeWinnerNames = cohortGradeWinners.map((h) => h.displayName);
+if (!cohortGradeWinnerNames.includes('シックスペンス') || !cohortGradeWinnerNames.includes('ヘデントール')) {
+  premiseErrors.push(
+    '完売組の重賞馬に「シックスペンス」「ヘデントール」が含まれなくなった。' +
+      '「正直に書いておくこと」節の実名を書き直すこと。'
+  );
+}
+
+// 8. 勝ち上がり率: 1.5次組 < 完売組、1.5次組 > 50%、差の検定は非有意（p > 0.05）
+if (!(winRateLeftoverPct < winRateSoldOutPct)) {
+  premiseErrors.push(
+    `1.5次組の勝ち上がり率が完売組を下回らなくなった（${fmtPct1(winRateLeftoverPct)} / ` +
+      `${fmtPct1(winRateSoldOutPct)}）。「1次で満口になった馬より低い」と書いた本文を書き直すこと。`
+  );
+}
+if (!(winRateLeftoverPct > 50)) {
+  premiseErrors.push(
+    `1.5次組の勝ち上がり率が50%を下回った（${fmtPct1(winRateLeftoverPct)}）。` +
+      '「半分以上は勝ち上がっている」と書いた本文を書き直すこと。'
+  );
+}
+if (!(winRateTest.p > 0.05)) {
+  premiseErrors.push(
+    `勝ち上がり率の差が有意になった（${formatP(winRateTest.p)}）。` +
+      '「統計的にはっきり出るほど大きくはない」と書いた本文を書き直すこと。'
+  );
+}
+
+// 9. 今年（2026年度）の1.5次募集対象が、既存の残口データ（lotteryStatus2026.ts）と一致する
+//    （頭数を二重管理しないための検算。発表が無い間はスキップする）
+if (secondaryOfferingAnnounced(LOTTERY_STATUS_SNAPSHOTS)) {
+  if (JSON.stringify(remainingIds) !== JSON.stringify(leftover2026Nos)) {
+    premiseErrors.push(
+      '2026年度の1.5次募集対象馬が、first-offering-leftovers.json と ' +
+        `lotteryStatus2026.ts の残口データで食い違っている（前者${leftover2026Nos.length}頭 / ` +
+        `後者${remainingIds.length}頭）。どちらかのデータを直すこと。`
+    );
+  }
+}
+
+if (premiseErrors.length > 0) {
+  throw new Error(`1.5次募集記事の前提が崩れた:\n- ${premiseErrors.join('\n- ')}`);
+}
+
+// 広告コードは他の記事と同じもの（vault: 20260821-article-ad-embed-snippets）
+const AD_SP_WIDE_A = 'f81bbb016a82d6366a0e2f70051b1a0c';
+const AD_SP_WIDE_B = 'b4b7d55c89d5fc92c564979491a16ad1';
+const AD_SP_RECT = '24e3e1a24f40d88ee1a0ca315c54a7b9';
+const AD_PC_WIDE_A = 'f0efb5bd6ae3e164bb584a4dbb846f48';
+const AD_PC_WIDE_B = '0a525f6469ec1f40642b4550e53d39cc';
+
+const description = `1次募集で満口にならなかった馬たちのその後を、過去4年ぶんさかのぼって調べた。成績が出そろった3世代とも、同期の獲得賞金トップ10に1頭ずつ入っている。オープンを勝った馬も、募集価格を上回って稼いだ馬もいる。`;
+---
+
+<BaseLayout
+  title="1.5次募集に回った馬にも、当たりはいるのか？"
+  description={description}
+  breadcrumb={[
+    { label: '分析記事', href: '/articles/' },
+    { label: '1.5次募集に回った馬にも、当たりはいるのか？', href: '/articles/secondary-offering/' },
+  ]}
+  showHeaderNotices={false}
+  ogImage="/og-article-secondary-offering-v1.png"
+  ogImageAlt="分析記事「1.5次募集に回った馬にも、当たりはいるのか？」のカード画像（【非公式】キャロットクラブ出資馬検討ツール）"
+>
+  <article>
+    <h1>1.5次募集に回った馬にも、当たりはいるのか？</h1>
+
+    <p>
+      1次募集の抽選が終わった。最優先も一般も外れて、手元に何も残らなかった人がいる。
+      そして今年も、満口にならなかった馬が{leftoverThisYear}頭、1.5次募集に回る。
+    </p>
+    <p>
+      このリストを見て「1次で売れ残った馬か」と思うのは自然だ。実際、みんなが欲しがった馬から
+      順に埋まっていくのだから、残っているのは人気がなかった馬である。それは間違いない。
+    </p>
+    <p>
+      ただ、<strong>人気がなかったことと、走らないことは別の話だ</strong>。
+      過去4年ぶんの「1.5次募集に回った馬」を全頭洗い出して、その後どうなったかを追いかけた。
+    </p>
+    <p>
+      結論から書く。<strong>成績が出そろっている3世代は、どの年も同期の獲得賞金トップ10に
+      1.5次組が1頭ずつ入っている</strong>。オープンを勝った馬もいるし、募集価格より多く稼いだ馬も5頭いる。
+    </p>
+
+    <StatTiles
+      tiles={[
+        { label: '今年の1.5次募集対象', value: `${leftoverThisYear}頭`, note: '受付は9/14正午〜9/15正午' },
+        { label: '集計した世代（成熟3世代）', value: `${matureCount}頭`, note: '2022〜2024年度募集' },
+        { label: '同期トップ10入り', value: '3世代とも1頭ずつ', note: '獲得賞金で同期に並べた順位' },
+        { label: '募集価格を上回った馬', value: `${roi100Rows.length}頭`, note: '回収率100%超' },
+        { label: '勝ち上がり', value: `${winners}頭`, note: `${matureCount}頭中・未勝利は${noWin}頭` },
+      ]}
+    />
+
+    <ArticleToc />
+    <MethodsLink />
+
+    <AdSlot sp={AD_SP_WIDE_A} pc={AD_PC_WIDE_A} />
+
+    <h2>この記事で見ている馬</h2>
+    <p>
+      キャロットの1歳馬募集は、1次募集で満口にならなかった馬だけが1.5次募集に回る。
+      クラブが毎年9月に出す「第1次募集最終集計結果」に、その年どの馬が1.5次募集の対象になったかが
+      載っている。この記事はそれをそのまま使っている。
+    </p>
+
+    <div class="table-scroll">
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>募集年度</th>
+            <th>募集頭数</th>
+            <th>1.5次募集に回った馬</th>
+          </tr>
+        </thead>
+        <tbody>
+          {
+            yearRows.map((r) => (
+              <tr>
+                <td data-label="募集年度">
+                  {r.sourceUrl ? (
+                    <a href={r.sourceUrl} target="_blank" rel="noopener">
+                      {r.year}年度{r.year === 2026 && '（今年）'}
+                    </a>
+                  ) : (
+                    <>
+                      {r.year}年度{r.year === 2026 && '（今年）'}
+                    </>
+                  )}
+                </td>
+                <td data-label="募集頭数">{r.recruitCount}頭</td>
+                <td data-label="1.5次募集に回った馬">{r.leftoverCount}頭</td>
+              </tr>
+            ))
+          }
+        </tbody>
+      </table>
+    </div>
+    <p class="table-note">
+      募集年度はクラブ発表の出所ニュース（会員ログインが必要）へのリンクになっている。
+    </p>
+
+    <p>
+      このうち2025年度産（今の2歳）はまだデビューが始まったばかりなので、成績の話は
+      <strong>2022〜2024年度の{matureCount}頭</strong>でする。
+    </p>
+
+    <AdSlot sp={AD_SP_WIDE_B} pc={AD_PC_WIDE_B} />
+
+    <h2>同期3位まで来た馬がいる</h2>
+    <p>
+      いちばんはっきりしているのがこれだ。1.5次募集に回った馬を、同じ年に募集された馬全部と
+      獲得賞金で並べたときの順位。
+    </p>
+
+    <div class="table-scroll">
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>募集年度</th>
+            <th>馬名</th>
+            <th>同期順位</th>
+            <th>戦績</th>
+            <th>獲得賞金</th>
+            <th>主な勝鞍</th>
+          </tr>
+        </thead>
+        <tbody>
+          {
+            topLeftoverByYear.map(({ year, top }) => (
+              <tr>
+                <td data-label="募集年度">{year}年度</td>
+                <td data-label="馬名">{top.displayName}</td>
+                <td data-label="同期順位">
+                  <strong>
+                    {top.rank}位 / {top.cohortSize}頭
+                  </strong>
+                </td>
+                <td data-label="戦績">
+                  {top.starts}戦{top.wins}勝
+                </td>
+                <td data-label="獲得賞金">{formatManYen(top.totalPrizeManYen)}万円</td>
+                <td data-label="主な勝鞍">{top.mainWins.join('、')}</td>
+              </tr>
+            ))
+          }
+        </tbody>
+      </table>
+    </div>
+
+    <p>
+      3年とも、{leftoverCountOf(leftoversFile, 2022)}頭・{leftoverCountOf(leftoversFile, 2023)}頭・
+      {leftoverCountOf(leftoversFile, 2024)}頭しかいない少ない母数の中から、同期96頭の上位10位に届く馬が出ている。
+    </p>
+
+    <p>
+      <strong>コーチェラバレー</strong>（キズナ×キャンプロック）は、1次募集で満口にならず1.5次募集に回った馬だ。
+      それが4歳の今年9月、札幌のオープン特別・丹頂ステークスを勝った。
+      募集価格6,000万円に対して獲得賞金は6,626万円。1次募集で人気が集まらなかった馬が、
+      その年の募集馬96頭の中で3番目に稼いでいる。
+    </p>
+    <p>
+      <strong>ミルテンベルク</strong>（モーリス×ペルレンケッテ）は一口10万円・総額4,000万円。
+      16戦して2勝だが、そのうち1つが2勝クラスの九州スポーツ杯で、獲得賞金は6,605万円まで伸びた。
+      <strong>募集価格の165%</strong>。この記事で追った馬の中で、回収率はいちばん高い。
+    </p>
+    <p>
+      <strong>バルセシート</strong>（キズナ×マラコスタムブラダ）は少し毛色が違う。
+      一口25万円・総額<strong>1億円</strong>の高額馬で、しかもレシステンシアの半弟。
+      それでも1次募集では満口にならず、1.5次募集に回った。3歳の今年、1勝クラスを勝って3,685万円。
+      高い馬・血統のいい馬が余らないわけではない、という例だ。
+    </p>
+
+    <div class="ad-rect">
+      <AdSlot sp={AD_SP_RECT} pc={AD_PC_WIDE_A} />
+    </div>
+
+    <h2>「1頭だけたまたま」ではない</h2>
+    <p>
+      トップ10級はたしかに1頭ずつだが、その下も空っぽではない。
+      同期の獲得賞金の<TermLink to="median">中央値</TermLink>を上回った馬の数はこうなる。
+    </p>
+    <ul>
+      {
+        aboveMedianByYear.map((r) => (
+          <li>
+            {r.year}年度: {r.n}頭中 <strong>{r.above}頭</strong>
+          </li>
+        ))
+      }
+    </ul>
+    <p>2024年度は半分以上が同期の真ん中より上にいる。</p>
+    <p>
+      3世代{matureCount}頭を合計すると、<strong>{raced}頭がデビューにたどり着き、{winners}頭が勝ち上がった</strong>。
+      2勝以上が{multiWinners}頭、3勝以上が{threeWinners}頭。
+      そして<strong>募集価格を上回る賞金を稼いだ馬が{roi100Rows.length}頭</strong>いる。
+    </p>
+
+    <div class="table-scroll">
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>馬名</th>
+            <th>募集年度</th>
+            <th>所属</th>
+            <th>募集価格</th>
+            <th>獲得賞金</th>
+            <th>回収率</th>
+          </tr>
+        </thead>
+        <tbody>
+          {
+            roi100Rows.map(({ h, roi }) => (
+              <tr>
+                <td data-label="馬名">{h.displayName}</td>
+                <td data-label="募集年度">{h.recruitYear}年度</td>
+                <td data-label="所属">{regionLabelOf(h)}</td>
+                <td data-label="募集価格">
+                  {h.offeringTotalManYen !== null ? `${formatManYen(h.offeringTotalManYen)}万円` : '—'}
+                </td>
+                <td data-label="獲得賞金">{formatManYen(h.totalPrizeManYen)}万円</td>
+                <td data-label="回収率">{Math.round(roi)}%</td>
+              </tr>
+            ))
+          }
+        </tbody>
+      </table>
+    </div>
+
+    <p>
+      <strong>ヴェルトラウム</strong>（ミッキーロケット×ヒルダ）は一口5万円。体高145.5cmと小柄で、
+      15戦して2勝と派手さはない。それでも2,125万円を稼いで、募集価格を超えた。
+      安い馬が地道に走ると、こういう形で戻ってくる。
+    </p>
+
+    <AdSlot sp={AD_SP_WIDE_A} pc={AD_PC_WIDE_A} />
+
+    <h2>正直に書いておくこと</h2>
+    <p>いいことばかり書いたので、そうでない部分も出しておく。</p>
+    <p>
+      <strong>{matureCount}頭から重賞を勝った馬は1頭も出ていない。</strong> 2022〜2024年度の3世代で0頭だ。
+      同じ3世代の募集馬{cohortTotal}頭からは{cohortGradeWinners.length}頭の重賞勝ち馬が出ている
+      （安田記念のシックスペンス、天皇賞・春のヘデントールなど）。ここははっきり差がある。
+      1.5次募集で「G1に手が届く馬」を探すのは、確率的にはかなり厳しい。
+    </p>
+    <p>
+      勝ち上がり率も、1次で満口になった馬より低い。同じ3世代で比べると
+      <strong>
+        1.5次組が{fmtPct1(winRateLeftoverPct)}（{winners}/{matureCount}頭）、1次で満口になった組が
+        {fmtPct1(winRateSoldOutPct)}（{soldOutWinners}/{matureSoldOut.length}頭）
+      </strong>。
+      {winRateGapPt.toFixed(1)}ポイントの差だ。ただ、差そのものは統計的にはっきり出るほど大きくはない
+      （{formatP(winRateTest.p)}）。母数が少ないので、この差を細かく読み込みすぎないほうがいい。
+    </p>
+    <p>
+      言い方を変えると、<strong>1.5次募集に回った馬でも半分以上は勝ち上がっている</strong>。
+      デビューまでたどり着けなかった馬、1戦で終わった馬もいて、{matureCount}頭のうち
+      勝ち上がれなかったのは{noWin}頭。この現実は変わらない。
+    </p>
+    <p>
+      つまり、こういうことになる。
+      <strong>上のほう（重賞）は薄い。でも「勝ち上がって、そこそこ稼ぐ」層の厚みは、そこまで変わらない。</strong>
+      1.5次募集に期待するなら、この現実的な線を見たほうがいい。
+    </p>
+
+    <div class="ad-rect">
+      <AdSlot sp={AD_SP_RECT} pc={AD_PC_WIDE_B} />
+    </div>
+
+    <h2>今年の{leftoverThisYear}頭</h2>
+    <p>
+      今年1.5次募集に回るのは{leftoverThisYear}頭。受付は9月14日(月)正午から15日(火)正午まで。
+      1次募集で最優先が抽選に外れた人だけが参加できる優先受付で、出資できるのは1人1頭まで。
+    </p>
+    <p>
+      対象馬は<a href="/?remaining=1">一覧の「残口あり」ビュー</a>にまとまっている。
+      馬名からはこのサイトの個別ページに飛べるので、気になった馬の血統・測尺を見てほしい。
+    </p>
+    <p>
+      過去4年を追いかけて言えるのは、この{leftoverThisYear}頭の中にも、
+      数年後に「あのとき申し込んでおけば」と言われる馬がおそらく混ざっている、ということだ。
+      1次で外れた人が、ここで拾える。
+    </p>
+
+    <h2>データについて</h2>
+    <p>
+      1.5次募集の対象馬はキャロットクラブが公表した各年度の「第1次募集最終集計結果」による。
+      成績はnetkeibaから取得（{resultsAsOf}時点）。獲得賞金は中央・地方の合計。
+      回収率＝獲得賞金 ÷ 募集総額（一口価格×口数）。
+    </p>
+
+    <p>
+      <a href="/">募集馬一覧へ戻る</a> ／ <a href="/articles/">分析記事一覧へ</a>
+    </p>
+  </article>
+</BaseLayout>
+
+<style>
+  article :global(h2) {
+    margin-top: 2.5rem;
+  }
+  .table-scroll {
+    overflow-x: auto;
+    margin: 1rem 0;
+  }
+  .table-note {
+    font-size: 0.8125rem;
+    color: var(--muted);
+  }
+  table.data-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.875rem;
+  }
+  table.data-table th,
+  table.data-table td {
+    padding: 0.5rem 0.7rem;
+    border-bottom: 1px solid var(--border);
+    text-align: left;
+    vertical-align: top;
+    white-space: nowrap;
+  }
+  table.data-table th {
+    color: var(--muted);
+    font-weight: 600;
+  }
+  .ad-rect {
+    display: flex;
+    justify-content: center;
+    margin: 1.75rem 0 0.5rem;
+  }
+
+  /*
+   * 列の多い表はSP幅（390px）で1文字ずつ折り返して読めなくなるので、1頭＝1カードに積み直す
+   * （club-siblings.astro / stable-leading.astro と同じ方針）。
+   */
+  @media (max-width: 640px) {
+    table.data-table thead {
+      display: none;
+    }
+    table.data-table,
+    table.data-table tbody,
+    table.data-table tr,
+    table.data-table td {
+      display: block;
+      width: auto;
+    }
+    table.data-table tr {
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 0.6rem 0.85rem;
+      margin-bottom: 0.75rem;
+    }
+    table.data-table td {
+      border: none;
+      padding: 0.15rem 0;
+      display: flex;
+      gap: 0.6rem;
+      white-space: normal;
+    }
+    table.data-table td::before {
+      content: attr(data-label);
+      flex: none;
+      width: 6.5rem;
+      color: var(--muted);
+      font-size: 0.8125rem;
+    }
+  }
+</style>
