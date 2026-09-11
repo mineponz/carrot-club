@@ -4,9 +4,12 @@ import {
   countActiveFilters,
   emptyFilterState,
   filterStorageKeyForYear,
+  hasSeenOfferingPhase,
   isAllSelected,
   isEmptyFilterState,
   loadFilterState,
+  markOfferingPhaseSeen,
+  offeringPhaseSeenStorageKeyForYear,
   parseFilterState,
   parseMultiValue,
   saveFilterState,
@@ -197,4 +200,23 @@ test('isAllSelected: 選択肢が0個のときは false', () => {
 test('isAllSelected: 選択肢に無い値が混ざっていても全部揃っていれば true', () => {
   // その年に居なくなった父が保存データに残っている場合（復元時に読み飛ばされる）
   assert.equal(isAllSelected([...SIRES, 'ハーツクライ'], SIRES), true);
+});
+
+test('offeringPhaseSeenStorageKeyForYear: 募集年ごとにキーを分ける', () => {
+  assert.equal(offeringPhaseSeenStorageKeyForYear(2026), 'carrot-club:offering-phase-seen:2026');
+  assert.notEqual(offeringPhaseSeenStorageKeyForYear(2026), offeringPhaseSeenStorageKeyForYear(2025));
+});
+
+test('hasSeenOfferingPhase: 既定（保存が無い）はfalse', () => {
+  const store = createStore();
+  assert.equal(hasSeenOfferingPhase(store, offeringPhaseSeenStorageKeyForYear(2026)), false);
+});
+
+test('markOfferingPhaseSeen → hasSeenOfferingPhase: 一度見たことを記録できる', () => {
+  const store = createStore();
+  const key = offeringPhaseSeenStorageKeyForYear(2026);
+  markOfferingPhaseSeen(store, key);
+  assert.equal(hasSeenOfferingPhase(store, key), true);
+  // 他の年度のキーには影響しない
+  assert.equal(hasSeenOfferingPhase(store, offeringPhaseSeenStorageKeyForYear(2025)), false);
 });

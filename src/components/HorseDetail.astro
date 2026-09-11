@@ -50,6 +50,9 @@ import { TOUR_WEIGHT_AS_OF, TOUR_WEIGHT_BY_ID } from '../data/tourWeight2026.ts'
 import { ENTRY_VOTE_SNAPSHOTS } from '../data/entryVotes2026.ts';
 import { LOTTERY_STATUS_SNAPSHOTS } from '../data/lotteryStatus2026.ts';
 import { lotteryLabel, lotteryStatusRows } from '../lib/lottery-status.ts';
+// 残口（1.5次募集の対象馬）。出所は上の抽選ランク発表と同じsnapshot（remaining-shares.tsのコメント参照）。
+import { remainingSharesRows } from '../lib/remaining-shares.ts';
+import { horseDetailHref } from '../lib/horse-row.ts';
 import { formatDiff } from '../lib/tour-weight-row.ts';
 import { formatManYen } from '../lib/chart-math.ts';
 
@@ -230,6 +233,23 @@ const lotteryFacts: { term: string; value: string }[] =
     : [];
 
 /**
+ * 残口（1.5次募集の対象馬）。最新snapshotで残り口数が入っている馬が対象
+ * （`src/lib/remaining-shares.ts` 参照）。`lotteryFacts` の「残り口数」行と同じ出所で、
+ * こちらは h1 の下のバッジと下部の導線に使う。2026年募集にしか情報源が無い。
+ */
+const remainingRows2026 =
+  recruitYear === 2026 ? remainingSharesRows(allHorses, LOTTERY_STATUS_SNAPSHOTS) : [];
+const remaining = remainingRows2026.find((r) => r.id === horse.id) ?? null;
+/** 残口のある馬のID（ジャンププルダウンの印）・馬一覧（ページ下部のチップ）。No.順。 */
+const remainingHorseIds = new Set(
+  remainingRows2026.filter((r) => r.hasRemaining === true).map((r) => r.id),
+);
+/** 見出しの頭数と実際に並ぶチップ数をそろえるため、本馬は最初から除いておく。 */
+const otherRemainingHorses = sortedHorses.filter(
+  (h) => remainingHorseIds.has(h.id) && h.id !== horse.id,
+);
+
+/**
  * 定義リストに出す項目。値が無いものは出さない（空欄の行を並べても情報にならない）。
  * `note` は値に添える補足（測尺の順位）。値そのものより弱く見せたいので別に持つ。
  */
@@ -276,9 +296,33 @@ const facts: { term: string; value: string; note?: string }[] = [
     next={nextHorse}
     detailBasePath={detailBasePath}
     recruitYear={recruitYear}
+    remainingHorseIds={remainingHorseIds}
   />
 
   <h1>{horse.name}</h1>
+  {
+    /*
+      残口バッジ（本人合意・2026-09-10）。対象馬は目立つ塗りつぶし、満口は控えめな枠線のみ
+      （design.mdの「主要=塗りつぶし／副次=枠線」に合わせる）。情報源が無い年度（2025年募集
+      など・remainingがnull）では出さない。
+    */
+    remaining && (
+      <p class="remaining-flag">
+        {remaining.hasRemaining ? (
+          <span class="remaining-flag-badge is-remaining">
+            1.5次募集の対象・残口
+            {remaining.shares === null
+              ? 'あり'
+              : remaining.shares.kind === 'exact'
+                ? `${remaining.shares.count}口`
+                : `${remaining.shares.count}口以上`}
+          </span>
+        ) : (
+          <span class="remaining-flag-badge is-full">満口</span>
+        )}
+      </p>
+    )
+  }
   <p class="lead">
     キャロットクラブ{recruitYear}年募集馬（募集番号{horse.id}）。父{horse.sire}・母{dam}（母父{
       horse.broodmareSire
@@ -328,6 +372,34 @@ const facts: { term: string; value: string; note?: string }[] = [
       <p class="note lottery-link">
         全頭の抽選ステータスの一覧は<a href="/2026/lottery/">こちら</a>。
       </p>
+    )
+  }
+
+  {
+    recruitYear === 2026 && otherRemainingHorses.length > 0 && (
+      /*
+        残口のある馬の一覧（本人合意・2026-09-10）。個別ページから一覧の「残口あり」ビュー
+        （`/?remaining=1`）へ誘導する導線。本馬自身はチップに含めない
+        （今見ているページなので繰り返す意味が無い）。
+      */
+      <section class="remaining-horses">
+        <h2>
+          {remaining?.hasRemaining ? '他に残口のある馬' : '残口のある馬'}（{otherRemainingHorses.length}頭）
+        </h2>
+        <ul class="remaining-chip-list">
+          {otherRemainingHorses
+            .map((h) => (
+              <li>
+                <a class="remaining-chip" href={horseDetailHref(h.id, detailBasePath)}>
+                  No.{h.id} {h.name}
+                </a>
+              </li>
+            ))}
+        </ul>
+        <p class="note">
+          <a href={`${listHref}?remaining=1`}>一覧で残口のある馬だけを見る</a>
+        </p>
+      </section>
     )
   }
 
@@ -487,6 +559,7 @@ const facts: { term: string; value: string; note?: string }[] = [
     next={nextHorse}
     detailBasePath={detailBasePath}
     recruitYear={recruitYear}
+    remainingHorseIds={remainingHorseIds}
   />
 </article>
 
@@ -505,6 +578,52 @@ const facts: { term: string; value: string; note?: string }[] = [
   .note {
     color: var(--muted);
     font-size: 0.875rem;
+  }
+
+  /* 残口バッジ。対象馬は主要アクション相当（塗りつぶし）、満口は控えめ（枠線のみ）にする */
+  .remaining-flag {
+    margin: 0.35rem 0 0;
+  }
+  .remaining-flag-badge {
+    display: inline-block;
+    padding: 0.3rem 0.7rem;
+    border-radius: 999px;
+    font-size: 0.8125rem;
+    font-weight: 700;
+  }
+  .remaining-flag-badge.is-remaining {
+    background: var(--accent);
+    color: var(--surface);
+  }
+  .remaining-flag-badge.is-full {
+    border: 1px solid var(--border);
+    color: var(--muted);
+    font-weight: 600;
+  }
+
+  .remaining-horses {
+    margin-top: 2rem;
+  }
+  .remaining-chip-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    padding: 0;
+    margin: 0.5rem 0;
+    list-style: none;
+  }
+  .remaining-chip {
+    display: inline-block;
+    padding: 0.3rem 0.6rem;
+    border: 1px solid var(--accent);
+    border-radius: 999px;
+    color: var(--accent);
+    font-size: 0.8125rem;
+    text-decoration: none;
+  }
+  .remaining-chip:hover {
+    background: var(--accent);
+    color: var(--surface);
   }
 
   .horse-photo {

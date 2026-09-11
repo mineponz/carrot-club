@@ -50,6 +50,16 @@ export function isNoindexPath(pathname: string): boolean {
 /** アプリ名。構造化データやフッターなど「名前」として扱う場所で使う */
 export const SITE_TITLE = 'キャロットクラブ出資馬検討ツール';
 
+/**
+ * 今どの募集フェーズか。「残口あり/全頭」切替の既定値を1か所で決めるためのフラグ
+ * （2026-09-10）。1次募集の抽選が終わり、これから1.5次募集（残口のある馬だけの募集）に
+ * 入るため `'secondary'` にしてある。1.5次募集が終わったら `'primary'` に戻すだけでよい
+ * （「残口」列・切替・個別ページのバッジ自体は消さない。データが無くなれば自動的に
+ * 「—」表示に倒れる。詳細は `src/lib/remaining-shares.ts`）。
+ */
+export type OfferingPhase = 'primary' | 'secondary';
+export const OFFERING_PHASE: OfferingPhase = 'secondary';
+
 /** 公式と誤認されないよう、タイトル・OGP・タブ表示には必ずこの接頭辞を付ける */
 export const UNOFFICIAL_PREFIX = '【非公式】';
 

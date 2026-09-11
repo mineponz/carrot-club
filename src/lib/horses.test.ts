@@ -205,6 +205,32 @@ test('filterHorses: 母優先が未指定なら絞り込まない（UIの「す�
   assert.equal(filterHorses(horses, { damPriority: undefined }).length, horses.length);
 });
 
+test('filterHorses: 残口「あり」に絞り込む（対応表に無いIDは残口なし扱い）', () => {
+  assert.deepEqual(
+    filterHorses(horses, { remainingShares: 'has', remainingSharesByHorseId: { '2': true } }).map(
+      (h) => h.id,
+    ),
+    ['2'],
+  );
+});
+
+test('filterHorses: 残口「なし」に絞り込む', () => {
+  assert.deepEqual(
+    filterHorses(horses, { remainingShares: 'none', remainingSharesByHorseId: { '2': true } }).map(
+      (h) => h.id,
+    ),
+    ['1', '10'],
+  );
+});
+
+test('filterHorses: 残口が未指定なら絞り込まない（UIの「すべて」）', () => {
+  assert.equal(filterHorses(horses, { remainingShares: undefined }).length, horses.length);
+});
+
+test('filterHorses: 残口「あり」で対応表そのものが未指定なら全頭が対象外になる', () => {
+  assert.deepEqual(filterHorses(horses, { remainingShares: 'has' }), []);
+});
+
 test('filterHorses: 手術・既往歴のある馬を除外する', () => {
   assert.deepEqual(
     filterHorses(horses, { excludeSurgery: true }).map((h) => h.id),

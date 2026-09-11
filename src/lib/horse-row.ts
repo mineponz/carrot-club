@@ -26,6 +26,10 @@ import { MAX_MEMO_LENGTH } from './evaluation-api.ts';
 // このファイルは `lottery-status-row.ts` に依存する一方向（逆方向のimportは循環参照になるため禁止）。
 import { lotteryListCellHtml } from './lottery-status-row.ts';
 import type { LotteryStatusRow } from './lottery-status.ts';
+// 残口（1.5次募集の対象馬）は抽選ランク発表とは別の発表。lottery-status-row.ts と同じ
+// 理由で片方向依存（このファイルを import しない）にしてある。
+import { remainingSharesCellHtml } from './remaining-shares-row.ts';
+import type { RemainingSharesRow } from './remaining-shares.ts';
 
 /**
  * 表の列定義。`sortKey` があるものは見出しが並べ替えボタンになる。
@@ -59,6 +63,10 @@ export const COLUMNS = [
   // 2025年募集には情報源が無いため、その年度の列は常に「—」になる（`horseRowHtml` の
   // 第4引数を省略した場合の挙動。`手術・既往` 列がデータの無い年に空欄で残る扱いと同じ）。
   { key: 'lottery', label: '抽選' },
+  // 残口（1.5次募集の対象馬）。抽選のすぐ右に置く（本人合意・2026-09-10、1.5次募集の主役を
+  // 抽選ステータスと並べて見せるため）。2025年募集には情報源が無いため、その年度の列は
+  // 常に「—」になる（`horseRowHtml` の第5引数を省略した場合の挙動。抽選列と同じ扱い）。
+  { key: 'remainingShares', label: '残口' },
   { key: 'netkeiba', label: 'netkeiba' },
   { key: 'sire', label: '父', sortKey: 'sire' },
   { key: 'broodmareSire', label: '母父', sortKey: 'broodmareSire' },
@@ -177,6 +185,9 @@ export function horseRowHtml(
   // `lottery-status-row.ts` の `lotteryListCellHtml(null)` 参照）。呼び出し側（2026/index.astro）が
   // `lotteryStatusRows()` で突き合わせた行を渡す。
   lotteryRow: LotteryStatusRow | null = null,
+  // 残口（1.5次募集の対象馬）も2026年募集にしか情報源が無いので同じく省略可能にする
+  // （省略時はセルが「—」になる）。呼び出し側が `remainingSharesRows()` で突き合わせた行を渡す。
+  remainingSharesRow: RemainingSharesRow | null = null,
 ): string {
   const ratingOptions = ['', 'A', 'B', 'C', 'D', 'E']
     .map((r) => {
@@ -218,6 +229,7 @@ export function horseRowHtml(
   -->
   <td data-col="memo" class="memo-col"><button type="button" class="memo-flag" data-field="memo-toggle" data-has-memo="${evaluation.memo !== ''}" title="${memo ? `メモ: ${memo}` : ''}" aria-label="${name}のメモを開く">📝</button><input type="text" class="memo-input" data-field="memo" value="${memo}" placeholder="メモ" aria-label="${name}のメモ" maxlength="${MAX_MEMO_LENGTH}" /></td>
   <td data-col="lottery" class="lottery-col">${lotteryListCellHtml(lotteryRow)}</td>
+  <td data-col="remainingShares" class="remaining-col">${remainingSharesCellHtml(remainingSharesRow)}</td>
   <td data-col="netkeiba" class="links"><a href="${escapeHtml(horse.netkeibaUrl)}" target="_blank" rel="noopener">netkeiba</a></td>
   <td data-col="sire">${escapeHtml(horse.sire)}</td>
   <td data-col="broodmareSire">${escapeHtml(horse.broodmareSire)}</td>

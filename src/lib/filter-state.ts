@@ -95,6 +95,29 @@ export function filterStorageKeyForYear(year: number): string {
   return `carrot-club:filters:${year}`;
 }
 
+/**
+ * 「残口あり/全頭」切替の既定値を、その端末で1回だけ当てるためのフラグ（2026-09-10）。
+ *
+ * `src/consts.ts` の `OFFERING_PHASE` が `'secondary'`（1.5次募集期間中）のあいだ、まだこの
+ * フェーズを見ていない端末にだけ「残口あり」を既定にする。**保存済みの絞り込み条件を
+ * 勝手に上書きしない**ための仕組みで、一度当てた（＝このキーが立った）あとは、ユーザーが
+ * 条件を変えても・クリアしても、二度と既定値を上書きしない（filter-state自体の
+ * 「既定なら保存しない」とは別の、フェーズをまたいだ1回きりのフラグ）。
+ */
+export function offeringPhaseSeenStorageKeyForYear(year: number): string {
+  return `carrot-club:offering-phase-seen:${year}`;
+}
+
+/** その端末で、今のフェーズの既定値をすでに当てた（＝見た）か。 */
+export function hasSeenOfferingPhase(store: KeyValueStore, key: string): boolean {
+  return store.getItem(key) === '1';
+}
+
+/** 既定値を当てたことを記録する。以後はこのフェーズのあいだ二度と既定値を上書きしない。 */
+export function markOfferingPhaseSeen(store: KeyValueStore, key: string): void {
+  store.setItem(key, '1');
+}
+
 export function emptyFilterState(): FilterState {
   return {
     values: {},

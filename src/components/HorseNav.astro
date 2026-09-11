@@ -11,6 +11,9 @@
  * - ジャンプ用の `<select>` はJS必須（`onchange` で遷移する）。任意の馬へ飛ぶという
  *   性質上、no-JSの代替は作らない。最低限の導線は上の前後リンクが担保する。
  *   上下2か所に出るので `id` は付けず、`aria-label` で用途を伝える。
+ * - 残口（1.5次募集の対象馬）がある馬には印（●）を付ける（本人合意・2026-09-10）。
+ *   **前後リンクの並び順（No.昇順）は変えない**——黙って順路が変わるのは事故のもと
+ *   （タスクの前提）。あくまでジャンプ用プルダウンの見た目に印を足すだけ。
  */
 import { horseDetailHref } from '../lib/horse-row.ts';
 import type { Horse } from '../lib/horses.ts';
@@ -25,10 +28,23 @@ interface Props {
   /** 年度ごとの個別ページの接頭辞（`/2026/horses/` または `/2025/horses/`） */
   detailBasePath: string;
   recruitYear: number;
+  /**
+   * 残口（1.5次募集の対象馬）の募集番号の集合。ジャンプ用プルダウンに印（●）を付ける。
+   * 情報源が無い年度（2025年募集など）は未指定でよい（既定は空集合＝印を付けない）。
+   */
+  remainingHorseIds?: ReadonlySet<string>;
 }
 
-const { horse, sortedHorses, prev, next, detailBasePath, recruitYear } = Astro.props;
-const optionLabel = (h: Horse) => `No.${h.id} ${h.name}`;
+const {
+  horse,
+  sortedHorses,
+  prev,
+  next,
+  detailBasePath,
+  recruitYear,
+  remainingHorseIds = new Set<string>(),
+} = Astro.props;
+const optionLabel = (h: Horse) => `${remainingHorseIds.has(h.id) ? '● ' : ''}No.${h.id} ${h.name}`;
 ---
 
 <nav class="horse-nav" aria-label="馬の切り替え">
@@ -45,7 +61,11 @@ const optionLabel = (h: Horse) => `No.${h.id} ${h.name}`;
 
   <select
     class="horse-jump"
-    aria-label={`${recruitYear}年募集馬から選んで移動`}
+    aria-label={
+      remainingHorseIds.size > 0
+        ? `${recruitYear}年募集馬から選んで移動（●は残口あり）`
+        : `${recruitYear}年募集馬から選んで移動`
+    }
     onchange="if(this.value)location.href=this.value"
   >
     {

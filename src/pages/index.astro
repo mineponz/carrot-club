@@ -10,7 +10,7 @@
 import BaseLayout from '../layouts/BaseLayout.astro';
 import SyncPanel from '../components/SyncPanel.astro';
 import AdSlot from '../components/AdSlot.astro';
-import { SITE_DESCRIPTION, UNOFFICIAL_NOTICE } from '../consts.ts';
+import { OFFERING_PHASE, SITE_DESCRIPTION, UNOFFICIAL_NOTICE } from '../consts.ts';
 import { horses2026 } from '../data/horses2026.ts';
 // 募集中止馬は horses2026 に載せない（頭数・絞り込みは確定リスト時点のまま）ので、
 // 注記でだけ触れる。馬名をここに直書きせず単一の真実源から出す。
@@ -30,6 +30,13 @@ import { COLUMNS, horseRowHtml, toggleableColumns } from '../lib/horse-row.ts';
 import { analysisArticles } from '../data/articles.ts';
 import { LOTTERY_STATUS_SNAPSHOTS } from '../data/lotteryStatus2026.ts';
 import { lotteryStatusRows } from '../lib/lottery-status.ts';
+// 1.5次募集（残口のある馬）。出所は抽選ランク発表と同じ `LOTTERY_STATUS_SNAPSHOTS`
+// （最新snapshotで残り口数が入っている馬＝対象馬。src/lib/remaining-shares.ts のコメント参照）。
+import {
+  assertRemainingSharesConsistent,
+  remainingSharesRows,
+  secondaryOfferingAnnounced,
+} from '../lib/remaining-shares.ts';
 
 // 個別ページは年度ごとに別ルート（`/2026/horses/{id}/`）。一覧トップ（`/`）は「最新募集年度の
 // 一覧」という意味が年をまたいでも変わらないので年度なしのままだが、**個別ページは年度付きが正本**
@@ -72,10 +79,30 @@ const lotteryById = new Map(
   lotteryStatusRows(horses2026, LOTTERY_STATUS_SNAPSHOTS).map((row) => [row.id, row]),
 );
 
+// 残口（1.5次募集の対象馬）も同じ形で突き合わせる（本人合意・2026-09-10）。
+// 手入力どうし（抽選ランクと残り口数）が食い違ったらここでビルドを止める。
+assertRemainingSharesConsistent(LOTTERY_STATUS_SNAPSHOTS);
+const remainingRows = remainingSharesRows(horses2026, LOTTERY_STATUS_SNAPSHOTS);
+const remainingById = new Map(remainingRows.map((row) => [row.id, row]));
+// 1.5次募集の発表自体がまだ無いあいだは、切替・絞り込みの「残口」・列を出さない
+// （押しても何も起きない死んだUIを並べない。hasSurgeryDataと同じ考え方）。
+const hasRemainingSharesData = secondaryOfferingAnnounced(LOTTERY_STATUS_SNAPSHOTS);
+const remainingCount = remainingRows.filter((r) => r.hasRemaining === true).length;
+
 // 初期表示はクライアント側の既定（id昇順）と揃える。評価は端末ごとの値なので
 // 初期HTMLでは未評価（DEFAULT_EVALUATION）で描き、読み込み後に上書きする。
+// **既定の絞り込み（残口あり）はここでは当てない**＝配信HTMLには常に92頭を出す
+// （既定はブラウザ側のscriptだけで当てる。クローラーに69頭を隠さないため）。
 const initialRowsHtml = sortHorses(horses2026, 'id', 'asc')
-  .map((horse) => horseRowHtml(horse, DEFAULT_EVALUATION, DETAIL_BASE_PATH, lotteryById.get(horse.id) ?? null))
+  .map((horse) =>
+    horseRowHtml(
+      horse,
+      DEFAULT_EVALUATION,
+      DETAIL_BASE_PATH,
+      lotteryById.get(horse.id) ?? null,
+      remainingById.get(horse.id) ?? null,
+    ),
+  )
   .join('\n');
 
 const total = horses2026.length;
@@ -161,6 +188,14 @@ const faqs = [
     q: '「母優先」とは何ですか？',
     a: `その馬の母（繁殖牝馬）に出資している会員に優先枠がある、というクラブの制度上の区分です。この一覧では該当する馬の「母優」列に◯を付けており、2026年募集馬では${total}頭中${damPriorityCount}頭が該当します。絞り込みの「母優先」で「あり」を選ぶと該当馬だけに、「なし」を選ぶと該当しない馬だけに絞り込めます。`,
   },
+  ...(hasRemainingSharesData
+    ? [
+        {
+          q: '「残口」とは何ですか？',
+          a: `1次募集の抽選が終わり、まだ出資できる口数が残っている馬（1.5次募集の対象馬）です。クラブ公式発表に基づいており、2026年募集馬では${total}頭中${remainingCount}頭が該当します。表の上の「残口あり/全頭」切替や絞り込みの「残口」で絞り込めます。クラブが実数を出すのは残り口数が100口（地方入厩予定馬は25口）以下の馬だけなので、それを超える馬は「100口以上」と表示しています。`,
+        },
+      ]
+    : []),
   {
     q: 'このツールに独自の評価やおすすめは載っていますか？',
     a: `載っていません。掲載しているのは馬名・性別・父・母父・母齢・誕生日・厩舎・一口価格・体高・胸囲・管囲・馬体重・兄弟・母優先・抽選ステータス（クラブ公式発表を反映）${hasSurgeryData ? '・手術や既往の記載' : ''}といった客観データのみで、点数付けや順位付けは一切していません。評価は利用者自身が入力します。`,
@@ -193,6 +228,28 @@ const faqJsonLd = {
     非公式の選定支援ツールです。評価などはこの端末に保存され、
     <a href="#sync-panel">別の端末に引き継げます</a>。
   </p>
+
+  {
+    hasRemainingSharesData && (
+      /*
+        「残口あり/全頭」切替（本人合意・2026-09-10）。実体は下の絞り込みにある「残口」
+        select（すべて/あり/なし）と同じ状態を指す（母優先の3択と同じ作り、状態を2箇所に
+        持たない）。ここでは has/'' の2値だけを切り替える粗い操作にしてある
+        （絞り込みパネルの「なし」まで含めた3択は、開いて選ぶ操作として残す）。
+        1.5次募集の間（`OFFERING_PHASE === 'secondary'`）はこの切替の状態が既定で
+        「残口あり」になる（初めてこのフェーズを見た端末だけ。下のscript参照）。
+      */
+      <div class="offering-switch" role="group" aria-label="残口で絞り込む">
+        <button type="button" class="offering-switch-btn" id="offering-switch-remaining" aria-pressed="false">
+          残口あり（{remainingCount}頭）
+        </button>
+        <button type="button" class="offering-switch-btn" id="offering-switch-all" aria-pressed="false">
+          全頭（{total}頭）
+        </button>
+      </div>
+    )
+  }
+
   <div class="analysis-promo">
     <p class="analysis-promo-eyebrow">データ分析記事</p>
     <ul class="analysis-promo-list">
@@ -219,7 +276,10 @@ const faqJsonLd = {
   <p class="year-switch">
     <a href="/2026/tour-weight/">ツアー後馬体重を見る</a>
     ・
-    <a href="/2026/lottery/">抽選ステータスを見る</a>
+    {/* 1.5次募集の間はトップからの導線文言もそちらへ寄せる（本人合意・2026-09-10） */}
+    <a href="/2026/lottery/">
+      {OFFERING_PHASE === 'secondary' ? '1.5次募集の残口状況を見る' : '抽選ステータスを見る'}
+    </a>
     ・
     <a href="/2025/">2025年募集馬の一覧</a>
   </p>
@@ -310,6 +370,22 @@ const faqJsonLd = {
           <option value="none">なし</option>
         </select>
       </label>
+      {
+        hasRemainingSharesData && (
+          /*
+            上の「残口あり/全頭」切替と同じ状態を指す select（母優先と同じ3択の作り）。
+            切替はhas/''の2値しか動かさないが、ここでは「なし」（満口の馬だけを見る）も選べる。
+          */
+          <label>
+            残口
+            <select id="filter-remaining-shares">
+              <option value="">すべて</option>
+              <option value="has">あり</option>
+              <option value="none">なし</option>
+            </select>
+          </label>
+        )
+      }
       {/* 母齢（出産時点の母の年齢）。若い母の初期産駒に寄せる／高齢の母を避ける、といった
           絞り方をするためのもの。他の測尺と同じ下限〜上限の形にそろえる。 */}
       <label>
@@ -558,6 +634,21 @@ const faqJsonLd = {
     発表前は「発表待ち」と表示されます。
   </p>
 
+  {
+    hasRemainingSharesData && (
+      <>
+        <h2>「残口」とは</h2>
+        <p>
+          1次募集の抽選が終わり、まだ出資できる口数が残っている馬（1.5次募集の対象馬）を
+          クラブ公式発表（「{LOTTERY_STATUS_SNAPSHOTS.at(-1)!.label}」・{LOTTERY_STATUS_SNAPSHOTS.at(-1)!.asOf}時点）
+          に基づいて示しています。一覧の「残口」列・上の「残口あり/全頭」切替・各馬の個別ページに
+          反映しており、{remainingCount}頭が該当します。クラブが実数を出すのは残り口数が100口
+          （地方入厩予定馬は25口）以下の馬だけなので、それを超える馬は「100口以上」と表示しています。
+        </p>
+      </>
+    )
+  }
+
   <AdSlot sp={AD_SLOT_SP} pc={AD_SLOT_PC} />
 
   <h2>掲載しているデータ</h2>
@@ -579,6 +670,13 @@ const faqJsonLd = {
     <li>
       抽選ステータス（一覧の「抽選」列）はクラブ公式の会員限定ページ「抽選ランク発表」を都度手入力しています。発表前は「発表待ち」と表示され、詳しくは<a href="/2026/lottery/">抽選ステータス一覧</a>をご覧ください
     </li>
+    {
+      hasRemainingSharesData && (
+        <li>
+          残口（一覧の「残口」列）はクラブ公式発表の1.5次募集対象馬一覧を反映しています。{remainingCount}頭が対象で、残り口数が100口（地方入厩予定馬は25口）を超える馬は実数が公表されないため「100口以上」と表示しています
+        </li>
+      )
+    }
     {
       cancelledRecruits2026.length > 0 && (
         <li>
@@ -612,6 +710,33 @@ const faqJsonLd = {
   <style>
     .lead { color: var(--muted); margin-top: 0; }
     .note { color: var(--muted); font-size: 0.875rem; }
+
+    /*
+      「残口あり/全頭」切替。表より上・折り畳んだ絞り込みより外に置くことで、
+      1.5次募集の間は開かなくても目に入るようにする（本人合意・2026-09-10）。
+      主要アクションなので塗りつぶし（アクセント色）と枠線のみの2段階で表す
+      （design.mdの「主要=塗りつぶし／副次=枠線」に合わせる）。
+    */
+    .offering-switch {
+      display: flex;
+      gap: 0.5rem;
+      margin: 0 0 0.85rem;
+    }
+    .offering-switch-btn {
+      font: inherit;
+      font-size: 0.875rem;
+      font-weight: 600;
+      padding: 0.5rem 0.9rem;
+      border: 1px solid var(--accent);
+      border-radius: 999px;
+      background: transparent;
+      color: var(--accent);
+      cursor: pointer;
+    }
+    .offering-switch-btn[aria-pressed='true'] {
+      background: var(--accent);
+      color: var(--surface);
+    }
     /* 年度切り替えの導線。本文より弱く、でも見落とさない程度に */
     /* margin(3値)だと左右マージンが暗黙に0になり、main.is-wideの子に効かせている
        margin-inline: auto(BaseLayout側・グローバル)より詳細度で勝ってしまい中央寄せが
@@ -1221,6 +1346,8 @@ const faqJsonLd = {
     }
     #horse-table .surgery { color: var(--danger); }
     #horse-table .dam-priority { color: var(--accent); font-weight: 600; }
+    /* 残口（1.5次募集の対象馬）バッジ。母優先の◯と同じアクセント色で目立たせる。 */
+    #horse-table .remaining-badge { color: var(--accent); font-weight: 600; }
 
     #horse-table .links a {
       margin-right: 0.35rem;
@@ -1340,17 +1467,18 @@ const faqJsonLd = {
          列番号は COLUMNS の並び順に対応する（メモを4列目に移したぶん、以前の 5/6/7/15 から
          1つずつ後ろにずれている。さらに産次列を母齢の右隣に追加したぶん、厩舎は16→17に
          ずれている。2026-09-05に抽選列をメモの右隣（5列目）に挿入したぶん、6/7/8/17は
-         さらに7/8/9/18にずれている。horse-row.test.ts に番号を突き合わせるテストがある）。 */
+         7/8/9/18にずれ、2026-09-10に残口列を抽選の右隣（6列目）に挿入したぶん、さらに
+         8/9/10/19にずれている。horse-row.test.ts に番号を突き合わせるテストがある）。 */
       #horse-table th:nth-child(1),
       #horse-table td:nth-child(1),
-      #horse-table th:nth-child(7),
-      #horse-table td:nth-child(7),
       #horse-table th:nth-child(8),
       #horse-table td:nth-child(8),
       #horse-table th:nth-child(9),
       #horse-table td:nth-child(9),
-      #horse-table th:nth-child(18),
-      #horse-table td:nth-child(18) { display: none; }
+      #horse-table th:nth-child(10),
+      #horse-table td:nth-child(10),
+      #horse-table th:nth-child(19),
+      #horse-table td:nth-child(19) { display: none; }
       /* 3行になるぶん、行の高さを稼ぐ余白は上下に薄く取る */
       #horse-table td { padding-top: 0.35rem; padding-bottom: 0.35rem; }
       #horse-table td:nth-child(2) { vertical-align: top; }
@@ -1363,6 +1491,7 @@ const faqJsonLd = {
       sortHorses,
       filterHorses,
       type DamPriorityFilter,
+      type RemainingSharesFilter,
       type Sex,
       type SortKey,
       type SortDirection,
@@ -1384,13 +1513,19 @@ const faqJsonLd = {
     import { COLUMNS, horseRowHtml } from '../lib/horse-row.ts';
     import { LOTTERY_STATUS_SNAPSHOTS } from '../data/lotteryStatus2026.ts';
     import { lotteryStatusRows } from '../lib/lottery-status.ts';
+    // 1.5次募集（残口のある馬）。frontmatterと同じ出所（抽選ランク発表のsnapshot）。
+    import { remainingSharesByHorseId, remainingSharesRows } from '../lib/remaining-shares.ts';
+    import { OFFERING_PHASE } from '../consts.ts';
     import { queueEvaluationSync } from '../lib/evaluation-client.ts';
     import { EVALUATIONS_RESTORED_EVENT } from '../lib/sync.ts';
     import {
       countActiveFilters,
       filterStorageKeyForYear,
+      hasSeenOfferingPhase,
       isAllSelected,
       loadFilterState,
+      markOfferingPhaseSeen,
+      offeringPhaseSeenStorageKeyForYear,
       parseMultiValue,
       saveFilterState,
       serializeMultiValue,
@@ -1429,6 +1564,12 @@ const faqJsonLd = {
     const filterDamAgeMax = el<HTMLInputElement>('filter-dam-age-max');
     // 母優先は「すべて / あり / なし」の3択（空値＝すべて）。他のセレクトと同じ扱いにする。
     const filterDamPriority = el<HTMLSelectElement>('filter-dam-priority');
+    // 残口（1.5次募集の対象馬）も同じ3択。発表が無い年・器の段階ではUI自体を出していないので
+    // null になりうる（filterExcludeSurgeryと同じ扱い）。
+    const filterRemainingShares = document.getElementById('filter-remaining-shares') as HTMLSelectElement | null;
+    // 上の切替（残口あり/全頭）ボタン。絞り込みのUIと同じくデータが無ければ出していない。
+    const offeringSwitchRemaining = document.getElementById('offering-switch-remaining') as HTMLButtonElement | null;
+    const offeringSwitchAll = document.getElementById('offering-switch-all') as HTMLButtonElement | null;
     // 手術・既往のデータが1件も無い年はチェックボックス自体を出していないので null になりうる
     const filterExcludeSurgery = document.getElementById('filter-exclude-surgery') as HTMLInputElement | null;
     const filterHideSkip = el<HTMLInputElement>('filter-hide-skip');
@@ -1463,7 +1604,9 @@ const faqJsonLd = {
     const columnSettingsReset = el<HTMLButtonElement>('column-settings-reset');
 
     const textInputs = [filterName, filterBms, filterDamAgeMin, filterDamAgeMax, filterPriceMin, filterPriceMax, filterHeightMin, filterHeightMax, filterCaretMin, filterCaretMax, filterWeightMin, filterWeightMax];
-    const selects = [filterStable, filterDamPriority];
+    const selects = [filterStable, filterDamPriority, filterRemainingShares].filter(
+      (s): s is HTMLSelectElement => s !== null,
+    );
     // 評価・父・性別のチェックボックスもここに混ぜる。listener登録と「条件をクリア」の
     // 対象が同じで済む。
     const toggles = [
@@ -1489,6 +1632,11 @@ const faqJsonLd = {
     const lotteryById = new Map(
       lotteryStatusRows(horses2026, LOTTERY_STATUS_SNAPSHOTS).map((row) => [row.id, row]),
     );
+    // 残口（1.5次募集の対象馬）も同じ組み立て。絞り込みの「残口」で使う馬ID→残口ありかの
+    // 対応表もここから作る（frontmatterのremainingRows/remainingByIdと同じ出所）。
+    const remainingRows = remainingSharesRows(horses2026, LOTTERY_STATUS_SNAPSHOTS);
+    const remainingById = new Map(remainingRows.map((row) => [row.id, row]));
+    const remainingSharesMap = remainingSharesByHorseId(remainingRows);
 
     // 評価・父・性別のチェックボックスは value で見分けるのでidを持たない（群としてまとめて
     // 保存する）。条件の保存はidを鍵にするので、idを持つチェックだけ分けておく。
@@ -1571,6 +1719,11 @@ const faqJsonLd = {
       filter.minWeight = numberValue(filterWeightMin);
       filter.maxWeight = numberValue(filterWeightMax);
       if (filterDamPriority.value) filter.damPriority = filterDamPriority.value as DamPriorityFilter;
+      // 残口（1.5次募集の対象馬）。Horseに無い外部の対応表を渡す（ratingByHorseIdと同じ理由）。
+      if (filterRemainingShares?.value) {
+        filter.remainingShares = filterRemainingShares.value as RemainingSharesFilter;
+        filter.remainingSharesByHorseId = remainingSharesMap;
+      }
       if (filterExcludeSurgery?.checked) filter.excludeSurgery = true;
       // 自分の評価は端末ごとの状態なので、Horse ではなく「馬ID→印」の対応表として渡す。
       // 1つも選んでいないときは条件自体を積まない（＝全頭表示のまま）。
@@ -1640,7 +1793,13 @@ const faqJsonLd = {
           ? `<tr><td colspan="${COLUMNS.length}">条件に一致する馬がいません。</td></tr>`
           : list
               .map((h) =>
-                horseRowHtml(h, getEvaluation(evaluations, h.id), DETAIL_BASE_PATH, lotteryById.get(h.id) ?? null),
+                horseRowHtml(
+                  h,
+                  getEvaluation(evaluations, h.id),
+                  DETAIL_BASE_PATH,
+                  lotteryById.get(h.id) ?? null,
+                  remainingById.get(h.id) ?? null,
+                ),
               )
               .join('');
       resultCount.textContent = `${list.length} / ${horses2026.length} 頭`;
@@ -1654,6 +1813,12 @@ const faqJsonLd = {
       updateActiveFilterCount(state);
       updateSireSummary();
       saveFilterState(window.localStorage, filterStorageKey, state);
+      // 上の「残口あり/全頭」切替は select と同じ状態を指す。押した見た目（塗りつぶし）を
+      // 描き直すたびに合わせる（「なし」を選んでいるときはどちらも非アクティブになる）。
+      if (offeringSwitchRemaining && offeringSwitchAll && filterRemainingShares) {
+        offeringSwitchRemaining.setAttribute('aria-pressed', String(filterRemainingShares.value === 'has'));
+        offeringSwitchAll.setAttribute('aria-pressed', String(filterRemainingShares.value === ''));
+      }
 
       for (const btn of sortButtons) {
         const active = sortKeyOf(btn) === sortKey;
@@ -1768,6 +1933,19 @@ const faqJsonLd = {
       render();
     });
 
+    // 「残口あり/全頭」切替。実体は絞り込みの「残口」selectを動かすだけ（状態を2箇所に
+    // 持たない）。他の条件はそのまま（「条件をクリア」とは違い、切替だけを動かす）。
+    offeringSwitchRemaining?.addEventListener('click', () => {
+      if (!filterRemainingShares) return;
+      filterRemainingShares.value = 'has';
+      render();
+    });
+    offeringSwitchAll?.addEventListener('click', () => {
+      if (!filterRemainingShares) return;
+      filterRemainingShares.value = '';
+      render();
+    });
+
     // 評価UIの変更はイベント委譲で拾う（再描画のたびに listener を付け直さなくて済む）。
     // メモ欄は blur を待たず入力のたびに保存する（'change' は blur/Enter まで発火しないため、
     // 入力途中で離脱するとメモが失われてしまう）。
@@ -1864,6 +2042,31 @@ const faqJsonLd = {
     // 理由が「前回の条件が残っているから」だと画面から読み取れないため。
     const restoredState = loadFilterState(window.localStorage, filterStorageKey);
     applyFilterState(restoredState);
+
+    /**
+     * 1.5次募集の間（`OFFERING_PHASE === 'secondary'`）は「残口あり」を既定にする。
+     * **保存済みの絞り込み条件を勝手に上書きしない**ため、このフェーズをまだ見ていない
+     * 端末（`offeringPhaseSeenKey` が立っていない）にだけ、上の `applyFilterState()` の
+     * あとで一度だけ当てる。一度当てたら（＝このキーが立ったら）このフェーズのあいだは
+     * 二度と上書きしない ―― 既に「なし」等に変えている・戻している端末を毎回「あり」に
+     * 引き戻さないため。
+     */
+    const offeringPhaseSeenKey = offeringPhaseSeenStorageKeyForYear(RECRUIT_YEAR);
+    if (
+      filterRemainingShares &&
+      OFFERING_PHASE === 'secondary' &&
+      !hasSeenOfferingPhase(window.localStorage, offeringPhaseSeenKey)
+    ) {
+      filterRemainingShares.value = 'has';
+      markOfferingPhaseSeen(window.localStorage, offeringPhaseSeenKey);
+    }
+
+    // 個別ページの「残口のある馬」一覧からの導線（`/?remaining=1`）。保存済み条件・上の
+    // 既定値よりも、今開いたURLの指定を優先する（明示的なリンクなので上書きしてよい）。
+    if (filterRemainingShares && new URLSearchParams(window.location.search).get('remaining') === '1') {
+      filterRemainingShares.value = 'has';
+    }
+
     if (countActiveFilters(restoredState) > 0) filterDetails.open = true;
     // 父も同じ理由で開く。「3件選択」だけ見えてもどの父かが分からないため。
     // 全部にチェックが入っているとき（＝すべて）は絞っていないので畳んだままにする。

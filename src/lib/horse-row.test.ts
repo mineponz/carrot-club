@@ -162,6 +162,13 @@ test('COLUMNS: 抽選はメモのすぐ隣（5列目、netkeibaより左）に�
   assert.ok(labels.indexOf('抽選') < labels.indexOf('netkeiba'));
 });
 
+test('COLUMNS: 残口は抽選のすぐ隣（6列目、netkeibaより左）に置く', () => {
+  const labels = COLUMNS.map((c) => c.label);
+  assert.equal(labels.indexOf('残口'), labels.indexOf('抽選') + 1);
+  assert.equal(labels[5], '残口');
+  assert.ok(labels.indexOf('残口') < labels.indexOf('netkeiba'));
+});
+
 test('COLUMNS: 列のkeyは重複しない（表示設定の保存が別の列に効かないように）', () => {
   const keys = COLUMNS.map((c) => c.key);
   assert.equal(new Set(keys).size, keys.length);
@@ -201,10 +208,10 @@ test('COLUMNS: SP幅で馬名見出しを押したときは No（id）で並べ�
 test('COLUMNS: SPで隠す列（No・父・母父・性・厩舎）の位置がページのCSSと一致する', () => {
   // index.astro / 2025/index.astro の @media (max-width: 40rem) が nth-child の番号で
   // 列を隠しているので、列を入れ替えたらここも一緒に直す（ずれると別の列が消える）。
-  // 2026-09-05に抽選列を5列目に挿入したぶん、以前の 1/6/7/8/17 から後ろの4つが1つずつ
-  // 後ろにずれている（No自体は1列目のまま）。
+  // 2026-09-10に残口列を6列目に挿入したぶん、2026-09-05時点の 1/7/8/9/18 から後ろの4つが
+  // 1つずつ後ろにずれている（No自体は1列目のまま）。
   const labels = COLUMNS.map((c) => c.label);
-  const hiddenOnSp = [1, 7, 8, 9, 18].map((n) => labels[n - 1]);
+  const hiddenOnSp = [1, 8, 9, 10, 19].map((n) => labels[n - 1]);
   assert.deepEqual(hiddenOnSp, ['No', '父', '母父', '性', '厩舎']);
 });
 
@@ -245,6 +252,31 @@ test('horseRowHtml: 抽選ステータスの行を渡すと一覧セルに反映
   const cell = html.match(/<td data-col="lottery"[^]*?<\/td>/)![0];
   assert.match(cell, /×2抽選/);
   assert.match(cell, /残口あり/);
+});
+
+test('horseRowHtml: 残口の行を渡さなければ「—」（2025年募集など情報源が無い年度）', () => {
+  const html = horseRowHtml(horse, DEFAULT_EVALUATION);
+  assert.match(html, /<td data-col="remainingShares" class="remaining-col">—<\/td>/);
+});
+
+test('horseRowHtml: 残口の行を渡すと一覧セルに反映される（口数未発表は「あり」）', () => {
+  const html = horseRowHtml(horse, DEFAULT_EVALUATION, undefined, null, {
+    id: horse.id,
+    hasRemaining: true,
+    shares: null,
+  });
+  const cell = html.match(/<td data-col="remainingShares"[^]*?<\/td>/)![0];
+  assert.match(cell, /class="remaining-badge">あり</);
+});
+
+test('horseRowHtml: 残口の口数が発表されていれば「N口」を出す', () => {
+  const html = horseRowHtml(horse, DEFAULT_EVALUATION, undefined, null, {
+    id: horse.id,
+    hasRemaining: true,
+    shares: { kind: 'exact', count: 8 },
+  });
+  const cell = html.match(/<td data-col="remainingShares"[^]*?<\/td>/)![0];
+  assert.match(cell, /class="remaining-badge">8口</);
 });
 
 test('shortStableLabel: 地方馬の長い表記はトラック名だけにする', () => {

@@ -9,8 +9,10 @@
  *     1.5次募集対象になった馬の`remainingShares`だけ追記した（1.5次PDFは対象馬の
  *     出資可能口数しか載っていないため）。対象馬の集合は「1次募集でnormalがlotteryOccurred:false
  *     （残口あり）だった馬」と完全一致し、これは実データ投入時に機械的に検算済み。
- *   TODO(データ投入時に確定): 発表ページの正確なURLを差し替える（会員限定ページのため`lottery.astro`の
- *   出所リンクは暫定でトップを貼っている）。
+ *   9/10snapshotの出所PDFのURL（`lottery.astro`の出所リンクもここを指す。2026-09-10に
+ *   暫定リンク（クラブトップ）から差し替え済み）:
+ *   https://carrotclub.net/upfile/topics/8514/8514-MEUPMAMESUBQQzUP-1.pdf
+ *   1.5次募集対象馬一覧（9/11snapshot）のPDFのURLはこのセッションでは未確認のため未記載。
  *
  * ## 制度の前提（詳細: secondBrain `1-projects/carrot-club/notes/20260905-lottery-status-terminology.md`）
  * - 「最優先×2（過去2年最優先落選）」「最優先×1（前年最優先落選）」「最優先×なし（前年最優先当選）」

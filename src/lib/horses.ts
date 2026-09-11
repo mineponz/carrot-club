@@ -163,6 +163,12 @@ export type RatingFilterValue = Rating | typeof UNRATED;
  */
 export type DamPriorityFilter = 'has' | 'none';
 
+/**
+ * 残口（1.5次募集の対象馬か）での絞り込みの選択肢。`damPriority` と同じ3値パターン
+ * （UIの「すべて」は値を持たない＝未指定で「絞り込まない」扱い）。
+ */
+export type RemainingSharesFilter = 'has' | 'none';
+
 export interface HorseFilter {
   /** 馬名の部分一致 */
   name?: string;
@@ -208,6 +214,16 @@ export interface HorseFilter {
    * 3値にした（2026-08-23）。
    */
   damPriority?: DamPriorityFilter;
+  /**
+   * 残口（1.5次募集の対象馬か）での絞り込み。`'has'` は対象馬だけ、`'none'` は対象外の馬だけを残す。
+   * **未指定（＝UIの「すべて」）は絞り込まない**。値そのものは `Horse` に無く、発表（PDF）を
+   * 突き合わせた外部の対応表を呼び出し側が作って渡す（`ratings` と同じ理由。`Horse` は
+   * 客観データだけを持つ設計で、1.5次募集の発表は別の発表なので混ぜない。
+   * `src/lib/remaining-shares.ts` の `remainingSharesByHorseId()` 参照）。
+   */
+  remainingShares?: RemainingSharesFilter;
+  /** 馬ID→残口ありか。`remainingShares` を使うときだけ必要。無いIDは「残口なし」として扱う。 */
+  remainingSharesByHorseId?: Readonly<Record<string, boolean>>;
   /** trueなら手術・既往歴の記載がある馬を除外する */
   excludeSurgery?: boolean;
   /**
@@ -252,6 +268,11 @@ export function filterHorses(horses: Horse[], filter: HorseFilter): Horse[] {
     if (filter.maxWeight !== undefined && h.weight > filter.maxWeight) return false;
     if (filter.damPriority === 'has' && !h.damPriority) return false;
     if (filter.damPriority === 'none' && h.damPriority) return false;
+    if (filter.remainingShares) {
+      const hasRemaining = filter.remainingSharesByHorseId?.[h.id] === true;
+      if (filter.remainingShares === 'has' && !hasRemaining) return false;
+      if (filter.remainingShares === 'none' && hasRemaining) return false;
+    }
     if (filter.excludeSurgery && h.surgery !== '') return false;
     if (filter.ratings && filter.ratings.length > 0) {
       const rating = filter.ratingByHorseId?.[h.id] ?? null;
