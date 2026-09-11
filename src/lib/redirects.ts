@@ -104,6 +104,37 @@ export function redirectTarget(pathname: string): string | null {
   return null;
 }
 
+/**
+ * API のパス接頭辞（`src/lib/evaluation-api.ts` の `EVALUATIONS_API_PATH` 等）。
+ * 末尾スラッシュを持たない設計なので、`ensureTrailingSlashForCanonicalPath()` の対象外にする。
+ * 定数を直接importしないのは、redirects.ts はURL文字列の形だけを見る薄い層に保ちたいため
+ * （evaluation-api.ts側の実装詳細＝どのAPIパスが増減するかに追随させたくない）。
+ */
+const API_PATH_PREFIX = '/api/';
+
+/**
+ * ホスト名を付け替えるだけで**パスは正本のまま**返す経路（旧ドメイン・裸ドメイン宛で
+ * `redirectTarget()` が `null` を返したケース）向けに、末尾スラッシュを補う。
+ *
+ * `redirectTarget()` が返す値（`path`）は常に末尾スラッシュ付きで組み立てているので
+ * そちらは早期returnで素通りする。ここで直すのは「元々正本パスだったので`redirectTarget()`
+ * が`null`を返し、素の`pathname`がそのまま転送先になっていた」ケース（例:
+ * `mineponz.com/my-horses/eir` → 末尾スラッシュ無しのまま`carrot.mineponz.com/my-horses/eir`
+ * へ301し、ASSETS側がさらに307で`.../eir/`へ正規化する2ホップになっていた・2026-09-12発見）。
+ *
+ * 対象外: ルート `/`・既に末尾スラッシュ付き・APIパス（`/api/...`、末尾スラッシュを
+ * 持たない設計）・拡張子付き（`/ads.txt`・`/sitemap-index.xml`等、最後のセグメントに
+ * `.`を含むかで判定）。`/index.html`のような明示ファイル名指定はこの拡張子判定に
+ * 含まれるため対象外＝従来どおりそのまま転送する（挙動は変えない）。
+ */
+function ensureTrailingSlashForCanonicalPath(pathname: string): string {
+  if (pathname.endsWith('/')) return pathname;
+  if (pathname.startsWith(API_PATH_PREFIX)) return pathname;
+  const lastSegment = pathname.slice(pathname.lastIndexOf('/') + 1);
+  if (lastSegment.includes('.')) return pathname;
+  return `${pathname}/`;
+}
+
 /** 独自ドメイン移行前の本番ホスト名（Cloudflareの無料サブドメイン）。 */
 export const LEGACY_HOSTNAME = 'carrot-club.mineponz.workers.dev';
 
@@ -139,15 +170,15 @@ export function redirectTargetForHost(
   const path = redirectTarget(pathname);
 
   if (hostname === LEGACY_HOSTNAME) {
-    // パスが正本ならそのまま、旧パスならここで一緒に寄せる（2段にしない）
-    return { hostname: CANONICAL_HOSTNAME, pathname: path ?? pathname };
+    // パスが正本ならそのまま（ただし末尾スラッシュは補う）、旧パスならここで一緒に寄せる（2段にしない）
+    return { hostname: CANONICAL_HOSTNAME, pathname: ensureTrailingSlashForCanonicalPath(path ?? pathname) };
   }
 
   if (hostname === BARE_HOSTNAME) {
     // ads.txt だけは裸ドメインのまま返す（AdSenseがルートドメイン直下を見にいくため）
     if (pathname === BARE_HOSTNAME_ADS_TXT_PATH) return null;
-    // パスが正本ならそのまま、旧パスならここで一緒に寄せる（2段にしない）
-    return { hostname: CANONICAL_HOSTNAME, pathname: path ?? pathname };
+    // パスが正本ならそのまま（ただし末尾スラッシュは補う）、旧パスならここで一緒に寄せる（2段にしない）
+    return { hostname: CANONICAL_HOSTNAME, pathname: ensureTrailingSlashForCanonicalPath(path ?? pathname) };
   }
 
   return path === null ? null : { hostname, pathname: path };

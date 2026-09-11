@@ -209,6 +209,75 @@ test('redirectTargetForHost: 存在しないパスも裸ドメインならホス
   });
 });
 
+test('redirectTargetForHost: 末尾スラッシュ無しの正本パスも末尾スラッシュを補って1ホップにする（2026-09-12発見: 補わないとASSETS側の307で2ホップになっていた）', () => {
+  const cases: [string, string][] = [
+    ['/my-horses/eir', '/my-horses/eir/'],
+    ['/articles/height', '/articles/height/'],
+    ['/2026/lottery', '/2026/lottery/'],
+    ['/2026/horses/1', '/2026/horses/1/'],
+    ['/my-horses', '/my-horses/'],
+  ];
+  for (const [input, expected] of cases) {
+    assert.deepEqual(
+      redirectTargetForHost(BARE_HOSTNAME, input),
+      { hostname: CANONICAL_HOSTNAME, pathname: expected },
+      `BARE_HOSTNAME: ${input}`,
+    );
+    assert.deepEqual(
+      redirectTargetForHost(LEGACY_HOSTNAME, input),
+      { hostname: CANONICAL_HOSTNAME, pathname: expected },
+      `LEGACY_HOSTNAME: ${input}`,
+    );
+  }
+});
+
+test('redirectTargetForHost: 末尾スラッシュ補完の対象外（ルート・API・拡張子付き・既に末尾スラッシュ付き）は変えない', () => {
+  assert.deepEqual(redirectTargetForHost(BARE_HOSTNAME, '/'), {
+    hostname: CANONICAL_HOSTNAME,
+    pathname: '/',
+  });
+  assert.deepEqual(redirectTargetForHost(LEGACY_HOSTNAME, '/'), {
+    hostname: CANONICAL_HOSTNAME,
+    pathname: '/',
+  });
+  // APIは末尾スラッシュを持たない設計なので付けない
+  assert.deepEqual(redirectTargetForHost(BARE_HOSTNAME, '/api/evaluations'), {
+    hostname: CANONICAL_HOSTNAME,
+    pathname: '/api/evaluations',
+  });
+  assert.deepEqual(redirectTargetForHost(LEGACY_HOSTNAME, '/api/evaluations/summary'), {
+    hostname: CANONICAL_HOSTNAME,
+    pathname: '/api/evaluations/summary',
+  });
+  // 拡張子付きは付けない（裸ドメインのads.txtは301そのものが無い。別テストで確認済み）
+  assert.deepEqual(redirectTargetForHost(LEGACY_HOSTNAME, '/ads.txt'), {
+    hostname: CANONICAL_HOSTNAME,
+    pathname: '/ads.txt',
+  });
+  assert.deepEqual(redirectTargetForHost(LEGACY_HOSTNAME, '/sitemap-index.xml'), {
+    hostname: CANONICAL_HOSTNAME,
+    pathname: '/sitemap-index.xml',
+  });
+  // 既に末尾スラッシュ付きのものはそのまま
+  assert.deepEqual(redirectTargetForHost(BARE_HOSTNAME, '/my-horses/eir/'), {
+    hostname: CANONICAL_HOSTNAME,
+    pathname: '/my-horses/eir/',
+  });
+});
+
+test('redirectTargetForHost: /index.html 明示指定は末尾スラッシュ補完の対象外（拡張子付き扱いのため従来どおり）', () => {
+  // ルート直下の /index.html はどの正本パスにも一致せず（redirectTarget が null を返す）、
+  // 拡張子付き（.html）扱いなので末尾スラッシュは付かない。ホスト名だけ寄せて転送する。
+  assert.deepEqual(redirectTargetForHost(BARE_HOSTNAME, '/index.html'), {
+    hostname: CANONICAL_HOSTNAME,
+    pathname: '/index.html',
+  });
+  assert.deepEqual(redirectTargetForHost(LEGACY_HOSTNAME, '/index.html'), {
+    hostname: CANONICAL_HOSTNAME,
+    pathname: '/index.html',
+  });
+});
+
 test('redirectTargetForHost: 旧ドメインの全IDが1ホップで正本に着く', () => {
   for (const horse of horses2026) {
     const hit = redirectTargetForHost(LEGACY_HOSTNAME, `/horses/${horse.id}/`);
