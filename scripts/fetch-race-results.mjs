@@ -95,7 +95,8 @@ function toYen10k(raw) {
  *  コメントの内外を問わず <a href="/race/...">のtitleを全部拾う。 */
 function extractMainWins(cellHtml) {
   const wins = [];
-  const re = /<a href="\/race\/[^"]*"\s+title="([^"]+)"/g;
+  // 2026-09-12: netkeibaがhrefを絶対URL（https://db.netkeiba.com/race/...）に変えたため両方許容する。
+  const re = /<a href="(?:https?:\/\/[^"\/]+)?\/race\/[^"]*"\s+title="([^"]+)"/g;
   let m;
   while ((m = re.exec(cellHtml))) {
     wins.push(m[1]);
