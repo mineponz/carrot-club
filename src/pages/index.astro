@@ -720,7 +720,10 @@ const faqJsonLd = {
     .offering-switch {
       display: flex;
       gap: 0.5rem;
-      margin: 0 0 0.85rem;
+      /* margin(3値)にしないこと。左右マージンが暗黙に0になり、main.is-wideの子に効かせている
+         margin-inline: auto より詳細度で勝ってPC幅で左端に張り付く（本人指摘・2026-09-11）。
+         同じ罠を .year-switch でも踏んでいる（すぐ下のコメント参照）。 */
+      margin-block: 0 0.85rem;
     }
     .offering-switch-btn {
       font: inherit;
