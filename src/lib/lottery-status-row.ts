@@ -53,9 +53,15 @@ function damPriorityCellHtml(row: LotteryStatusRow): string {
   return row.damPriority === null ? '発表待ち' : frameHtml(row.damPriority, 'damPriority');
 }
 
-/** 残り口数セルの中身。未確定は「—」。 */
+/**
+ * 残り口数セルの中身。未確定・1.5次募集対象外は「—」。
+ * クラブ公式が実数を出すのは残口100口（地方入厩予定馬は25口）以下の馬だけで、それを
+ * 超える馬は空欄になる（`kind: 'atLeast'`）ため「N口以上」と表す。
+ */
 function remainingSharesCellHtml(row: LotteryStatusRow): string {
-  return row.remainingShares === null ? '—' : `${row.remainingShares}口`;
+  if (row.remainingShares === null) return '—';
+  const { kind, count } = row.remainingShares;
+  return kind === 'exact' ? `${count}口` : `${count}口以上`;
 }
 
 /**

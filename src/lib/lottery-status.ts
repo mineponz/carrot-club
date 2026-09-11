@@ -14,6 +14,7 @@ import type {
   LotteryRank,
   LotteryStatusEntry,
   LotteryStatusSnapshot,
+  RemainingShares,
 } from '../data/lotteryStatus2026.ts';
 
 /** 強い順（x2 → x1 → none → general）。ランクの妥当性チェック・ソートの基準に使う。 */
@@ -87,8 +88,8 @@ export interface LotteryStatusRow {
   damPriority: FrameLotteryResult | null;
   /** 通常枠の結果。未発表なら null */
   normal: FrameLotteryResult | null;
-  /** 残り口数（1.5次募集の目安）。未発表・未確定は null */
-  remainingShares: number | null;
+  /** 残り口数（1.5次募集の目安）。未発表・1.5次募集対象外は null */
+  remainingShares: RemainingShares | null;
 }
 
 /**
@@ -155,8 +156,9 @@ export type SortDirection = 'asc' | 'desc';
 
 /**
  * 指定したキーで並べ替える。元の配列は変更しない。
- * `damPriority` / `normal` は `lotterySeverity()` で、`remainingShares` は数値そのもので比べる。
- * 未発表（severityが -1 になる行・remainingSharesがnullの行）は常に末尾に置く。
+ * `damPriority` / `normal` は `lotterySeverity()` で、`remainingShares` は `count`（実数、または
+ * 「N口以上」のNそのもの）で比べる。未発表（severityが -1 になる行・remainingSharesがnullの行）
+ * は常に末尾に置く。
  */
 export function sortLotteryStatusRows(
   rows: readonly LotteryStatusRow[],
@@ -165,7 +167,7 @@ export function sortLotteryStatusRows(
 ): LotteryStatusRow[] {
   const valueOf = (row: LotteryStatusRow): string | number | null => {
     if (key === 'id' || key === 'name' || key === 'sire' || key === 'sex') return row[key];
-    if (key === 'remainingShares') return row.remainingShares;
+    if (key === 'remainingShares') return row.remainingShares === null ? null : row.remainingShares.count;
     const severity = lotterySeverity(row[key]);
     return severity === -1 ? null : severity;
   };

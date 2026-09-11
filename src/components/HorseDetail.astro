@@ -222,7 +222,8 @@ const lotteryFacts: { term: string; value: string }[] =
             ]
           : [{ term: '抽選ステータス', value: labelOf(row.normal, 'normal') }];
         if (row.remainingShares !== null) {
-          rows.push({ term: '残り口数', value: `${row.remainingShares}口` });
+          const { kind, count } = row.remainingShares;
+          rows.push({ term: '残り口数', value: kind === 'exact' ? `${count}口` : `${count}口以上` });
         }
         return rows;
       })()
