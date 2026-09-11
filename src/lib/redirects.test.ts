@@ -1,6 +1,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import {
+  BARE_HOSTNAME,
   CANONICAL_HOSTNAME,
   LEGACY_HOSTNAME,
   redirectTarget,
@@ -137,6 +138,75 @@ test('redirectTargetForHost: 正本ドメインでは旧パスだけを見る', 
   // APIを飲み込まない（301を返すとハンドラに届かなくなる）
   assert.equal(redirectTargetForHost(CANONICAL_HOSTNAME, '/api/evaluations'), null);
   assert.equal(redirectTargetForHost(CANONICAL_HOSTNAME, '/api/evaluations/summary'), null);
+});
+
+test('redirectTargetForHost: 裸ドメイン＋旧パスは1ホップで正本ドメイン・正本パスへ', () => {
+  // ここが2段（裸ドメイン→裸ドメインの旧パス→正本、のようなもの）になると意味が無い
+  assert.deepEqual(redirectTargetForHost(BARE_HOSTNAME, '/horses/1/'), {
+    hostname: CANONICAL_HOSTNAME,
+    pathname: '/2026/horses/1/',
+  });
+  assert.deepEqual(redirectTargetForHost(BARE_HOSTNAME, '/tour-weight/'), {
+    hostname: CANONICAL_HOSTNAME,
+    pathname: '/2026/tour-weight/',
+  });
+  assert.deepEqual(redirectTargetForHost(BARE_HOSTNAME, '/lottery/'), {
+    hostname: CANONICAL_HOSTNAME,
+    pathname: '/2026/lottery/',
+  });
+  assert.deepEqual(redirectTargetForHost(BARE_HOSTNAME, '/2026/'), {
+    hostname: CANONICAL_HOSTNAME,
+    pathname: '/',
+  });
+});
+
+test('redirectTargetForHost: 裸ドメインはパスが正本でもホスト名を直すため必ず転送する', () => {
+  assert.deepEqual(redirectTargetForHost(BARE_HOSTNAME, '/'), {
+    hostname: CANONICAL_HOSTNAME,
+    pathname: '/',
+  });
+  assert.deepEqual(redirectTargetForHost(BARE_HOSTNAME, '/2026/horses/1/'), {
+    hostname: CANONICAL_HOSTNAME,
+    pathname: '/2026/horses/1/',
+  });
+  assert.deepEqual(redirectTargetForHost(BARE_HOSTNAME, '/articles/height/'), {
+    hostname: CANONICAL_HOSTNAME,
+    pathname: '/articles/height/',
+  });
+  // APIも裸ドメイン宛なら新ドメインへ寄せる（パスはそのまま）
+  assert.deepEqual(redirectTargetForHost(BARE_HOSTNAME, '/api/evaluations'), {
+    hostname: CANONICAL_HOSTNAME,
+    pathname: '/api/evaluations',
+  });
+});
+
+test('redirectTargetForHost: 裸ドメインの /ads.txt だけは301せずそのまま（AdSenseがルートドメインを見るため）', () => {
+  assert.equal(redirectTargetForHost(BARE_HOSTNAME, '/ads.txt'), null);
+  // 正本ドメイン・旧ドメインの ads.txt は対象外の挙動確認（正本は素通し、旧ドメインは新ドメインへ）
+  assert.equal(redirectTargetForHost(CANONICAL_HOSTNAME, '/ads.txt'), null);
+  assert.deepEqual(redirectTargetForHost(LEGACY_HOSTNAME, '/ads.txt'), {
+    hostname: CANONICAL_HOSTNAME,
+    pathname: '/ads.txt',
+  });
+});
+
+test('redirectTargetForHost: 裸ドメインの全IDが1ホップで正本に着く', () => {
+  for (const horse of horses2026) {
+    const hit = redirectTargetForHost(BARE_HOSTNAME, `/horses/${horse.id}/`);
+    assert.deepEqual(hit, {
+      hostname: CANONICAL_HOSTNAME,
+      pathname: `/2026/horses/${horse.id}/`,
+    });
+    // 転送先をもう一度かけても null＝チェーンが伸びない
+    assert.equal(redirectTargetForHost(hit!.hostname, hit!.pathname), null);
+  }
+});
+
+test('redirectTargetForHost: 存在しないパスも裸ドメインならホスト名だけ寄せて正本へ渡す（404はASSETS側の仕事）', () => {
+  assert.deepEqual(redirectTargetForHost(BARE_HOSTNAME, '/no-such-page/'), {
+    hostname: CANONICAL_HOSTNAME,
+    pathname: '/no-such-page/',
+  });
 });
 
 test('redirectTargetForHost: 旧ドメインの全IDが1ホップで正本に着く', () => {

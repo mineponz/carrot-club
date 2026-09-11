@@ -14,6 +14,16 @@
  * （＝いちばん古くて価値のある）被リンクほど遠回りになる。`redirectTargetForHost()` が
  * ホスト名の付け替えとパスの正本化を1回で済ませる。
  *
+ * ## 裸ドメイン（`mineponz.com`）も同じ関数で扱う（2026-09-12〜）
+ * `mineponz.com` はAdSenseのサイト確認のためWorkerのCustom Domainとして直結してあり、
+ * `carrot.mineponz.com` と同一内容を200で返していた。canonical・sitemap・robots.txtの
+ * Sitemap行はすべて`carrot.mineponz.com`を指すため、botからは「別ホストの中身を丸写しした
+ * 複製サイト」に見えうる（AdSense再審査2026-09-12不合格の最有力仮説）。
+ * よって `mineponz.com` 宛も**パス維持のまま1ホップで`carrot.mineponz.com`へ301**する
+ * （旧ドメインと同じ理屈＝2段にしない）。
+ * 例外は `/ads.txt` のみ：AdSenseはルートドメイン直下の`ads.txt`を見るため、301せず
+ * 裸ドメインでそのまま200を返す。
+ *
  * ## ここで扱う5本
  * 1. `/horses/{id}/`  → `/2026/horses/{id}/` … 旧URL（2026-08-19〜2026-09-01の正本）からの引き継ぎ。
  * 2. `/tour-weight/`  → `/2026/tour-weight/` … 中身が100%2026年募集馬で年度切替の仕組みが無いため、
@@ -101,11 +111,24 @@ export const LEGACY_HOSTNAME = 'carrot-club.mineponz.workers.dev';
 export const CANONICAL_HOSTNAME = 'carrot.mineponz.com';
 
 /**
+ * 裸ドメイン（AdSenseのサイト確認のためWorkerに直結してある）。canonicalではないので
+ * `/ads.txt` を除き常に正本ドメインへ301する。
+ */
+export const BARE_HOSTNAME = 'mineponz.com';
+
+/**
+ * AdSenseがルートドメイン直下で見にいくファイル。裸ドメイン宛だけは301せずそのまま返す
+ * （`carrot.mineponz.com/ads.txt` へ301すると、AdSenseがルートドメインのads.txtを
+ * 読めなくなる）。`public/ads.txt` にビルド時にそのままコピーされるため trailing slash は無い。
+ */
+const BARE_HOSTNAME_ADS_TXT_PATH = '/ads.txt';
+
+/**
  * ホスト名とパスの両方を見て、301の転送先（ホスト名・パス）を返す。リダイレクト不要なら `null`。
  *
- * 旧ドメイン宛のときは**パスの正本化も同時に行う**ので、`/horses/1/` のような旧パスでも
- * 1ホップで `carrot.mineponz.com/2026/horses/1/` に着く。旧ドメイン宛はパスが正本のままでも
- * （ホスト名を直すために）必ずリダイレクトする。
+ * 旧ドメイン・裸ドメイン宛のときは**パスの正本化も同時に行う**ので、`/horses/1/` のような
+ * 旧パスでも1ホップで `carrot.mineponz.com/2026/horses/1/` に着く。旧ドメイン・裸ドメイン宛は
+ * パスが正本のままでも（ホスト名を直すために）必ずリダイレクトする（`/ads.txt` を除く）。
  *
  * クエリ文字列は呼び出し側（worker）が引き継ぐので、ここでは見ない。
  */
@@ -116,6 +139,13 @@ export function redirectTargetForHost(
   const path = redirectTarget(pathname);
 
   if (hostname === LEGACY_HOSTNAME) {
+    // パスが正本ならそのまま、旧パスならここで一緒に寄せる（2段にしない）
+    return { hostname: CANONICAL_HOSTNAME, pathname: path ?? pathname };
+  }
+
+  if (hostname === BARE_HOSTNAME) {
+    // ads.txt だけは裸ドメインのまま返す（AdSenseがルートドメイン直下を見にいくため）
+    if (pathname === BARE_HOSTNAME_ADS_TXT_PATH) return null;
     // パスが正本ならそのまま、旧パスならここで一緒に寄せる（2段にしない）
     return { hostname: CANONICAL_HOSTNAME, pathname: path ?? pathname };
   }

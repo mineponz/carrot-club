@@ -23,15 +23,18 @@ export const ALLOW_INDEXING = true;
  * サイト全体では index するが、この接頭辞に一致するページだけは `noindex` にする。
  *
  * 対象は「よそのデータを転記して並べただけ」のページ（馬個別ページ・ツアー後馬体重・
- * 募集申込票数）。Google AdSense の審査で `mineponz.com`（このWorkerに向けた裸ドメイン）が
- * 「コンテンツが複製された画面」「有用性の低いコンテンツ」と判定され、審査に落ちた
- * （2026-09-02 / [[20260823-mineponz-domain-migration-and-adsense]]）。
- * 薄いテンプレページ 約190枚が、自分で書いた記事（十数本）を数で押し流してサイト全体の
- * 評価を下げているのが主因。審査botに見せる面を〈ツール＋記事＋about＋ポリシー〉へ
- * 絞るための措置で、**クラブの転載許可の話とは別問題**。
+ * 募集申込票数・抽選ステータス一覧・出資馬個別ページ）。Google AdSense の審査で不合格
+ * （初回2026-09-02、再審査2026-09-12、いずれも同じ2項目「コンテンツが複製された画面」
+ * 「有用性の低いコンテンツ」/ [[20260823-mineponz-domain-migration-and-adsense]]）。
+ * 薄いテンプレページが、自分で書いた記事（十数本）を数で押し流してサイト全体の評価を
+ * 下げているのが主因と見ている。9/2の是正後に追加した `/2026/lottery/`（抽選ランク発表の
+ * 手入力転記）と `/my-horses/<slug>/`（出資馬9頭の成績・馬体重推移・クラブ写真の転載が
+ * 中心）には9/2時点の判定が及んでいなかったため、2026-09-12に追加。審査botに見せる面を
+ * 〈ツール＋記事＋about＋ポリシー〉へ絞るための措置で、**クラブの転載許可の話とは別問題**。
  *
- * これは元に戻せる。AdSense通過後に馬名のロングテール検索を取りにいくなら
- * この配列を空にするだけでよい（ページ自体は消していない）。
+ * これは元に戻せる。AdSense通過後にロングテール検索を取りにいくなら
+ * この配列を空にする（＋下の `isNoindexPath` の出資馬個別判定を外す）だけでよい
+ * （ページ自体は消していない）。
  *
  * BaseLayout の robots メタと astro.config.mjs の sitemap フィルタの両方がこの関数を見る。
  * 2か所に別々の正規表現を書くと片方だけ直し忘れるため、判定はここに一本化する。
@@ -41,10 +44,31 @@ export const NOINDEX_PATH_PREFIXES = [
   '/2026/horses/',
   '/2026/tour-weight/',
   '/2026/votes/',
+  '/2026/lottery/',
 ];
 
+/**
+ * 出資馬の個別ページ（`/my-horses/<slug>/`）だけ noindex にするための接頭辞。
+ * 単純な前方一致では `/my-horses/` 一覧（9頭のサマリー・自作の説明文が中心）や
+ * `/my-horses/article/*`（自作記事）まで巻き込んでしまうため、`isNoindexPath()` 側で
+ * 「`/my-horses/` 配下だが一覧そのものでも記事配下でもない」を明示的に判定する。
+ */
+const MY_HORSES_PREFIX = '/my-horses/';
+const MY_HORSES_ARTICLE_PREFIX = '/my-horses/article/';
+
 export function isNoindexPath(pathname: string): boolean {
-  return NOINDEX_PATH_PREFIXES.some((prefix) => pathname === prefix || pathname.startsWith(prefix));
+  if (NOINDEX_PATH_PREFIXES.some((prefix) => pathname === prefix || pathname.startsWith(prefix))) {
+    return true;
+  }
+  // /my-horses/ 一覧そのものと /my-horses/article/*（自作記事）は index のまま残す
+  if (
+    pathname.startsWith(MY_HORSES_PREFIX) &&
+    pathname !== MY_HORSES_PREFIX &&
+    !pathname.startsWith(MY_HORSES_ARTICLE_PREFIX)
+  ) {
+    return true;
+  }
+  return false;
 }
 
 /** アプリ名。構造化データやフッターなど「名前」として扱う場所で使う */

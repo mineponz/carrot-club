@@ -5,7 +5,8 @@
  * **新しいサーバーは立てず**、同じWorkerプロジェクトにD1バインディングとこのファイルを足している。
  *
  * ## ルーティング
- * - 旧URL（旧ドメイン `carrot-club.mineponz.workers.dev` / 年度なしの旧パス） … 301リダイレクト。
+ * - 旧URL（旧ドメイン `carrot-club.mineponz.workers.dev` / 裸ドメイン `mineponz.com`
+ *   （`/ads.txt` を除く） / 年度なしの旧パス） … 301リダイレクト。
  *   判定は `src/lib/redirects.ts` の `redirectTargetForHost()` に集約し、ホスト名とパスを
  *   **1回で**正本へ寄せる（2段のリダイレクトチェーンを作らない）
  * - 旧パス（`/horses/{id}/`・`/tour-weight/`・`/2026/`）… 正本URLへ301リダイレクト（src/lib/redirects.ts）
@@ -245,8 +246,9 @@ export default {
 
     const { pathname } = url;
 
-    // 旧URL → 正本URLの301。**旧ドメイン（workers.devの無料サブドメイン）と旧パスを
-    // 1つの関数でまとめて解決する**ので、旧ドメイン宛の旧パスでも1ホップで正本に着く
+    // 旧URL → 正本URLの301。**旧ドメイン（workers.devの無料サブドメイン）・裸ドメイン
+    // （mineponz.com、/ads.txt除く）と旧パスを1つの関数でまとめて解決する**ので、
+    // それら宛の旧パスでも1ホップで正本に着く
     // （2段にすると、ドメイン移行前から張られている古い被リンクほど遠回りになる）。
     // 規則と「来年の年度切替でやること」は src/lib/redirects.ts のコメント参照。
     // APIルーティング・静的アセットのどちらより前に置く（APIパスは対象外だが必ず通す）。

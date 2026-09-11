@@ -65,6 +65,14 @@ interface Props {
    * 非表示にしても表示自体が消えるわけではない（下の方に移るだけ）。
    */
   showHeaderNotices?: boolean;
+  /**
+   * `Astro.url.pathname` の判定に関わらず強制的に noindex にするか。既定は `false`。
+   * **404ページ専用**（`src/pages/404.astro`）: Astroのカスタム404はビルド時に単一の
+   * パスへ静的化されず、`Astro.url.pathname` には実際にアクセスされた（存在しない）URLが
+   * 入る。`isNoindexPath()` によるパス判定では拾えないため、このプロパティで明示的に
+   * 上書きする（2026-09-12: 404ページが `index,follow`＋AdSenseスクリプト入りだった不備の是正）。
+   */
+  noindex?: boolean;
 }
 
 const {
@@ -79,6 +87,7 @@ const {
   showHeaderNotices = true,
   ogImage: ogImagePath = '/og-v2.png',
   ogImageAlt: ogImageAltProp,
+  noindex: forceNoindex = false,
 } = Astro.props;
 
 // トップは「サイト名｜内容」、下層は「ページ名 | サイト名」。
@@ -86,11 +95,12 @@ const {
 const fullTitle = title ? `${title} | ${DOCUMENT_TITLE}` : `${DOCUMENT_TITLE}｜${SITE_TAGLINE}`;
 const canonical = new URL(Astro.url.pathname, SITE_URL).href;
 
-// noindex にする条件は2つ:
+// noindex にする条件は3つ:
 //  1. クラブの利用許可が下りるまでのサイト全体の noindex（src/consts.ts の ALLOW_INDEXING）
-//  2. データ転記だけのページ（馬個別・ツアー後馬体重・募集申込票数）を AdSense 審査向けに個別 noindex
-//     （src/consts.ts の NOINDEX_PATH_PREFIXES / isNoindexPath）
-const isNoindex = !ALLOW_INDEXING || isNoindexPath(Astro.url.pathname);
+//  2. データ転記だけのページ（馬個別・ツアー後馬体重・募集申込票数・抽選ステータス一覧・
+//     出資馬個別）を AdSense 審査向けに個別 noindex（src/consts.ts の NOINDEX_PATH_PREFIXES / isNoindexPath）
+//  3. 呼び出し元が明示的に `noindex` prop で強制した場合（404ページ専用。Props の noindex 参照）
+const isNoindex = !ALLOW_INDEXING || isNoindexPath(Astro.url.pathname) || forceNoindex;
 const robotsContent = isNoindex ? 'noindex,follow' : 'index,follow,max-image-preview:large';
 
 // AdSense の自動広告スクリプトは noindex ページには入れない。
