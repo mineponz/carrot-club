@@ -2067,7 +2067,13 @@ const faqJsonLd = {
       filterRemainingShares.value = 'has';
     }
 
-    if (countActiveFilters(restoredState) > 0) filterDetails.open = true;
+    // 前回の条件が残っているなら絞り込みを開いておく（畳んだままだと頭数が減っている理由が
+    // 画面から読み取れないため）。ただし**「残口」だけは数に入れない**（本人指示・2026-09-11
+    // 「絞り込みは最初閉じてて」）――残口は表の上の切替として常に見えていて、1.5次募集の
+    // 間は既定でも効くので、これだけで毎回開くと絞り込みが開きっぱなしになる。
+    const { 'filter-remaining-shares': _remaining, ...valuesExceptRemaining } = restoredState.values;
+    const stateForAutoOpen = { ...restoredState, values: valuesExceptRemaining };
+    if (countActiveFilters(stateForAutoOpen) > 0) filterDetails.open = true;
     // 父も同じ理由で開く。「3件選択」だけ見えてもどの父かが分からないため。
     // 全部にチェックが入っているとき（＝すべて）は絞っていないので畳んだままにする。
     if (!isAllSiresSelected()) sireDetails.open = true;
