@@ -77,9 +77,11 @@ test('lotteryStatusRowHtml: 対象外の馬の母馬優先枠セルは「—」'
   assert.match(html, /<td data-col="damPriority">—<\/td>/);
 });
 
-test('lotteryStatusRowHtml: 残り口数は「◯口」、未確定は「—」', () => {
-  const withShares = lotteryStatusRowHtml(makeRow({ remainingShares: 8 }));
+test('lotteryStatusRowHtml: 残り口数は実数なら「◯口」、しきい値超え(atLeast)は「◯口以上」、未確定は「—」', () => {
+  const withShares = lotteryStatusRowHtml(makeRow({ remainingShares: { kind: 'exact', count: 8 } }));
   assert.match(withShares, /<td data-col="remainingShares" class="num">8口<\/td>/);
+  const atLeast = lotteryStatusRowHtml(makeRow({ remainingShares: { kind: 'atLeast', count: 100 } }));
+  assert.match(atLeast, /<td data-col="remainingShares" class="num">100口以上<\/td>/);
   const withoutShares = lotteryStatusRowHtml(makeRow({ remainingShares: null }));
   assert.match(withoutShares, /<td data-col="remainingShares" class="num">—<\/td>/);
 });

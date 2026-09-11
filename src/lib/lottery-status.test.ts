@@ -104,7 +104,7 @@ test('lotteryStatusRows: 発表済みの馬はdamPriority/normal/remainingShares
         },
         '2': {
           normal: frame({ rank: 'general', lotteryOccurred: false }),
-          remainingShares: 12,
+          remainingShares: { kind: 'exact', count: 12 },
         },
       },
     },
@@ -115,7 +115,7 @@ test('lotteryStatusRows: 発表済みの馬はdamPriority/normal/remainingShares
   assert.equal(rows[0].normal?.outcome?.rank, 'general');
   assert.equal(rows[1].hasDamPriority, false);
   assert.equal(rows[1].damPriority, null);
-  assert.equal(rows[1].remainingShares, 12);
+  assert.deepEqual(rows[1].remainingShares, { kind: 'exact', count: 12 });
 });
 
 test('lotteryStatusRows: 未掲載の馬・snapshotsが空の場合はすべてnull', () => {
@@ -147,12 +147,17 @@ test('lotteryStatusRows: 複数snapshotがある場合は最新（配列末尾�
     {
       asOf: '9/20',
       label: '1.5次募集',
-      byId: { '1': { normal: frame({ rank: 'general', lotteryOccurred: false }), remainingShares: 3 } },
+      byId: {
+        '1': {
+          normal: frame({ rank: 'general', lotteryOccurred: false }),
+          remainingShares: { kind: 'exact', count: 3 },
+        },
+      },
     },
   ];
   const rows = lotteryStatusRows(horses, snapshots);
   assert.equal(rows[0].normal?.outcome?.rank, 'general');
-  assert.equal(rows[0].remainingShares, 3);
+  assert.deepEqual(rows[0].remainingShares, { kind: 'exact', count: 3 });
 });
 
 test('sortLotteryStatusRows: normalキーで抽選発生を上位に並べ、未発表は常に末尾', () => {
@@ -195,7 +200,7 @@ test('sortLotteryStatusRows: normalキーで抽選発生を上位に並べ、未
   assert.equal(sortedAsc.at(-1)!.id, '2');
 });
 
-test('sortLotteryStatusRows: remainingSharesは数値順、未確定(null)は常に末尾', () => {
+test('sortLotteryStatusRows: remainingSharesはcount順、未確定(null)は常に末尾（exact/atLeastを問わず数値で比べる）', () => {
   const base = {
     sire: 'A',
     sex: '牡' as const,
@@ -204,9 +209,9 @@ test('sortLotteryStatusRows: remainingSharesは数値順、未確定(null)は常
     normal: null,
   };
   const rows: LotteryStatusRow[] = [
-    { id: '1', name: 'a', ...base, remainingShares: 5 },
+    { id: '1', name: 'a', ...base, remainingShares: { kind: 'exact', count: 5 } },
     { id: '2', name: 'b', ...base, remainingShares: null },
-    { id: '3', name: 'c', ...base, remainingShares: 20 },
+    { id: '3', name: 'c', ...base, remainingShares: { kind: 'atLeast', count: 20 } },
   ];
   const sorted = sortLotteryStatusRows(rows, 'remainingShares', 'desc');
   assert.deepEqual(sorted.map((r) => r.id), ['3', '1', '2']);
