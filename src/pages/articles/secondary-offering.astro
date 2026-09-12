@@ -52,7 +52,6 @@ import {
   leftoverYears,
   leftoverNosOf,
   leftoverCountOf,
-  leftoverSourceUrlOf,
   isLeftover,
   assertLeftoverNosValid,
   type FirstOfferingLeftoversFile,
@@ -88,7 +87,6 @@ const yearRows = ALL_YEARS.map((year) => ({
   year,
   recruitCount: recruitCountByYear.get(year) as number,
   leftoverCount: leftoverCountOf(leftoversFile, year),
-  sourceUrl: leftoverSourceUrlOf(leftoversFile, year),
 }));
 
 const leftoverThisYear = leftoverCountOf(leftoversFile, 2026);
@@ -375,15 +373,7 @@ const description = `1次募集で満口にならなかった馬たちのその�
             yearRows.map((r) => (
               <tr>
                 <td data-label="募集年度">
-                  {r.sourceUrl ? (
-                    <a href={r.sourceUrl} target="_blank" rel="noopener">
-                      {r.year}年度{r.year === 2026 && '（今年）'}
-                    </a>
-                  ) : (
-                    <>
-                      {r.year}年度{r.year === 2026 && '（今年）'}
-                    </>
-                  )}
+                  {r.year}年度{r.year === 2026 && '（今年）'}
                 </td>
                 <td data-label="募集頭数">{r.recruitCount}頭</td>
                 <td data-label="1.5次募集に回った馬">{r.leftoverCount}頭</td>
@@ -393,10 +383,6 @@ const description = `1次募集で満口にならなかった馬たちのその�
         </tbody>
       </table>
     </div>
-    <p class="table-note">
-      募集年度はクラブ発表の出所ニュース（会員ログインが必要）へのリンクになっている。
-    </p>
-
     <p>
       このうち2025年度産（今の2歳）はまだデビューが始まったばかりなので、成績の話は
       <strong>2022〜2024年度の{matureCount}頭</strong>でする。
