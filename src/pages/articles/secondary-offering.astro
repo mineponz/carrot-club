@@ -165,6 +165,14 @@ const winRateTest = twoProportionZTest(
 );
 const fmtPct1 = (v: number) => `${v.toFixed(1)}%`;
 
+// ---- 回収率100%超の割合の比較（分母は募集総額が分かる馬。100%超の定義は roi100Rows と同じ） ----
+const pricedLeftover = matureLeftover.filter((h) => roiPctOf(h) !== null);
+const pricedSoldOut = matureSoldOut.filter((h) => roiPctOf(h) !== null);
+const roi100Leftover = pricedLeftover.filter((h) => (roiPctOf(h) as number) > 100).length;
+const roi100SoldOut = pricedSoldOut.filter((h) => (roiPctOf(h) as number) > 100).length;
+const roi100RateLeftoverPct = (100 * roi100Leftover) / pricedLeftover.length;
+const roi100RateSoldOutPct = (100 * roi100SoldOut) / pricedSoldOut.length;
+
 // ---- 今年（2026年度）の1.5次募集対象と、既存の残口データとの整合性 ----
 const remainingRows = remainingSharesRows(horses2026, LOTTERY_STATUS_SNAPSHOTS);
 const remainingIds = Object.keys(remainingSharesByHorseId(remainingRows))
@@ -277,6 +285,17 @@ if (!(winRateTest.p > 0.05)) {
   premiseErrors.push(
     `勝ち上がり率の差が有意になった（${formatP(winRateTest.p)}）。` +
       '「統計的にはっきり出るほど大きくはない」と書いた本文を書き直すこと。'
+  );
+}
+
+// 8b. 回収率100%超の割合が1.5次組と満口組でほぼ同じ（本文が「ほとんど変わらない」と書いている）
+if (roi100Leftover !== roi100Rows.length) {
+  premiseErrors.push('回収率100%超の頭数が、表（roi100Rows）と割合の比較で食い違っている。');
+}
+if (!(Math.abs(roi100RateLeftoverPct - roi100RateSoldOutPct) < 3)) {
+  premiseErrors.push(
+    `回収率100%超の割合に差がついた（1.5次組${fmtPct1(roi100RateLeftoverPct)} / 満口組${fmtPct1(roi100RateSoldOutPct)}）。` +
+      '「ほとんど変わらない」と書いた本文を書き直すこと。'
   );
 }
 
@@ -557,6 +576,12 @@ const description = `1次募集で満口にならなかった馬たちのその�
       </strong>。
       {winRateGapPt.toFixed(1)}ポイントの差だ。ただ、差そのものは統計的にはっきり出るほど大きくはない
       （{formatP(winRateTest.p)}）。母数が少ないので、この差を細かく読み込みすぎないほうがいい。
+    </p>
+    <p>
+      一方で、<strong>募集価格以上に稼いだ馬の割合</strong>で比べると、差はほとんど無くなる。
+      1.5次組が<strong>{fmtPct1(roi100RateLeftoverPct)}（{roi100Leftover}/{pricedLeftover.length}頭）</strong>、
+      1次で満口になった組が<strong>{fmtPct1(roi100RateSoldOutPct)}（{roi100SoldOut}/{pricedSoldOut.length}頭）</strong>。
+      勝ち上がる割合は少し低くても、出資した額以上に稼ぐ「当たり」を引く割合は、1次で人気を集めた馬たちとほぼ同じだった。
     </p>
     <p>
       言い方を変えると、<strong>1.5次募集に回った馬でも半分以上は勝ち上がっている</strong>。
