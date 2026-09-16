@@ -1,0 +1,1685 @@
+---
+/**
+ * 読み物記事「キャロの馬名は、どこから来ているのか」。11本目・読み物区分の1本目。
+ *
+ * 素材はキャロット会員ページ「馬名一覧」（`analysis/data/carrot-horse-names.json`。
+ * 取得手順は vault: 1-projects/carrot-club/notes/20260916-carrot-bamei-list-fetch.md）。
+ * 言語国・馬名の意味/由来が全頭に付くので、由来の区分・言語・文字数をそのまま数えられる。
+ *
+ * ## 対象は2016〜2024年産
+ * 一覧自体は1994年産からあるが、古い世代は命名の作法自体が今と違う。他の記事の母集団
+ * （2017〜2025年募集＝2016〜2024年産）と範囲を揃えてある。
+ *
+ * ## 由来の区分は「由来文に何と書いてあるか」だけで決める
+ * `originOf()`（`src/lib/horse-names.ts`）が「母名」「父名」等のキーワードで4区分する。
+ * 書いていないのに母名から来ている馬（ヘデントール←コルコバードなど）は機械的には拾えないので、
+ * 目視で選んだ実例を `analysis/data/horse-name-implicit-dam-links.json` に持ち、
+ * **割合の計算には入れず**「書いていないけど母から」の節で実例としてだけ出す。
+ *
+ * ## 外国産の母の判定はnetkeibaのIDで行う
+ * 母個体ページの「生産者(産地)」欄は輸入繁殖牝馬だと空になることが多く、欄で判定すると
+ * 外国産の母が丸ごと抜ける。IDが `000a…`（海外登録馬）か、10桁IDの5〜7桁目が `110`
+ * （外国産馬として国内登録）なら外国産（vault: 20260916-netkeiba-id-tells-foreign-bred）。
+ *
+ * ## 本文が置いている前提はビルド時アサーションにしてある
+ * データを取り直して前提が崩れたらビルドを落とす（20260825-assert-article-premises-at-build-time）。
+ */
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import StatTiles from '../../components/charts/StatTiles.astro';
+import BarChart from '../../components/charts/BarChart.astro';
+import ShareBar from '../../components/charts/ShareBar.astro';
+import ChartTooltip from '../../components/charts/ChartTooltip.astro';
+import ArticleToc from '../../components/ArticleToc.astro';
+import MethodsLink from '../../components/MethodsLink.astro';
+import TermLink from '../../components/TermLink.astro';
+import AdSlot from '../../components/AdSlot.astro';
+import implicitJson from '../../../analysis/data/horse-name-implicit-dam-links.json';
+import sireCropJson from '../../../analysis/data/sire-crop-index.json';
+import extraSiresJson from '../../../analysis/data/horse-name-extra-sires.json';
+import {
+  loadHorseNames,
+  joinRecruit,
+  HORSE_NAMES_FETCHED_AT,
+  type HorseNameEntry,
+  type Origin,
+} from '../../lib/horse-names.ts';
+import { loadRecruitsWithResults, type RecruitWithResult } from '../../lib/analysis-data.ts';
+import { formatP, twoProportionZTest } from '../../lib/chart-math.ts';
+
+const FROM_BIRTH_YEAR = 2016;
+const TO_BIRTH_YEAR = 2024;
+
+const horses = loadHorseNames({ fromBirthYear: FROM_BIRTH_YEAR, toBirthYear: TO_BIRTH_YEAR });
+const recruits = loadRecruitsWithResults();
+
+/** 馬名一覧の1頭 → recruits.json の馬（母名＋生年で突き合わせ）。一致しなければ null。 */
+const recruitOf = new Map<HorseNameEntry, RecruitWithResult | null>(
+  horses.map((h) => [h, joinRecruit(h, recruits)])
+);
+
+const total = horses.length;
+const pct = (n: number, d: number) => Math.round((100 * n) / d);
+const countOrigin = (origin: Origin) => horses.filter((h) => h.origin === origin).length;
+
+const damOnly = countOrigin('dam');
+const both = countOrigin('both');
+const sireOnly = countOrigin('sire');
+const other = countOrigin('other');
+const damInvolved = damOnly + both;
+
+const ORIGIN_LABELS: { origin: Origin; label: string; note: string }[] = [
+  { origin: 'dam', label: '母から', note: '母名・母系・母父名など' },
+  { origin: 'both', label: '父と母の両方から', note: '「父名、母名より連想」など' },
+  { origin: 'sire', label: '父から', note: '父名・父系' },
+  { origin: 'other', label: 'どちらでもない', note: '願い・誕生花・毛色など' },
+];
+const originBars = ORIGIN_LABELS.map(({ origin, label, note }) => {
+  const n = countOrigin(origin);
+  return { label, value: n, displayValue: `${n}頭`, note: `${pct(n, total)}%・${note}` };
+});
+
+/**
+ * 各馬の父。`recruits.json` は各年度の1次カタログ掲載馬しか持っておらず、後から番号が振られた馬
+ * （各年度の募集番号の末尾に固まっている42頭）が入っていない。その分はクラブ公式の馬個別ページから
+ * 取った `horse-name-extra-sires.json`（clubIdで引く）で補う。
+ */
+const extraSires = (extraSiresJson as unknown as { sires: Record<string, string> }).sires;
+function sireOf(h: HorseNameEntry): string | null {
+  return recruitOf.get(h)?.sire ?? extraSires[h.clubId] ?? null;
+}
+
+/** 父だけから付いた馬の全リスト（アコーディオン用）。 */
+const sireOnlyRows = horses
+  .filter((h) => h.origin === 'sire')
+  .map((h) => ({ h, sire: sireOf(h) }))
+  .sort((a, b) => b.h.birthYear - a.h.birthYear || a.h.name.localeCompare(b.h.name, 'ja'));
+
+/** 年ごとの「父から」（父のみ＋両方）の頭数。 */
+const birthYears = [...new Set(horses.map((h) => h.birthYear))].sort((a, b) => a - b);
+const byYearRows = birthYears.map((year) => {
+  const ys = horses.filter((h) => h.birthYear === year);
+  const dam = ys.filter((h) => h.origin === 'dam' || h.origin === 'both').length;
+  const sire = ys.filter((h) => h.origin === 'sire').length;
+  return { year, n: ys.length, dam, sire };
+});
+
+// ---- 言語 ----
+const languageCounts = new Map<string, number>();
+for (const h of horses) {
+  const key = h.languageNormalized ?? '記載なし';
+  languageCounts.set(key, (languageCounts.get(key) ?? 0) + 1);
+}
+const languageRanking = [...languageCounts.entries()].sort((a, b) => b[1] - a[1]);
+const TOP_LANGUAGE_COUNT = 8;
+const topLanguages = languageRanking.slice(0, TOP_LANGUAGE_COUNT);
+const tailLanguages = languageRanking.slice(TOP_LANGUAGE_COUNT);
+const tailTotal = tailLanguages.reduce((sum, [, n]) => sum + n, 0);
+const languageKinds = languageRanking.filter(([name]) => name !== '記載なし' && name !== '複数').length;
+/** 1〜2頭しかいない少数派の言語（実例として名前を出す用）。 */
+const rareLanguageNames = tailLanguages
+  .filter(([, n]) => n <= 2)
+  .map(([name]) => name);
+const rareLanguageExamples = rareLanguageNames
+  .map((lang) => {
+    const h = horses.find((x) => x.languageNormalized === lang);
+    return h ? { lang, name: h.name, meaning: h.meaning } : null;
+  })
+  .filter((v): v is { lang: string; name: string; meaning: string } => v !== null);
+
+/**
+ * 言語の内訳グラフ用（上位7区分＋その他）。色は区分に固定で付くので、畳む数を変えない限り
+ * 同じ言語は同じ色になる。7で畳むのは、区分がそれ以上になると隣り合う色を見分けられなくなるため。
+ */
+const SHARE_SLOTS = 7;
+const languageShareSegments = [
+  ...languageRanking.slice(0, SHARE_SLOTS).map(([name, n]) => ({
+    label: name,
+    value: n,
+    displayValue: `${n}頭`,
+  })),
+  {
+    label: `その他${languageRanking.length - SHARE_SLOTS}区分`,
+    value: languageRanking.slice(SHARE_SLOTS).reduce((sum, [, n]) => sum + n, 0),
+    displayValue: `${languageRanking.slice(SHARE_SLOTS).reduce((sum, [, n]) => sum + n, 0)}頭`,
+  },
+];
+/** 3頭以下しかいない言語の馬（アコーディオン用）。少ない言語から並べる。 */
+const rareLanguageHorses = horses
+  .filter(
+    (h) => h.languageNormalized !== null && (languageCounts.get(h.languageNormalized) ?? 0) <= 3
+  )
+  .sort((a, b) => {
+    const ca = languageCounts.get(a.languageNormalized as string) ?? 0;
+    const cb = languageCounts.get(b.languageNormalized as string) ?? 0;
+    return ca - cb || (a.languageNormalized as string).localeCompare(b.languageNormalized as string, 'ja');
+  });
+
+// ---- 文字数 ----
+const lengths = horses.map((h) => h.length);
+const minLength = Math.min(...lengths);
+const maxLength = Math.max(...lengths);
+const lengthBars = Array.from({ length: maxLength - minLength + 1 }, (_, i) => {
+  const len = minLength + i;
+  const n = lengths.filter((l) => l === len).length;
+  return { label: `${len}字`, value: n, displayValue: `${n}`, note: `${pct(n, total)}%` };
+});
+const mostCommonLength = lengthBars.reduce((a, b) => (b.value > a.value ? b : a));
+const nineLetters = horses.filter((h) => h.length === 9).length;
+const shortHorses = horses.filter((h) => h.length <= 3).sort((a, b) => a.length - b.length);
+
+/** 4字以下・9字の馬（アコーディオン用）。 */
+const shortestHorses = horses
+  .filter((h) => h.length <= 4)
+  .sort((a, b) => a.length - b.length || b.birthYear - a.birthYear);
+const nineLetterHorses = horses
+  .filter((h) => h.length === 9)
+  .sort((a, b) => b.birthYear - a.birthYear || a.name.localeCompare(b.name, 'ja'));
+
+/** 言語別の平均文字数（10頭以上いる言語だけ）。 */
+const lengthByLanguage = topLanguages
+  .filter(([name, n]) => name !== '記載なし' && name !== '複数' && n >= 10)
+  .map(([name, n]) => {
+    const ls = horses.filter((h) => h.languageNormalized === name).map((h) => h.length);
+    return { name, n, mean: ls.reduce((a, b) => a + b, 0) / ls.length };
+  })
+  .sort((a, b) => b.mean - a.mean);
+
+// ---- 「どちらでもない」名前に何が書かれているか ----
+/**
+ * 由来文に何が書かれているかの目印。**由来の区分（origin）とは別**で、1頭が複数に当たりうる
+ * （「本馬の毛色より連想。活躍を願って」など）。割合の合計は100%にならない。
+ */
+const OTHER_TOPICS: { label: string; re: RegExp; note: string }[] = [
+  {
+    label: '願い・期待だけ',
+    re: /願って|願い|期待して|ように|欲しい|ますように|イメージして/,
+    note: '「活躍を願って」など',
+  },
+  {
+    label: '誕生花・誕生石・誕生日・星座',
+    re: /誕生花|誕生石|誕生日|生まれ月|星座|生年月日/,
+    note: 'その馬が生まれた日から',
+  },
+  { label: '毛色・見た目', re: /毛色|流星|額|鹿毛|芦毛|栗毛|青毛|鬣/, note: '毛の色や顔の模様から' },
+];
+const otherHorses = horses.filter((h) => h.origin === 'other');
+const damOnlyHorses = horses.filter((h) => h.origin === 'dam');
+const otherTopicRows = OTHER_TOPICS.map((t) => {
+  const inOther = otherHorses.filter((h) => t.re.test(h.meaning));
+  const inDam = damOnlyHorses.filter((h) => t.re.test(h.meaning));
+  return {
+    label: t.label,
+    note: t.note,
+    n: inOther.length,
+    otherPct: (100 * inOther.length) / otherHorses.length,
+    damPct: (100 * inDam.length) / damOnlyHorses.length,
+    examples: inOther.slice(0, 2).map((h) => h.name),
+    // 表には例だけ出し、全頭は由来つきで折りたたみに入れる（本人指摘・2026-09-16）。
+    horses: [...inOther].sort((a, b) => b.birthYear - a.birthYear || a.name.localeCompare(b.name, 'ja')),
+  };
+});
+const wishRow = otherTopicRows[0];
+
+// ---- 母と仔の言語 ----
+/** 母がキャロ所属馬で、母・仔とも言語が分かる組だけを見る。 */
+const langPairs = horses.filter((h) => h.damLanguage !== null && h.languageNormalized !== null);
+const damDerivedPairs = langPairs.filter((h) => h.origin === 'dam' || h.origin === 'both');
+const otherPairs = langPairs.filter((h) => h.origin === 'sire' || h.origin === 'other');
+
+function matchStats(rows: HorseNameEntry[]) {
+  const n = rows.length;
+  const matched = rows.filter((h) => h.damLanguage === h.languageNormalized).length;
+  // 偶然そろう目安＝母側の言語比率×仔側の言語比率の和（周辺分布の積）
+  const damShare = new Map<string, number>();
+  const foalShare = new Map<string, number>();
+  for (const h of rows) {
+    damShare.set(h.damLanguage as string, (damShare.get(h.damLanguage as string) ?? 0) + 1);
+    foalShare.set(h.languageNormalized as string, (foalShare.get(h.languageNormalized as string) ?? 0) + 1);
+  }
+  let chance = 0;
+  for (const [lang, c] of damShare) chance += (c / n) * ((foalShare.get(lang) ?? 0) / n);
+  return { n, matched, matchPct: (100 * matched) / n, chancePct: 100 * chance, foalShare };
+}
+const damMatch = matchStats(damDerivedPairs);
+const otherMatch = matchStats(otherPairs);
+
+/** 母の言語別（母名由来の組のみ・5頭以上）。 */
+const damLanguageRows = [...new Set(damDerivedPairs.map((h) => h.damLanguage as string))]
+  .map((lang) => {
+    const rows = damDerivedPairs.filter((h) => h.damLanguage === lang);
+    const same = rows.filter((h) => h.languageNormalized === lang).length;
+    const overall = (damMatch.foalShare.get(lang) ?? 0) / damMatch.n;
+    return { lang, n: rows.length, same, samePct: (100 * same) / rows.length, overallPct: 100 * overall };
+  })
+  // 「複数」（2言語を並べた表記）は言語同士の対応を見る話に混ぜられないので出さない。
+  .filter((r) => r.n >= 5 && r.lang !== '複数')
+  .sort((a, b) => b.n - a.n);
+
+/**
+ * 母の言語ごとの、言語が一致した母子の組（アコーディオン用）。
+ * 上の表（`damLanguageRows`）は5組以上の言語だけに絞っているが、こちらは
+ * **一致した組をすべて**含める（summaryに「{damMatch.matched}組をすべて見る」と書くため。
+ * 表と同じ絞り込みにすると数が合わず、下のアサーションで落ちる）。
+ */
+const matchedPairGroups = [
+  ...new Set(
+    damDerivedPairs
+      .filter((h) => h.damLanguage === h.languageNormalized)
+      .map((h) => h.damLanguage as string)
+  ),
+]
+  .map((lang) => ({
+    lang,
+    pairs: damDerivedPairs
+      .filter((h) => h.damLanguage === lang && h.languageNormalized === lang)
+      .sort((a, b) => b.birthYear - a.birthYear),
+  }))
+  .sort((a, b) => b.pairs.length - a.pairs.length || a.lang.localeCompare(b.lang, 'ja'));
+
+// ---- 同じ母の「名前シリーズ」 ----
+/**
+ * 「名前シリーズ」に出す母。仔が4頭以上いて、言語か題材が揃っている母を目視で選んだ
+ * （グリューヴァインは題材がワインで一貫しているが言語が独伊仏に割れるので表には出さない）。
+ */
+const SERIES_DAMS = ['バイラオーラ', 'エスティタート', 'ベルディーヴァ', 'ペルレンケッテ'];
+const nameSeries = SERIES_DAMS.map((dam) => {
+  const foals = horses
+    .filter((h) => h.damName === dam)
+    .sort((a, b) => a.birthYear - b.birthYear);
+  const counts = new Map<string, number>();
+  for (const f of foals) {
+    const key = f.languageNormalized ?? '記載なし';
+    counts.set(key, (counts.get(key) ?? 0) + 1);
+  }
+  const [topLang, topCount] = [...counts.entries()].sort((a, b) => b[1] - a[1])[0] ?? ['', 0];
+  return { dam, foals, topLang, topCount };
+});
+
+/** 仔が3頭以上いる母のシリーズ全件（アコーディオン用）。仔の多い順。 */
+const allSeries = [...new Set(horses.map((h) => h.damName).filter((d): d is string => d !== null))]
+  .map((dam) => {
+    const foals = horses.filter((h) => h.damName === dam).sort((a, b) => a.birthYear - b.birthYear);
+    const counts = new Map<string, number>();
+    for (const f of foals) {
+      const key = f.languageNormalized ?? '記載なし';
+      counts.set(key, (counts.get(key) ?? 0) + 1);
+    }
+    const [topLang, topCount] = [...counts.entries()].sort((a, b) => b[1] - a[1])[0] ?? ['', 0];
+    return { dam, foals, topLang, topCount };
+  })
+  .filter((s) => s.foals.length >= 3)
+  .sort((a, b) => b.foals.length - a.foals.length || b.topCount - a.topCount);
+
+// ---- 書いていないけど母から来ている名前 ----
+interface ImplicitLink {
+  birthYear: number;
+  name: string;
+  dam: string;
+  how: string;
+}
+const implicitFile = implicitJson as unknown as { links: ImplicitLink[] };
+const implicitLinks = implicitFile.links;
+/** 本文で見出しに出す6頭（読んで面白い順に手で選んだもの）。 */
+const IMPLICIT_HIGHLIGHT = [
+  'ヘデントール',
+  'マルシュロレーヌ',
+  'カテドラル',
+  'ダイオジェナイト',
+  'シラーヴァイン',
+  'ヴァルチャースター',
+];
+const implicitHighlights = IMPLICIT_HIGHLIGHT.map((name) => {
+  const link = implicitLinks.find((l) => l.name === name);
+  const entry = horses.find((h) => h.name === name);
+  return link && entry ? { ...link, meaning: entry.meaning, language: entry.languageNormalized } : null;
+}).filter((v): v is ImplicitLink & { meaning: string; language: string | null } => v !== null);
+
+// ---- 母が外国産かどうか ----
+/** netkeibaの馬IDで外国産（海外登録・外国産馬）かを判定する。判定できなければ null。 */
+function isForeignDam(damUrl: string | null | undefined): boolean | null {
+  const m = /\/horse\/([0-9a-z]+)\//.exec(damUrl ?? '');
+  if (!m) return null;
+  const id = m[1];
+  if (id.startsWith('000a')) return true;
+  if (/^\d{10}$/.test(id)) return id.slice(4, 7) === '110';
+  return null;
+}
+const foreignDamHorses: HorseNameEntry[] = [];
+const domesticDamHorses: HorseNameEntry[] = [];
+let damOriginUnknown = 0;
+for (const h of horses) {
+  const foreign = isForeignDam(recruitOf.get(h)?.damUrl);
+  if (foreign === null) damOriginUnknown += 1;
+  else if (foreign) foreignDamHorses.push(h);
+  else domesticDamHorses.push(h);
+}
+function languageShare(rows: HorseNameEntry[], lang: string) {
+  return (100 * rows.filter((h) => h.languageNormalized === lang).length) / rows.length;
+}
+const DAM_ORIGIN_LANGUAGES = ['英語', '西語', '仏語', '伊語', '独語'];
+const damOriginRows = DAM_ORIGIN_LANGUAGES.map((lang) => ({
+  lang,
+  foreign: languageShare(foreignDamHorses, lang),
+  domestic: languageShare(domesticDamHorses, lang),
+}));
+/** 「母の生産国／母国／故郷より」と書かれた馬。 */
+const homelandHorses = horses.filter((h) => /母の(生産国|母国|故郷)|母馬の生産国/.test(h.meaning));
+const homelandForeign = homelandHorses.filter((h) => isForeignDam(recruitOf.get(h)?.damUrl) === true);
+/** 母が国内産と判定された馬（0頭であることが本文の前提）。母をたどれない馬はどちらにも入らない。 */
+const homelandDomestic = homelandHorses.filter((h) => isForeignDam(recruitOf.get(h)?.damUrl) === false);
+
+// ---- 父の何世代目か ----
+interface SireCropRow {
+  recruitYear: number;
+  no: string;
+  sire: string | null;
+  cropIndex: number | null;
+  effectiveCropIndex: number | null;
+}
+const sireCropRows = sireCropJson as unknown as SireCropRow[];
+const sireCropByKey = new Map(sireCropRows.map((r) => [`${r.recruitYear}|${r.no}`, r]));
+function cropOf(h: HorseNameEntry): SireCropRow | null {
+  const r = recruitOf.get(h);
+  return r ? (sireCropByKey.get(`${r.recruitYear}|${r.no}`) ?? null) : null;
+}
+const CROP_BUCKETS: { key: 'first' | 'second' | 'later'; label: string }[] = [
+  { key: 'first', label: '1世代目' },
+  { key: 'second', label: '2世代目' },
+  { key: 'later', label: '3世代目以降' },
+];
+const cropGroups = new Map<'first' | 'second' | 'later', HorseNameEntry[]>([
+  ['first', []],
+  ['second', []],
+  ['later', []],
+]);
+let cropUnknown = 0;
+for (const h of horses) {
+  const index = cropOf(h)?.effectiveCropIndex ?? null;
+  if (index === null) cropUnknown += 1;
+  else if (index === 1) cropGroups.get('first')?.push(h);
+  else if (index === 2) cropGroups.get('second')?.push(h);
+  else cropGroups.get('later')?.push(h);
+}
+const cropRows = CROP_BUCKETS.map(({ key, label }) => {
+  const rows = cropGroups.get(key) as HorseNameEntry[];
+  const sire = rows.filter((h) => h.origin === 'sire').length;
+  const sireInvolved = rows.filter((h) => h.origin === 'sire' || h.origin === 'both').length;
+  return { key, label, n: rows.length, sire, sireInvolved, sirePct: (100 * sire) / rows.length };
+});
+const firstCrop = cropRows[0];
+const laterCrop = cropRows[2];
+const cropTest = twoProportionZTest(firstCrop.sire, firstCrop.n, laterCrop.sire, laterCrop.n);
+const cropBars = cropRows.map((r) => ({
+  label: r.label,
+  value: Math.round(r.sirePct * 10) / 10,
+  displayValue: `${r.sirePct.toFixed(1)}%`,
+  n: r.n,
+}));
+/**
+ * 年ごとの「実質1世代目」と「3世代目以降」の父だけ由来。
+ * 全体の差が特定の年に偏っていないかを読者にも確かめてもらうための内訳。
+ */
+const cropByYearRows = birthYears.map((year) => {
+  const pick = (k: 'first' | 'later') =>
+    (cropGroups.get(k) as HorseNameEntry[]).filter((h) => h.birthYear === year);
+  const f = pick('first');
+  const l = pick('later');
+  return {
+    year,
+    firstN: f.length,
+    firstSire: f.filter((h) => h.origin === 'sire').length,
+    laterN: l.length,
+    laterSire: l.filter((h) => h.origin === 'sire').length,
+  };
+});
+/** 指定した年を除いたときの比較（差が1年に依存していないかの確認）。 */
+function cropRateExcluding(years: number[]) {
+  const f = (cropGroups.get('first') as HorseNameEntry[]).filter((h) => !years.includes(h.birthYear));
+  const l = (cropGroups.get('later') as HorseNameEntry[]).filter((h) => !years.includes(h.birthYear));
+  const fs = f.filter((h) => h.origin === 'sire').length;
+  const ls = l.filter((h) => h.origin === 'sire').length;
+  return {
+    fs,
+    fn: f.length,
+    ls,
+    ln: l.length,
+    fp: (100 * fs) / f.length,
+    lp: (100 * ls) / l.length,
+    test: twoProportionZTest(fs, f.length, ls, l.length),
+  };
+}
+/** 1世代目の父だけ由来率がいちばん高い年（母数3頭以上の年から選ぶ）。 */
+const topCropYear = cropByYearRows
+  .filter((r) => r.firstN >= 3)
+  .reduce((a, b) => (b.firstSire / b.firstN > a.firstSire / a.firstN ? b : a));
+const cropExclTop = cropRateExcluding([topCropYear.year]);
+
+/** 初年度産駒で父名由来の実例（父ごとに1頭）。 */
+const firstCropSireExamples = (() => {
+  const seen = new Set<string>();
+  const rows: { name: string; sire: string; meaning: string }[] = [];
+  for (const h of cropGroups.get('first') as HorseNameEntry[]) {
+    if (h.origin !== 'sire') continue;
+    const sire = cropOf(h)?.sire ?? sireOf(h) ?? '';
+    if (!sire || seen.has(sire)) continue;
+    seen.add(sire);
+    rows.push({ name: h.name, sire, meaning: h.meaning });
+  }
+  return rows;
+})();
+
+/** 実質1世代目で父が絡む馬の全リスト（アコーディオン用）。 */
+const firstCropSireAll = (cropGroups.get('first') as HorseNameEntry[])
+  .filter((h) => h.origin === 'sire' || h.origin === 'both')
+  .map((h) => ({ h, sire: cropOf(h)?.sire ?? sireOf(h) ?? '—' }))
+  .sort((a, b) => b.h.birthYear - a.h.birthYear || a.h.name.localeCompare(b.h.name, 'ja'));
+
+// ---- 重賞を勝った馬 ----
+const gradeWinners = horses
+  .map((h) => ({ h, r: recruitOf.get(h) }))
+  .filter((x): x is { h: HorseNameEntry; r: RecruitWithResult } => !!x.r && x.r.gradeWins.length > 0);
+const gradeOriginCounts = ORIGIN_LABELS.map(({ origin, label }) => ({
+  label,
+  n: gradeWinners.filter((g) => g.h.origin === origin).length,
+}));
+const gradeDamInvolved = gradeWinners.filter(
+  (g) => g.h.origin === 'dam' || g.h.origin === 'both'
+).length;
+/** 記事に出す重賞馬（G1勝ちを優先し、由来の書き方が面白いものを頭数を絞って出す）。 */
+const GRADE_HIGHLIGHT = ['サートゥルナーリア', 'エフフォーリア', 'タスティエーラ', 'レイパパレ', 'ドゥレッツァ', 'ザダル'];
+const gradeHighlights = GRADE_HIGHLIGHT.map((name) => gradeWinners.find((g) => g.h.name === name)).filter(
+  (v): v is { h: HorseNameEntry; r: RecruitWithResult } => v !== undefined
+);
+
+/** 本文の表に出していない「書いていないけど母から」の残り（アコーディオン用）。 */
+const implicitRest = implicitLinks
+  .filter((l) => !IMPLICIT_HIGHLIGHT.includes(l.name))
+  .sort((a, b) => b.birthYear - a.birthYear || a.name.localeCompare(b.name, 'ja'));
+/** 重賞馬の全リスト（アコーディオン用）。獲得賞金の多い順。 */
+const gradeRows = [...gradeWinners].sort((a, b) => b.r.totalPrizeManYen - a.r.totalPrizeManYen);
+
+/** 「どちらでもない」グループの言語・文字数（他のグループと変わらないことを示す用）。 */
+const otherEnglishPct = (100 * otherHorses.filter((h) => h.languageNormalized === '英語').length) / otherHorses.length;
+const allEnglishPct = (100 * (languageCounts.get('英語') ?? 0)) / total;
+const otherMeanLength = otherHorses.reduce((sum, h) => sum + h.length, 0) / otherHorses.length;
+const allMeanLength = lengths.reduce((sum, l) => sum + l, 0) / lengths.length;
+
+// ---- 本文が置いている前提のビルド時アサーション ----
+const premiseErrors: string[] = [];
+const require = (ok: boolean, message: string) => {
+  if (!ok) premiseErrors.push(message);
+};
+
+/** リードで「母名から取った」と書いている馬（この記事の書き手が命名した馬）。 */
+const leadHorse = horses.find((h) => h.name === 'スイートリディア');
+require(
+  leadHorse?.origin === 'dam',
+  `スイートリディアが母名由来の区分から外れた（${leadHorse?.origin ?? '該当なし'}）。リードの命名エピソードを書き直すこと。`
+);
+require(
+  total >= 800 && total <= 900,
+  `対象頭数が想定の範囲（800〜900頭）から外れた（${total}頭）。リードと「データについて」の頭数を確認すること。`
+);
+require(
+  pct(damInvolved, total) >= 70,
+  `由来に母が出てくる馬の割合が7割を切った（${pct(damInvolved, total)}%）。「4頭に3頭」と書いた本文を書き直すこと。`
+);
+require(
+  damOnly > other && other > both && both > sireOnly,
+  `由来4区分の多い順が変わった（母のみ${damOnly}・両方${both}・父のみ${sireOnly}・どちらでもない${other}）。本文の並びと文章を直すこと。`
+);
+require(
+  sireOnly < damOnly / 5,
+  `「父から」が「母から」の5分の1以上になった（父${sireOnly}頭 / 母${damOnly}頭）。「父だけは1割に満たない」と書いた本文を直すこと。`
+);
+// 父だけ由来の表は全頭に父名が入っている状態を保つ（recruits.json に無い馬は
+// horse-name-extra-sires.json で補っている。新しい馬が増えたらそちらにも足すこと）。
+const sireUnknownCount = sireOnlyRows.filter((r) => r.sire === null).length;
+require(
+  sireUnknownCount === 0,
+  `父だけ由来の表に父が分からない馬がいる（${sireOnlyRows.length}頭中${sireUnknownCount}頭: ${sireOnlyRows
+    .filter((r) => r.sire === null)
+    .map((r) => r.h.name)
+    .join('、')}）。analysis/data/horse-name-extra-sires.json に父を足すこと。`
+);
+require(
+  wishRow.otherPct > wishRow.damPct * 2,
+  `「どちらでもない」で願い・期待だけの名前が多い傾向が弱まった（${wishRow.otherPct.toFixed(0)}% / 母から付けた馬では${wishRow.damPct.toFixed(0)}%）。この節を書き直すこと。`
+);
+require(
+  Math.abs(otherEnglishPct - allEnglishPct) <= 10 && Math.abs(otherMeanLength - allMeanLength) <= 0.5,
+  `「どちらでもない」の言語・文字数が全体から離れた（英語${otherEnglishPct.toFixed(0)}%/全体${allEnglishPct.toFixed(0)}%・平均${otherMeanLength.toFixed(2)}字/全体${allMeanLength.toFixed(2)}字）。「変わらない」と書いた本文を直すこと。`
+);
+require(
+  languageShareSegments.reduce((sum, s) => sum + s.value, 0) === total,
+  `言語グラフの合計（${languageShareSegments.reduce((sum, s) => sum + s.value, 0)}頭）が対象頭数（${total}頭）と合わない。`
+);
+require(
+  languageKinds >= 30,
+  `言語の種類が30を切った（${languageKinds}種）。「30種類以上」と書いた見出し・本文を直すこと。`
+);
+require(
+  mostCommonLength.label === '7字' && nineLetters > 0,
+  `文字数の最頻値が7字でなくなった（${mostCommonLength.label}）。文字数の節を書き直すこと。`
+);
+require(
+  damMatch.matchPct > damMatch.chancePct + 20,
+  `母と仔の言語一致率が偶然の目安に近づいた（一致${damMatch.matchPct.toFixed(1)}% / 目安${damMatch.chancePct.toFixed(1)}%）。「母の言語に寄る」と書いた本文を書き直すこと。`
+);
+require(
+  matchedPairGroups.reduce((sum, g) => sum + g.pairs.length, 0) === damMatch.matched,
+  `折りたたみに出している母子の組（${matchedPairGroups.reduce((sum, g) => sum + g.pairs.length, 0)}組）が、本文の一致数（${damMatch.matched}組）と合わない。matchedPairGroupsの作り方を直すこと。`
+);
+require(
+  damMatch.matchPct > otherMatch.matchPct,
+  `母名由来の組より、母名由来でない組のほうが言語一致率が高くなった（${damMatch.matchPct.toFixed(1)}% / ${otherMatch.matchPct.toFixed(1)}%）。この節を書き直すこと。`
+);
+for (const s of nameSeries) {
+  require(
+    s.foals.length >= 4,
+    `${s.dam}の仔が4頭未満になった（${s.foals.length}頭）。「名前シリーズ」の母を選び直すこと。`
+  );
+  require(
+    s.topCount / s.foals.length >= 0.6,
+    `${s.dam}の仔の言語がばらけた（${s.topLang}が${s.foals.length}頭中${s.topCount}頭）。「シリーズになる」と書いた本文を直すこと。`
+  );
+}
+require(
+  implicitHighlights.length === IMPLICIT_HIGHLIGHT.length,
+  `「書いていないけど母から」の実例が揃わない（${implicitHighlights.map((l) => l.name).join('、')}）。horse-name-implicit-dam-links.json と本文を確認すること。`
+);
+for (const l of implicitHighlights) {
+  const entry = horses.find((h) => h.name === l.name);
+  require(
+    entry?.origin === 'other',
+    `${l.name}が由来文で母名由来と判定されるようになった。「書いていないけど母から」の実例から外すこと。`
+  );
+}
+require(
+  foreignDamHorses.length >= 150,
+  `外国産の母を持つ馬が想定より少ない（${foreignDamHorses.length}頭）。ID判定（000a / 110）が効いているか確認すること。`
+);
+require(
+  languageShare(foreignDamHorses, '英語') > languageShare(domesticDamHorses, '英語'),
+  `外国産の母の仔で英語が多い傾向が消えた（外国産${languageShare(foreignDamHorses, '英語').toFixed(1)}% / 国内産${languageShare(domesticDamHorses, '英語').toFixed(1)}%）。この節を書き直すこと。`
+);
+require(
+  homelandDomestic.length === 0 && homelandHorses.length >= 8,
+  `「母の生産国より」の馬に国内産の母が混ざった、または頭数が減った（全${homelandHorses.length}頭 / 外国産${homelandForeign.length}頭 / 国内産${homelandDomestic.length}頭）。この節を書き直すこと。`
+);
+require(
+  cropExclTop.fp > cropExclTop.lp,
+  `いちばん高い年（${topCropYear.year}年産）を除くと1世代目の父名由来率が3世代目以降を下回った（${cropExclTop.fp.toFixed(1)}% / ${cropExclTop.lp.toFixed(1)}%）。「特定の年に寄っているが向きは同じ」と書いた本文を書き直すこと。`
+);
+require(
+  firstCrop.sirePct > laterCrop.sirePct * 2 && cropTest.p < 0.05,
+  `初年度産駒で父名由来が多い傾向が弱まった（1世代目${firstCrop.sirePct.toFixed(1)}% / 3世代目以降${laterCrop.sirePct.toFixed(1)}%・${formatP(cropTest.p)}）。父の世代の節を書き直すこと。`
+);
+require(
+  firstCropSireExamples.some((e) => e.name === 'ゾネブルーム') &&
+    firstCropSireExamples.some((e) => e.name === 'ロックターミガン'),
+  '初年度産駒の実例からゾネブルーム／ロックターミガンが外れた。父の世代の節の実例を選び直すこと。'
+);
+require(
+  gradeWinners.length >= 30,
+  `重賞を勝った馬が想定より少ない（${gradeWinners.length}頭）。重賞の節を書き直すこと。`
+);
+require(
+  Math.abs(pct(gradeDamInvolved, gradeWinners.length) - pct(damInvolved, total)) <= 12,
+  `重賞馬の由来の内訳が全体と離れた（重賞${pct(gradeDamInvolved, gradeWinners.length)}% / 全体${pct(damInvolved, total)}%）。「全体と変わらない」と書いた本文を直すこと。`
+);
+require(
+  gradeHighlights.length === GRADE_HIGHLIGHT.length,
+  `重賞馬の実例が揃わない（${gradeHighlights.map((g) => g.h.name).join('、')}）。重賞の節の実例を選び直すこと。`
+);
+
+if (premiseErrors.length > 0) {
+  throw new Error(`馬名記事の前提が崩れた:\n- ${premiseErrors.join('\n- ')}`);
+}
+
+// 広告コードは他の記事と同じもの（vault: 20260821-article-ad-embed-snippets）
+const AD_SP_WIDE_A = 'f81bbb016a82d6366a0e2f70051b1a0c';
+const AD_SP_WIDE_B = 'b4b7d55c89d5fc92c564979491a16ad1';
+const AD_SP_RECT = '24e3e1a24f40d88ee1a0ca315c54a7b9';
+const AD_PC_WIDE_A = 'f0efb5bd6ae3e164bb584a4dbb846f48';
+const AD_PC_WIDE_B = '0a525f6469ec1f40642b4550e53d39cc';
+
+const yearRangeLabel = `${FROM_BIRTH_YEAR}〜${TO_BIRTH_YEAR}年`;
+const description =
+  '募集馬の名前は誰から来ているのか。クラブが公開している「馬名の意味・由来」を全頭ぶん読んで数えた。母から付く馬が3頭に2頭、言語は30種類以上。母が独語なら仔も独語、父の初年度産駒は父から。';
+---
+
+<BaseLayout
+  title="キャロの馬名は、どこから来ているのか"
+  description={description}
+  breadcrumb={[
+    { label: '記事一覧', href: '/articles/' },
+    { label: 'キャロの馬名は、どこから来ているのか', href: '/articles/horse-names/' },
+  ]}
+  showHeaderNotices={false}
+  ogImage="/og-article-horse-names-v1.png"
+  ogImageAlt="読み物「キャロの馬名は、どこから来ているのか」のカード画像（【非公式】キャロットクラブ出資馬検討ツール）"
+>
+  <article>
+    <h1>キャロの馬名は、どこから来ているのか</h1>
+
+    <p>
+      出資した馬に名前が付く日は、ちょっとしたイベントだ。応募した名前が採用されたかどうか、
+      外れたとしてもどんな名前になったのか。発表を待つ時間は、抽選の結果を待つのとはまた別の楽しさがある。
+    </p>
+    <p>
+      私が初めて命名書をもらったのは<a href="/my-horses/sweet-lydia/">スイートリディア</a>だった。
+      応募のときに意識したのは2つで、母クラシックリディアの名前から取ることと、
+      検索に引っかかりやすい単語にすること。あとで愛馬の名前を検索したときに探しやすいほうがいい、
+      という理由だ。前者はどうやら、多数派の付け方だったらしい。
+    </p>
+    <p>
+      クラブの会員ページには「馬名一覧」があって、全頭ぶんの言語と、馬名の意味・由来が載っている。
+      {yearRangeLabel}生まれの{total}頭ぶんを1頭ずつ読んで、数えてみた。
+    </p>
+    <p>
+      結論から書く。<strong>4頭に3頭は、由来に母が出てくる</strong>。父の名前だけから付いた馬は1割に満たない。
+      言語は英語がおよそ半分で、残りは{languageKinds}種類に散らばる。そして母の名前から付けるとき、
+      <strong>母と同じ言語が選ばれやすい</strong>。
+    </p>
+
+    <StatTiles
+      tiles={[
+        { label: '読んだ馬名', value: `${total}頭`, note: `${yearRangeLabel}生まれ` },
+        { label: '由来に母が出てくる', value: `${pct(damInvolved, total)}%`, note: `${damInvolved}頭` },
+        { label: '父だけから', value: `${pct(sireOnly, total)}%`, note: `${sireOnly}頭` },
+        { label: '言語の種類', value: `${languageKinds}種`, note: `英語が${pct(languageCounts.get('英語') ?? 0, total)}%` },
+        { label: 'いちばん多い文字数', value: mostCommonLength.label, note: `${mostCommonLength.value}頭` },
+      ]}
+    />
+
+    <ArticleToc />
+    <MethodsLink />
+
+    <AdSlot sp={AD_SP_WIDE_A} pc={AD_PC_WIDE_A} />
+
+    <h2>名前の出どころは、圧倒的に母</h2>
+    <p>
+      由来の文に何と書かれているかで、4つに分けた。「母名より連想」と書いてあれば母、
+      「父名より連想」なら父、両方書いてあれば両方、どちらも出てこなければ「どちらでもない」。
+      母には母名だけでなく、母母名・母父名・母系（牝系）・「母の生産国より」も含めている。
+    </p>
+
+    <BarChart title={`馬名の由来（${yearRangeLabel}生まれ・${total}頭）`} bars={originBars} valueLabel="頭数" noteLabel="内訳" />
+
+    <p>
+      <strong>母から{damOnly}頭（{pct(damOnly, total)}%）</strong>に対して、
+      <strong>父だけからは{sireOnly}頭（{pct(sireOnly, total)}%）</strong>。
+      両方を挙げている{both}頭を母側に足すと{damInvolved}頭になる。
+      名付けの中心が母にあるのは、一口馬主なら肌感覚で分かっていることだと思うが、
+      数えるとここまではっきりしている。
+    </p>
+    <p>
+      父から付いた馬は少ないぶん、印象に残るものが多い。
+      ゾネブルーム（ひまわり）は父ヴァンゴッホから。ロックターミガン（雷鳥）は父シスキン――
+      シスキンは鳥のマヒワなので、鳥から鳥へ渡している。
+    </p>
+
+    <details class="more-examples">
+      <summary>父だけから付いた{sireOnly}頭をすべて見る</summary>
+      <div class="table-scroll">
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>生年</th>
+              <th>馬名</th>
+              <th>父</th>
+              <th>馬名の意味・由来</th>
+            </tr>
+          </thead>
+          <tbody>
+            {
+              sireOnlyRows.map(({ h, sire }) => (
+                <tr>
+                  <td data-label="生年">{h.birthYear}年</td>
+                  <td data-label="馬名">{h.name}</td>
+                  <td data-label="父">{sire ?? '—'}</td>
+                  <td data-label="馬名の意味・由来">{h.meaning}</td>
+                </tr>
+              ))
+            }
+          </tbody>
+        </table>
+      </div>
+    </details>
+
+    <div class="table-scroll">
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>生年</th>
+            <th>頭数</th>
+            <th>母から（両方を含む）</th>
+            <th>父だけから</th>
+          </tr>
+        </thead>
+        <tbody>
+          {
+            byYearRows.map((r) => (
+              <tr>
+                <td data-label="生年">{r.year}年</td>
+                <td data-label="頭数">{r.n}頭</td>
+                <td data-label="母から（両方を含む）">{r.dam}頭</td>
+                <td data-label="父だけから">{r.sire}頭</td>
+              </tr>
+            ))
+          }
+        </tbody>
+      </table>
+    </div>
+    <p class="table-note">
+      年ごとの上下はあるが、母が中心という形はどの世代でも変わらない。
+    </p>
+
+    <h2>書いていないけど、母から来ている名前</h2>
+    <p>
+      ここで少し注意がいる。上の数字は「由来文に母名と書いてあるか」で数えたものだ。
+      書いていないのに、読むと母の名前とつながっている馬がかなりいる。
+    </p>
+
+    <div class="table-scroll">
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>馬名</th>
+            <th>母</th>
+            <th>つながり</th>
+          </tr>
+        </thead>
+        <tbody>
+          {
+            implicitHighlights.map((l) => (
+              <tr>
+                <td data-label="馬名">{l.name}</td>
+                <td data-label="母">{l.dam}</td>
+                <td data-label="つながり">{l.how}</td>
+              </tr>
+            ))
+          }
+        </tbody>
+      </table>
+    </div>
+
+    <p>
+      天皇賞・春を勝ったヘデントールは「救世主」で、由来文には母の名前が出てこない。
+      だが母はコルコバードで、リオデジャネイロのコルコバードの丘にはキリスト像が立っている。
+      母の名前の由来もその丘だ。名前が2代でつながっている。
+    </p>
+    <p>
+      こうした馬を目で拾うと{implicitLinks.length}頭見つかった。
+      数字のほうには入れていないので、<strong>実際に母から来ている名前は{pct(damInvolved, total)}%より多い</strong>ということになる。
+    </p>
+
+    <details class="more-examples">
+      <summary>残りの{implicitRest.length}頭も見る</summary>
+      <div class="table-scroll">
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>生年</th>
+              <th>馬名</th>
+              <th>母</th>
+              <th>つながり</th>
+            </tr>
+          </thead>
+          <tbody>
+            {
+              implicitRest.map((l) => (
+                <tr>
+                  <td data-label="生年">{l.birthYear}年</td>
+                  <td data-label="馬名">{l.name}</td>
+                  <td data-label="母">{l.dam}</td>
+                  <td data-label="つながり">{l.how}</td>
+                </tr>
+              ))
+            }
+          </tbody>
+        </table>
+      </div>
+      <p class="table-note">
+        由来文に母名と書かれていないものを目で拾ったもので、機械的に数えたものではない。
+      </p>
+    </details>
+
+    <h2>母からも父からも離れると、馬自身の話になる</h2>
+    <p>
+      では、どちらの名前も使わなかった{other}頭は何から付けているのか。由来文に出てくる要素を数えると、
+      母から付けた{damOnly}頭とはっきり違うところがあった。
+    </p>
+
+    <div class="table-scroll">
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>由来文に出てくるもの</th>
+            <th>どちらでもない{other}頭</th>
+            <th>母から付けた{damOnly}頭</th>
+            <th>例</th>
+          </tr>
+        </thead>
+        <tbody>
+          {
+            otherTopicRows.map((r) => (
+              <tr>
+                <td data-label="由来文に出てくるもの">
+                  {r.label}
+                  <span class="cell-note">{r.note}</span>
+                </td>
+                <td data-label="どちらでもない">
+                  <strong>{r.otherPct.toFixed(0)}%</strong>（{r.n}頭）
+                </td>
+                <td data-label="母から付けた馬">{r.damPct.toFixed(0)}%</td>
+                <td data-label="例">{r.examples.join('、')}</td>
+              </tr>
+            ))
+          }
+        </tbody>
+      </table>
+    </div>
+    <p class="table-note">1頭が複数に当てはまることがあるので、合計は100%にならない。</p>
+
+    {
+      otherTopicRows.map((r) => (
+        <details class="more-examples">
+          <summary>
+            {r.label}の{r.n}頭を由来つきで見る
+          </summary>
+          <div class="table-scroll">
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th>生年</th>
+                  <th>馬名</th>
+                  <th>馬名の意味・由来</th>
+                </tr>
+              </thead>
+              <tbody>
+                {r.horses.map((h) => (
+                  <tr>
+                    <td data-label="生年">{h.birthYear}年</td>
+                    <td data-label="馬名">{h.name}</td>
+                    <td data-label="馬名の意味・由来">{h.meaning}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </details>
+      ))
+    }
+
+    <p>
+      いちばん差が出るのが<strong>「願い」だけで付けた名前</strong>だ。
+      血統の言葉を使わない代わりに、速さや強さ、活躍してほしいという気持ちがそのまま名前になる。
+      次に多いのが<strong>誕生花・誕生石・星座</strong>、そして<strong>毛色や顔の流星</strong>。
+      どれも<strong>その馬自身から取った名前</strong>で、母から付けるときにはほとんど出てこない要素だ。
+    </p>
+    <p>
+      逆に言うと、名前の出どころは「血統からもらう」か「その馬を見て決める」かの二択に近い。
+      母の名前を使わなかった分を、生まれた日や毛色、送り出す側の願いが埋めている。
+    </p>
+    <p>
+      なお、言語と文字数はこのグループでも変わらない。英語が{otherEnglishPct.toFixed(0)}%（全体{allEnglishPct.toFixed(0)}%）、
+      平均{otherMeanLength.toFixed(2)}字（全体{allMeanLength.toFixed(2)}字）。
+      変わるのは<strong>何から取るか</strong>であって、名前の見た目ではない。
+    </p>
+
+    <AdSlot sp={AD_SP_WIDE_B} pc={AD_PC_WIDE_B} />
+
+    <h2>英語が半分、残りは30種類以上に散らばる</h2>
+    <p>クラブの一覧には言語も書いてある。多い順に並べるとこうなる。</p>
+
+    <ShareBar
+      title={`馬名の言語の内訳（${total}頭）`}
+      segments={languageShareSegments}
+      note={`「その他」は${languageRanking.length - SHARE_SLOTS}区分ぶんの合計。「複数」は2つ以上の言語を並べて書いてある馬、「記載なし」は言語国の欄が空の馬。`}
+    />
+
+    <div class="table-scroll">
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>言語</th>
+            <th>頭数</th>
+            <th>割合</th>
+          </tr>
+        </thead>
+        <tbody>
+          {
+            topLanguages.map(([name, n]) => (
+              <tr>
+                <td data-label="言語">{name}</td>
+                <td data-label="頭数">{n}頭</td>
+                <td data-label="割合">{pct(n, total)}%</td>
+              </tr>
+            ))
+          }
+          <tr>
+            <td data-label="言語">その他{tailLanguages.length}種</td>
+            <td data-label="頭数">{tailTotal}頭</td>
+            <td data-label="割合">{pct(tailTotal, total)}%</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <p>
+      英語・仏語・伊語・西語・独語で大半を占めるが、その外側が賑やかだ。
+      少数派には{rareLanguageExamples.slice(0, 4).map((r) => `${r.lang}（${r.name}）`).join('、')}といった名前がいる。
+      1頭しかいない言語がいくつもあって、一覧を眺めているだけで飽きない。
+    </p>
+
+    <details class="more-examples">
+      <summary>3頭以下しかいない言語の馬を見る（{rareLanguageHorses.length}頭）</summary>
+      <div class="table-scroll">
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>言語</th>
+              <th>馬名</th>
+              <th>馬名の意味・由来</th>
+            </tr>
+          </thead>
+          <tbody>
+            {
+              rareLanguageHorses.map((h) => (
+                <tr>
+                  <td data-label="言語">{h.languageNormalized}</td>
+                  <td data-label="馬名">{h.name}</td>
+                  <td data-label="馬名の意味・由来">{h.meaning}</td>
+                </tr>
+              ))
+            }
+          </tbody>
+        </table>
+      </div>
+    </details>
+
+    <h2>母が独語なら、仔も独語になるのか</h2>
+    <p>
+      母がキャロットの所属馬だった場合、母自身もこの一覧に載っている。つまり母の言語が分かる。
+      母から名前を付けるとき、言語まで母に合わせるのかを見た。
+    </p>
+    <p>
+      母の名前が由来に入っている{damMatch.n}組のうち、
+      <strong>{damMatch.matched}組（{damMatch.matchPct.toFixed(0)}%）が母と同じ言語</strong>だった。
+      言語の偏りだけで偶然そろう目安は{damMatch.chancePct.toFixed(0)}%なので、はっきり母に引っ張られている。
+    </p>
+
+    <div class="table-scroll">
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>母の言語</th>
+            <th>組数</th>
+            <th>仔も同じ言語</th>
+            <th>仔全体でのその言語の割合</th>
+          </tr>
+        </thead>
+        <tbody>
+          {
+            damLanguageRows.map((r) => (
+              <tr>
+                <td data-label="母の言語">{r.lang}</td>
+                <td data-label="組数">{r.n}組</td>
+                <td data-label="仔も同じ言語">
+                  <strong>{r.same}組（{r.samePct.toFixed(0)}%）</strong>
+                </td>
+                <td data-label="仔全体でのその言語の割合">{r.overallPct.toFixed(0)}%</td>
+              </tr>
+            ))
+          }
+        </tbody>
+      </table>
+    </div>
+
+    <p>
+      仏語の母からは仏語、独語の母からは独語。全体では1割にも満たない言語が、
+      母がその言語だと5〜7割まで跳ね上がる。
+      母の名前から連想して名付ける以上、言葉も引き継ぐことになるのだろう。
+    </p>
+    <p>
+      母の名前が由来に入っていない{otherMatch.n}組でも{otherMatch.matchPct.toFixed(0)}%が母と同じ言語だった
+      （偶然の目安は{otherMatch.chancePct.toFixed(0)}%）。組数が少ないので強くは言えないが、
+      名前の題材を変えても言語だけは母に合わせる、という付け方もありそうだ。
+    </p>
+
+    <details class="more-examples">
+      <summary>母と同じ言語になった{damMatch.matched}組をすべて見る</summary>
+      {
+        matchedPairGroups.map((g) => (
+          <div class="pair-group">
+            <p class="pair-group-title">
+              {g.lang}
+              <span class="chip-count">{g.pairs.length}組</span>
+            </p>
+            <ul class="pair-list">
+              {g.pairs.map((h) => (
+                <li>
+                  <span class="pair-dam">{h.damName}</span>
+                  <span class="pair-arrow">→</span>
+                  <span class="pair-foal">{h.name}</span>
+                  <span class="pair-meaning">{h.meaning}</span>
+                </li>
+              ))}
+            </ul>
+          </div>
+        ))
+      }
+    </details>
+
+    <div class="ad-rect">
+      <AdSlot sp={AD_SP_RECT} pc={AD_PC_WIDE_A} />
+    </div>
+
+    <h2>同じ母の仔は、シリーズになる</h2>
+    <p>
+      言語が母に寄るなら、同じ母から続けて出た仔は名前が揃うことになる。実際に並べてみると、
+      きれいにシリーズになっている母がいる。
+    </p>
+
+    <div class="table-scroll">
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>母</th>
+            <th>仔の名前（生年）</th>
+          </tr>
+        </thead>
+        <tbody>
+          {
+            nameSeries.map((s) => (
+              <tr>
+                <td data-label="母">
+                  {s.dam}
+                  <span class="cell-note">{s.topLang}が{s.foals.length}頭中{s.topCount}頭</span>
+                </td>
+                <td data-label="仔の名前（生年）">
+                  {s.foals.map((f) => `${f.name}（${f.birthYear}）`).join('、')}
+                </td>
+              </tr>
+            ))
+          }
+        </tbody>
+      </table>
+    </div>
+
+    <p>
+      バイラオーラ（フラメンコの踊り子）の仔は、ソレア（リズムの一種）、エスコビージャ（踊り方）、
+      ラスゲアード（ギターの奏法）と、フラメンコ用語で揃っている。
+      エスティタート（音楽用語の「美しく」）の仔は4頭とも伊語の音楽用語だ。
+      ペルレンケッテ（真珠のネックレス）からは、バンベルク・ミルテンベルク・バイルシュタインと、
+      「〇〇の真珠」と呼ばれるドイツの街が3頭続いた。
+    </p>
+    <p>
+      言語までは揃わなくても題材が一貫している母もいる。グリューヴァイン（ホットワイン）の仔は
+      独語・伊語・仏語に割れるが、ワインとクリスマス市から離れない。
+      出資している母の仔が続けて募集に出てくると、こういう楽しみ方ができる。
+    </p>
+
+    <details class="more-examples">
+      <summary>仔が3頭以上いる母を全部見る（{allSeries.length}母）</summary>
+      <div class="table-scroll">
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>母</th>
+              <th>仔の名前（生年）</th>
+            </tr>
+          </thead>
+          <tbody>
+            {
+              allSeries.map((s) => (
+                <tr>
+                  <td data-label="母">
+                    {s.dam}
+                    <span class="cell-note">
+                      {s.topLang}が{s.foals.length}頭中{s.topCount}頭
+                    </span>
+                  </td>
+                  <td data-label="仔の名前（生年）">
+                    {s.foals.map((f) => `${f.name}（${f.birthYear}）`).join('、')}
+                  </td>
+                </tr>
+              ))
+            }
+          </tbody>
+        </table>
+      </div>
+      <p class="table-note">
+        同じ母から{yearRangeLabel}生まれの仔が3頭以上出ている母だけ。仔の多い順。
+      </p>
+    </details>
+
+    <h2>7字がいちばん多く、上限いっぱいも多い</h2>
+    <p>
+      競走馬の名前はカタカナ2字から9字までと決まっている。長音「ー」や小さい「ッ」も1字だ。
+    </p>
+
+    <BarChart title={`馬名の文字数（${total}頭）`} bars={lengthBars} valueLabel="頭数" noteLabel="割合" />
+
+    <p>
+      <strong>{mostCommonLength.label}が{mostCommonLength.value}頭</strong>で最多。
+      上限いっぱいの9字も{nineLetters}頭（{pct(nineLetters, total)}%）いる。
+      短い名前は少なく、{minLength}〜3字は{shortHorses.length}頭しかいない
+      （{shortHorses.slice(0, 5).map((h) => h.name).join('、')}など）。
+    </p>
+
+    <details class="more-examples">
+      <summary>4字以下の{shortestHorses.length}頭を見る</summary>
+      <div class="table-scroll">
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>馬名</th>
+              <th>字数</th>
+              <th>言語</th>
+              <th>馬名の意味・由来</th>
+            </tr>
+          </thead>
+          <tbody>
+            {
+              shortestHorses.map((h) => (
+                <tr>
+                  <td data-label="馬名">{h.name}</td>
+                  <td data-label="字数">{h.length}字</td>
+                  <td data-label="言語">{h.languageNormalized ?? '—'}</td>
+                  <td data-label="馬名の意味・由来">{h.meaning}</td>
+                </tr>
+              ))
+            }
+          </tbody>
+        </table>
+      </div>
+    </details>
+
+    <details class="more-examples">
+      <summary>上限いっぱい9字の{nineLetterHorses.length}頭を見る</summary>
+      <ul class="chip-list">
+        {
+          nineLetterHorses.map((h) => (
+            <li>
+              {h.name}
+              <span class="chip-count">{h.birthYear}</span>
+            </li>
+          ))
+        }
+      </ul>
+    </details>
+
+    <div class="table-scroll">
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>言語</th>
+            <th>頭数</th>
+            <th>平均文字数</th>
+          </tr>
+        </thead>
+        <tbody>
+          {
+            lengthByLanguage.map((r) => (
+              <tr>
+                <td data-label="言語">{r.name}</td>
+                <td data-label="頭数">{r.n}頭</td>
+                <td data-label="平均文字数">{r.mean.toFixed(2)}字</td>
+              </tr>
+            ))
+          }
+        </tbody>
+      </table>
+    </div>
+    <p class="table-note">10頭以上いる言語だけ。</p>
+
+    <AdSlot sp={AD_SP_WIDE_A} pc={AD_PC_WIDE_A} />
+
+    <h2>母が外国産だと、名前も変わる</h2>
+    <p>
+      母が外国で生まれた馬（輸入繁殖牝馬・外国産馬）かどうかで分けてみた。
+      外国産の母が{foreignDamHorses.length}頭、国内産の母が{domesticDamHorses.length}頭
+      （母をたどれなかった{damOriginUnknown}頭は除いた）。
+    </p>
+
+    <div class="table-scroll">
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>言語</th>
+            <th>外国産の母（{foreignDamHorses.length}頭）</th>
+            <th>国内産の母（{domesticDamHorses.length}頭）</th>
+          </tr>
+        </thead>
+        <tbody>
+          {
+            damOriginRows.map((r) => (
+              <tr>
+                <td data-label="言語">{r.lang}</td>
+                <td data-label="外国産の母">{r.foreign.toFixed(0)}%</td>
+                <td data-label="国内産の母">{r.domestic.toFixed(0)}%</td>
+              </tr>
+            ))
+          }
+        </tbody>
+      </table>
+    </div>
+
+    <p>
+      外国産の母の仔は英語と西語が多く、仏語が少ない。母の名前がそもそも英語圏の名前であることが多いので、
+      その言語を引き継いだ結果だろう。
+    </p>
+    <p>
+      面白いのは「<strong>母の生産国より連想</strong>」という付け方だ。{homelandHorses.length}頭いて、
+      母をたどれた{homelandForeign.length}頭は<strong>すべて外国産の母</strong>の仔だった。阪神JFを勝ったレシステンシアはアルゼンチンの州都の名前で、
+      母マラコスタムブラダがアルゼンチン産。ユニコーンSのカナルビーグルも同じ母で、
+      アルゼンチンとチリの間の海峡だ。母の故郷を名前にして送り出している。
+    </p>
+
+    <details class="more-examples">
+      <summary>「母の生産国より」の{homelandHorses.length}頭をすべて見る</summary>
+      <div class="table-scroll">
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>生年</th>
+              <th>馬名</th>
+              <th>母</th>
+              <th>馬名の意味・由来</th>
+            </tr>
+          </thead>
+          <tbody>
+            {
+              [...homelandHorses]
+                .sort((a, b) => b.birthYear - a.birthYear)
+                .map((h) => (
+                  <tr>
+                    <td data-label="生年">{h.birthYear}年</td>
+                    <td data-label="馬名">{h.name}</td>
+                    <td data-label="母">{h.damName ?? '—'}</td>
+                    <td data-label="馬名の意味・由来">{h.meaning}</td>
+                  </tr>
+                ))
+            }
+          </tbody>
+        </table>
+      </div>
+    </details>
+
+    <h2>父の初年度産駒は、父から名前を付けられやすい</h2>
+    <p>
+      父が種牡馬になって最初の世代なら、父の名前から付けたくなるのではないか。
+      各馬の父が「何世代目の産駒か」を調べて、由来と突き合わせた。
+      最初の年に数頭しか登録されていない種牡馬もいるので、
+      <strong>登録20頭未満の世代は数えずに数えた「実質何世代目か」</strong>で分けている。
+    </p>
+
+    <BarChart
+      title="父の世代別・父の名前だけから付いた割合"
+      bars={cropBars}
+      valueLabel="父だけから付いた割合"
+      nLabel="その世代の頭数"
+    />
+
+    <p>
+      <strong>1世代目は{firstCrop.sirePct.toFixed(0)}%（{firstCrop.sire}/{firstCrop.n}頭）、
+      3世代目以降は{laterCrop.sirePct.toFixed(0)}%（{laterCrop.sire}/{laterCrop.n}頭）</strong>。
+      3倍以上の開きがある（<TermLink to="p-value">p値</TermLink>は{formatP(cropTest.p)}）。
+      父の名前と両方を挙げた馬まで含めると、1世代目は{pct(firstCrop.sireInvolved, firstCrop.n)}%、
+      3世代目以降は{pct(laterCrop.sireInvolved, laterCrop.n)}%になる。
+    </p>
+    <p>
+      ただし、この差は<strong>特定の年に寄っている</strong>。いちばん高いのは{topCropYear.year}年産で、
+      1世代目{topCropYear.firstN}頭のうち{topCropYear.firstSire}頭が父の名前から付いていた。
+      この年を除くと<strong>{cropExclTop.fp.toFixed(0)}%（{cropExclTop.fs}/{cropExclTop.fn}頭）対
+      {cropExclTop.lp.toFixed(0)}%（{cropExclTop.ls}/{cropExclTop.ln}頭）</strong>まで縮む（{formatP(cropExclTop.test.p)}）。
+      向きは変わらないが、そもそも父名由来の馬自体が少ないので、
+      「そういう傾向がありそうだ」くらいに受け取ってほしい。年ごとの内訳は下の折りたたみに出した。
+    </p>
+    <p>
+      新しい父にはまだ産駒のイメージが無いぶん、父の名前そのものが手がかりになるのだと思う。
+      ゾネブルームはヴァンゴッホの初年度産駒、ロックターミガンはシスキンの実質初年度産駒だ。
+      同じヴァンゴッホの初年度からはラングロワブリッジ（アルルの跳ね橋）も出ている。
+    </p>
+
+    <div class="table-scroll">
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>馬名</th>
+            <th>父</th>
+            <th>由来</th>
+          </tr>
+        </thead>
+        <tbody>
+          {
+            firstCropSireExamples.slice(0, 8).map((e) => (
+              <tr>
+                <td data-label="馬名">{e.name}</td>
+                <td data-label="父">{e.sire}</td>
+                <td data-label="由来">{e.meaning}</td>
+              </tr>
+            ))
+          }
+        </tbody>
+      </table>
+    </div>
+    <p class="table-note">
+      父ごとに1頭ずつ。世代が分からない馬（海外でだけ供用されている父など{cropUnknown}頭）は集計に入れていない。
+    </p>
+
+    <details class="more-examples">
+      <summary>実質1世代目で父が絡む{firstCropSireAll.length}頭をすべて見る</summary>
+      <div class="table-scroll">
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>生年</th>
+              <th>馬名</th>
+              <th>父</th>
+              <th>馬名の意味・由来</th>
+            </tr>
+          </thead>
+          <tbody>
+            {
+              firstCropSireAll.map(({ h, sire }) => (
+                <tr>
+                  <td data-label="生年">{h.birthYear}年</td>
+                  <td data-label="馬名">{h.name}</td>
+                  <td data-label="父">{sire}</td>
+                  <td data-label="馬名の意味・由来">{h.meaning}</td>
+                </tr>
+              ))
+            }
+          </tbody>
+        </table>
+      </div>
+      <p class="table-note">父の名前だけから付いた馬と、父と母の両方を挙げている馬の両方を含む。</p>
+    </details>
+
+    <details class="more-examples">
+      <summary>年ごとの内訳を見る（差が1年に偏っていないかの確認）</summary>
+      <div class="table-scroll">
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>生年</th>
+              <th>1世代目</th>
+              <th>3世代目以降</th>
+            </tr>
+          </thead>
+          <tbody>
+            {
+              cropByYearRows.map((r) => (
+                <tr>
+                  <td data-label="生年">{r.year}年</td>
+                  <td data-label="1世代目">
+                    {r.firstN > 0 ? `${r.firstSire}/${r.firstN}頭` : '—'}
+                  </td>
+                  <td data-label="3世代目以降">
+                    {r.laterN > 0 ? `${r.laterSire}/${r.laterN}頭` : '—'}
+                  </td>
+                </tr>
+              ))
+            }
+          </tbody>
+        </table>
+      </div>
+      <p class="table-note">父の名前だけから付いた馬の数／その年のその世代の頭数。</p>
+    </details>
+
+    <div class="ad-rect">
+      <AdSlot sp={AD_SP_RECT} pc={AD_PC_WIDE_B} />
+    </div>
+
+    <h2>重賞を勝った馬の名前</h2>
+    <p>
+      名前の付け方と走りに関係があるなら面白いのだが、そんなことはなかった。
+      重賞を勝った{gradeWinners.length}頭の由来の内訳は、
+      {gradeOriginCounts.map((g) => `${g.label}${g.n}頭`).join('、')}。
+      母が絡む割合は{pct(gradeDamInvolved, gradeWinners.length)}%。全体の{pct(damInvolved, total)}%と数ポイント違うだけで、
+      由来の偏り方は全体と同じと言っていい。
+    </p>
+
+    <div class="table-scroll">
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>馬名</th>
+            <th>言語</th>
+            <th>馬名の意味・由来</th>
+            <th>主な勝鞍</th>
+          </tr>
+        </thead>
+        <tbody>
+          {
+            gradeHighlights.map((g) => (
+              <tr>
+                <td data-label="馬名">{g.h.name}</td>
+                <td data-label="言語">{g.h.languageNormalized ?? '—'}</td>
+                <td data-label="馬名の意味・由来">{g.h.meaning}</td>
+                <td data-label="主な勝鞍">{g.r.gradeWins.slice(0, 2).join('、')}</td>
+              </tr>
+            ))
+          }
+        </tbody>
+      </table>
+    </div>
+
+    <p>
+      皐月賞のサートゥルナーリアは9字いっぱいの伊語で、母シーザリオから。
+      ダービーのタスティエーラも伊語で、母パルティトゥーラ（楽譜）からキーボードへ。
+      京都金杯のザダルは3字で、クロアチアの都市名だ。名前の長さも言語も、走りとは関係がない。
+    </p>
+
+    <details class="more-examples">
+      <summary>重賞を勝った{gradeRows.length}頭の名前をすべて見る</summary>
+      <div class="table-scroll">
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>馬名</th>
+              <th>生年</th>
+              <th>言語</th>
+              <th>馬名の意味・由来</th>
+              <th>主な勝鞍</th>
+            </tr>
+          </thead>
+          <tbody>
+            {
+              gradeRows.map((g) => (
+                <tr>
+                  <td data-label="馬名">{g.h.name}</td>
+                  <td data-label="生年">{g.h.birthYear}年</td>
+                  <td data-label="言語">{g.h.languageNormalized ?? '—'}</td>
+                  <td data-label="馬名の意味・由来">{g.h.meaning}</td>
+                  <td data-label="主な勝鞍">{g.r.gradeWins.slice(0, 3).join('、')}</td>
+                </tr>
+              ))
+            }
+          </tbody>
+        </table>
+      </div>
+      <p class="table-note">獲得賞金の多い順。中央G1〜G3・Jpn1〜3と地方重賞を含む。</p>
+    </details>
+    <p>
+      関係が無いと分かっていても、出資した馬に名前が付くとその由来を調べてしまう。
+      母の名前から一文字もらった名前、母の故郷の地名、父の初年度産駒に付いた父ゆずりの名前。
+      来年の募集馬が発表されたら、母の名前を見て「この母ならこういう名前が付きそうだ」と
+      想像してみるのも楽しいと思う。
+    </p>
+
+    <h2>データについて</h2>
+    <p>
+      馬名・言語・由来はキャロットクラブが会員向けに公開している「馬名一覧」による
+      （{HORSE_NAMES_FETCHED_AT}時点）。対象は{yearRangeLabel}生まれの{total}頭。
+      由来の区分は、由来文に「母名」「父名」などの言葉があるかで機械的に分けている。
+    </p>
+
+    <p>
+      <a href="/">募集馬一覧へ戻る</a> ／ <a href="/articles/">記事一覧へ</a>
+    </p>
+  </article>
+
+  {/* グラフのホバー/フォーカス時のツールチップ（ページに1つ）。 */}
+  <ChartTooltip />
+</BaseLayout>
+
+<style>
+  article :global(h2) {
+    margin-top: 2.5rem;
+  }
+  .table-scroll {
+    overflow-x: auto;
+    margin: 1rem 0;
+  }
+  .table-note {
+    font-size: 0.8125rem;
+    color: var(--muted);
+  }
+  .cell-note {
+    display: block;
+    color: var(--muted);
+    font-size: 0.75rem;
+  }
+
+  /*
+   * 実例をたくさん載せるための折りたたみ（本人要望・2026-09-16）。見た目は既存記事の
+   * `.bucket-accordion` / `.more-winners` に合わせる。JSは使わない（`<details>`のまま）ので
+   * 検索エンジンからは中身も本文として読める。
+   */
+  .more-examples {
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 0.5rem 0.85rem;
+    margin: 0.75rem 0;
+  }
+  .more-examples summary {
+    cursor: pointer;
+    font-weight: 600;
+    padding: 0.25rem 0;
+  }
+  .more-examples .table-scroll {
+    margin-top: 0.5rem;
+  }
+  /* 馬名・言語のように短い項目を大量に並べる用。表にすると縦に長くなりすぎる。 */
+  .chip-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem;
+    margin: 0.6rem 0 0.25rem;
+    padding: 0;
+    list-style: none;
+  }
+  .chip-list li {
+    display: inline-flex;
+    align-items: baseline;
+    gap: 0.35rem;
+    padding: 0.2rem 0.55rem;
+    border: 1px solid var(--border);
+    border-radius: 999px;
+    background: var(--surface);
+    font-size: 0.8125rem;
+  }
+  .chip-count {
+    color: var(--muted);
+    font-size: 0.75rem;
+  }
+  .pair-group {
+    margin-top: 0.75rem;
+  }
+  .pair-group-title {
+    display: flex;
+    align-items: baseline;
+    gap: 0.4rem;
+    margin: 0 0 0.25rem;
+    font-weight: 700;
+    font-size: 0.9375rem;
+  }
+  .pair-list {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+  .pair-list li {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: 0.4rem;
+    padding: 0.25rem 0;
+    border-bottom: 1px solid var(--border);
+    font-size: 0.875rem;
+  }
+  .pair-arrow {
+    color: var(--muted);
+  }
+  .pair-foal {
+    font-weight: 600;
+  }
+  .pair-meaning {
+    color: var(--muted);
+    font-size: 0.8125rem;
+  }
+  table.data-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.875rem;
+  }
+  table.data-table th,
+  table.data-table td {
+    padding: 0.5rem 0.7rem;
+    border-bottom: 1px solid var(--border);
+    text-align: left;
+    vertical-align: top;
+  }
+  table.data-table th {
+    color: var(--muted);
+    font-weight: 600;
+    white-space: nowrap;
+  }
+  .ad-rect {
+    display: flex;
+    justify-content: center;
+    margin: 1.75rem 0 0.5rem;
+  }
+
+  /*
+   * 列の多い表はSP幅（390px）で1文字ずつ折り返して読めなくなるので、1行＝1カードに積み直す
+   * （secondary-offering.astro などと同じ方針）。
+   */
+  @media (max-width: 640px) {
+    table.data-table thead {
+      display: none;
+    }
+    table.data-table,
+    table.data-table tbody,
+    table.data-table tr,
+    table.data-table td {
+      display: block;
+      width: auto;
+    }
+    table.data-table tr {
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 0.6rem 0.85rem;
+      margin-bottom: 0.75rem;
+    }
+    table.data-table td {
+      border: none;
+      padding: 0.15rem 0;
+      display: flex;
+      gap: 0.6rem;
+      white-space: normal;
+    }
+    table.data-table td::before {
+      content: attr(data-label);
+      flex: none;
+      width: 6.5rem;
+      color: var(--muted);
+      font-size: 0.8125rem;
+    }
+  }
+</style>

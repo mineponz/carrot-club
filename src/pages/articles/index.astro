@@ -1,7 +1,10 @@
 ---
 /**
- * 分析記事の一覧ページ。2017〜2025年募集の全頭データ（analysis/data/）を使った読み物コンテンツの
- * ハブ。記事を増やしたらここにも追加する。頭数・年範囲はheight.astroと同じrecruits.jsonから
+ * 記事の一覧ページ。「データ分析」（募集時データと成績を突き合わせた集計）と
+ * 「読み物」（募集時期に紐づかない読み物。例: 馬名の傾向）の2区分をh2で分けて出す
+ * （`articles.ts`の`kind`で判定。2026-09-16、馬名傾向記事の追加に合わせて区分を導入）。
+ * 読み物が0件のときはその見出しごと出さない。
+ * 記事を増やしたらここにも追加する。頭数・年範囲はheight.astroと同じrecruits.jsonから
  * 動的に出す（ハードコードすると年ごとにデータが増えるたびにここも直し忘れる）。
  */
 import BaseLayout from '../../layouts/BaseLayout.astro';
@@ -12,40 +15,52 @@ const all = loadRecruitsWithResults();
 const years = [...new Set(all.map((h) => h.recruitYear))].sort((a, b) => a - b);
 const yearRangeLabel = `${years[0]}〜${years[years.length - 1]}年`;
 
-const description = `【非公式】${yearRangeLabel}のキャロットクラブ募集馬データを使った分析記事の一覧。`;
+const sections = [
+  { label: 'データ分析', articles: analysisArticles.filter((a) => a.kind === 'analysis') },
+  { label: '読み物', articles: analysisArticles.filter((a) => a.kind === 'reading') },
+].filter((s) => s.articles.length > 0);
+
+const description = `【非公式】${yearRangeLabel}のキャロットクラブ募集馬データを使った分析記事・読み物の一覧。`;
 ---
 
-<BaseLayout title="分析記事" description={description}>
-  <h1>分析記事</h1>
+<BaseLayout title="記事一覧" description={description}>
+  <h1>記事一覧</h1>
   <p>
-    {yearRangeLabel}募集の募集時データと、その後の競走成績を突き合わせた独自集計をもとに、
-    体高・母齢といった募集時の情報が後の成績とどう関係するかを見ていく読み物コンテンツです。
+    {yearRangeLabel}募集の募集時データと、その後の競走成績を突き合わせた独自集計の分析記事と、
+    募集馬にまつわる読み物コンテンツをまとめています。
   </p>
   <p class="methods-note">
     <a href="/articles/methods/">分析記事の読み方</a> ……
     記事に出てくる「順位相関」「p値」「偏相関」などの用語を、図と実際の集計例で説明しています。
     はじめて読む方はこちらから。
   </p>
-  <ul class="article-list">
-    {analysisArticles.map((a) => (
-      <li>
-        <a class="article-card" href={a.href}>
-          <img
-            class="article-card-thumb"
-            src={a.image}
-            alt=""
-            width="1200"
-            height="630"
-            loading="lazy"
-          />
-          <span class="article-card-body">
-            <span class="article-card-title">{a.title}</span>
-            <span class="article-card-desc">{a.description}</span>
-          </span>
-        </a>
-      </li>
-    ))}
-  </ul>
+
+  {sections.map((section) => (
+    <>
+      <h2>{section.label}</h2>
+      <ul class="article-list">
+        {section.articles.map((a) => (
+          <li>
+            <a class="article-card" href={a.href}>
+              <img
+                class="article-card-thumb"
+                src={a.image}
+                alt=""
+                width="1200"
+                height="630"
+                loading="lazy"
+              />
+              <span class="article-card-body">
+                <span class="article-card-title">{a.title}</span>
+                <span class="article-card-desc">{a.description}</span>
+              </span>
+            </a>
+          </li>
+        ))}
+      </ul>
+    </>
+  ))}
+
   <p class="more-note">今後、父系統など別の切り口でも記事を追加していく予定です。</p>
   <p class="more-note">
     ここで作った物差しを運営者自身の出資馬に当ててみた読み物は

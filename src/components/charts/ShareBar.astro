@@ -1,0 +1,217 @@
+---
+/**
+ * 横1本の100%積み上げ帯（部分‐全体の内訳を一目で見せる）。
+ *
+ * 言語の内訳のように**区分が多くて名前が長い**データ向け。円グラフは区分が7つを超えると
+ * 隣り合う色が見分けられなくなるので使わない（dataviz: 部分‐全体は積み上げ棒、多い場合は横向き）。
+ * 呼び出し側で上位N＋「その他」に畳んでから渡すこと（この中では畳まない）。
+ *
+ * ## 色
+ * dataviz の既定カテゴリパレット（8スロットのうち先頭7つ＋「その他」のグレー）。順番は固定で、
+ * 系列数が変わっても色を振り直さない。light/darkとも `scripts/validate_palette.js` で検証済み
+ * （light: 3色が対サーフェス3:1未満→**凡例に数値を併記**して色だけに頼らせない。dark: 全色3:1以上）。
+ *
+ * ## セグメントの区切り
+ * 枠線は引かず、**2pxのサーフェス色の隙間**で分ける（dataviz: marks-and-anatomy）。
+ * 帯の両端だけ角丸にするため、帯全体を角丸のclipPathで抜いている。
+ *
+ * ## ラベル
+ * 帯の中には文字を置かない（狭いセグメントで文字が切れるため）。値は凡例に出し、
+ * ホバー/フォーカスでツールチップ（`.viz-hit[data-tip]` を拾う共有スクリプト）を出す。
+ */
+interface Segment {
+  label: string;
+  value: number;
+  /** ツールチップに出す表示値。省略時は「N頭」。 */
+  displayValue?: string;
+}
+
+interface Props {
+  title: string;
+  segments: Segment[];
+  /** ツールチップの値の行ラベル。 */
+  valueLabel?: string;
+  /** 帯の下に出す注記。 */
+  note?: string;
+}
+
+const { title, segments, valueLabel = '頭数', note } = Astro.props;
+
+const total = segments.reduce((sum, s) => sum + s.value, 0) || 1;
+
+/** 固定のスロット順（色の振り直しをしない）。8つ目以降と「その他」はグレー。 */
+const SLOT_VARS = [
+  '--share-1',
+  '--share-2',
+  '--share-3',
+  '--share-4',
+  '--share-5',
+  '--share-6',
+  '--share-7',
+];
+
+const width = 640;
+const barHeight = 28;
+const gap = 2;
+
+let x = 0;
+const parts = segments.map((s, i) => {
+  const w = (width * s.value) / total;
+  const part = {
+    ...s,
+    x,
+    // 最後以外は2pxの隙間を作る（隙間ぶんを引く。0未満にはしない）
+    width: Math.max(0, i === segments.length - 1 ? w : w - gap),
+    pct: (100 * s.value) / total,
+    colorVar: SLOT_VARS[i] ?? '--share-other',
+  };
+  x += w;
+  return part;
+});
+---
+
+<div class="viz-root">
+  <p class="viz-title">{title}</p>
+  <svg viewBox={`0 0 ${width} ${barHeight}`} role="img" aria-label={title} class="viz-svg">
+    <clipPath id="share-bar-clip">
+      <rect x="0" y="0" width={width} height={barHeight} rx="4" ry="4" />
+    </clipPath>
+    <g clip-path="url(#share-bar-clip)">
+      {
+        parts.map((p) => (
+          <rect
+            class="viz-hit share-seg"
+            x={p.x}
+            y="0"
+            width={p.width}
+            height={barHeight}
+            style={`fill: var(${p.colorVar})`}
+            tabindex="0"
+            data-tip={JSON.stringify({
+              title: p.label,
+              rows: [
+                [valueLabel, p.displayValue ?? `${p.value}頭`],
+                ['割合', `${p.pct.toFixed(1)}%`],
+              ],
+            })}
+          />
+        ))
+      }
+    </g>
+  </svg>
+  <ul class="share-legend">
+    {
+      parts.map((p) => (
+        <li>
+          <span class="share-swatch" style={`background: var(${p.colorVar})`} aria-hidden="true" />
+          {p.label}
+          <span class="share-pct">{Math.round(p.pct)}%</span>
+        </li>
+      ))
+    }
+  </ul>
+  {note && <p class="share-note">{note}</p>}
+  <p class="visually-hidden">
+    {title}: {parts.map((p) => `${p.label} ${p.displayValue ?? `${p.value}頭`}（${p.pct.toFixed(1)}%）`).join('、 ')}
+  </p>
+</div>
+
+<style>
+  /*
+   * dataviz の既定カテゴリパレット。スロット順は固定（色は系列の順番ではなく区分に付く）。
+   * ダークは同じ8色をダーク面用に踏み直した値で、明度を反転させたものではない。
+   */
+  .viz-root {
+    --share-1: #2a78d6;
+    --share-2: #eb6834;
+    --share-3: #1baf7a;
+    --share-4: #eda100;
+    --share-5: #e87ba4;
+    --share-6: #008300;
+    --share-7: #4a3aa7;
+    --share-other: #9a988f;
+    margin: 1.25rem 0;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme='light']) .viz-root {
+      --share-1: #3987e5;
+      --share-2: #d95926;
+      --share-3: #199e70;
+      --share-4: #c98500;
+      --share-5: #d55181;
+      --share-6: #008300;
+      --share-7: #9085e9;
+      --share-other: #7d7b74;
+    }
+  }
+  :root[data-theme='dark'] .viz-root {
+    --share-1: #3987e5;
+    --share-2: #d95926;
+    --share-3: #199e70;
+    --share-4: #c98500;
+    --share-5: #d55181;
+    --share-6: #008300;
+    --share-7: #9085e9;
+    --share-other: #7d7b74;
+  }
+  .viz-title {
+    margin: 0 0 0.5rem;
+    font-weight: 600;
+    font-size: 0.9375rem;
+    color: var(--text);
+  }
+  .viz-svg {
+    width: 100%;
+    height: auto;
+    display: block;
+  }
+  .share-seg {
+    cursor: pointer;
+    transition: opacity 0.1s ease;
+  }
+  .share-seg:hover,
+  .share-seg:focus-visible {
+    opacity: 0.8;
+    outline: none;
+  }
+  .share-legend {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.35rem 0.9rem;
+    margin: 0.6rem 0 0;
+    padding: 0;
+    list-style: none;
+    font-size: 0.8125rem;
+    color: var(--text);
+  }
+  .share-legend li {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+  }
+  .share-swatch {
+    width: 0.7rem;
+    height: 0.7rem;
+    border-radius: 3px;
+    display: inline-block;
+  }
+  /* 値は色ではなく文字で読ませる（明るい色は背景とのコントラストが足りないため）。 */
+  .share-pct {
+    color: var(--muted);
+    font-variant-numeric: tabular-nums;
+  }
+  .share-note {
+    margin: 0.5rem 0 0;
+    font-size: 0.8125rem;
+    color: var(--muted);
+  }
+  /* BarChart.astro と同じ理由でここにも定義が要る（Astroのscoped CSSはファイルをまたがない）。 */
+  .visually-hidden {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+  }
+</style>

@@ -264,14 +264,17 @@ const faqJsonLd = {
       {analysisArticles.map((a) => (
         <li>
           <a class="analysis-promo-card" href={a.href}>
-            <img
-              class="analysis-promo-thumb"
-              src={a.image}
-              alt=""
-              width="1200"
-              height="630"
-              loading="lazy"
-            />
+            <span class="analysis-promo-thumb-wrap">
+              <img
+                class="analysis-promo-thumb"
+                src={a.image}
+                alt=""
+                width="1200"
+                height="630"
+                loading="lazy"
+              />
+              <span class="analysis-promo-kind">{a.kind === 'reading' ? '読み物' : '分析'}</span>
+            </span>
             <span class="analysis-promo-title">{a.title}</span>
           </a>
         </li>
@@ -814,6 +817,11 @@ const faqJsonLd = {
       text-decoration: none;
     }
     .analysis-promo-card:hover { border-color: var(--info); }
+    /* サムネイル左上に区分ラベル（分析／読み物）を重ねるための位置基準コンテナ。 */
+    .analysis-promo-thumb-wrap {
+      position: relative;
+      display: block;
+    }
     /*
       img の width/height 属性（1200/630）はCSSのwidth:100%だけ上書きしても、heightが
       属性側の630pxのまま残って縦横比が崩れる（aspect-ratioはheightが auto の時しか
@@ -826,6 +834,23 @@ const faqJsonLd = {
       aspect-ratio: 1200 / 630;
       object-fit: cover;
       background: var(--accent-weak);
+    }
+    /*
+      記事の区分（分析／読み物）。CTAではなくメタ情報なので枠線のみの控えめな見た目にし、
+      アクセントカラーは使わない（2026-09-16、馬名傾向記事＝読み物の追加に合わせて導入）。
+    */
+    .analysis-promo-kind {
+      position: absolute;
+      top: 0.3rem;
+      left: 0.3rem;
+      padding: 0.1rem 0.45rem;
+      border: 1px solid var(--border);
+      border-radius: 999px;
+      background: var(--surface);
+      color: var(--muted);
+      font-size: 0.625rem;
+      font-weight: 700;
+      line-height: 1.4;
     }
     .analysis-promo-title {
       display: -webkit-box;

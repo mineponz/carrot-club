@@ -138,6 +138,16 @@ const ARTICLES = {
     chips: ['出走率・獲得賞金で検証', '同じ母の兄姉と比較', '重賞馬の下の成績も'],
     buildChart: clubSiblingsChart,
   },
+  'horse-names': {
+    out: 'og-article-horse-names-v1.png',
+    // 読み物区分の1本目。カード左上のタグも「分析記事」ではなく「読み物」にする。
+    tag: '読み物',
+    headline: ['キャロの馬名は', 'どこから来ているのか'],
+    lead: 'キャロットクラブ 2016〜2024年生まれの募集馬 × 馬名の意味・由来',
+    // 由来の割合・言語の種類数は馬名一覧（確定データ）由来で、成績を取り直しても動かない。
+    chips: ['母から付く名前が3頭に2頭', '言語は30種類以上', '同じ母の仔は名前が揃う'],
+    buildChart: horseNamesChart,
+  },
   'secondary-offering': {
     out: 'og-article-secondary-offering-v1.png',
     headline: ['1.5次募集に回った馬にも', '当たりはいるのか？'],
@@ -364,6 +374,31 @@ function caretGirthChart() {
  * 数字で、成績を取り直しても変わらない。成績由来の数字はカードに焼き込まない方針
  * ―― 本文の「安田記念のシックスペンス」等の実名・順位はスナップショットで動くため）。
  */
+/**
+ * 記事と同じ馬名の文字数分布（2〜9字）をミニ棒グラフにする。
+ * 出所は `analysis/data/carrot-horse-names.json`（クラブ公式の馬名一覧）で、
+ * 一度付いた名前は変わらない＝成績更新で動かない数字なのでカードに焼き込んでよい。
+ */
+function horseNamesChart() {
+  const file = JSON.parse(
+    readFileSync(join(repoRoot, 'analysis', 'data', 'carrot-horse-names.json'), 'utf8')
+  );
+  const FROM = 2016;
+  const TO = 2024;
+  const horses = file.horses.filter((h) => h.birthYear >= FROM && h.birthYear <= TO);
+  const lengths = horses.map((h) => [...h.name].length);
+  const min = Math.min(...lengths);
+  const max = Math.max(...lengths);
+  const counts = [];
+  for (let len = min; len <= max; len += 1) counts.push(lengths.filter((l) => l === len).length);
+  return {
+    total: horses.length,
+    yearRangeLabel: `${FROM}〜${TO}年`,
+    html: barsHtml(counts),
+    caption: `馬名の文字数（${min}〜${max}字）`,
+  };
+}
+
 function secondaryOfferingChart() {
   const file = JSON.parse(
     readFileSync(join(repoRoot, 'analysis', 'data', 'first-offering-leftovers.json'), 'utf8')
@@ -586,7 +621,7 @@ function cardHtml({ fonts, source, chart }) {
       <div class="frame"></div>
       <div class="main">
         <div class="eyebrow">
-          <span class="tag">分析記事</span>
+          <span class="tag">${article.tag ?? '分析記事'}</span>
           ${partHtml('stamp', source)}
           <span class="site">キャロットクラブ出資馬検討ツール</span>
         </div>

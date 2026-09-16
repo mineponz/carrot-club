@@ -1,0 +1,3562 @@
+[
+  {
+    "damUrl": "https://db.sp.netkeiba.com/horse/000a011c88/",
+    "damName": "レーヴディマン",
+    "recruitCount": 1,
+    "birthplaceRaw": null,
+    "isForeign": null,
+    "status": "field-missing"
+  },
+  {
+    "damUrl": "https://db.sp.netkeiba.com/horse/000a011531/",
+    "damName": "リッチダンサー",
+    "recruitCount": 4,
+    "birthplaceRaw": null,
+    "isForeign": null,
+    "status": "field-missing"
+  },
+  {
+    "damUrl": "https://db.sp.netkeiba.com/horse/000a0118a2/",
+    "damName": "オリジナルスピンⅡ",
+    "recruitCount": 1,
+    "birthplaceRaw": null,
+    "isForeign": null,
+    "status": "field-missing"
+  },
+  {
+    "damUrl": "https://db.sp.netkeiba.com/horse/000a01118f/",
+    "damName": "クルソラ",
+    "recruitCount": 3,
+    "birthplaceRaw": null,
+    "isForeign": null,
+    "status": "field-missing"
+  },
+  {
+    "damUrl": "https://db.sp.netkeiba.com/horse/2002100954/",
+    "damName": "ディアデラノビア",
+    "recruitCount": 5,
+    "birthplaceRaw": "早来町",
+    "isForeign": false,
+    "status": "ok"
+  },
+  {
+    "damUrl": "https://db.sp.netkeiba.com/horse/1998101676/",
+    "damName": "グレースランド",
+    "recruitCount": 1,
+    "birthplaceRaw": "白老町",
+    "isForeign": false,
+    "status": "ok"
+  },
+  {
+    "damUrl": "https://db.sp.netkeiba.com/horse/000a011a9f/",
+    "damName": "アディクティド",
+    "recruitCount": 8,
+    "birthplaceRaw": null,
+    "isForeign": null,
+    "status": "field-missing"
+  },
+  {
+    "damUrl": "https://db.sp.netkeiba.com/horse/000a011de2/",
+    "damName": "ヒルダズパッション",
+    "recruitCount": 6,
+    "birthplaceRaw": null,
+    "isForeign": null,
+    "status": "field-missing"
+  },
+  {
+    "damUrl": "https://db.sp.netkeiba.com/horse/2009106375/",
+    "damName": "ビキニブロンド",
+    "recruitCount": 1,
+    "birthplaceRaw": "安平町",
+    "isForeign": false,
+    "status": "ok"
+  },
+  {
+    "damUrl": "https://db.sp.netkeiba.com/horse/2003102937/",
+    "damName": "フレンチバレリーナ",
+    "recruitCount": 1,
+    "birthplaceRaw": "早来町",
+    "isForeign": false,
+    "status": "ok"
+  },
+  {
+    "damUrl": "https://db.sp.netkeiba.com/horse/2006103419/",
+    "damName": "ラドラーダ",
+    "recruitCount": 6,
+    "birthplaceRaw": "安平町",
+    "isForeign": false,
+    "status": "ok"
+  },
+  {
+    "damUrl": "https://db.sp.netkeiba.com/horse/000a011d57/",
+    "damName": "ミスティックリップス",
+    "recruitCount": 1,
+    "birthplaceRaw": null,
+    "isForeign": null,
+    "status": "field-missing"
+  },
+  {
+    "damUrl": "https://db.sp.netkeiba.com/horse/2001103365/",
+    "damName": "スカーレットベル",
+    "recruitCount": 1,
+    "birthplaceRaw": "早来町",
+    "isForeign": false,
+    "status": "ok"
+  },
+  {
+    "damUrl": "https://db.sp.netkeiba.com/horse/2007104061/",
+    "damName": "コンカラン",
+    "recruitCount": 1,
+    "birthplaceRaw": "新冠町",
+    "isForeign": false,
+    "status": "ok"
+  },
+  {
+    "damUrl": "https://db.sp.netkeiba.com/horse/2000104465/",
+    "damName": "カメリアローズ",
+    "recruitCount": 2,
+    "birthplaceRaw": "新冠町",
+    "isForeign": false,
+    "status": "ok"
+  },
+  {
+    "damUrl": "https://db.sp.netkeiba.com/horse/000a011194/",
+    "damName": "アウトオブタイム",
+    "recruitCount": 1,
+    "birthplaceRaw": null,
+    "isForeign": null,
+    "status": "field-missing"
+  },
+  {
+    "damUrl": "https://db.sp.netkeiba.com/horse/2002100888/",
+    "damName": "スルーレート",
+    "recruitCount": 2,
+    "birthplaceRaw": "早来町",
+    "isForeign": false,
+    "status": "ok"
+  },
+  {
+    "damUrl": "https://db.sp.netkeiba.com/horse/2008103145/",
+    "damName": "ケイティーズジェム",
+    "recruitCount": 1,
+    "birthplaceRaw": "安平町",
+    "isForeign": false,
+    "status": "ok"
+  },
+  {
+    "damUrl": "https://db.sp.netkeiba.com/horse/2006103249/",
+    "damName": "マイティースルー",
+    "recruitCount": 4,
+    "birthplaceRaw": "安平町",
+    "isForeign": false,
+    "status": "ok"
+  },
+  {
+    "damUrl": "https://db.sp.netkeiba.com/horse/2010104020/",
+    "damName": "エルミラドール",
+    "recruitCount": 2,
+    "birthplaceRaw": "安平町",
+    "isForeign": false,
+    "status": "ok"
+  },
+  {
+    "damUrl": "https://db.sp.netkeiba.com/horse/2001103478/",
+    "damName": "プリンセスカメリア",
+    "recruitCount": 3,
+    "birthplaceRaw": "早来町",
+    "isForeign": false,
+    "status": "ok"
+  },
+  {
+    "damUrl": "https://db.sp.netkeiba.com/horse/1997103622/",
+    "damName": "リビングデイライツ",
+    "recruitCount": 1,
+    "birthplaceRaw": "早来町",
+    "isForeign": false,
+    "status": "ok"
+  },
+  {
+    "damUrl": "https://db.sp.netkeiba.com/horse/2009106150/",
+    "damName": "フラゴリーネ",
+    "recruitCount": 1,
+    "birthplaceRaw": "安平町",
+    "isForeign": false,
+    "status": "ok"
+  },
+  {
+    "damUrl": "https://db.sp.netkeiba.com/horse/2011105455/",
+    "damName": "クライフォージョイ",
+    "recruitCount": 1,
+    "birthplaceRaw": "新冠町",
+    "isForeign": false,
+    "status": "ok"
+  },
+  {
+    "damUrl": "https://db.sp.netkeiba.com/horse/2009110091/",
+    "damName": "ユールフェスト",
+    "recruitCount": 6,
+    "birthplaceRaw": "豪",
+    "isForeign": true,
+    "status": "ok"
+  },
+  {
+    "damUrl": "https://db.sp.netkeiba.com/horse/2006103166/",
+    "damName": "ピースエンブレム",
+    "recruitCount": 7,
+    "birthplaceRaw": "早来町",
+    "isForeign": false,
+    "status": "ok"
+  },
+  {
+    "damUrl": "https://db.sp.netkeiba.com/horse/2003102840/",
+    "damName": "フォルテピアノ",
+    "recruitCount": 5,
+    "birthplaceRaw": "早来町",
+    "isForeign": false,
+    "status": "ok"
+  },
+  {
+    "damUrl": "https://db.sp.netkeiba.com/horse/2001103289/",
+    "damName": "ドルチェリモーネ",
+    "recruitCount": 2,
+    "birthplaceRaw": "白老町",
+    "isForeign": false,
+    "status": "ok"
+  },
+  {
+    "damUrl": "https://db.sp.netkeiba.com/horse/2006103170/",
+    "damName": "ティフィン",
+    "recruitCount": 1,
+    "birthplaceRaw": "安平町",
+    "isForeign": false,
+    "status": "ok"
+  },
+  {
+    "damUrl": "https://db.sp.netkeiba.com/horse/2004102929/",
+    "damName": "ヴァイスハイト",
+    "recruitCount": 1,
+    "birthplaceRaw": "早来町",
+    "isForeign": false,
+    "status": "ok"
+  },
+  {
+    "damUrl": "https://db.sp.netkeiba.com/horse/000a0111c9/",
+    "damName": "ピューリティー",
+    "recruitCount": 3,
+    "birthplaceRaw": null,
+    "isForeign": null,
+    "status": "field-missing"
+  },
+  {
+    "damUrl": "https://db.sp.netkeiba.com/horse/2006103313/",
+    "damName": "フェルミオン",
+    "recruitCount": 7,
+    "birthplaceRaw": "安平町",
+    "isForeign": false,
+    "status": "ok"
+  },
+  {
+    "damUrl": "https://db.sp.netkeiba.com/horse/2000102044/",
+    "damName": "チアズメッセージ",
+    "recruitCount": 2,
+    "birthplaceRaw": "静内町",
+    "isForeign": false,
+    "status": "ok"
+  },
+  {
+    "damUrl": "https://db.sp.netkeiba.com/horse/2010104369/",
+    "damName": "ホールロッタラヴ",
+    "recruitCount": 1,
+    "birthplaceRaw": "安平町",
+    "isForeign": false,
+    "status": "ok"
+  },
+  {
+    "damUrl": "https://db.sp.netkeiba.com/horse/2006103384/",
+    "damName": "ネオイリュージョン",
+    "recruitCount": 1,
+    "birthplaceRaw": "早来町",
+    "isForeign": false,
+    "status": "ok"
+  },
+  {
+    "damUrl": "https://db.sp.netkeiba.com/horse/2004102922/",
+    "damName": "カラベルラティーナ",
+    "recruitCount": 4,
+    "birthplaceRaw": "早来町",
+    "isForeign": false,
+    "status": "ok"
+  },
+  {
+    "damUrl": "https://db.sp.netkeiba.com/horse/2004103014/",
+    "damName": "プロミネント",
+    "recruitCount": 1,
+    "birthplaceRaw": "早来町",
+    "isForeign": false,
+    "status": "ok"
+  },
+  {
+    "damUrl": "https://db.sp.netkeiba.com/horse/2007103233/",
+    "damName": "ライツェント",
+    "recruitCount": 1,
+    "birthplaceRaw": "安平町",
+    "isForeign": false,
+    "status": "ok"
+  },
+  {
+    "damUrl": "https://db.sp.netkeiba.com/horse/2008110096/",
+    "damName": "シーザシー",
+    "recruitCount": 1,
+    "birthplaceRaw": "米",
+    "isForeign": true,
+    "status": "ok"
+  },
+  {
+    "damUrl": "https://db.sp.netkeiba.com/horse/2008103176/",
+    "damName": "ポロンナルワ",
+    "recruitCount": 5,
+    "birthplaceRaw": "安平町",
+    "isForeign": false,
+    "status": "ok"
+  },
+  {
+    "damUrl": "https://db.sp.netkeiba.com/horse/000a0117d4/",
+    "damName": "スカイディーバ",
+    "recruitCount": 1,
+    "birthplaceRaw": null,
+    "isForeign": null,
+    "status": "field-missing"
+  },
+  {
+    "damUrl": "https://db.sp.netkeiba.com/horse/000a012130/",
+    "damName": "チェリーコレクト",
+    "recruitCount": 1,
+    "birthplaceRaw": null,
+    "isForeign": null,
+    "status": "field-missing"
+  },
+  {
+    "damUrl": "https://db.sp.netkeiba.com/horse/2005102526/",
+    "damName": "ココシュニック",
+    "recruitCount": 4,
+    "birthplaceRaw": "早来町",
+    "isForeign": false,
+    "status": "ok"
+  },
+  {
+    "damUrl": "https://db.sp.netkeiba.com/horse/2006103316/",
+    "damName": "ジュモー",
+    "recruitCount": 5,
+    "birthplaceRaw": "早来町",
+    "isForeign": false,
+    "status": "ok"
+  },
+  {
+    "damUrl": "https://db.sp.netkeiba.com/horse/2011104000/",
+    "damName": "ハープスター",
+    "recruitCount": 3,
+    "birthplaceRaw": "安平町",
+    "isForeign": false,
+    "status": "ok"
+  },
+  {
+    "damUrl": "https://db.sp.netkeiba.com/horse/000a0111cb/",
+    "damName": "アビラ",
+    "recruitCount": 3,
+    "birthplaceRaw": null,
+    "isForeign": null,
+    "status": "field-missing"
+  },
+  {
+    "damUrl": "https://db.sp.netkeiba.com/horse/000a012516/",
+    "damName": "アナアメリカーナ",
+    "recruitCount": 1,
+    "birthplaceRaw": null,
+    "isForeign": null,
+    "status": "field-missing"
+  },
+  {
+    "damUrl": "https://db.sp.netkeiba.com/horse/2008103279/",
+    "damName": "ピュアブリーゼ",
+    "recruitCount": 8,
+    "birthplaceRaw": "安平町",
+    "isForeign": false,
+    "status": "ok"
+  },
+  {
+    "damUrl": "https://db.sp.netkeiba.com/horse/2005102704/",
+    "damName": "マルティンスターク",
+    "recruitCount": 6,
+    "birthplaceRaw": "早来町",
+    "isForeign": false,
+    "status": "ok"
+  },
+  {
+    "damUrl": "https://db.sp.netkeiba.com/horse/2002100843/",
+    "damName": "ヴィートマルシェ",
+    "recruitCount": 4,
+    "birthplaceRaw": "早来町",
+    "isForeign": false,
+    "status": "ok"
+  },
+  {
+    "damUrl": "https://db.sp.netkeiba.com/horse/2002100844/",
+    "damName": "シーザリオ",
+    "recruitCount": 4,
+    "birthplaceRaw": "早来町",
+    "isForeign": false,
+    "status": "ok"
+  },
+  {
+    "damUrl": "https://db.sp.netkeiba.com/horse/2007103232/",
+    "damName": "スペシャルグルーヴ",
+    "recruitCount": 1,
+    "birthplaceRaw": "安平町",
+    "isForeign": false,
+    "status": "ok"
+  },
+  {
+    "damUrl": "https://db.sp.netkeiba.com/horse/2011103850/",
+    "damName": "シードオブハピネス",
+    "recruitCount": 1,
+    "birthplaceRaw": "安平町",
+    "isForeign": false,
+    "status": "ok"
+  },
+  {
+    "damUrl": "https://db.sp.netkeiba.com/horse/2009106348/",
+    "damName": "マハービスタ",
+    "recruitCount": 1,
+    "birthplaceRaw": "安平町",
+    "isForeign": false,
+    "status": "ok"
+  },
+  {
+    "damUrl": "https://db.sp.netkeiba.com/horse/000a012168/",
+    "damName": "アブソルートリー",
+    "recruitCount": 1,
+    "birthplaceRaw": null,
+    "isForeign": null,
+    "status": "field-missing"
+  },
+  {
+    "damUrl": "https://db.sp.netkeiba.com/horse/2003102854/",
+    "damName": "モンプティクール",
+    "recruitCount": 1,
+    "birthplaceRaw": "早来町",
+    "isForeign": false,
+    "status": "ok"
+  },
+  {
+    "damUrl": "https://db.sp.netkeiba.com/horse/2003100823/",
+    "damName": "フェアリーバニヤン",
+    "recruitCount": 1,
+    "birthplaceRaw": "新冠町",
+    "isForeign": false,
+    "status": "ok"
+  },
+  {
+    "damUrl": "https://db.sp.netkeiba.com/horse/2004102760/",
+    "damName": "ヒカルアモーレ",
+    "recruitCount": 6,
+    "birthplaceRaw": "白老町",
+    "isForeign": false,
+    "status": "ok"
+  },
+  {
+    "damUrl": "https://db.sp.netkeiba.com/horse/000a00fa68/",
+    "damName": "グレイトフィーヴァー",
+    "recruitCount": 1,
+    "birthplaceRaw": null,
+    "isForeign": null,
+    "status": "field-missing"
+  },
+  {
+    "damUrl": "https://db.sp.netkeiba.com/horse/2007103340/",
+    "damName": "アマルフィターナ",
+    "recruitCount": 1,
+    "birthplaceRaw": "安平町",
+    "isForeign": false,
+    "status": "ok"
+  },
+  {
+    "damUrl": "https://db.sp.netkeiba.com/horse/2010104069/",
+    "damName": "ディアマイベイビー",
+    "recruitCount": 4,
+    "birthplaceRaw": "安平町",
+    "isForeign": false,
+    "status": "ok"
+  },
+  {
+    "damUrl": "https://db.sp.netkeiba.com/horse/2011103601/",
+    "damName": "サンドミエシュ",
+    "recruitCount": 1,
+    "birthplaceRaw": "白老町",
+    "isForeign": false,
+    "status": "ok"
+  },
+  {
+    "damUrl": "https://db.sp.netkeiba.com/horse/000a011428/",
+    "damName": "ブライダルソング",
+    "recruitCount": 1,
+    "birthplaceRaw": null,
+    "isForeign": null,
+    "status": "field-missing"
+  },
+  {
+    "damUrl": "https://db.sp.netkeiba.com/horse/2001103230/",
+    "damName": "イストワール",
+    "recruitCount": 3,
+    "birthplaceRaw": "白老町",
+    "isForeign": false,
+    "status": "ok"
+  },
+  {
+    "damUrl": "https://db.sp.netkeiba.com/horse/2008103078/",
+    "damName": "アヴェンチュラ",
+    "recruitCount": 5,
+    "birthplaceRaw": "安平町",
+    "isForeign": false,
+    "status": "ok"
+  },
+  {
+    "damUrl": "https://db.sp.netkeiba.com/horse/2007103007/",
+    "damName": "ラフォルジュルネ",
+    "recruitCount": 4,
+    "birthplaceRaw": "白老町",
+    "isForeign": false,
+    "status": "ok"
+  },
+  {
+    "damUrl": "https://db.sp.netkeiba.com/horse/000a00683b/",
+    "damName": "ハルーワソング",
+    "recruitCount": 1,
+    "birthplaceRaw": null,
+    "isForeign": null,
+    "status": "field-missing"
+  },
+  {
+    "damUrl": "https://db.sp.netkeiba.com/horse/000a011a60/",
+    "damName": "クーデンビーチ",
+    "recruitCount": 1,
+    "birthplaceRaw": null,
+    "isForeign": null,
+    "status": "field-missing"
+  },
+  {
+    "damUrl": "https://db.sp.netkeiba.com/horse/2008103303/",
+    "damName": "ブロードピーク",
+    "recruitCount": 1,
+    "birthplaceRaw": "安平町",
+    "isForeign": false,
+    "status": "ok"
+  },
+  {
+    "damUrl": "https://db.sp.netkeiba.com/horse/2007103117/",
+    "damName": "ヴェラブランカ",
+    "recruitCount": 3,
+    "birthplaceRaw": "安平町",
+    "isForeign": false,
+    "status": "ok"
+  },
+  {
+    "damUrl": "https://db.sp.netkeiba.com/horse/000a010bf2/",
+    "damName": "ヴィアンローズ",
+    "recruitCount": 4,
+    "birthplaceRaw": null,
+    "isForeign": null,
+    "status": "field-missing"
+  },
+  {
+    "damUrl": "https://db.sp.netkeiba.com/horse/2006102828/",
+    "damName": "バイラオーラ",
+    "recruitCount": 6,
+    "birthplaceRaw": "日高町",
+    "isForeign": false,
+    "status": "ok"
+  },
+  {
+    "damUrl": "https://db.sp.netkeiba.com/horse/000a01199b/",
+    "damName": "カニョット",
+    "recruitCount": 4,
+    "birthplaceRaw": null,
+    "isForeign": null,
+    "status": "field-missing"
+  },
+  {
+    "damUrl": "https://db.sp.netkeiba.com/horse/2008100654/",
+    "damName": "スサーナトウショウ",
+    "recruitCount": 1,
+    "birthplaceRaw": "新ひだか町",
+    "isForeign": false,
+    "status": "ok"
+  },
+  {
+    "damUrl": "https://db.sp.netkeiba.com/horse/2006102845/",
+    "damName": "アドマイヤレッド",
+    "recruitCount": 1,
+    "birthplaceRaw": "白老町",
+    "isForeign": false,
+    "status": "ok"
+  },
+  {
+    "damUrl": "https://db.sp.netkeiba.com/horse/2000101653/",
+    "damName": "プルーフオブラヴ",
+    "recruitCount": 1,
+    "birthplaceRaw": "早来町",
+    "isForeign": false,
+    "status": "ok"
+  },
+  {
+    "damUrl": "https://db.sp.netkeiba.com/horse/2009106088/",
+    "damName": "ローズノーブル",
+    "recruitCount": 8,
+    "birthplaceRaw": "安平町",
+    "isForeign": false,
+    "status": "ok"
+  },
+  {
+    "damUrl": "https://db.sp.netkeiba.com/horse/2007103297/",
+    "damName": "ピンクアリエス",
+    "recruitCount": 7,
+    "birthplaceRaw": "安平町",
+    "isForeign": false,
+    "status": "ok"
+  },
+  {
+    "damUrl": "https://db.sp.netkeiba.com/horse/2010104122/",
+    "damName": "ダブルゴールド",
+    "recruitCount": 1,
+    "birthplaceRaw": "安平町",
+    "isForeign": false,
+    "status": "ok"
+  },
+  {
+    "damUrl": "https://db.sp.netkeiba.com/horse/2002100840/",
+    "damName": "クリソプレーズ",
+    "recruitCount": 3,
+    "birthplaceRaw": "早来町",
+    "isForeign": false,
+    "status": "ok"
+  },
+  {
+    "damUrl": "https://db.sp.netkeiba.com/horse/000a00fe50/",
+    "damName": "ササファイヤー",
+    "recruitCount": 1,
+    "birthplaceRaw": null,
+    "isForeign": null,
+    "status": "field-missing"
+  },
+  {
+    "damUrl": "https://db.sp.netkeiba.com/horse/2007103175/",
+    "damName": "デルフィニウム",
+    "recruitCount": 1,
+    "birthplaceRaw": "安平町",
+    "isForeign": false,
+    "status": "ok"
+  },
+  {
+    "damUrl": "https://db.sp.netkeiba.com/horse/2009106178/",
+    "damName": "エポキシ",
+    "recruitCount": 1,
+    "birthplaceRaw": "安平町",
+    "isForeign": false,
+    "status": "ok"
+  },
+  {
+    "damUrl": "https://db.sp.netkeiba.com/horse/2008103090/",
+    "damName": "グルーヴィクイーン",
+    "recruitCount": 1,
+    "birthplaceRaw": "安平町",
+    "isForeign": false,
+    "status": "ok"
+  },
+  {
+    "damUrl": "https://db.sp.netkeiba.com/horse/000a0117cf/",
+    "damName": "レインデート",
+    "recruitCount": 1,
+    "birthplaceRaw": null,
+    "isForeign": null,
+    "status": "field-missing"
+  },
+  {
+    "damUrl": "https://db.sp.netkeiba.com/horse/000a01205d/",
+    "damName": "ミュージカルロマンス",
+    "recruitCount": 1,
+    "birthplaceRaw": "米",
+    "isForeign": true,
+    "status": "ok"
+  },
+  {
+    "damUrl": "https://db.sp.netkeiba.com/horse/000a0124cd/",
+    "damName": "サミター",
+    "recruitCount": 2,
+    "birthplaceRaw": null,
+    "isForeign": null,
+    "status": "field-missing"
+  },
+  {
+    "damUrl": "https://db.sp.netkeiba.com/horse/2008103309/",
+    "damName": "ペルレンケッテ",
+    "recruitCount": 5,
+    "birthplaceRaw": "安平町",
+    "isForeign": false,
+    "status": "ok"
+  },
+  {
+    "damUrl": "https://db.sp.netkeiba.com/horse/2010104200/",
+    "damName": "ローガンサファイア",
+    "recruitCount": 5,
+    "birthplaceRaw": "安平町",
+    "isForeign": false,
+    "status": "ok"
+  },
+  {
+    "damUrl": "https://db.sp.netkeiba.com/horse/2001107607/",
+    "damName": "マチカネエンジイロ",
+    "recruitCount": 1,
+    "birthplaceRaw": "早来町",
+    "isForeign": false,
+    "status": "ok"
+  },
+  {
+    "damUrl": "https://db.sp.netkeiba.com/horse/2013105763/",
+    "damName": "エクレールアンジュ",
+    "recruitCount": 1,
+    "birthplaceRaw": "安平町",
+    "isForeign": false,
+    "status": "ok"
+  },
+  {
+    "damUrl": "https://db.sp.netkeiba.com/horse/2010104347/",
+    "damName": "フロアクラフト",
+    "recruitCount": 6,
+    "birthplaceRaw": "安平町",
+    "isForeign": false,
+    "status": "ok"
+  },
+  {
+    "damUrl": "https://db.sp.netkeiba.com/horse/2012104599/",
+    "damName": "クルミナル",
+    "recruitCount": 6,
+    "birthplaceRaw": "安平町",
+    "isForeign": false,
+    "status": "ok"
+  },
+  {
+    "damUrl": "https://db.sp.netkeiba.com/horse/000a012060/",
+    "damName": "ウィーミスフランキー",
+    "recruitCount": 1,
+    "birthplaceRaw": null,
+    "isForeign": null,
+    "status": "field-missing"
+  },
+  {
+    "damUrl": "https://db.sp.netkeiba.com/horse/2004103071/",
+    "damName": "シーディドアラバイ",
+    "recruitCount": 1,
+    "birthplaceRaw": "早来町",
+    "isForeign": false,
+    "status": "ok"
+  },
+  {
+    "damUrl": "https://db.sp.netkeiba.com/horse/2007103207/",
+    "damName": "シーズンズベスト",
+    "recruitCount": 3,
+    "birthplaceRaw": "安平町",
+    "isForeign": false,
+    "status": "ok"
+  },
+  {
+    "damUrl": "https://db.sp.netkeiba.com/horse/2013105314/",
+    "damName": "パラダイスコーブ",
+    "recruitCount": 1,
+    "birthplaceRaw": "白老町",
+    "isForeign": false,
+    "status": "ok"
+  },
+  {
+    "damUrl": "https://db.sp.netkeiba.com/horse/000a011d05/",
+    "damName": "コケレール",
+    "recruitCount": 3,
+    "birthplaceRaw": null,
+    "isForeign": null,
+    "status": "field-missing"
+  },
+  {
+    "damUrl": "https://db.sp.netkeiba.com/horse/2001103362/",
+    "damName": "ジャッキーテースト",
+    "recruitCount": 1,
+    "birthplaceRaw": "早来町",
+    "isForeign": false,
+    "status": "ok"
+  },
+  {
+    "damUrl": "https://db.sp.netkeiba.com/horse/2003103047/",
+    "damName": "クロノロジスト",
+    "recruitCount": 1,
+    "birthplaceRaw": "早来町",
+    "isForeign": false,
+    "status": "ok"
+  },
+  {
+    "damUrl": "https://db.sp.netkeiba.com/horse/000a011944/",
+    "damName": "イグジビットワン",
+    "recruitCount": 2,
+    "birthplaceRaw": null,
+    "isForeign": null,
+    "status": "field-missing"
+  },
+  {
+    "damUrl": "https://db.sp.netkeiba.com/horse/2010104050/",
+    "damName": "サンブルエミューズ",
+    "recruitCount": 6,
+    "birthplaceRaw": "安平町",
+    "isForeign": false,
+    "status": "ok"
+  },
+  {
+    "damUrl": "https://db.sp.netkeiba.com/horse/2008110012/",
+    "damName": "ゼマティス",
+    "recruitCount": 1,
+    "birthplaceRaw": "新",
+    "isForeign": true,
+    "status": "ok"
+  },
+  {
+    "damUrl": "https://db.sp.netkeiba.com/horse/2004110200/",
+    "damName": "カロンセギュール",
+    "recruitCount": 1,
+    "birthplaceRaw": "米",
+    "isForeign": true,
+    "status": "ok"
+  },
+  {
+    "damUrl": "https://db.sp.netkeiba.com/horse/2006105911/",
+    "damName": "レインオアシャイン",
+    "recruitCount": 1,
+    "birthplaceRaw": "日高町",
+    "isForeign": false,
+    "status": "ok"
+  },
+  {
+    "damUrl": "https://db.sp.netkeiba.com/horse/2006103260/",
+    "damName": "タイトルパート",
+    "recruitCount": 1,
+    "birthplaceRaw": "早来町",
+    "isForeign": false,
+    "status": "ok"
+  },
+  {
+    "damUrl": "https://db.sp.netkeiba.com/horse/2003102819/",
+    "damName": "メガクライト",
+    "recruitCount": 2,
+    "birthplaceRaw": "早来町",
+    "isForeign": false,
+    "status": "ok"
+  },
+  {
+    "damUrl": "https://db.sp.netkeiba.com/horse/000a013890/",
+    "damName": "パシフィックリム",
+    "recruitCount": 1,
+    "birthplaceRaw": null,
+    "isForeign": null,
+    "status": "field-missing"
+  },
+  {
+    "damUrl": "https://db.sp.netkeiba.com/horse/000a011811/",
+    "damName": "レディドーヴィル",
+    "recruitCount": 2,
+    "birthplaceRaw": null,
+    "isForeign": null,
+    "status": "field-missing"
+  },
+  {
+    "damUrl": "https://db.sp.netkeiba.com/horse/2003102823/",
+    "damName": "シェルズレイ",
+    "recruitCount": 3,
+    "birthplaceRaw": "早来町",
+    "isForeign": false,
+    "status": "ok"
+  },
+  {
+    "damUrl": "https://db.sp.netkeiba.com/horse/000a011191/",
+    "damName": "シンハリーズ",
+    "recruitCount": 5,
+    "birthplaceRaw": null,
+    "isForeign": null,
+    "status": "field-missing"
+  },
+  {
+    "damUrl": "https://db.sp.netkeiba.com/horse/000a012947/",
+    "damName": "ファッションプレート",
+    "recruitCount": 1,
+    "birthplaceRaw": null,
+    "isForeign": null,
+    "status": "field-missing"
+  },
+  {
+    "damUrl": "https://db.sp.netkeiba.com/horse/000a012042/",
+    "damName": "レディシャツィ",
+    "recruitCount": 1,
+    "birthplaceRaw": null,
+    "isForeign": null,
+    "status": "field-missing"
+  },
+  {
+    "damUrl": "https://db.sp.netkeiba.com/horse/2005102664/",
+    "damName": "ヒストリックスター",
+    "recruitCount": 4,
+    "birthplaceRaw": "早来町",
+    "isForeign": false,
+    "status": "ok"
+  },
+  {
+    "damUrl": "https://db.sp.netkeiba.com/horse/2010104460/",
+    "damName": "グランデアモーレ",
+    "recruitCount": 5,
+    "birthplaceRaw": "白老町",
+    "isForeign": false,
+    "status": "ok"
+  },
+  {
+    "damUrl": "https://db.sp.netkeiba.com/horse/000a011a19/",
+    "damName": "リリサイド",
+    "recruitCount": 3,
+    "birthplaceRaw": null,
+    "isForeign": null,
+    "status": "field-missing"
+  },
+  {
+    "damUrl": "https://db.sp.netkeiba.com/horse/2008103302/",
+    "damName": "シシリアンブリーズ",
+    "recruitCount": 3,
+    "birthplaceRaw": "安平町",
+    "isForeign": false,
+    "status": "ok"
+  },
+  {
+    "damUrl": "https://db.sp.netkeiba.com/horse/2009106220/",
+    "damName": "パッシフローラ",
+    "recruitCount": 1,
+    "birthplaceRaw": "安平町",
+    "isForeign": false,
+    "status": "ok"
+  },
+  {
+    "damUrl": "https://db.sp.netkeiba.com/horse/000a012e2c/",
+    "damName": "フォンタネリーチェ",
+    "recruitCount": 1,
+    "birthplaceRaw": null,
+    "isForeign": null,
+    "status": "field-missing"
+  },
+  {
+    "damUrl": "https://db.sp.netkeiba.com/horse/2005102406/",
+    "damName": "リトルディッパー",
+    "recruitCount": 1,
+    "birthplaceRaw": "千歳市",
+    "isForeign": false,
+    "status": "ok"
+  },
+  {
+    "damUrl": "https://db.sp.netkeiba.com/horse/000a012c83/",
+    "damName": "アルテリテ",
+    "recruitCount": 1,
+    "birthplaceRaw": null,
+    "isForeign": null,
+    "status": "field-missing"
+  },
+  {
+    "damUrl": "https://db.sp.netkeiba.com/horse/2002100480/",
+    "damName": "フェリシア",
+    "recruitCount": 1,
+    "birthplaceRaw": "追分町",
+    "isForeign": false,
+    "status": "ok"
+  },
+  {
+    "damUrl": "https://db.sp.netkeiba.com/horse/2010104211/",
+    "damName": "ディアデラマドレ",
+    "recruitCount": 5,
+    "birthplaceRaw": "安平町",
+    "isForeign": false,
+    "status": "ok"
+  },
+  {
+    "damUrl": "https://db.sp.netkeiba.com/horse/2010104270/",
+    "damName": "アンレール",
+    "recruitCount": 3,
+    "birthplaceRaw": "安平町",
+    "isForeign": false,
+    "status": "ok"
+  },
+  {
+    "damUrl": "https://db.sp.netkeiba.com/horse/000a0117bb/",
+    "damName": "ストールンハート",
+    "recruitCount": 1,
+    "birthplaceRaw": null,
+    "isForeign": null,
+    "status": "field-missing"
+  },
+  {
+    "damUrl": "https://db.sp.netkeiba.com/horse/000a011532/",
+    "damName": "ディメンティカタ",
+    "recruitCount": 1,
+    "birthplaceRaw": null,
+    "isForeign": null,
+    "status": "field-missing"
+  },
+  {
+    "damUrl": "https://db.sp.netkeiba.com/horse/2009106065/",
+    "damName": "サトノジュピター",
+    "recruitCount": 1,
+    "birthplaceRaw": "安平町",
+    "isForeign": false,
+    "status": "ok"
+  },
+  {
+    "damUrl": "https://db.sp.netkeiba.com/horse/000a012b0b/",
+    "damName": "マラコスタムブラダ",
+    "recruitCount": 3,
+    "birthplaceRaw": null,
+    "isForeign": null,
+    "status": "field-missing"
+  },
+  {
+    "damUrl": "https://db.sp.netkeiba.com/horse/000a011a67/",
+    "damName": "バロネスサッチャー",
+    "recruitCount": 1,
+    "birthplaceRaw": null,
+    "isForeign": null,
+    "status": "field-missing"
+  },
+  {
+    "damUrl": "https://db.sp.netkeiba.com/horse/2009101892/",
+    "damName": "ソラコマチ",
+    "recruitCount": 1,
+    "birthplaceRaw": "新ひだか町",
+    "isForeign": false,
+    "status": "ok"
+  },
+  {
+    "damUrl": "https://db.sp.netkeiba.com/horse/2009106202/",
+    "damName": "カフヴァール",
+    "recruitCount": 1,
+    "birthplaceRaw": "安平町",
+    "isForeign": false,
+    "status": "ok"
+  },
+  {
+    "damUrl": "https://db.sp.netkeiba.com/horse/2010104224/",
+    "damName": "トゥザレジェンド",
+    "recruitCount": 1,
+    "birthplaceRaw": "安平町",
+    "isForeign": false,
+    "status": "ok"
+  },
+  {
+    "damUrl": "https://db.sp.netkeiba.com/horse/2010104242/",
+    "damName": "スペクトロライト",
+    "recruitCount": 6,
+    "birthplaceRaw": "安平町",
+    "isForeign": false,
+    "status": "ok"
+  },
+  {
+    "damUrl": "https://db.sp.netkeiba.com/horse/2009106159/",
+    "damName": "スネガエクスプレス",
+    "recruitCount": 1,
+    "birthplaceRaw": "安平町",
+    "isForeign": false,
+    "status": "ok"
+  },
+  {
+    "damUrl": "https://db.sp.netkeiba.com/horse/000a0137f9/",
+    "damName": "ピースアンドウォー",
+    "recruitCount": 2,
+    "birthplaceRaw": null,
+    "isForeign": null,
+    "status": "field-missing"
+  },
+  {
+    "damUrl": "https://db.sp.netkeiba.com/horse/000a013cf1/",
+    "damName": "外)ザガールインザットソング",
+    "recruitCount": 1,
+    "birthplaceRaw": null,
+    "isForeign": null,
+    "status": "field-missing"
+  },
+  {
+    "damUrl": "https://db.sp.netkeiba.com/horse/000a0125f0/",
+    "damName": "タッチミーベイブ",
+    "recruitCount": 1,
+    "birthplaceRaw": null,
+    "isForeign": null,
+    "status": "field-missing"
+  },
+  {
+    "damUrl": "https://db.sp.netkeiba.com/horse/2002100942/",
+    "damName": "グレイシアブルー",
+    "recruitCount": 3,
+    "birthplaceRaw": "早来町",
+    "isForeign": false,
+    "status": "ok"
+  },
+  {
+    "damUrl": "https://db.sp.netkeiba.com/horse/2010104315/",
+    "damName": "インプレショニスト",
+    "recruitCount": 1,
+    "birthplaceRaw": "安平町",
+    "isForeign": false,
+    "status": "ok"
+  },
+  {
+    "damUrl": "https://db.sp.netkeiba.com/horse/2004103025/",
+    "damName": "アンソロジー",
+    "recruitCount": 2,
+    "birthplaceRaw": "早来町",
+    "isForeign": false,
+    "status": "ok"
+  },
+  {
+    "damUrl": "https://db.sp.netkeiba.com/horse/1999100117/",
+    "damName": "スノースタイル",
+    "recruitCount": 1,
+    "birthplaceRaw": "静内町",
+    "isForeign": false,
+    "status": "ok"
+  },
+  {
+    "damUrl": "https://db.sp.netkeiba.com/horse/000a01218a/",
+    "damName": "シユーマ",
+    "recruitCount": 1,
+    "birthplaceRaw": null,
+    "isForeign": null,
+    "status": "field-missing"
+  },
+  {
+    "damUrl": "https://db.sp.netkeiba.com/horse/2011104105/",
+    "damName": "バウンスシャッセ",
+    "recruitCount": 6,
+    "birthplaceRaw": "安平町",
+    "isForeign": false,
+    "status": "ok"
+  },
+  {
+    "damUrl": "https://db.sp.netkeiba.com/horse/2009103937/",
+    "damName": "ジュエルトウショウ",
+    "recruitCount": 1,
+    "birthplaceRaw": "新ひだか町",
+    "isForeign": false,
+    "status": "ok"
+  },
+  {
+    "damUrl": "https://db.sp.netkeiba.com/horse/2011103832/",
+    "damName": "マリアライト",
+    "recruitCount": 5,
+    "birthplaceRaw": "安平町",
+    "isForeign": false,
+    "status": "ok"
+  },
+  {
+    "damUrl": "https://db.sp.netkeiba.com/horse/2009106142/",
+    "damName": "ケイティーズハート",
+    "recruitCount": 6,
+    "birthplaceRaw": "安平町",
+    "isForeign": false,
+    "status": "ok"
+  },
+  {
+    "damUrl": "https://db.sp.netkeiba.com/horse/2012104068/",
+    "damName": "ヴァイスゴルト",
+    "recruitCount": 1,
+    "birthplaceRaw": "白老町",
+    "isForeign": false,
+    "status": "ok"
+  },
+  {
+    "damUrl": "https://db.sp.netkeiba.com/horse/000a011e14/",
+    "damName": "アートプリンセス",
+    "recruitCount": 1,
+    "birthplaceRaw": null,
+    "isForeign": null,
+    "status": "field-missing"
+  },
+  {
+    "damUrl": "https://db.sp.netkeiba.com/horse/2009106316/",
+    "damName": "ウィズザフロウ",
+    "recruitCount": 1,
+    "birthplaceRaw": "安平町",
+    "isForeign": false,
+    "status": "ok"
+  },
+  {
+    "damUrl": "https://db.sp.netkeiba.com/horse/2003102993/",
+    "damName": "ブルーメンブラット",
+    "recruitCount": 4,
+    "birthplaceRaw": "早来町",
+    "isForeign": false,
+    "status": "ok"
+  },
+  {
+    "damUrl": "https://db.sp.netkeiba.com/horse/2011103811/",
+    "damName": "ヴィータアレグリア",
+    "recruitCount": 6,
+    "birthplaceRaw": "安平町",
+    "isForeign": false,
+    "status": "ok"
+  },
+  {
+    "damUrl": "https://db.sp.netkeiba.com/horse/2008103189/",
+    "damName": "エカルラート",
+    "recruitCount": 1,
+    "birthplaceRaw": "安平町",
+    "isForeign": false,
+    "status": "ok"
+  },
+  {
+    "damUrl": "https://db.sp.netkeiba.com/horse/2001103297/",
+    "damName": "エンシェントヒル",
+    "recruitCount": 2,
+    "birthplaceRaw": "早来町",
+    "isForeign": false,
+    "status": "ok"
+  },
+  {
+    "damUrl": "https://db.sp.netkeiba.com/horse/2011103783/",
+    "damName": "ロスヴァイセ",
+    "recruitCount": 4,
+    "birthplaceRaw": "安平町",
+    "isForeign": false,
+    "status": "ok"
+  },
+  {
+    "damUrl": "https://db.sp.netkeiba.com/horse/000a0120f4/",
+    "damName": "マンドゥラ",
+    "recruitCount": 1,
+    "birthplaceRaw": null,
+    "isForeign": null,
+    "status": "field-missing"
+  },
+  {
+    "damUrl": "https://db.sp.netkeiba.com/horse/2011103644/",
+    "damName": "ピエリーナ",
+    "recruitCount": 2,
+    "birthplaceRaw": "白老町",
+    "isForeign": false,
+    "status": "ok"
+  },
+  {
+    "damUrl": "https://db.sp.netkeiba.com/horse/2010104267/",
+    "damName": "ピュクシス",
+    "recruitCount": 1,
+    "birthplaceRaw": "安平町",
+    "isForeign": false,
+    "status": "ok"
+  },
+  {
+    "damUrl": "https://db.sp.netkeiba.com/horse/2010104324/",
+    "damName": "ビアンカシェボン",
+    "recruitCount": 1,
+    "birthplaceRaw": "安平町",
+    "isForeign": false,
+    "status": "ok"
+  },
+  {
+    "damUrl": "https://db.sp.netkeiba.com/horse/000a013e3c/",
+    "damName": "パーリーアヴェニュー",
+    "recruitCount": 1,
+    "birthplaceRaw": null,
+    "isForeign": null,
+    "status": "field-missing"
+  },
+  {
+    "damUrl": "https://db.sp.netkeiba.com/horse/000a0124d0/",
+    "damName": "オーサムフェザー",
+    "recruitCount": 1,
+    "birthplaceRaw": null,
+    "isForeign": null,
+    "status": "field-missing"
+  },
+  {
+    "damUrl": "https://db.sp.netkeiba.com/horse/000a012f88/",
+    "damName": "ウイングステルス",
+    "recruitCount": 1,
+    "birthplaceRaw": null,
+    "isForeign": null,
+    "status": "field-missing"
+  },
+  {
+    "damUrl": "https://db.sp.netkeiba.com/horse/2002100903/",
+    "damName": "シェアザストーリー",
+    "recruitCount": 1,
+    "birthplaceRaw": "早来町",
+    "isForeign": false,
+    "status": "ok"
+  },
+  {
+    "damUrl": "https://db.sp.netkeiba.com/horse/000a012e10/",
+    "damName": "フィールザレース",
+    "recruitCount": 1,
+    "birthplaceRaw": null,
+    "isForeign": null,
+    "status": "field-missing"
+  },
+  {
+    "damUrl": "https://db.sp.netkeiba.com/horse/2005102655/",
+    "damName": "カイゼリン",
+    "recruitCount": 2,
+    "birthplaceRaw": "早来町",
+    "isForeign": false,
+    "status": "ok"
+  },
+  {
+    "damUrl": "https://db.sp.netkeiba.com/horse/2010105912/",
+    "damName": "ボンジュールココロ",
+    "recruitCount": 1,
+    "birthplaceRaw": "新冠町",
+    "isForeign": false,
+    "status": "ok"
+  },
+  {
+    "damUrl": "https://db.sp.netkeiba.com/horse/2011103852/",
+    "damName": "ケルシャンス",
+    "recruitCount": 1,
+    "birthplaceRaw": "安平町",
+    "isForeign": false,
+    "status": "ok"
+  },
+  {
+    "damUrl": "https://db.sp.netkeiba.com/horse/2013105906/",
+    "damName": "シンハライト",
+    "recruitCount": 4,
+    "birthplaceRaw": "安平町",
+    "isForeign": false,
+    "status": "ok"
+  },
+  {
+    "damUrl": "https://db.sp.netkeiba.com/horse/000a012f0b/",
+    "damName": "スパニッシュクイーン",
+    "recruitCount": 1,
+    "birthplaceRaw": null,
+    "isForeign": null,
+    "status": "field-missing"
+  },
+  {
+    "damUrl": "https://db.sp.netkeiba.com/horse/2011103890/",
+    "damName": "リラヴァティ",
+    "recruitCount": 5,
+    "birthplaceRaw": "安平町",
+    "isForeign": false,
+    "status": "ok"
+  },
+  {
+    "damUrl": "https://db.sp.netkeiba.com/horse/2001103384/",
+    "damName": "ツィンクルヴェール",
+    "recruitCount": 1,
+    "birthplaceRaw": "早来町",
+    "isForeign": false,
+    "status": "ok"
+  },
+  {
+    "damUrl": "https://db.sp.netkeiba.com/horse/2011103981/",
+    "damName": "オリエンタルポピー",
+    "recruitCount": 2,
+    "birthplaceRaw": "安平町",
+    "isForeign": false,
+    "status": "ok"
+  },
+  {
+    "damUrl": "https://db.sp.netkeiba.com/horse/000a013897/",
+    "damName": "ムーングロウ",
+    "recruitCount": 4,
+    "birthplaceRaw": null,
+    "isForeign": null,
+    "status": "field-missing"
+  },
+  {
+    "damUrl": "https://db.sp.netkeiba.com/horse/2004103196/",
+    "damName": "センシュアルドレス",
+    "recruitCount": 1,
+    "birthplaceRaw": "千歳市",
+    "isForeign": false,
+    "status": "ok"
+  },
+  {
+    "damUrl": "https://db.sp.netkeiba.com/horse/2011104092/",
+    "damName": "プラチナブロンド",
+    "recruitCount": 3,
+    "birthplaceRaw": "安平町",
+    "isForeign": false,
+    "status": "ok"
+  },
+  {
+    "damUrl": "https://db.sp.netkeiba.com/horse/2009110123/",
+    "damName": "クルージンミジー",
+    "recruitCount": 3,
+    "birthplaceRaw": "米",
+    "isForeign": true,
+    "status": "ok"
+  },
+  {
+    "damUrl": "https://db.sp.netkeiba.com/horse/2006103160/",
+    "damName": "リーチコンセンサス",
+    "recruitCount": 2,
+    "birthplaceRaw": "安平町",
+    "isForeign": false,
+    "status": "ok"
+  },
+  {
+    "damUrl": "https://db.sp.netkeiba.com/horse/1999106688/",
+    "damName": "コードネーム",
+    "recruitCount": 1,
+    "birthplaceRaw": "追分町",
+    "isForeign": false,
+    "status": "ok"
+  },
+  {
+    "damUrl": "https://db.sp.netkeiba.com/horse/000a0143eb/",
+    "damName": "ダンスウィズキトゥン",
+    "recruitCount": 1,
+    "birthplaceRaw": "米",
+    "isForeign": true,
+    "status": "ok"
+  },
+  {
+    "damUrl": "https://db.sp.netkeiba.com/horse/1999107050/",
+    "damName": "プロミストスパーク",
+    "recruitCount": 1,
+    "birthplaceRaw": "早来町",
+    "isForeign": false,
+    "status": "ok"
+  },
+  {
+    "damUrl": "https://db.sp.netkeiba.com/horse/1998101814/",
+    "damName": "ビスクドール",
+    "recruitCount": 1,
+    "birthplaceRaw": "早来町",
+    "isForeign": false,
+    "status": "ok"
+  },
+  {
+    "damUrl": "https://db.sp.netkeiba.com/horse/2010104312/",
+    "damName": "カイカヨソウ",
+    "recruitCount": 6,
+    "birthplaceRaw": "安平町",
+    "isForeign": false,
+    "status": "ok"
+  },
+  {
+    "damUrl": "https://db.sp.netkeiba.com/horse/000a013dc9/",
+    "damName": "デックドアウト",
+    "recruitCount": 1,
+    "birthplaceRaw": null,
+    "isForeign": null,
+    "status": "field-missing"
+  },
+  {
+    "damUrl": "https://db.sp.netkeiba.com/horse/2010110032/",
+    "damName": "ティズトレメンダス",
+    "recruitCount": 1,
+    "birthplaceRaw": "米",
+    "isForeign": true,
+    "status": "ok"
+  },
+  {
+    "damUrl": "https://db.sp.netkeiba.com/horse/000a013dae/",
+    "damName": "ファイナルディシジョン",
+    "recruitCount": 1,
+    "birthplaceRaw": null,
+    "isForeign": null,
+    "status": "field-missing"
+  },
+  {
+    "damUrl": "https://db.sp.netkeiba.com/horse/2012104669/",
+    "damName": "ルージュバック",
+    "recruitCount": 3,
+    "birthplaceRaw": "安平町",
+    "isForeign": false,
+    "status": "ok"
+  },
+  {
+    "damUrl": "https://db.sp.netkeiba.com/horse/000a013234/",
+    "damName": "ティロレスカ",
+    "recruitCount": 1,
+    "birthplaceRaw": null,
+    "isForeign": null,
+    "status": "field-missing"
+  },
+  {
+    "damUrl": "https://db.sp.netkeiba.com/horse/000a012140/",
+    "damName": "ベルロワイヤル",
+    "recruitCount": 1,
+    "birthplaceRaw": null,
+    "isForeign": null,
+    "status": "field-missing"
+  },
+  {
+    "damUrl": "https://db.sp.netkeiba.com/horse/2012104914/",
+    "damName": "クレオール",
+    "recruitCount": 2,
+    "birthplaceRaw": "安平町",
+    "isForeign": false,
+    "status": "ok"
+  },
+  {
+    "damUrl": "https://db.sp.netkeiba.com/horse/2013106181/",
+    "damName": "エールデュレーヴ",
+    "recruitCount": 5,
+    "birthplaceRaw": "安平町",
+    "isForeign": false,
+    "status": "ok"
+  },
+  {
+    "damUrl": "https://db.sp.netkeiba.com/horse/2011103650/",
+    "damName": "ヴェルジョワーズ",
+    "recruitCount": 1,
+    "birthplaceRaw": "白老町",
+    "isForeign": false,
+    "status": "ok"
+  },
+  {
+    "damUrl": "https://db.sp.netkeiba.com/horse/2011103778/",
+    "damName": "スペルオンミー",
+    "recruitCount": 1,
+    "birthplaceRaw": "安平町",
+    "isForeign": false,
+    "status": "ok"
+  },
+  {
+    "damUrl": "https://db.sp.netkeiba.com/horse/2013105820/",
+    "damName": "アウェイク",
+    "recruitCount": 2,
+    "birthplaceRaw": "安平町",
+    "isForeign": false,
+    "status": "ok"
+  },
+  {
+    "damUrl": "https://db.sp.netkeiba.com/horse/2012104535/",
+    "damName": "アールブリュット",
+    "recruitCount": 4,
+    "birthplaceRaw": "安平町",
+    "isForeign": false,
+    "status": "ok"
+  },
+  {
+    "damUrl": "https://db.sp.netkeiba.com/horse/000a010b61/",
+    "damName": "ムーンライトダンス",
+    "recruitCount": 1,
+    "birthplaceRaw": null,
+    "isForeign": null,
+    "status": "field-missing"
+  },
+  {
+    "damUrl": "https://db.sp.netkeiba.com/horse/2008102669/",
+    "damName": "サダムグランジュテ",
+    "recruitCount": 1,
+    "birthplaceRaw": "白老町",
+    "isForeign": false,
+    "status": "ok"
+  },
+  {
+    "damUrl": "https://db.sp.netkeiba.com/horse/2012104717/",
+    "damName": "ティンバレス",
+    "recruitCount": 5,
+    "birthplaceRaw": "安平町",
+    "isForeign": false,
+    "status": "ok"
+  },
+  {
+    "damUrl": "https://db.sp.netkeiba.com/horse/2012104080/",
+    "damName": "エクストラペトル",
+    "recruitCount": 3,
+    "birthplaceRaw": "白老町",
+    "isForeign": false,
+    "status": "ok"
+  },
+  {
+    "damUrl": "https://db.sp.netkeiba.com/horse/2011104137/",
+    "damName": "ムスタパルタ",
+    "recruitCount": 1,
+    "birthplaceRaw": "安平町",
+    "isForeign": false,
+    "status": "ok"
+  },
+  {
+    "damUrl": "https://db.sp.netkeiba.com/horse/2011103810/",
+    "damName": "オーマイベイビー",
+    "recruitCount": 2,
+    "birthplaceRaw": "安平町",
+    "isForeign": false,
+    "status": "ok"
+  },
+  {
+    "damUrl": "https://db.sp.netkeiba.com/horse/2011103895/",
+    "damName": "ロザリンド",
+    "recruitCount": 1,
+    "birthplaceRaw": "安平町",
+    "isForeign": false,
+    "status": "ok"
+  },
+  {
+    "damUrl": "https://db.sp.netkeiba.com/horse/2012104858/",
+    "damName": "グリューヴァイン",
+    "recruitCount": 6,
+    "birthplaceRaw": "安平町",
+    "isForeign": false,
+    "status": "ok"
+  },
+  {
+    "damUrl": "https://db.sp.netkeiba.com/horse/000a01216c/",
+    "damName": "サザンスピード",
+    "recruitCount": 1,
+    "birthplaceRaw": null,
+    "isForeign": null,
+    "status": "field-missing"
+  },
+  {
+    "damUrl": "https://db.sp.netkeiba.com/horse/2004103030/",
+    "damName": "ソングバード",
+    "recruitCount": 1,
+    "birthplaceRaw": "早来町",
+    "isForeign": false,
+    "status": "ok"
+  },
+  {
+    "damUrl": "https://db.sp.netkeiba.com/horse/000a014419/",
+    "damName": "リーチング",
+    "recruitCount": 2,
+    "birthplaceRaw": null,
+    "isForeign": null,
+    "status": "field-missing"
+  },
+  {
+    "damUrl": "https://db.sp.netkeiba.com/horse/000a01205f/",
+    "damName": "キラーグレイシス",
+    "recruitCount": 3,
+    "birthplaceRaw": null,
+    "isForeign": null,
+    "status": "field-missing"
+  },
+  {
+    "damUrl": "https://db.sp.netkeiba.com/horse/000a013c70/",
+    "damName": "ファイナルスコア",
+    "recruitCount": 1,
+    "birthplaceRaw": null,
+    "isForeign": null,
+    "status": "field-missing"
+  },
+  {
+    "damUrl": "https://db.sp.netkeiba.com/horse/2009103532/",
+    "damName": "サンビスタ",
+    "recruitCount": 1,
+    "birthplaceRaw": "新ひだか町",
+    "isForeign": false,
+    "status": "ok"
+  },
+  {
+    "damUrl": "https://db.sp.netkeiba.com/horse/2000101583/",
+    "damName": "シェリール",
+    "recruitCount": 1,
+    "birthplaceRaw": "早来町",
+    "isForeign": false,
+    "status": "ok"
+  },
+  {
+    "damUrl": "https://db.sp.netkeiba.com/horse/000a0117a0/",
+    "damName": "ジンジャーパンチ",
+    "recruitCount": 2,
+    "birthplaceRaw": null,
+    "isForeign": null,
+    "status": "field-missing"
+  },
+  {
+    "damUrl": "https://db.sp.netkeiba.com/horse/2013106018/",
+    "damName": "ギモーヴ",
+    "recruitCount": 1,
+    "birthplaceRaw": "安平町",
+    "isForeign": false,
+    "status": "ok"
+  },
+  {
+    "damUrl": "https://db.sp.netkeiba.com/horse/000a01216b/",
+    "damName": "シャムロッカー",
+    "recruitCount": 1,
+    "birthplaceRaw": null,
+    "isForeign": null,
+    "status": "field-missing"
+  },
+  {
+    "damUrl": "https://db.sp.netkeiba.com/horse/2012104913/",
+    "damName": "プルメリアスター",
+    "recruitCount": 6,
+    "birthplaceRaw": "安平町",
+    "isForeign": false,
+    "status": "ok"
+  },
+  {
+    "damUrl": "https://db.sp.netkeiba.com/horse/2015104934/",
+    "damName": "テネイシャス",
+    "recruitCount": 1,
+    "birthplaceRaw": "安平町",
+    "isForeign": false,
+    "status": "ok"
+  },
+  {
+    "damUrl": "https://db.sp.netkeiba.com/horse/2012104065/",
+    "damName": "シャルール",
+    "recruitCount": 3,
+    "birthplaceRaw": "白老町",
+    "isForeign": false,
+    "status": "ok"
+  },
+  {
+    "damUrl": "https://db.sp.netkeiba.com/horse/2012104760/",
+    "damName": "ベルディーヴァ",
+    "recruitCount": 4,
+    "birthplaceRaw": "安平町",
+    "isForeign": false,
+    "status": "ok"
+  },
+  {
+    "damUrl": "https://db.sp.netkeiba.com/horse/2014106075/",
+    "damName": "アスティル",
+    "recruitCount": 1,
+    "birthplaceRaw": "安平町",
+    "isForeign": false,
+    "status": "ok"
+  },
+  {
+    "damUrl": "https://db.sp.netkeiba.com/horse/2006103365/",
+    "damName": "リュシオル",
+    "recruitCount": 1,
+    "birthplaceRaw": "早来町",
+    "isForeign": false,
+    "status": "ok"
+  },
+  {
+    "damUrl": "https://db.sp.netkeiba.com/horse/000a012279/",
+    "damName": "ワナダンス",
+    "recruitCount": 1,
+    "birthplaceRaw": null,
+    "isForeign": null,
+    "status": "field-missing"
+  },
+  {
+    "damUrl": "https://db.sp.netkeiba.com/horse/2012104768/",
+    "damName": "レオパルディナ",
+    "recruitCount": 5,
+    "birthplaceRaw": "平取町",
+    "isForeign": false,
+    "status": "ok"
+  },
+  {
+    "damUrl": "https://db.sp.netkeiba.com/horse/2010104152/",
+    "damName": "シンハディーパ",
+    "recruitCount": 2,
+    "birthplaceRaw": "安平町",
+    "isForeign": false,
+    "status": "ok"
+  },
+  {
+    "damUrl": "https://db.sp.netkeiba.com/horse/2004101213/",
+    "damName": "ブリトマルティス",
+    "recruitCount": 3,
+    "birthplaceRaw": "三石町",
+    "isForeign": false,
+    "status": "ok"
+  },
+  {
+    "damUrl": "https://db.sp.netkeiba.com/horse/2012104930/",
+    "damName": "レインボーソング",
+    "recruitCount": 1,
+    "birthplaceRaw": "安平町",
+    "isForeign": false,
+    "status": "ok"
+  },
+  {
+    "damUrl": "https://db.sp.netkeiba.com/horse/000a013235/",
+    "damName": "コンヴィクションⅡ",
+    "recruitCount": 1,
+    "birthplaceRaw": null,
+    "isForeign": null,
+    "status": "field-missing"
+  },
+  {
+    "damUrl": "https://db.sp.netkeiba.com/horse/000a0120cf/",
+    "damName": "イマーキュレイトキャット",
+    "recruitCount": 1,
+    "birthplaceRaw": null,
+    "isForeign": null,
+    "status": "field-missing"
+  },
+  {
+    "damUrl": "https://db.sp.netkeiba.com/horse/2013105932/",
+    "damName": "シャレードスマイル",
+    "recruitCount": 1,
+    "birthplaceRaw": "安平町",
+    "isForeign": false,
+    "status": "ok"
+  },
+  {
+    "damUrl": "https://db.sp.netkeiba.com/horse/000a01447a/",
+    "damName": "タリサ",
+    "recruitCount": 1,
+    "birthplaceRaw": null,
+    "isForeign": null,
+    "status": "field-missing"
+  },
+  {
+    "damUrl": "https://db.sp.netkeiba.com/horse/2008102816/",
+    "damName": "オーラレガーレ",
+    "recruitCount": 1,
+    "birthplaceRaw": "千歳市",
+    "isForeign": false,
+    "status": "ok"
+  },
+  {
+    "damUrl": "https://db.sp.netkeiba.com/horse/2012104673/",
+    "damName": "レッドソンブレロ",
+    "recruitCount": 1,
+    "birthplaceRaw": "安平町",
+    "isForeign": false,
+    "status": "ok"
+  },
+  {
+    "damUrl": "https://db.sp.netkeiba.com/horse/2014105994/",
+    "damName": "パールズシャイン",
+    "recruitCount": 1,
+    "birthplaceRaw": "白老町",
+    "isForeign": false,
+    "status": "ok"
+  },
+  {
+    "damUrl": "https://db.sp.netkeiba.com/horse/2002101005/",
+    "damName": "ギャラリートーク",
+    "recruitCount": 1,
+    "birthplaceRaw": "早来町",
+    "isForeign": false,
+    "status": "ok"
+  },
+  {
+    "damUrl": "https://db.sp.netkeiba.com/horse/2007100331/",
+    "damName": "ナスケンアイリス",
+    "recruitCount": 1,
+    "birthplaceRaw": "新ひだか町",
+    "isForeign": false,
+    "status": "ok"
+  },
+  {
+    "damUrl": "https://db.sp.netkeiba.com/horse/2013106072/",
+    "damName": "アドマイヤリード",
+    "recruitCount": 2,
+    "birthplaceRaw": "安平町",
+    "isForeign": false,
+    "status": "ok"
+  },
+  {
+    "damUrl": "https://db.sp.netkeiba.com/horse/000a014417/",
+    "damName": "マイハッピーフェイス",
+    "recruitCount": 2,
+    "birthplaceRaw": null,
+    "isForeign": null,
+    "status": "field-missing"
+  },
+  {
+    "damUrl": "https://db.sp.netkeiba.com/horse/000a01295d/",
+    "damName": "モアザンセイクリッド",
+    "recruitCount": 2,
+    "birthplaceRaw": null,
+    "isForeign": null,
+    "status": "field-missing"
+  },
+  {
+    "damUrl": "https://db.sp.netkeiba.com/horse/000a012f07/",
+    "damName": "ステファニーズキトゥン",
+    "recruitCount": 1,
+    "birthplaceRaw": null,
+    "isForeign": null,
+    "status": "field-missing"
+  },
+  {
+    "damUrl": "https://db.sp.netkeiba.com/horse/2013106057/",
+    "damName": "ブリガアルタ",
+    "recruitCount": 2,
+    "birthplaceRaw": "安平町",
+    "isForeign": false,
+    "status": "ok"
+  },
+  {
+    "damUrl": "https://db.sp.netkeiba.com/horse/2009105812/",
+    "damName": "シュピッツェ",
+    "recruitCount": 1,
+    "birthplaceRaw": "千歳市",
+    "isForeign": false,
+    "status": "ok"
+  },
+  {
+    "damUrl": "https://db.sp.netkeiba.com/horse/2009106063/",
+    "damName": "エンジェルフォール",
+    "recruitCount": 2,
+    "birthplaceRaw": "安平町",
+    "isForeign": false,
+    "status": "ok"
+  },
+  {
+    "damUrl": "https://db.sp.netkeiba.com/horse/2006102673/",
+    "damName": "メジロシャレード",
+    "recruitCount": 1,
+    "birthplaceRaw": "洞爺村",
+    "isForeign": false,
+    "status": "ok"
+  },
+  {
+    "damUrl": "https://db.sp.netkeiba.com/horse/000a0124c1/",
+    "damName": "プンタステラ",
+    "recruitCount": 1,
+    "birthplaceRaw": null,
+    "isForeign": null,
+    "status": "field-missing"
+  },
+  {
+    "damUrl": "https://db.sp.netkeiba.com/horse/2014106109/",
+    "damName": "ワシントンレガシー",
+    "recruitCount": 2,
+    "birthplaceRaw": "安平町",
+    "isForeign": false,
+    "status": "ok"
+  },
+  {
+    "damUrl": "https://db.sp.netkeiba.com/horse/2011104013/",
+    "damName": "アドマイヤアロマ",
+    "recruitCount": 1,
+    "birthplaceRaw": "安平町",
+    "isForeign": false,
+    "status": "ok"
+  },
+  {
+    "damUrl": "https://db.sp.netkeiba.com/horse/2013105871/",
+    "damName": "ココファンタジア",
+    "recruitCount": 4,
+    "birthplaceRaw": "安平町",
+    "isForeign": false,
+    "status": "ok"
+  },
+  {
+    "damUrl": "https://db.sp.netkeiba.com/horse/2008103376/",
+    "damName": "クローバーリーフ",
+    "recruitCount": 1,
+    "birthplaceRaw": "安平町",
+    "isForeign": false,
+    "status": "ok"
+  },
+  {
+    "damUrl": "https://db.sp.netkeiba.com/horse/2014106097/",
+    "damName": "パルティトゥーラ",
+    "recruitCount": 2,
+    "birthplaceRaw": "安平町",
+    "isForeign": false,
+    "status": "ok"
+  },
+  {
+    "damUrl": "https://db.sp.netkeiba.com/horse/2012104690/",
+    "damName": "ビットレート",
+    "recruitCount": 3,
+    "birthplaceRaw": "安平町",
+    "isForeign": false,
+    "status": "ok"
+  },
+  {
+    "damUrl": "https://db.sp.netkeiba.com/horse/2015104964/",
+    "damName": "スーブレット",
+    "recruitCount": 1,
+    "birthplaceRaw": "安平町",
+    "isForeign": false,
+    "status": "ok"
+  },
+  {
+    "damUrl": "https://db.sp.netkeiba.com/horse/2013105764/",
+    "damName": "アドヴェントス",
+    "recruitCount": 3,
+    "birthplaceRaw": "安平町",
+    "isForeign": false,
+    "status": "ok"
+  },
+  {
+    "damUrl": "https://db.sp.netkeiba.com/horse/000a01560b/",
+    "damName": "フォトコール",
+    "recruitCount": 2,
+    "birthplaceRaw": null,
+    "isForeign": null,
+    "status": "field-missing"
+  },
+  {
+    "damUrl": "https://db.sp.netkeiba.com/horse/000a015604/",
+    "damName": "ウィープノーモア",
+    "recruitCount": 1,
+    "birthplaceRaw": null,
+    "isForeign": null,
+    "status": "field-missing"
+  },
+  {
+    "damUrl": "https://db.sp.netkeiba.com/horse/000a011de6/",
+    "damName": "ワイ",
+    "recruitCount": 1,
+    "birthplaceRaw": null,
+    "isForeign": null,
+    "status": "field-missing"
+  },
+  {
+    "damUrl": "https://db.sp.netkeiba.com/horse/2005110076/",
+    "damName": "ホットスウェル",
+    "recruitCount": 1,
+    "birthplaceRaw": "米",
+    "isForeign": true,
+    "status": "ok"
+  },
+  {
+    "damUrl": "https://db.sp.netkeiba.com/horse/000a01387c/",
+    "damName": "ハヴユーゴーンアウェイ",
+    "recruitCount": 1,
+    "birthplaceRaw": null,
+    "isForeign": null,
+    "status": "field-missing"
+  },
+  {
+    "damUrl": "https://db.sp.netkeiba.com/horse/000a013895/",
+    "damName": "インナーレルム",
+    "recruitCount": 1,
+    "birthplaceRaw": null,
+    "isForeign": null,
+    "status": "field-missing"
+  },
+  {
+    "damUrl": "https://db.sp.netkeiba.com/horse/2013106154/",
+    "damName": "レイリオン",
+    "recruitCount": 2,
+    "birthplaceRaw": "安平町",
+    "isForeign": false,
+    "status": "ok"
+  },
+  {
+    "damUrl": "https://db.sp.netkeiba.com/horse/2011110003/",
+    "damName": "トータルヒート",
+    "recruitCount": 2,
+    "birthplaceRaw": "米",
+    "isForeign": true,
+    "status": "ok"
+  },
+  {
+    "damUrl": "https://db.sp.netkeiba.com/horse/2013105816/",
+    "damName": "コルコバード",
+    "recruitCount": 4,
+    "birthplaceRaw": "安平町",
+    "isForeign": false,
+    "status": "ok"
+  },
+  {
+    "damUrl": "https://db.sp.netkeiba.com/horse/2010104264/",
+    "damName": "ディオジェーヌ",
+    "recruitCount": 1,
+    "birthplaceRaw": "安平町",
+    "isForeign": false,
+    "status": "ok"
+  },
+  {
+    "damUrl": "https://db.sp.netkeiba.com/horse/2013106153/",
+    "damName": "リリカルホワイト",
+    "recruitCount": 2,
+    "birthplaceRaw": "白老町",
+    "isForeign": false,
+    "status": "ok"
+  },
+  {
+    "damUrl": "https://db.sp.netkeiba.com/horse/000a011523/",
+    "damName": "ライジングクロス",
+    "recruitCount": 3,
+    "birthplaceRaw": null,
+    "isForeign": null,
+    "status": "field-missing"
+  },
+  {
+    "damUrl": "https://db.sp.netkeiba.com/horse/2013110052/",
+    "damName": "ラカリフォルニー",
+    "recruitCount": 1,
+    "birthplaceRaw": "英",
+    "isForeign": true,
+    "status": "ok"
+  },
+  {
+    "damUrl": "https://db.sp.netkeiba.com/horse/2006103297/",
+    "damName": "エレガントマナー",
+    "recruitCount": 1,
+    "birthplaceRaw": "早来町",
+    "isForeign": false,
+    "status": "ok"
+  },
+  {
+    "damUrl": "https://db.sp.netkeiba.com/horse/2013105321/",
+    "damName": "エスティタート",
+    "recruitCount": 4,
+    "birthplaceRaw": "白老町",
+    "isForeign": false,
+    "status": "ok"
+  },
+  {
+    "damUrl": "https://db.sp.netkeiba.com/horse/2008103359/",
+    "damName": "ラテアート",
+    "recruitCount": 1,
+    "birthplaceRaw": "安平町",
+    "isForeign": false,
+    "status": "ok"
+  },
+  {
+    "damUrl": "https://db.sp.netkeiba.com/horse/2013106008/",
+    "damName": "シャンドランジュ",
+    "recruitCount": 1,
+    "birthplaceRaw": "安平町",
+    "isForeign": false,
+    "status": "ok"
+  },
+  {
+    "damUrl": "https://db.sp.netkeiba.com/horse/2011103818/",
+    "damName": "ホワイトミーティア",
+    "recruitCount": 1,
+    "birthplaceRaw": "安平町",
+    "isForeign": false,
+    "status": "ok"
+  },
+  {
+    "damUrl": "https://db.sp.netkeiba.com/horse/2005102167/",
+    "damName": "リリウム",
+    "recruitCount": 1,
+    "birthplaceRaw": "白老町",
+    "isForeign": false,
+    "status": "ok"
+  },
+  {
+    "damUrl": "https://db.sp.netkeiba.com/horse/000a01560a/",
+    "damName": "グローバルビューティ",
+    "recruitCount": 1,
+    "birthplaceRaw": null,
+    "isForeign": null,
+    "status": "field-missing"
+  },
+  {
+    "damUrl": "https://db.sp.netkeiba.com/horse/000a015984/",
+    "damName": "キャヴァルドレ",
+    "recruitCount": 2,
+    "birthplaceRaw": null,
+    "isForeign": null,
+    "status": "field-missing"
+  },
+  {
+    "damUrl": "https://db.sp.netkeiba.com/horse/2000101535/",
+    "damName": "ライクザウインド",
+    "recruitCount": 1,
+    "birthplaceRaw": "早来町",
+    "isForeign": false,
+    "status": "ok"
+  },
+  {
+    "damUrl": "https://db.sp.netkeiba.com/horse/2014105942/",
+    "damName": "ネオフレグランス",
+    "recruitCount": 3,
+    "birthplaceRaw": "白老町",
+    "isForeign": false,
+    "status": "ok"
+  },
+  {
+    "damUrl": "https://db.sp.netkeiba.com/horse/2014105951/",
+    "damName": "ミリッサ",
+    "recruitCount": 3,
+    "birthplaceRaw": "安平町",
+    "isForeign": false,
+    "status": "ok"
+  },
+  {
+    "damUrl": "https://db.sp.netkeiba.com/horse/000a015942/",
+    "damName": "ジョプリン",
+    "recruitCount": 1,
+    "birthplaceRaw": null,
+    "isForeign": null,
+    "status": "field-missing"
+  },
+  {
+    "damUrl": "https://db.sp.netkeiba.com/horse/2007103195/",
+    "damName": "グリューネワルト",
+    "recruitCount": 1,
+    "birthplaceRaw": "安平町",
+    "isForeign": false,
+    "status": "ok"
+  },
+  {
+    "damUrl": "https://db.sp.netkeiba.com/horse/000a013db1/",
+    "damName": "インクルードベティ",
+    "recruitCount": 1,
+    "birthplaceRaw": null,
+    "isForeign": null,
+    "status": "field-missing"
+  },
+  {
+    "damUrl": "https://db.sp.netkeiba.com/horse/000a014412/",
+    "damName": "フィンレイズラッキーチャーム",
+    "recruitCount": 1,
+    "birthplaceRaw": null,
+    "isForeign": null,
+    "status": "field-missing"
+  },
+  {
+    "damUrl": "https://db.sp.netkeiba.com/horse/000a012061/",
+    "damName": "ザズー",
+    "recruitCount": 2,
+    "birthplaceRaw": null,
+    "isForeign": null,
+    "status": "field-missing"
+  },
+  {
+    "damUrl": "https://db.sp.netkeiba.com/horse/2014105854/",
+    "damName": "リカビトス",
+    "recruitCount": 4,
+    "birthplaceRaw": "安平町",
+    "isForeign": false,
+    "status": "ok"
+  },
+  {
+    "damUrl": "https://db.sp.netkeiba.com/horse/2014106203/",
+    "damName": "シャイントレイル",
+    "recruitCount": 1,
+    "birthplaceRaw": "安平町",
+    "isForeign": false,
+    "status": "ok"
+  },
+  {
+    "damUrl": "https://db.sp.netkeiba.com/horse/2016104283/",
+    "damName": "タイムハンドラー",
+    "recruitCount": 1,
+    "birthplaceRaw": "白老町",
+    "isForeign": false,
+    "status": "ok"
+  },
+  {
+    "damUrl": "https://db.sp.netkeiba.com/horse/2014105958/",
+    "damName": "アンジュシャルマン",
+    "recruitCount": 1,
+    "birthplaceRaw": "安平町",
+    "isForeign": false,
+    "status": "ok"
+  },
+  {
+    "damUrl": "https://db.sp.netkeiba.com/horse/2004103199/",
+    "damName": "フレジェール",
+    "recruitCount": 1,
+    "birthplaceRaw": "千歳市",
+    "isForeign": false,
+    "status": "ok"
+  },
+  {
+    "damUrl": "https://db.sp.netkeiba.com/horse/000a01441a/",
+    "damName": "アイヴィベル",
+    "recruitCount": 1,
+    "birthplaceRaw": null,
+    "isForeign": null,
+    "status": "field-missing"
+  },
+  {
+    "damUrl": "https://db.sp.netkeiba.com/horse/2014105930/",
+    "damName": "スプリングゲイル",
+    "recruitCount": 2,
+    "birthplaceRaw": "安平町",
+    "isForeign": false,
+    "status": "ok"
+  },
+  {
+    "damUrl": "https://db.sp.netkeiba.com/horse/2010104036/",
+    "damName": "コナブリュワーズ",
+    "recruitCount": 1,
+    "birthplaceRaw": "安平町",
+    "isForeign": false,
+    "status": "ok"
+  },
+  {
+    "damUrl": "https://db.sp.netkeiba.com/horse/2014110088/",
+    "damName": "ミセスワタナベ",
+    "recruitCount": 1,
+    "birthplaceRaw": "米",
+    "isForeign": true,
+    "status": "ok"
+  },
+  {
+    "damUrl": "https://db.sp.netkeiba.com/horse/2004102891/",
+    "damName": "エンプレスティアラ",
+    "recruitCount": 1,
+    "birthplaceRaw": "早来町",
+    "isForeign": false,
+    "status": "ok"
+  },
+  {
+    "damUrl": "https://db.sp.netkeiba.com/horse/000a011e13/",
+    "damName": "トップライナーII",
+    "recruitCount": 1,
+    "birthplaceRaw": null,
+    "isForeign": null,
+    "status": "field-missing"
+  },
+  {
+    "damUrl": "https://db.sp.netkeiba.com/horse/000a0163e8/",
+    "damName": "アンフィトリテII",
+    "recruitCount": 2,
+    "birthplaceRaw": null,
+    "isForeign": null,
+    "status": "field-missing"
+  },
+  {
+    "damUrl": "https://db.sp.netkeiba.com/horse/2015110003/",
+    "damName": "シンギングメリリー",
+    "recruitCount": 1,
+    "birthplaceRaw": "米",
+    "isForeign": true,
+    "status": "ok"
+  },
+  {
+    "damUrl": "https://db.sp.netkeiba.com/horse/000a01560e/",
+    "damName": "シークレットスパイス",
+    "recruitCount": 1,
+    "birthplaceRaw": null,
+    "isForeign": null,
+    "status": "field-missing"
+  },
+  {
+    "damUrl": "https://db.sp.netkeiba.com/horse/2008102899/",
+    "damName": "ウインジュビリー",
+    "recruitCount": 1,
+    "birthplaceRaw": "千歳市",
+    "isForeign": false,
+    "status": "ok"
+  },
+  {
+    "damUrl": "https://db.sp.netkeiba.com/horse/2013106014/",
+    "damName": "ヒルダ",
+    "recruitCount": 1,
+    "birthplaceRaw": "安平町",
+    "isForeign": false,
+    "status": "ok"
+  },
+  {
+    "damUrl": "https://db.sp.netkeiba.com/horse/000a01bdb0/",
+    "damName": "キャントバイミーラヴ",
+    "recruitCount": 1,
+    "birthplaceRaw": null,
+    "isForeign": null,
+    "status": "field-missing"
+  },
+  {
+    "damUrl": "https://db.sp.netkeiba.com/horse/2014105975/",
+    "damName": "エリティエール",
+    "recruitCount": 3,
+    "birthplaceRaw": "安平町",
+    "isForeign": false,
+    "status": "ok"
+  },
+  {
+    "damUrl": "https://db.sp.netkeiba.com/horse/000a014416/",
+    "damName": "アルアリングスター",
+    "recruitCount": 1,
+    "birthplaceRaw": null,
+    "isForeign": null,
+    "status": "field-missing"
+  },
+  {
+    "damUrl": "https://db.sp.netkeiba.com/horse/2013106106/",
+    "damName": "サトノオニキス",
+    "recruitCount": 1,
+    "birthplaceRaw": "安平町",
+    "isForeign": false,
+    "status": "ok"
+  },
+  {
+    "damUrl": "https://db.sp.netkeiba.com/horse/2016104675/",
+    "damName": "レーヴドゥラメール",
+    "recruitCount": 1,
+    "birthplaceRaw": "安平町",
+    "isForeign": false,
+    "status": "ok"
+  },
+  {
+    "damUrl": "https://db.sp.netkeiba.com/horse/000a012f86/",
+    "damName": "マンビア",
+    "recruitCount": 1,
+    "birthplaceRaw": null,
+    "isForeign": null,
+    "status": "field-missing"
+  },
+  {
+    "damUrl": "https://db.sp.netkeiba.com/horse/2014106144/",
+    "damName": "ディーパワンサ",
+    "recruitCount": 3,
+    "birthplaceRaw": "安平町",
+    "isForeign": false,
+    "status": "ok"
+  },
+  {
+    "damUrl": "https://db.sp.netkeiba.com/horse/000a011501/",
+    "damName": "ビートリックスキッド",
+    "recruitCount": 1,
+    "birthplaceRaw": null,
+    "isForeign": null,
+    "status": "field-missing"
+  },
+  {
+    "damUrl": "https://db.sp.netkeiba.com/horse/2014105794/",
+    "damName": "アドマイヤローザ",
+    "recruitCount": 1,
+    "birthplaceRaw": "安平町",
+    "isForeign": false,
+    "status": "ok"
+  },
+  {
+    "damUrl": "https://db.sp.netkeiba.com/horse/2014106220/",
+    "damName": "リスグラシュー",
+    "recruitCount": 3,
+    "birthplaceRaw": "安平町",
+    "isForeign": false,
+    "status": "ok"
+  },
+  {
+    "damUrl": "https://db.sp.netkeiba.com/horse/2010104041/",
+    "damName": "レネットグルーヴ",
+    "recruitCount": 2,
+    "birthplaceRaw": "安平町",
+    "isForeign": false,
+    "status": "ok"
+  },
+  {
+    "damUrl": "https://db.sp.netkeiba.com/horse/2014105833/",
+    "damName": "クルークハイト",
+    "recruitCount": 3,
+    "birthplaceRaw": "安平町",
+    "isForeign": false,
+    "status": "ok"
+  },
+  {
+    "damUrl": "https://db.sp.netkeiba.com/horse/2014106061/",
+    "damName": "ラプソディーア",
+    "recruitCount": 1,
+    "birthplaceRaw": "安平町",
+    "isForeign": false,
+    "status": "ok"
+  },
+  {
+    "damUrl": "https://db.sp.netkeiba.com/horse/2014105970/",
+    "damName": "アロマドゥルセ",
+    "recruitCount": 4,
+    "birthplaceRaw": "安平町",
+    "isForeign": false,
+    "status": "ok"
+  },
+  {
+    "damUrl": "https://db.sp.netkeiba.com/horse/2003102952/",
+    "damName": "ギーニョ",
+    "recruitCount": 2,
+    "birthplaceRaw": "早来町",
+    "isForeign": false,
+    "status": "ok"
+  },
+  {
+    "damUrl": "https://db.sp.netkeiba.com/horse/000a011504/",
+    "damName": "クイックリトルミス",
+    "recruitCount": 1,
+    "birthplaceRaw": null,
+    "isForeign": null,
+    "status": "field-missing"
+  },
+  {
+    "damUrl": "https://db.sp.netkeiba.com/horse/000a012f7f/",
+    "damName": "アピールII",
+    "recruitCount": 1,
+    "birthplaceRaw": null,
+    "isForeign": null,
+    "status": "field-missing"
+  },
+  {
+    "damUrl": "https://db.sp.netkeiba.com/horse/000a013e76/",
+    "damName": "ハーレクイーン",
+    "recruitCount": 1,
+    "birthplaceRaw": null,
+    "isForeign": null,
+    "status": "field-missing"
+  },
+  {
+    "damUrl": "https://db.sp.netkeiba.com/horse/2013106120/",
+    "damName": "ブランシェクール",
+    "recruitCount": 2,
+    "birthplaceRaw": "安平町",
+    "isForeign": false,
+    "status": "ok"
+  },
+  {
+    "damUrl": "https://db.sp.netkeiba.com/horse/2013110081/",
+    "damName": "ジルズパレス",
+    "recruitCount": 2,
+    "birthplaceRaw": "米",
+    "isForeign": true,
+    "status": "ok"
+  },
+  {
+    "damUrl": "https://db.sp.netkeiba.com/horse/000a011de4/",
+    "damName": "ティッカーテープ",
+    "recruitCount": 1,
+    "birthplaceRaw": "英",
+    "isForeign": true,
+    "status": "ok"
+  },
+  {
+    "damUrl": "https://db.sp.netkeiba.com/horse/2014106114/",
+    "damName": "ヴィルデローゼ",
+    "recruitCount": 2,
+    "birthplaceRaw": "安平町",
+    "isForeign": false,
+    "status": "ok"
+  },
+  {
+    "damUrl": "https://db.sp.netkeiba.com/horse/2008103077/",
+    "damName": "アドマイヤセプター",
+    "recruitCount": 1,
+    "birthplaceRaw": "安平町",
+    "isForeign": false,
+    "status": "ok"
+  },
+  {
+    "damUrl": "https://db.sp.netkeiba.com/horse/2015104702/",
+    "damName": "リリーバレロ",
+    "recruitCount": 1,
+    "birthplaceRaw": "安平町",
+    "isForeign": false,
+    "status": "ok"
+  },
+  {
+    "damUrl": "https://db.sp.netkeiba.com/horse/2016104357/",
+    "damName": "ファナティック",
+    "recruitCount": 1,
+    "birthplaceRaw": "白老町",
+    "isForeign": false,
+    "status": "ok"
+  },
+  {
+    "damUrl": "https://db.sp.netkeiba.com/horse/2015104159/",
+    "damName": "パルクデラモール",
+    "recruitCount": 1,
+    "birthplaceRaw": "白老町",
+    "isForeign": false,
+    "status": "ok"
+  },
+  {
+    "damUrl": "https://db.sp.netkeiba.com/horse/000a01256c/",
+    "damName": "メリート",
+    "recruitCount": 2,
+    "birthplaceRaw": null,
+    "isForeign": null,
+    "status": "field-missing"
+  },
+  {
+    "damUrl": "https://db.sp.netkeiba.com/horse/000a01438a/",
+    "damName": "シングルゲイズ",
+    "recruitCount": 2,
+    "birthplaceRaw": null,
+    "isForeign": null,
+    "status": "field-missing"
+  },
+  {
+    "damUrl": "https://db.sp.netkeiba.com/horse/2015104720/",
+    "damName": "レッドレグナント",
+    "recruitCount": 1,
+    "birthplaceRaw": "安平町",
+    "isForeign": false,
+    "status": "ok"
+  },
+  {
+    "damUrl": "https://db.sp.netkeiba.com/horse/2014106218/",
+    "damName": "ルヴォワール",
+    "recruitCount": 1,
+    "birthplaceRaw": "安平町",
+    "isForeign": false,
+    "status": "ok"
+  },
+  {
+    "damUrl": "https://db.sp.netkeiba.com/horse/2009106289/",
+    "damName": "トーコーユズキ",
+    "recruitCount": 1,
+    "birthplaceRaw": "安平町",
+    "isForeign": false,
+    "status": "ok"
+  },
+  {
+    "damUrl": "https://db.sp.netkeiba.com/horse/2017105211/",
+    "damName": "マスターワーク",
+    "recruitCount": 2,
+    "birthplaceRaw": "安平町",
+    "isForeign": false,
+    "status": "ok"
+  },
+  {
+    "damUrl": "https://db.sp.netkeiba.com/horse/000a01b837/",
+    "damName": "カーミングエフェクト",
+    "recruitCount": 1,
+    "birthplaceRaw": null,
+    "isForeign": null,
+    "status": "field-missing"
+  },
+  {
+    "damUrl": "https://db.sp.netkeiba.com/horse/000a015921/",
+    "damName": "マイミスリリー",
+    "recruitCount": 1,
+    "birthplaceRaw": null,
+    "isForeign": null,
+    "status": "field-missing"
+  },
+  {
+    "damUrl": "https://db.sp.netkeiba.com/horse/2017110003/",
+    "damName": "セレナズヴォイス",
+    "recruitCount": 2,
+    "birthplaceRaw": "米",
+    "isForeign": true,
+    "status": "ok"
+  },
+  {
+    "damUrl": "https://db.sp.netkeiba.com/horse/2015104758/",
+    "damName": "エリスライト",
+    "recruitCount": 3,
+    "birthplaceRaw": "安平町",
+    "isForeign": false,
+    "status": "ok"
+  },
+  {
+    "damUrl": "https://db.sp.netkeiba.com/horse/2015104952/",
+    "damName": "コンダクトレス",
+    "recruitCount": 2,
+    "birthplaceRaw": "安平町",
+    "isForeign": false,
+    "status": "ok"
+  },
+  {
+    "damUrl": "https://db.sp.netkeiba.com/horse/2014106110/",
+    "damName": "コロナシオン",
+    "recruitCount": 1,
+    "birthplaceRaw": "安平町",
+    "isForeign": false,
+    "status": "ok"
+  },
+  {
+    "damUrl": "https://db.sp.netkeiba.com/horse/2003102846/",
+    "damName": "ダイワオンディーヌ",
+    "recruitCount": 1,
+    "birthplaceRaw": "早来町",
+    "isForeign": false,
+    "status": "ok"
+  },
+  {
+    "damUrl": "https://db.sp.netkeiba.com/horse/2004102857/",
+    "damName": "ケアレスウィスパー",
+    "recruitCount": 1,
+    "birthplaceRaw": "早来町",
+    "isForeign": false,
+    "status": "ok"
+  },
+  {
+    "damUrl": "https://db.sp.netkeiba.com/horse/000a014475/",
+    "damName": "エディスワートン",
+    "recruitCount": 1,
+    "birthplaceRaw": null,
+    "isForeign": null,
+    "status": "field-missing"
+  },
+  {
+    "damUrl": "https://db.sp.netkeiba.com/horse/000a01d921/",
+    "damName": "Euthenia",
+    "recruitCount": 1,
+    "birthplaceRaw": null,
+    "isForeign": null,
+    "status": "field-missing"
+  },
+  {
+    "damUrl": "https://db.sp.netkeiba.com/horse/000a01be50/",
+    "damName": "シェイリーンⅡ",
+    "recruitCount": 1,
+    "birthplaceRaw": null,
+    "isForeign": null,
+    "status": "field-missing"
+  },
+  {
+    "damUrl": "https://db.sp.netkeiba.com/horse/2014106073/",
+    "damName": "ビートマッチ",
+    "recruitCount": 1,
+    "birthplaceRaw": "安平町",
+    "isForeign": false,
+    "status": "ok"
+  },
+  {
+    "damUrl": "https://db.sp.netkeiba.com/horse/2014105532/",
+    "damName": "ソートアフター",
+    "recruitCount": 1,
+    "birthplaceRaw": "千歳市",
+    "isForeign": false,
+    "status": "ok"
+  },
+  {
+    "damUrl": "https://db.sp.netkeiba.com/horse/000a01388c/",
+    "damName": "キャンプロック",
+    "recruitCount": 1,
+    "birthplaceRaw": null,
+    "isForeign": null,
+    "status": "field-missing"
+  },
+  {
+    "damUrl": "https://db.sp.netkeiba.com/horse/000a0120f6/",
+    "damName": "ミスティークⅡ",
+    "recruitCount": 1,
+    "birthplaceRaw": null,
+    "isForeign": null,
+    "status": "field-missing"
+  },
+  {
+    "damUrl": "https://db.sp.netkeiba.com/horse/2013110080/",
+    "damName": "チャイマックス",
+    "recruitCount": 1,
+    "birthplaceRaw": "米",
+    "isForeign": true,
+    "status": "ok"
+  },
+  {
+    "damUrl": "https://db.sp.netkeiba.com/horse/2012103476/",
+    "damName": "ダイワプロパー",
+    "recruitCount": 1,
+    "birthplaceRaw": "新ひだか町",
+    "isForeign": false,
+    "status": "ok"
+  },
+  {
+    "damUrl": "https://db.sp.netkeiba.com/horse/2015104779/",
+    "damName": "フィニフティ",
+    "recruitCount": 2,
+    "birthplaceRaw": "安平町",
+    "isForeign": false,
+    "status": "ok"
+  },
+  {
+    "damUrl": "https://db.sp.netkeiba.com/horse/000a01293e/",
+    "damName": "クァンタムミス",
+    "recruitCount": 1,
+    "birthplaceRaw": null,
+    "isForeign": null,
+    "status": "field-missing"
+  },
+  {
+    "damUrl": "https://db.sp.netkeiba.com/horse/2013105250/",
+    "damName": "ボールドアテンプト",
+    "recruitCount": 1,
+    "birthplaceRaw": "白老町",
+    "isForeign": false,
+    "status": "ok"
+  },
+  {
+    "damUrl": "https://db.sp.netkeiba.com/horse/000a011a43/",
+    "damName": "スターダムバウンド",
+    "recruitCount": 1,
+    "birthplaceRaw": null,
+    "isForeign": null,
+    "status": "field-missing"
+  },
+  {
+    "damUrl": "https://db.sp.netkeiba.com/horse/000a01435c/",
+    "damName": "リプリートⅡ",
+    "recruitCount": 1,
+    "birthplaceRaw": null,
+    "isForeign": null,
+    "status": "field-missing"
+  },
+  {
+    "damUrl": "https://db.sp.netkeiba.com/horse/000a013da7/",
+    "damName": "ハーエミネンシー",
+    "recruitCount": 1,
+    "birthplaceRaw": null,
+    "isForeign": null,
+    "status": "field-missing"
+  },
+  {
+    "damUrl": "https://db.sp.netkeiba.com/horse/2013105644/",
+    "damName": "リチュアルローズ",
+    "recruitCount": 1,
+    "birthplaceRaw": "千歳市",
+    "isForeign": false,
+    "status": "ok"
+  },
+  {
+    "damUrl": "https://db.sp.netkeiba.com/horse/2015104972/",
+    "damName": "ブルーメンクローネ",
+    "recruitCount": 3,
+    "birthplaceRaw": "安平町",
+    "isForeign": false,
+    "status": "ok"
+  },
+  {
+    "damUrl": "https://db.sp.netkeiba.com/horse/000a013925/",
+    "damName": "ソブラドラインク",
+    "recruitCount": 1,
+    "birthplaceRaw": null,
+    "isForeign": null,
+    "status": "field-missing"
+  },
+  {
+    "damUrl": "https://db.sp.netkeiba.com/horse/2017105207/",
+    "damName": "パドゥヴァルス",
+    "recruitCount": 3,
+    "birthplaceRaw": "安平町",
+    "isForeign": false,
+    "status": "ok"
+  },
+  {
+    "damUrl": "https://db.sp.netkeiba.com/horse/000a01bdae/",
+    "damName": "インピード",
+    "recruitCount": 1,
+    "birthplaceRaw": null,
+    "isForeign": null,
+    "status": "field-missing"
+  },
+  {
+    "damUrl": "https://db.sp.netkeiba.com/horse/000a01beae/",
+    "damName": "エルヴァスⅡ",
+    "recruitCount": 1,
+    "birthplaceRaw": null,
+    "isForeign": null,
+    "status": "field-missing"
+  },
+  {
+    "damUrl": "https://db.sp.netkeiba.com/horse/2003103019/",
+    "damName": "パーフェクトジョイ",
+    "recruitCount": 1,
+    "birthplaceRaw": "早来町",
+    "isForeign": false,
+    "status": "ok"
+  },
+  {
+    "damUrl": "https://db.sp.netkeiba.com/horse/2002106230/",
+    "damName": "レーゲンボーゲン",
+    "recruitCount": 1,
+    "birthplaceRaw": "門別町",
+    "isForeign": false,
+    "status": "ok"
+  },
+  {
+    "damUrl": "https://db.sp.netkeiba.com/horse/2013110082/",
+    "damName": "ペニーウェディング",
+    "recruitCount": 2,
+    "birthplaceRaw": "米",
+    "isForeign": true,
+    "status": "ok"
+  },
+  {
+    "damUrl": "https://db.sp.netkeiba.com/horse/2015104856/",
+    "damName": "ホーリーレジェンド",
+    "recruitCount": 1,
+    "birthplaceRaw": "安平町",
+    "isForeign": false,
+    "status": "ok"
+  },
+  {
+    "damUrl": "https://db.sp.netkeiba.com/horse/000a014418/",
+    "damName": "プライストトゥパーフェクション",
+    "recruitCount": 1,
+    "birthplaceRaw": null,
+    "isForeign": null,
+    "status": "field-missing"
+  },
+  {
+    "damUrl": "https://db.sp.netkeiba.com/horse/000a01bf33/",
+    "damName": "イーデンキー",
+    "recruitCount": 1,
+    "birthplaceRaw": null,
+    "isForeign": null,
+    "status": "field-missing"
+  },
+  {
+    "damUrl": "https://db.sp.netkeiba.com/horse/2015104671/",
+    "damName": "ウラヌスチャーム",
+    "recruitCount": 1,
+    "birthplaceRaw": "安平町",
+    "isForeign": false,
+    "status": "ok"
+  },
+  {
+    "damUrl": "https://db.sp.netkeiba.com/horse/000a01b819/",
+    "damName": "シーブルック",
+    "recruitCount": 1,
+    "birthplaceRaw": null,
+    "isForeign": null,
+    "status": "field-missing"
+  },
+  {
+    "damUrl": "https://db.sp.netkeiba.com/horse/000a01beb0/",
+    "damName": "ラッキーダイム",
+    "recruitCount": 1,
+    "birthplaceRaw": null,
+    "isForeign": null,
+    "status": "field-missing"
+  },
+  {
+    "damUrl": "https://db.sp.netkeiba.com/horse/000a013614/",
+    "damName": "カヴァートラブ",
+    "recruitCount": 1,
+    "birthplaceRaw": null,
+    "isForeign": null,
+    "status": "field-missing"
+  },
+  {
+    "damUrl": "https://db.sp.netkeiba.com/horse/2016104880/",
+    "damName": "コントラチェック",
+    "recruitCount": 1,
+    "birthplaceRaw": "安平町",
+    "isForeign": false,
+    "status": "ok"
+  },
+  {
+    "damUrl": "https://db.sp.netkeiba.com/horse/000a013db3/",
+    "damName": "ビッグワールド",
+    "recruitCount": 1,
+    "birthplaceRaw": null,
+    "isForeign": null,
+    "status": "field-missing"
+  },
+  {
+    "damUrl": "https://db.sp.netkeiba.com/horse/2015104823/",
+    "damName": "シーリア",
+    "recruitCount": 2,
+    "birthplaceRaw": "安平町",
+    "isForeign": false,
+    "status": "ok"
+  },
+  {
+    "damUrl": "https://db.sp.netkeiba.com/horse/2016104795/",
+    "damName": "ダイアナブライト",
+    "recruitCount": 2,
+    "birthplaceRaw": "安平町",
+    "isForeign": false,
+    "status": "ok"
+  },
+  {
+    "damUrl": "https://db.sp.netkeiba.com/horse/2006103163/",
+    "damName": "ランズエッジ",
+    "recruitCount": 1,
+    "birthplaceRaw": "安平町",
+    "isForeign": false,
+    "status": "ok"
+  },
+  {
+    "damUrl": "https://db.sp.netkeiba.com/horse/000a012104/",
+    "damName": "ライフフォーセール",
+    "recruitCount": 1,
+    "birthplaceRaw": null,
+    "isForeign": null,
+    "status": "field-missing"
+  },
+  {
+    "damUrl": "https://db.sp.netkeiba.com/horse/2016110112/",
+    "damName": "シャンブルドット",
+    "recruitCount": 1,
+    "birthplaceRaw": "愛",
+    "isForeign": true,
+    "status": "ok"
+  },
+  {
+    "damUrl": "https://db.sp.netkeiba.com/horse/2015105303/",
+    "damName": "ランウェイデビュー",
+    "recruitCount": 1,
+    "birthplaceRaw": "新ひだか町",
+    "isForeign": false,
+    "status": "ok"
+  },
+  {
+    "damUrl": "https://db.sp.netkeiba.com/horse/2016104348/",
+    "damName": "ウルクラフト",
+    "recruitCount": 1,
+    "birthplaceRaw": "白老町",
+    "isForeign": false,
+    "status": "ok"
+  },
+  {
+    "damUrl": "https://db.sp.netkeiba.com/horse/000a014271/",
+    "damName": "アトミカオロ",
+    "recruitCount": 1,
+    "birthplaceRaw": null,
+    "isForeign": null,
+    "status": "field-missing"
+  },
+  {
+    "damUrl": "https://db.sp.netkeiba.com/horse/2018104930/",
+    "damName": "デスティノアーラ",
+    "recruitCount": 2,
+    "birthplaceRaw": "安平町",
+    "isForeign": false,
+    "status": "ok"
+  },
+  {
+    "damUrl": "https://db.sp.netkeiba.com/horse/000a01460f/",
+    "damName": "サバンナズチョイス",
+    "recruitCount": 1,
+    "birthplaceRaw": null,
+    "isForeign": null,
+    "status": "field-missing"
+  },
+  {
+    "damUrl": "https://db.sp.netkeiba.com/horse/2016104585/",
+    "damName": "クロウエア",
+    "recruitCount": 1,
+    "birthplaceRaw": "安平町",
+    "isForeign": false,
+    "status": "ok"
+  },
+  {
+    "damUrl": "https://db.sp.netkeiba.com/horse/2016104515/",
+    "damName": "ベルクワイア",
+    "recruitCount": 1,
+    "birthplaceRaw": "安平町",
+    "isForeign": false,
+    "status": "ok"
+  },
+  {
+    "damUrl": "https://db.sp.netkeiba.com/horse/2016104262/",
+    "damName": "アップライトスピン",
+    "recruitCount": 1,
+    "birthplaceRaw": "白老町",
+    "isForeign": false,
+    "status": "ok"
+  },
+  {
+    "damUrl": "https://db.sp.netkeiba.com/horse/000a01fc6e/",
+    "damName": "オリエンタルステップ",
+    "recruitCount": 1,
+    "birthplaceRaw": null,
+    "isForeign": null,
+    "status": "field-missing"
+  },
+  {
+    "damUrl": "https://db.sp.netkeiba.com/horse/000a01f522/",
+    "damName": "トゥープレシャス",
+    "recruitCount": 1,
+    "birthplaceRaw": null,
+    "isForeign": null,
+    "status": "field-missing"
+  },
+  {
+    "damUrl": "https://db.sp.netkeiba.com/horse/2016104864/",
+    "damName": "フィルムフェスト",
+    "recruitCount": 1,
+    "birthplaceRaw": "白老町",
+    "isForeign": false,
+    "status": "ok"
+  },
+  {
+    "damUrl": "https://db.sp.netkeiba.com/horse/2018105191/",
+    "damName": "ムーンティアーズ",
+    "recruitCount": 1,
+    "birthplaceRaw": "安平町",
+    "isForeign": false,
+    "status": "ok"
+  },
+  {
+    "damUrl": "https://db.sp.netkeiba.com/horse/2017110137/",
+    "damName": "レッチェバロック",
+    "recruitCount": 2,
+    "birthplaceRaw": "米",
+    "isForeign": true,
+    "status": "ok"
+  },
+  {
+    "damUrl": "https://db.sp.netkeiba.com/horse/000a0188be/",
+    "damName": "マジックアティテュード",
+    "recruitCount": 1,
+    "birthplaceRaw": "英",
+    "isForeign": true,
+    "status": "ok"
+  },
+  {
+    "damUrl": "https://db.sp.netkeiba.com/horse/000a01389d/",
+    "damName": "サークリングⅡ",
+    "recruitCount": 1,
+    "birthplaceRaw": null,
+    "isForeign": null,
+    "status": "field-missing"
+  },
+  {
+    "damUrl": "https://db.sp.netkeiba.com/horse/2016104460/",
+    "damName": "クルミネイト",
+    "recruitCount": 1,
+    "birthplaceRaw": "安平町",
+    "isForeign": false,
+    "status": "ok"
+  },
+  {
+    "damUrl": "https://db.sp.netkeiba.com/horse/2016104426/",
+    "damName": "マルシュロレーヌ",
+    "recruitCount": 2,
+    "birthplaceRaw": "安平町",
+    "isForeign": false,
+    "status": "ok"
+  },
+  {
+    "damUrl": "https://db.sp.netkeiba.com/horse/2016104637/",
+    "damName": "オーロトラジェ",
+    "recruitCount": 1,
+    "birthplaceRaw": "安平町",
+    "isForeign": false,
+    "status": "ok"
+  },
+  {
+    "damUrl": "https://db.sp.netkeiba.com/horse/2016104755/",
+    "damName": "リャスナ",
+    "recruitCount": 1,
+    "birthplaceRaw": "安平町",
+    "isForeign": false,
+    "status": "ok"
+  },
+  {
+    "damUrl": "https://db.sp.netkeiba.com/horse/2011103535/",
+    "damName": "ベルプラージュ",
+    "recruitCount": 1,
+    "birthplaceRaw": "安平町",
+    "isForeign": false,
+    "status": "ok"
+  },
+  {
+    "damUrl": "https://db.sp.netkeiba.com/horse/000a013e40/",
+    "damName": "トゥリフォー",
+    "recruitCount": 1,
+    "birthplaceRaw": null,
+    "isForeign": null,
+    "status": "field-missing"
+  },
+  {
+    "damUrl": "https://db.sp.netkeiba.com/horse/2016104622/",
+    "damName": "パッシングスルー",
+    "recruitCount": 2,
+    "birthplaceRaw": "安平町",
+    "isForeign": false,
+    "status": "ok"
+  },
+  {
+    "damUrl": "https://db.sp.netkeiba.com/horse/2015105019/",
+    "damName": "マルケッサ",
+    "recruitCount": 1,
+    "birthplaceRaw": "安平町",
+    "isForeign": false,
+    "status": "ok"
+  },
+  {
+    "damUrl": "https://db.sp.netkeiba.com/horse/2013110123/",
+    "damName": "ティールグリーン",
+    "recruitCount": 1,
+    "birthplaceRaw": "米",
+    "isForeign": true,
+    "status": "ok"
+  },
+  {
+    "damUrl": "https://db.sp.netkeiba.com/horse/000a015970/",
+    "damName": "スウィートショット",
+    "recruitCount": 1,
+    "birthplaceRaw": null,
+    "isForeign": null,
+    "status": "field-missing"
+  },
+  {
+    "damUrl": "https://db.sp.netkeiba.com/horse/2008105782/",
+    "damName": "レディオブパーシャ",
+    "recruitCount": 1,
+    "birthplaceRaw": "日高町",
+    "isForeign": false,
+    "status": "ok"
+  },
+  {
+    "damUrl": "https://db.sp.netkeiba.com/horse/000a01d5a9/",
+    "damName": "ヴォーセル",
+    "recruitCount": 1,
+    "birthplaceRaw": null,
+    "isForeign": null,
+    "status": "field-missing"
+  },
+  {
+    "damUrl": "https://db.sp.netkeiba.com/horse/000a01da1e/",
+    "damName": "エトワールⅢ",
+    "recruitCount": 1,
+    "birthplaceRaw": null,
+    "isForeign": null,
+    "status": "field-missing"
+  },
+  {
+    "damUrl": "https://db.sp.netkeiba.com/horse/000a01294d/",
+    "damName": "シーズアタイガー",
+    "recruitCount": 1,
+    "birthplaceRaw": null,
+    "isForeign": null,
+    "status": "field-missing"
+  },
+  {
+    "damUrl": "https://db.sp.netkeiba.com/horse/000a01bd03/",
+    "damName": "クオウト",
+    "recruitCount": 1,
+    "birthplaceRaw": null,
+    "isForeign": null,
+    "status": "field-missing"
+  },
+  {
+    "damUrl": "https://db.sp.netkeiba.com/horse/000a01da1d/",
+    "damName": "プレインチャント",
+    "recruitCount": 1,
+    "birthplaceRaw": null,
+    "isForeign": null,
+    "status": "field-missing"
+  },
+  {
+    "damUrl": "https://db.sp.netkeiba.com/horse/2016104604/",
+    "damName": "フィリアプーラ",
+    "recruitCount": 1,
+    "birthplaceRaw": "安平町",
+    "isForeign": false,
+    "status": "ok"
+  },
+  {
+    "damUrl": "https://db.sp.netkeiba.com/horse/2016104807/",
+    "damName": "ドナウデルタ",
+    "recruitCount": 1,
+    "birthplaceRaw": "安平町",
+    "isForeign": false,
+    "status": "ok"
+  },
+  {
+    "damUrl": "https://db.sp.netkeiba.com/horse/2017105485/",
+    "damName": "サンクテュエール",
+    "recruitCount": 1,
+    "birthplaceRaw": "安平町",
+    "isForeign": false,
+    "status": "ok"
+  },
+  {
+    "damUrl": "https://db.sp.netkeiba.com/horse/000a01b941/",
+    "damName": "ラサルダン",
+    "recruitCount": 1,
+    "birthplaceRaw": null,
+    "isForeign": null,
+    "status": "field-missing"
+  },
+  {
+    "damUrl": "https://db.sp.netkeiba.com/horse/2010104329/",
+    "damName": "ルナリア",
+    "recruitCount": 1,
+    "birthplaceRaw": "安平町",
+    "isForeign": false,
+    "status": "ok"
+  },
+  {
+    "damUrl": "https://db.sp.netkeiba.com/horse/2013106020/",
+    "damName": "リュラ",
+    "recruitCount": 1,
+    "birthplaceRaw": "安平町",
+    "isForeign": false,
+    "status": "ok"
+  },
+  {
+    "damUrl": "https://db.sp.netkeiba.com/horse/2017105413/",
+    "damName": "フォルステライト",
+    "recruitCount": 1,
+    "birthplaceRaw": "安平町",
+    "isForeign": false,
+    "status": "ok"
+  },
+  {
+    "damUrl": "https://db.sp.netkeiba.com/horse/2011103749/",
+    "damName": "ボージェスト",
+    "recruitCount": 1,
+    "birthplaceRaw": "安平町",
+    "isForeign": false,
+    "status": "ok"
+  },
+  {
+    "damUrl": "https://db.sp.netkeiba.com/horse/000a0121b2/",
+    "damName": "ターシャズスター",
+    "recruitCount": 1,
+    "birthplaceRaw": null,
+    "isForeign": null,
+    "status": "field-missing"
+  },
+  {
+    "damUrl": "https://db.sp.netkeiba.com/horse/2017105483/",
+    "damName": "ゴールドティア",
+    "recruitCount": 1,
+    "birthplaceRaw": "安平町",
+    "isForeign": false,
+    "status": "ok"
+  },
+  {
+    "damUrl": "https://db.sp.netkeiba.com/horse/2015102591/",
+    "damName": "アシュリン",
+    "recruitCount": 1,
+    "birthplaceRaw": "新ひだか町",
+    "isForeign": false,
+    "status": "ok"
+  },
+  {
+    "damUrl": "https://db.sp.netkeiba.com/horse/2016104423/",
+    "damName": "アーズローヴァー",
+    "recruitCount": 1,
+    "birthplaceRaw": "安平町",
+    "isForeign": false,
+    "status": "ok"
+  },
+  {
+    "damUrl": "https://db.sp.netkeiba.com/horse/2008103336/",
+    "damName": "マハーバーラタ",
+    "recruitCount": 1,
+    "birthplaceRaw": "安平町",
+    "isForeign": false,
+    "status": "ok"
+  },
+  {
+    "damUrl": "https://db.sp.netkeiba.com/horse/2017105498/",
+    "damName": "ヴァルキュリア",
+    "recruitCount": 1,
+    "birthplaceRaw": "安平町",
+    "isForeign": false,
+    "status": "ok"
+  },
+  {
+    "damUrl": "https://db.sp.netkeiba.com/horse/2017105366/",
+    "damName": "シーズンズギフト",
+    "recruitCount": 1,
+    "birthplaceRaw": "安平町",
+    "isForeign": false,
+    "status": "ok"
+  },
+  {
+    "damUrl": "https://db.sp.netkeiba.com/horse/2008103374/",
+    "damName": "レーヴディソール",
+    "recruitCount": 1,
+    "birthplaceRaw": "安平町",
+    "isForeign": false,
+    "status": "ok"
+  },
+  {
+    "damUrl": "https://db.sp.netkeiba.com/horse/2011104052/",
+    "damName": "クレアドール",
+    "recruitCount": 1,
+    "birthplaceRaw": "安平町",
+    "isForeign": false,
+    "status": "ok"
+  },
+  {
+    "damUrl": "https://db.sp.netkeiba.com/horse/2015104662/",
+    "damName": "アンフィトリテ",
+    "recruitCount": 1,
+    "birthplaceRaw": "安平町",
+    "isForeign": false,
+    "status": "ok"
+  },
+  {
+    "damUrl": "https://db.sp.netkeiba.com/horse/2017105502/",
+    "damName": "ファシネートゼット",
+    "recruitCount": 1,
+    "birthplaceRaw": "安平町",
+    "isForeign": false,
+    "status": "ok"
+  },
+  {
+    "damUrl": "https://db.sp.netkeiba.com/horse/2018104970/",
+    "damName": "エルカスティージョ",
+    "recruitCount": 1,
+    "birthplaceRaw": "安平町",
+    "isForeign": false,
+    "status": "ok"
+  },
+  {
+    "damUrl": "https://db.sp.netkeiba.com/horse/2017105203/",
+    "damName": "ブロンディーヴァ",
+    "recruitCount": 1,
+    "birthplaceRaw": "安平町",
+    "isForeign": false,
+    "status": "ok"
+  },
+  {
+    "damUrl": "https://db.sp.netkeiba.com/horse/000a01fc9f/",
+    "damName": "マラクージャ",
+    "recruitCount": 1,
+    "birthplaceRaw": null,
+    "isForeign": null,
+    "status": "field-missing"
+  },
+  {
+    "damUrl": "https://db.sp.netkeiba.com/horse/000a014dd1/",
+    "damName": "ミッドナイトビズー",
+    "recruitCount": 1,
+    "birthplaceRaw": null,
+    "isForeign": null,
+    "status": "field-missing"
+  },
+  {
+    "damUrl": "https://db.sp.netkeiba.com/horse/000a01da19/",
+    "damName": "サンダードラム",
+    "recruitCount": 1,
+    "birthplaceRaw": null,
+    "isForeign": null,
+    "status": "field-missing"
+  },
+  {
+    "damUrl": "https://db.sp.netkeiba.com/horse/2017106724/",
+    "damName": "イカット",
+    "recruitCount": 1,
+    "birthplaceRaw": "安平町",
+    "isForeign": false,
+    "status": "ok"
+  },
+  {
+    "damUrl": "https://db.sp.netkeiba.com/horse/000a0124ce/",
+    "damName": "ソーメニーウェイズ",
+    "recruitCount": 1,
+    "birthplaceRaw": null,
+    "isForeign": null,
+    "status": "field-missing"
+  },
+  {
+    "damUrl": "https://db.sp.netkeiba.com/horse/000a0140b9/",
+    "damName": "ヤングスター",
+    "recruitCount": 1,
+    "birthplaceRaw": null,
+    "isForeign": null,
+    "status": "field-missing"
+  },
+  {
+    "damUrl": "https://db.sp.netkeiba.com/horse/2015104947/",
+    "damName": "メサルティム",
+    "recruitCount": 1,
+    "birthplaceRaw": "安平町",
+    "isForeign": false,
+    "status": "ok"
+  },
+  {
+    "damUrl": "https://db.sp.netkeiba.com/horse/2017104934/",
+    "damName": "コハクトウ",
+    "recruitCount": 1,
+    "birthplaceRaw": "千歳市",
+    "isForeign": false,
+    "status": "ok"
+  },
+  {
+    "damUrl": "https://db.sp.netkeiba.com/horse/2017105280/",
+    "damName": "エレガンテレイナ",
+    "recruitCount": 1,
+    "birthplaceRaw": "安平町",
+    "isForeign": false,
+    "status": "ok"
+  },
+  {
+    "damUrl": "https://db.sp.netkeiba.com/horse/2017105563/",
+    "damName": "レシステンシア",
+    "recruitCount": 1,
+    "birthplaceRaw": "安平町",
+    "isForeign": false,
+    "status": "ok"
+  },
+  {
+    "damUrl": "https://db.sp.netkeiba.com/horse/2019105249/",
+    "damName": "マリーナドンナ",
+    "recruitCount": 1,
+    "birthplaceRaw": "安平町",
+    "isForeign": false,
+    "status": "ok"
+  },
+  {
+    "damUrl": "https://db.sp.netkeiba.com/horse/000a01a8f1/",
+    "damName": "レッドティー",
+    "recruitCount": 1,
+    "birthplaceRaw": null,
+    "isForeign": null,
+    "status": "field-missing"
+  },
+  {
+    "damUrl": "https://db.sp.netkeiba.com/horse/2013106059/",
+    "damName": "クラシックリディア",
+    "recruitCount": 1,
+    "birthplaceRaw": "安平町",
+    "isForeign": false,
+    "status": "ok"
+  },
+  {
+    "damUrl": "https://db.sp.netkeiba.com/horse/000a01a8df/",
+    "damName": "サーティーンスクエアド",
+    "recruitCount": 1,
+    "birthplaceRaw": null,
+    "isForeign": null,
+    "status": "field-missing"
+  },
+  {
+    "damUrl": "https://db.sp.netkeiba.com/horse/2017105373/",
+    "damName": "クロワドフェール",
+    "recruitCount": 1,
+    "birthplaceRaw": "安平町",
+    "isForeign": false,
+    "status": "ok"
+  },
+  {
+    "damUrl": "https://db.sp.netkeiba.com/horse/2019105557/",
+    "damName": "アルドゥエンナ",
+    "recruitCount": 1,
+    "birthplaceRaw": "安平町",
+    "isForeign": false,
+    "status": "ok"
+  },
+  {
+    "damUrl": "https://db.sp.netkeiba.com/horse/2019104612/",
+    "damName": "バーニングヒート",
+    "recruitCount": 1,
+    "birthplaceRaw": "白老町",
+    "isForeign": false,
+    "status": "ok"
+  },
+  {
+    "damUrl": "https://db.sp.netkeiba.com/horse/000a01fcd0/",
+    "damName": "ジョイネヴァーランド",
+    "recruitCount": 1,
+    "birthplaceRaw": null,
+    "isForeign": null,
+    "status": "field-missing"
+  },
+  {
+    "damUrl": "https://db.sp.netkeiba.com/horse/000a01fb7a/",
+    "damName": "Miss Extra",
+    "recruitCount": 1,
+    "birthplaceRaw": "仏",
+    "isForeign": true,
+    "status": "ok"
+  },
+  {
+    "damUrl": "https://db.sp.netkeiba.com/horse/000a01fcce/",
+    "damName": "ウナアラバレーラ",
+    "recruitCount": 1,
+    "birthplaceRaw": null,
+    "isForeign": null,
+    "status": "field-missing"
+  },
+  {
+    "damUrl": "https://db.sp.netkeiba.com/horse/2012104547/",
+    "damName": "エンブレマータ",
+    "recruitCount": 1,
+    "birthplaceRaw": "安平町",
+    "isForeign": false,
+    "status": "ok"
+  },
+  {
+    "damUrl": "https://db.sp.netkeiba.com/horse/2006103398/",
+    "damName": "ミクロコスモス",
+    "recruitCount": 1,
+    "birthplaceRaw": "安平町",
+    "isForeign": false,
+    "status": "ok"
+  }
+]
