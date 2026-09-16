@@ -22,6 +22,7 @@ function makeRow(overrides: Partial<LotteryStatusRow> = {}): LotteryStatusRow {
     damPriority: null,
     normal: null,
     remainingShares: null,
+    soldOutInRound: null,
     ...overrides,
   };
 }

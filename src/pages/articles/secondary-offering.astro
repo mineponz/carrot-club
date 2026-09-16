@@ -37,10 +37,13 @@ import leftoversJson from '../../../analysis/data/first-offering-leftovers.json'
 import { horses2026 } from '../../data/horses2026.ts';
 import { LOTTERY_STATUS_SNAPSHOTS } from '../../data/lotteryStatus2026.ts';
 import {
+  idsWithoutNormalLotteryOutcome,
   remainingSharesRows,
   remainingSharesByHorseId,
   secondaryOfferingAnnounced,
+  soldOutInRoundByHorseId,
 } from '../../lib/remaining-shares.ts';
+import { OFFERING_ROUND_LABEL } from '../../consts.ts';
 import {
   loadRecruitsWithResults,
   RACE_RESULTS_FETCHED_AT,
@@ -174,11 +177,28 @@ const roi100RateLeftoverPct = (100 * roi100Leftover) / pricedLeftover.length;
 const roi100RateSoldOutPct = (100 * roi100SoldOut) / pricedSoldOut.length;
 
 // ---- 今年（2026年度）の1.5次募集対象と、既存の残口データとの整合性 ----
+// **比べる相手は「1次募集で通常枠の抽選が発生しなかった馬」**（＝1.5次募集に回った23頭）。
+// 「今まだ残口がある馬」は募集回が進むと減っていくので、ここで使うと回が変わるたびに落ちる。
 const remainingRows = remainingSharesRows(horses2026, LOTTERY_STATUS_SNAPSHOTS);
-const remainingIds = Object.keys(remainingSharesByHorseId(remainingRows))
-  .slice()
-  .sort((a, b) => Number(a) - Number(b));
+const leftoverIdsFromLottery = idsWithoutNormalLotteryOutcome(LOTTERY_STATUS_SNAPSHOTS);
 const leftover2026Nos = [...leftoverNosOf(leftoversFile, 2026)].sort((a, b) => Number(a) - Number(b));
+
+// 1.5次募集の結果。まだ残口がある馬＝次の募集回へ、消えた馬＝1.5次募集で満口になった馬。
+const stillRemainingCount = Object.keys(remainingSharesByHorseId(remainingRows)).length;
+const soldOutInSecondaryCount = Object.keys(soldOutInRoundByHorseId(remainingRows)).length;
+/** 1.5次募集の結果が出ているか（満口になった馬が1頭でもいるか）。出ていなければ結果の段落を出さない。 */
+const secondaryRoundSettled = soldOutInSecondaryCount > 0;
+
+// 1.5次募集の時点で残り口数の「実数」が出ていた馬＝残口が100口（地方入厩予定馬は25口）以下
+// だった馬。そのうち何頭が満口になったかを数える（本文の「小さい残口から埋まった」の根拠）。
+const soldOutIds = new Set(Object.keys(soldOutInRoundByHorseId(remainingRows)));
+const prevSnapshot = LOTTERY_STATUS_SNAPSHOTS.at(-2) ?? null;
+const smallRemainingIds = prevSnapshot
+  ? Object.entries(prevSnapshot.byId)
+      .filter(([, entry]) => entry.remainingShares?.kind === 'exact')
+      .map(([id]) => id)
+  : [];
+const smallRemainingSoldOut = smallRemainingIds.filter((id) => soldOutIds.has(id)).length;
 
 // ---- 本文が置いている前提のビルド時アサーション ----
 const premiseErrors: string[] = [];
@@ -302,11 +322,18 @@ if (!(Math.abs(roi100RateLeftoverPct - roi100RateSoldOutPct) < 3)) {
 // 9. 今年（2026年度）の1.5次募集対象が、既存の残口データ（lotteryStatus2026.ts）と一致する
 //    （頭数を二重管理しないための検算。発表が無い間はスキップする）
 if (secondaryOfferingAnnounced(LOTTERY_STATUS_SNAPSHOTS)) {
-  if (JSON.stringify(remainingIds) !== JSON.stringify(leftover2026Nos)) {
+  if (JSON.stringify(leftoverIdsFromLottery) !== JSON.stringify(leftover2026Nos)) {
     premiseErrors.push(
       '2026年度の1.5次募集対象馬が、first-offering-leftovers.json と ' +
-        `lotteryStatus2026.ts の残口データで食い違っている（前者${leftover2026Nos.length}頭 / ` +
-        `後者${remainingIds.length}頭）。どちらかのデータを直すこと。`
+        `lotteryStatus2026.ts の抽選ランク発表で食い違っている（前者${leftover2026Nos.length}頭 / ` +
+        `後者${leftoverIdsFromLottery.length}頭）。どちらかのデータを直すこと。`
+    );
+  }
+  // 10. 1.5次募集の結果（本文が書いている内訳）が、残口データの内訳と合う
+  if (secondaryRoundSettled && stillRemainingCount + soldOutInSecondaryCount !== leftover2026Nos.length) {
+    premiseErrors.push(
+      `1.5次募集の内訳が対象頭数と合わない（残口あり${stillRemainingCount}頭＋満口` +
+        `${soldOutInSecondaryCount}頭 ≠ 対象${leftover2026Nos.length}頭）。本文の内訳を直すこと。`
     );
   }
 }
@@ -341,7 +368,7 @@ const description = `1次募集で満口にならなかった馬たちのその�
 
     <p>
       1次募集の抽選が終わった。最優先も一般も外れて、手元に何も残らなかった人がいる。
-      私もそうだ。そして今年も、満口にならなかった馬が{leftoverThisYear}頭、1.5次募集に回る。
+      私もそうだ。そして今年も、満口にならなかった馬が{leftoverThisYear}頭、1.5次募集に回った。
     </p>
     <p>
       このリストを見て「1次で売れ残った馬か」と思うのは自然だ。実際、みんなが欲しがった馬から
@@ -358,7 +385,13 @@ const description = `1次募集で満口にならなかった馬たちのその�
 
     <StatTiles
       tiles={[
-        { label: '今年の1.5次募集対象', value: `${leftoverThisYear}頭`, note: '受付は9/14正午〜9/15正午' },
+        {
+          label: '今年の1.5次募集対象',
+          value: `${leftoverThisYear}頭`,
+          note: secondaryRoundSettled
+            ? `${soldOutInSecondaryCount}頭が満口・${stillRemainingCount}頭が${OFFERING_ROUND_LABEL}へ`
+            : '1次募集で満口にならなかった馬',
+        },
         { label: '集計した世代（成熟3世代）', value: `${matureCount}頭`, note: '2022〜2024年度募集' },
         { label: '同期トップ10入り', value: '3世代とも1頭ずつ', note: '獲得賞金で同期に並べた順位' },
         { label: '募集価格を上回った馬', value: `${roi100Rows.length}頭`, note: '回収率100%超' },
@@ -600,13 +633,41 @@ const description = `1次募集で満口にならなかった馬たちのその�
 
     <h2>今年の{leftoverThisYear}頭</h2>
     <p>
-      今年1.5次募集に回るのは{leftoverThisYear}頭。受付は9月14日(月)正午から15日(火)正午まで。
-      1次募集で最優先が抽選に外れた人だけが参加できる優先受付で、出資できるのは1人1頭まで。
+      今年1.5次募集に回ったのは{leftoverThisYear}頭。1次募集で最優先が抽選に外れた人だけが
+      参加できる優先受付で、出資できるのは1人1頭まで、という枠だった。
     </p>
-    <p>
-      対象馬は<a href="/?remaining=1">一覧の「残口あり」ビュー</a>にまとまっている。
-      馬名からはこのサイトの個別ページに飛べるので、気になった馬の血統・測尺を見てほしい。
-    </p>
+    {secondaryRoundSettled && (
+      <>
+        <p>
+          その受付が終わり、クラブから{OFFERING_ROUND_LABEL}の対象馬が発表された。
+          <strong>
+            {leftoverThisYear}頭のうち{soldOutInSecondaryCount}頭が1.5次募集で満口になり、
+            残る{stillRemainingCount}頭が{OFFERING_ROUND_LABEL}に回っている
+          </strong>
+          。1回の優先受付で3分の1が埋まった計算になる。
+        </p>
+        <p>
+          埋まり方にも順番があった。1.5次募集の時点で残り口数の実数が出ていた
+          ——つまり残口が100口（地方入厩予定馬は25口）以下だった{smallRemainingIds.length}頭のうち、
+          {smallRemainingSoldOut}頭が満口になっている。あと少しで埋まる馬から先に決まっていく、
+          というのは感覚どおりだ。逆に言えば、今残っているのはまだ口数に余裕がある馬が中心で、
+          焦って決めなくてもいい状況ではある。
+        </p>
+        <p>
+          今から出資できる{stillRemainingCount}頭は
+          <a href="/?remaining=1">一覧の「残口あり」ビュー</a>にまとまっている。
+          馬名からはこのサイトの個別ページに飛べるので、気になった馬の血統・測尺を見てほしい。
+          1.5次募集で満口になった馬には「1.5次完売」と表示しているので、
+          全頭ビューに切り替えればどれが売れたのかも追える。
+        </p>
+      </>
+    )}
+    {!secondaryRoundSettled && (
+      <p>
+        対象馬は<a href="/?remaining=1">一覧の「残口あり」ビュー</a>にまとまっている。
+        馬名からはこのサイトの個別ページに飛べるので、気になった馬の血統・測尺を見てほしい。
+      </p>
+    )}
     <p>
       過去4年を追いかけて言えるのは、この{leftoverThisYear}頭の中にも、
       数年後に「あのとき申し込んでおけば」と言われる馬がおそらく混ざっている、ということだ。

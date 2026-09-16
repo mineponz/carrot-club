@@ -98,7 +98,7 @@ export function filterStorageKeyForYear(year: number): string {
 /**
  * 「残口あり/全頭」切替の既定値を、その端末で1回だけ当てるためのフラグ（2026-09-10）。
  *
- * `src/consts.ts` の `OFFERING_PHASE` が `'secondary'`（1.5次募集期間中）のあいだ、まだこの
+ * `src/consts.ts` の `IS_ADDITIONAL_OFFERING`（1.5次・第2次…の追加募集期間中）のあいだ、まだこの
  * フェーズを見ていない端末にだけ「残口あり」を既定にする。**保存済みの絞り込み条件を
  * 勝手に上書きしない**ための仕組みで、一度当てた（＝このキーが立った）あとは、ユーザーが
  * 条件を変えても・クリアしても、二度と既定値を上書きしない（filter-state自体の

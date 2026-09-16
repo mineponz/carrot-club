@@ -50,8 +50,10 @@ import { TOUR_WEIGHT_AS_OF, TOUR_WEIGHT_BY_ID } from '../data/tourWeight2026.ts'
 import { ENTRY_VOTE_SNAPSHOTS } from '../data/entryVotes2026.ts';
 import { LOTTERY_STATUS_SNAPSHOTS } from '../data/lotteryStatus2026.ts';
 import { lotteryLabel, lotteryStatusRows } from '../lib/lottery-status.ts';
-// 残口（1.5次募集の対象馬）。出所は上の抽選ランク発表と同じsnapshot（remaining-shares.tsのコメント参照）。
+// 残口（今の募集回で出資できる馬）。出所は上の抽選ランク発表と同じsnapshot（remaining-shares.tsのコメント参照）。
 import { remainingSharesRows } from '../lib/remaining-shares.ts';
+import { soldOutLabel } from '../lib/remaining-shares-row.ts';
+import { OFFERING_ROUND_LABEL } from '../consts.ts';
 import { horseDetailHref } from '../lib/horse-row.ts';
 import { formatDiff } from '../lib/tour-weight-row.ts';
 import { formatManYen } from '../lib/chart-math.ts';
@@ -233,7 +235,7 @@ const lotteryFacts: { term: string; value: string }[] =
     : [];
 
 /**
- * 残口（1.5次募集の対象馬）。最新snapshotで残り口数が入っている馬が対象
+ * 残口（今の募集回で出資できる馬）。最新snapshotで残り口数が入っている馬が対象
  * （`src/lib/remaining-shares.ts` 参照）。`lotteryFacts` の「残り口数」行と同じ出所で、
  * こちらは h1 の下のバッジと下部の導線に使う。2026年募集にしか情報源が無い。
  */
@@ -305,12 +307,14 @@ const facts: { term: string; value: string; note?: string }[] = [
       残口バッジ（本人合意・2026-09-10）。対象馬は目立つ塗りつぶし、満口は控えめな枠線のみ
       （design.mdの「主要=塗りつぶし／副次=枠線」に合わせる）。情報源が無い年度（2025年募集
       など・remainingがnull）では出さない。
+      1次募集では残口があったのに、その後の追加募集で満口になった馬は「1.5次完売」と書き分ける
+      （2026-09-16）。ただの「満口」だと1次募集で満口になった馬と見分けが付かないため。
     */
     remaining && (
       <p class="remaining-flag">
         {remaining.hasRemaining ? (
           <span class="remaining-flag-badge is-remaining">
-            1.5次募集の対象・残口
+            {OFFERING_ROUND_LABEL}の対象・残口
             {remaining.shares === null
               ? 'あり'
               : remaining.shares.kind === 'exact'
@@ -318,7 +322,9 @@ const facts: { term: string; value: string; note?: string }[] = [
                 : `${remaining.shares.count}口以上`}
           </span>
         ) : (
-          <span class="remaining-flag-badge is-full">満口</span>
+          <span class="remaining-flag-badge is-full">
+            {remaining.soldOutInRound ? soldOutLabel(remaining.soldOutInRound) : '満口'}
+          </span>
         )}
       </p>
     )

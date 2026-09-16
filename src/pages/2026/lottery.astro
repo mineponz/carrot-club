@@ -18,7 +18,7 @@
  * 初期表示は「抽選が発生している馬（tone:'strong'）を上」（本人依頼の主旨）にするため、
  * `normal`（通常枠）の severity 降順にしている。母馬優先枠だけ抽選が発生している馬を
  * 見落とさないよう、見出しから「母馬優先枠」列でも並べ替えられる。
- * **1.5次募集の間（`OFFERING_PHASE === 'secondary'`）だけ、残口のある馬を初期表示の先頭に
+ * **追加募集の間（`IS_ADDITIONAL_OFFERING`）だけ、残口のある馬を初期表示の先頭に
  * 動かす**（本人合意・2026-09-10）。見出しクリックによる並べ替えはこれまでどおり
  * `sortLotteryStatusRows()` だけで行う（この並び替えは初期表示だけの特別扱い）。
  */
@@ -29,7 +29,7 @@ import { lotteryStatusRows, sortLotteryStatusRows } from '../../lib/lottery-stat
 import { LOTTERY_STATUS_COLUMNS, lotteryStatusRowHtml } from '../../lib/lottery-status-row.ts';
 // 1.5次募集（残口のある馬）。出所は同じsnapshot（remaining-shares.tsのコメント参照）。
 import { remainingSharesRows } from '../../lib/remaining-shares.ts';
-import { OFFERING_PHASE } from '../../consts.ts';
+import { IS_ADDITIONAL_OFFERING, OFFERING_ROUND_LABEL } from '../../consts.ts';
 
 // 馬名から飛ぶ個別ページも年度付きが正本。既定値まかせにせず年度ごとに明示する（tour-weight/votesと同じ書き方）
 const DETAIL_BASE_PATH = '/2026/horses/';
@@ -52,7 +52,7 @@ const remainingIds = new Set(
     .filter((r) => r.hasRemaining === true)
     .map((r) => r.id),
 );
-const isSecondaryPhase = OFFERING_PHASE === 'secondary' && remainingIds.size > 0;
+const isSecondaryPhase = IS_ADDITIONAL_OFFERING && remainingIds.size > 0;
 
 // 初期表示は「抽選が発生している馬を上」（本人依頼の主旨）。未発表は常に末尾に落ちる。
 // 1.5次募集の間はそれに加えて、残口のある馬を全体の先頭へ動かす（相対順は保つ＝安定ソート）。
@@ -76,7 +76,7 @@ const description = `【非公式】キャロットクラブ2026年募集馬${to
     最優先×なし・一般のどのランクまで抽選になったか）をまとめています。
     母がキャロット出身馬の場合にある「母馬優先枠」は、通常枠（最優先＋一般）と別に結果が出ます。
     見出しをクリックすると並べ替えられます（もう一度押すと昇順・降順が入れ替わります）。馬名から各馬の個別ページに飛べます。
-    {isSecondaryPhase && '1.5次募集の間は、まだ出資できる馬（残口あり）を上から見られるよう並べています。'}
+    {isSecondaryPhase && `${OFFERING_ROUND_LABEL}の間は、まだ出資できる馬（残口あり）を上から見られるよう並べています。`}
   </p>
   <p class="source-note">
     抽選ランクの出所:{' '}
@@ -306,6 +306,8 @@ const description = `【非公式】キャロットクラブ2026年募集馬${to
       #lottery-table td[data-col="normal"] { width: 8rem; }
       #lottery-table th[data-col="remainingShares"],
       #lottery-table td[data-col="remainingShares"] { width: 5rem; }
+      /* 1.5次完売（トップの「残口」列と同じ扱い。今から出資できないので控えめに） */
+      #lottery-table .remaining-sold-out { color: var(--muted); font-size: 0.75rem; white-space: nowrap; }
 
       /* No 列も表示されるので、No・馬名の2列を左端に固定する（votes/tour-weightと同じ） */
       #lottery-table [data-col="id"] {
@@ -339,7 +341,7 @@ const description = `【非公式】キャロットクラブ2026年募集馬${to
     import { lotteryStatusRowHtml } from '../../lib/lottery-status-row.ts';
     // 1.5次募集（残口のある馬）。frontmatterと同じ出所・同じ考え方で初期表示だけ並びを動かす。
     import { remainingSharesRows } from '../../lib/remaining-shares.ts';
-    import { OFFERING_PHASE } from '../../consts.ts';
+    import { IS_ADDITIONAL_OFFERING } from '../../consts.ts';
 
     // frontmatter の定数はクライアント側から参照できないので同じ値をここにも置く
     const DETAIL_BASE_PATH = '/2026/horses/';
@@ -351,7 +353,7 @@ const description = `【非公式】キャロットクラブ2026年募集馬${to
         .filter((r) => r.hasRemaining === true)
         .map((r) => r.id),
     );
-    const isSecondaryPhase = OFFERING_PHASE === 'secondary' && remainingIds.size > 0;
+    const isSecondaryPhase = IS_ADDITIONAL_OFFERING && remainingIds.size > 0;
     // 初期表示（見出しを一度も押していない）のあいだだけ、残口のある馬を先頭に動かす。
     // ユーザーが見出しを押して並べ替えたら、以後はふつうの並べ替えに戻す
     // （frontmatterのinitialRowsHtmlと同じ特別扱いを、再描画のたびに壊さないための切り分け）。

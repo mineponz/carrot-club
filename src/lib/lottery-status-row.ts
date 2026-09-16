@@ -9,6 +9,7 @@
  * （import すると循環参照になる）。`escapeHtml`・個別ページへのリンク組み立てはこのファイル内に
  * 小さく複製している。
  */
+import { soldOutLabel } from './remaining-shares-row.ts';
 import type { FrameLotteryResult } from '../data/lotteryStatus2026.ts';
 import { lotteryLabel, type LotteryStatusRow, type LotteryStatusSortKey } from './lottery-status.ts';
 
@@ -54,12 +55,17 @@ function damPriorityCellHtml(row: LotteryStatusRow): string {
 }
 
 /**
- * 残り口数セルの中身。未確定・1.5次募集対象外は「—」。
+ * 残り口数セルの中身。
  * クラブ公式が実数を出すのは残口100口（地方入厩予定馬は25口）以下の馬だけで、それを
  * 超える馬は空欄になる（`kind: 'atLeast'`）ため「N口以上」と表す。
+ * 前の回では残口があったが今回満口になった馬は「1.5次完売」（トップの「残口」列と同じ扱い。
+ * 1次募集で満口になった馬・未確定は「—」）。
  */
 function remainingSharesCellHtml(row: LotteryStatusRow): string {
-  if (row.remainingShares === null) return '—';
+  if (row.remainingShares === null) {
+    if (!row.soldOutInRound) return '—';
+    return `<span class="remaining-sold-out">${escapeHtml(soldOutLabel(row.soldOutInRound))}</span>`;
+  }
   const { kind, count } = row.remainingShares;
   return kind === 'exact' ? `${count}口` : `${count}口以上`;
 }

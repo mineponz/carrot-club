@@ -9,6 +9,7 @@
  * 比較したい `entry-votes.ts` とは違い、抽選ステータスは「今の結果」だけが意味を持つため。
  */
 import type { Horse, Sex } from './horses.ts';
+import type { SoldOutRound } from './remaining-shares.ts';
 import type {
   FrameLotteryResult,
   LotteryRank,
@@ -88,8 +89,13 @@ export interface LotteryStatusRow {
   damPriority: FrameLotteryResult | null;
   /** 通常枠の結果。未発表なら null */
   normal: FrameLotteryResult | null;
-  /** 残り口数（1.5次募集の目安）。未発表・1.5次募集対象外は null */
+  /** 残り口数（今の募集回で出資できる口数）。未発表・対象外は null */
   remainingShares: RemainingShares | null;
+  /**
+   * 追加募集の途中で満口になった馬の、満口になった募集回（例 `'1.5'`）。
+   * 1次募集で満口になった馬・まだ残口のある馬は null（詳細は `remaining-shares.ts`）。
+   */
+  soldOutInRound: SoldOutRound | null;
 }
 
 /**
@@ -124,6 +130,7 @@ export function lotteryStatusRows(
       damPriority: entry?.damPriority ?? null,
       normal: entry?.normal ?? null,
       remainingShares: entry?.remainingShares ?? null,
+      soldOutInRound: entry?.soldOutInRound ?? null,
     };
   });
 }

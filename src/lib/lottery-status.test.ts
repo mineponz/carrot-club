@@ -130,6 +130,7 @@ test('lotteryStatusRows: 未掲載の馬・snapshotsが空の場合はすべてn
       damPriority: null,
       normal: null,
       remainingShares: null,
+      soldOutInRound: null,
     },
   ]);
   const rowsWithEmptyById = lotteryStatusRows(horses, [{ asOf: '9/11', label: '抽選ランク発表', byId: {} }]);
@@ -171,6 +172,7 @@ test('sortLotteryStatusRows: normalキーで抽選発生を上位に並べ、未
       damPriority: null,
       normal: frame({ rank: 'general', lotteryOccurred: false }),
       remainingShares: null,
+      soldOutInRound: null,
     },
     {
       id: '2',
@@ -181,6 +183,7 @@ test('sortLotteryStatusRows: normalキーで抽選発生を上位に並べ、未
       damPriority: null,
       normal: null,
       remainingShares: null,
+      soldOutInRound: null,
     },
     {
       id: '3',
@@ -191,6 +194,7 @@ test('sortLotteryStatusRows: normalキーで抽選発生を上位に並べ、未
       damPriority: null,
       normal: frame({ rank: 'general', lotteryOccurred: true }),
       remainingShares: null,
+      soldOutInRound: null,
     },
   ];
   const sortedDesc = sortLotteryStatusRows(rows, 'normal', 'desc');
@@ -207,6 +211,7 @@ test('sortLotteryStatusRows: remainingSharesはcount順、未確定(null)は常�
     hasDamPriority: false,
     damPriority: null,
     normal: null,
+    soldOutInRound: null,
   };
   const rows: LotteryStatusRow[] = [
     { id: '1', name: 'a', ...base, remainingShares: { kind: 'exact', count: 5 } },
@@ -226,6 +231,7 @@ test('sortLotteryStatusRows: idは数値として並べ替える', () => {
     damPriority: null,
     normal: null,
     remainingShares: null,
+    soldOutInRound: null,
   };
   const rows: LotteryStatusRow[] = [
     { id: '10', ...base },

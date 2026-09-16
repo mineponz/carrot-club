@@ -10,7 +10,12 @@
 import BaseLayout from '../layouts/BaseLayout.astro';
 import SyncPanel from '../components/SyncPanel.astro';
 import AdSlot from '../components/AdSlot.astro';
-import { OFFERING_PHASE, SITE_DESCRIPTION, UNOFFICIAL_NOTICE } from '../consts.ts';
+import {
+  IS_ADDITIONAL_OFFERING,
+  OFFERING_ROUND_LABEL,
+  SITE_DESCRIPTION,
+  UNOFFICIAL_NOTICE,
+} from '../consts.ts';
 import { horses2026 } from '../data/horses2026.ts';
 // 募集中止馬は horses2026 に載せない（頭数・絞り込みは確定リスト時点のまま）ので、
 // 注記でだけ触れる。馬名をここに直書きせず単一の真実源から出す。
@@ -30,7 +35,7 @@ import { COLUMNS, horseRowHtml, toggleableColumns } from '../lib/horse-row.ts';
 import { analysisArticles } from '../data/articles.ts';
 import { LOTTERY_STATUS_SNAPSHOTS } from '../data/lotteryStatus2026.ts';
 import { lotteryStatusRows } from '../lib/lottery-status.ts';
-// 1.5次募集（残口のある馬）。出所は抽選ランク発表と同じ `LOTTERY_STATUS_SNAPSHOTS`
+// 追加募集（残口のある馬）。出所は抽選ランク発表と同じ `LOTTERY_STATUS_SNAPSHOTS`
 // （最新snapshotで残り口数が入っている馬＝対象馬。src/lib/remaining-shares.ts のコメント参照）。
 import {
   assertRemainingSharesConsistent,
@@ -79,15 +84,18 @@ const lotteryById = new Map(
   lotteryStatusRows(horses2026, LOTTERY_STATUS_SNAPSHOTS).map((row) => [row.id, row]),
 );
 
-// 残口（1.5次募集の対象馬）も同じ形で突き合わせる（本人合意・2026-09-10）。
+// 残口（今の募集回で出資できる馬）も同じ形で突き合わせる（本人合意・2026-09-10）。
 // 手入力どうし（抽選ランクと残り口数）が食い違ったらここでビルドを止める。
 assertRemainingSharesConsistent(LOTTERY_STATUS_SNAPSHOTS);
 const remainingRows = remainingSharesRows(horses2026, LOTTERY_STATUS_SNAPSHOTS);
 const remainingById = new Map(remainingRows.map((row) => [row.id, row]));
-// 1.5次募集の発表自体がまだ無いあいだは、切替・絞り込みの「残口」・列を出さない
+// 追加募集の発表自体がまだ無いあいだは、切替・絞り込みの「残口」・列を出さない
 // （押しても何も起きない死んだUIを並べない。hasSurgeryDataと同じ考え方）。
 const hasRemainingSharesData = secondaryOfferingAnnounced(LOTTERY_STATUS_SNAPSHOTS);
 const remainingCount = remainingRows.filter((r) => r.hasRemaining === true).length;
+// 前の募集回では残口があったが、今回の対象馬一覧から消えた＝その回で満口になった馬
+// （2026年度なら1.5次募集で満口の8頭）。「1.5次完売」ラベルの頭数はここから出す。
+const soldOutInRoundCount = remainingRows.filter((r) => r.soldOutInRound !== null).length;
 
 // 初期表示はクライアント側の既定（id昇順）と揃える。評価は端末ごとの値なので
 // 初期HTMLでは未評価（DEFAULT_EVALUATION）で描き、読み込み後に上書きする。
@@ -192,7 +200,7 @@ const faqs = [
     ? [
         {
           q: '「残口」とは何ですか？',
-          a: `1次募集の抽選が終わり、まだ出資できる口数が残っている馬（1.5次募集の対象馬）です。クラブ公式発表に基づいており、2026年募集馬では${total}頭中${remainingCount}頭が該当します。表の上の「残口あり/全頭」切替や絞り込みの「残口」で絞り込めます。クラブが実数を出すのは残り口数が100口（地方入厩予定馬は25口）以下の馬だけなので、それを超える馬は「100口以上」と表示しています。`,
+          a: `1次募集の抽選が終わり、まだ出資できる口数が残っている馬（${OFFERING_ROUND_LABEL}の対象馬）です。クラブ公式発表に基づいており、2026年募集馬では${total}頭中${remainingCount}頭が該当します。表の上の「残口あり/全頭」切替や絞り込みの「残口」で絞り込めます。クラブが実数を出すのは残り口数が100口（地方入厩予定馬は25口）以下の馬だけなので、それを超える馬は「100口以上」と表示しています。${soldOutInRoundCount > 0 ? `1次募集では残口があったものの、その後の追加募集で満口になった${soldOutInRoundCount}頭には「1.5次完売」と表示しています（今から出資することはできません）。` : ''}`,
         },
       ]
     : []),
@@ -236,7 +244,7 @@ const faqJsonLd = {
         select（すべて/あり/なし）と同じ状態を指す（母優先の3択と同じ作り、状態を2箇所に
         持たない）。ここでは has/'' の2値だけを切り替える粗い操作にしてある
         （絞り込みパネルの「なし」まで含めた3択は、開いて選ぶ操作として残す）。
-        1.5次募集の間（`OFFERING_PHASE === 'secondary'`）はこの切替の状態が既定で
+        追加募集の間（`IS_ADDITIONAL_OFFERING`）はこの切替の状態が既定で
         「残口あり」になる（初めてこのフェーズを見た端末だけ。下のscript参照）。
       */
       <div class="offering-switch" role="group" aria-label="残口で絞り込む">
@@ -278,7 +286,7 @@ const faqJsonLd = {
     ・
     {/* 1.5次募集の間はトップからの導線文言もそちらへ寄せる（本人合意・2026-09-10） */}
     <a href="/2026/lottery/">
-      {OFFERING_PHASE === 'secondary' ? '1.5次募集の残口状況を見る' : '抽選ステータスを見る'}
+      {IS_ADDITIONAL_OFFERING ? `${OFFERING_ROUND_LABEL}の残口状況を見る` : '抽選ステータスを見る'}
     </a>
     ・
     <a href="/2025/">2025年募集馬の一覧</a>
@@ -639,12 +647,19 @@ const faqJsonLd = {
       <>
         <h2>「残口」とは</h2>
         <p>
-          1次募集の抽選が終わり、まだ出資できる口数が残っている馬（1.5次募集の対象馬）を
+          1次募集の抽選が終わり、まだ出資できる口数が残っている馬（{OFFERING_ROUND_LABEL}の対象馬）を
           クラブ公式発表（「{LOTTERY_STATUS_SNAPSHOTS.at(-1)!.label}」・{LOTTERY_STATUS_SNAPSHOTS.at(-1)!.asOf}時点）
           に基づいて示しています。一覧の「残口」列・上の「残口あり/全頭」切替・各馬の個別ページに
           反映しており、{remainingCount}頭が該当します。クラブが実数を出すのは残り口数が100口
           （地方入厩予定馬は25口）以下の馬だけなので、それを超える馬は「100口以上」と表示しています。
         </p>
+        {soldOutInRoundCount > 0 && (
+          <p>
+            1次募集では残口があったものの、その後の追加募集で満口になった馬には
+            「1.5次完売」と表示しています（{soldOutInRoundCount}頭）。今から出資することは
+            できないので、「残口あり」に絞り込むと外れます。
+          </p>
+        )}
       </>
     )
   }
@@ -673,7 +688,7 @@ const faqJsonLd = {
     {
       hasRemainingSharesData && (
         <li>
-          残口（一覧の「残口」列）はクラブ公式発表の1.5次募集対象馬一覧を反映しています。{remainingCount}頭が対象で、残り口数が100口（地方入厩予定馬は25口）を超える馬は実数が公表されないため「100口以上」と表示しています
+          残口（一覧の「残口」列）はクラブ公式発表の「{LOTTERY_STATUS_SNAPSHOTS.at(-1)!.label}」を反映しています。{remainingCount}頭が対象で、残り口数が100口（地方入厩予定馬は25口）を超える馬は実数が公表されないため「100口以上」と表示しています
         </li>
       )
     }
@@ -1351,6 +1366,8 @@ const faqJsonLd = {
     #horse-table .dam-priority { color: var(--accent); font-weight: 600; }
     /* 残口（1.5次募集の対象馬）バッジ。母優先の◯と同じアクセント色で目立たせる。 */
     #horse-table .remaining-badge { color: var(--accent); font-weight: 600; }
+    /* 1.5次完売。残口ありのアクセント色は使わず、地の文より薄くして「もう出資できない」を見た目で分ける。 */
+    #horse-table .remaining-sold-out { color: var(--muted); font-size: 0.75rem; white-space: nowrap; }
 
     #horse-table .links a {
       margin-right: 0.35rem;
@@ -1518,7 +1535,7 @@ const faqJsonLd = {
     import { lotteryStatusRows } from '../lib/lottery-status.ts';
     // 1.5次募集（残口のある馬）。frontmatterと同じ出所（抽選ランク発表のsnapshot）。
     import { remainingSharesByHorseId, remainingSharesRows } from '../lib/remaining-shares.ts';
-    import { OFFERING_PHASE } from '../consts.ts';
+    import { IS_ADDITIONAL_OFFERING } from '../consts.ts';
     import { queueEvaluationSync } from '../lib/evaluation-client.ts';
     import { EVALUATIONS_RESTORED_EVENT } from '../lib/sync.ts';
     import {
@@ -2047,7 +2064,7 @@ const faqJsonLd = {
     applyFilterState(restoredState);
 
     /**
-     * 1.5次募集の間（`OFFERING_PHASE === 'secondary'`）は「残口あり」を既定にする。
+     * 追加募集の間（`IS_ADDITIONAL_OFFERING`）は「残口あり」を既定にする。
      * **保存済みの絞り込み条件を勝手に上書きしない**ため、このフェーズをまだ見ていない
      * 端末（`offeringPhaseSeenKey` が立っていない）にだけ、上の `applyFilterState()` の
      * あとで一度だけ当てる。一度当てたら（＝このキーが立ったら）このフェーズのあいだは
@@ -2057,7 +2074,7 @@ const faqJsonLd = {
     const offeringPhaseSeenKey = offeringPhaseSeenStorageKeyForYear(RECRUIT_YEAR);
     if (
       filterRemainingShares &&
-      OFFERING_PHASE === 'secondary' &&
+      IS_ADDITIONAL_OFFERING &&
       !hasSeenOfferingPhase(window.localStorage, offeringPhaseSeenKey)
     ) {
       filterRemainingShares.value = 'has';

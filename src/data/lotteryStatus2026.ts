@@ -9,10 +9,18 @@
  *     1.5次募集対象になった馬の`remainingShares`だけ追記した（1.5次PDFは対象馬の
  *     出資可能口数しか載っていないため）。対象馬の集合は「1次募集でnormalがlotteryOccurred:false
  *     （残口あり）だった馬」と完全一致し、これは実データ投入時に機械的に検算済み。
+ *   - 9/16snapshot: PDF「キャロットクラブ　第２次募集対象馬一覧」。同じく前snapshotのbyIdを
+ *     まるごと引き継ぎ、残り口数だけ入れ替えた。1.5次募集の対象23頭のうち**15頭が第2次募集に
+ *     残り、8頭（No.9/17/19/24/28/32/74/90）は1.5次募集で満口になった**（＝今回のPDFから消えた）。
+ *     消えた8頭は`remainingShares: null`＋`soldOutInRound: '1.5'`。15行すべてNo.・馬名・父・
+ *     一口価格が`horses2026.ts`と一致することを投入時に機械照合済み（性別表記だけPDFは「メス」）。
+ *     受付期間はニュース本文が会員限定で取得できず**不明**のため、どこにも書いていない。
  *   9/10snapshotの出所PDFのURL（`lottery.astro`の出所リンクもここを指す。2026-09-10に
  *   暫定リンク（クラブトップ）から差し替え済み）:
  *   https://carrotclub.net/upfile/topics/8514/8514-MEUPMAMESUBQQzUP-1.pdf
- *   1.5次募集対象馬一覧（9/11snapshot）のPDFのURLはこのセッションでは未確認のため未記載。
+ *   9/16snapshotの出所PDFのURL:
+ *   https://carrotclub.net/upfile/topics/8549/8549-PVMTCDTCETRCQSTV-2.pdf
+ *   1.5次募集対象馬一覧（9/11snapshot）のPDFのURLは未確認のため未記載。
  *
  * ## 制度の前提（詳細: secondBrain `1-projects/carrot-club/notes/20260905-lottery-status-terminology.md`）
  * - 「最優先×2（過去2年最優先落選）」「最優先×1（前年最優先落選）」「最優先×なし（前年最優先当選）」
@@ -93,8 +101,20 @@ export interface LotteryStatusEntry {
   damPriority?: FrameLotteryResult;
   /** 通常枠（母馬優先を使わない申込み分）の結果 */
   normal: FrameLotteryResult;
-  /** 残り口数（1.5次募集の目安）。未確定・1.5次募集対象外はnull */
+  /** 残り口数（今おこなわれている追加募集で出資できる口数）。未確定・対象外はnull */
   remainingShares: RemainingShares | null;
+  /**
+   * 追加募集の途中で満口になった馬の、満口になった募集回。
+   *
+   * 1次募集で満口になった馬（大多数）には**付けない** ―― `normal.outcome.lotteryOccurred === true`
+   * から導けるので、同じ事実を二度手入力しないため。**1次募集では残口があったのに、次の回の
+   * 対象馬一覧から消えた馬だけ**に付ける（2026年度なら1.5次募集で満口になった8頭）。
+   *
+   * これが無いと、残口ありから消えた馬が1次募集で満口になった馬と見分けられなくなり、
+   * `remaining-shares.ts` の検算（残口あり ∪ 途中で満口 ＝ 通常枠で抽選が発生しなかった馬）も
+   * 成り立たなくなる。
+   */
+  soldOutInRound?: '1.5';
 }
 
 export interface LotteryStatusSnapshot {
@@ -301,6 +321,104 @@ export const LOTTERY_STATUS_SNAPSHOTS: readonly LotteryStatusSnapshot[] = [
       '92': { damPriority: { outcome: { rank: 'general', lotteryOccurred: false }, note: null }, normal: { outcome: { rank: 'general', lotteryOccurred: false }, note: null }, remainingShares: { kind: 'atLeast', count: 25 } },
       '93': { normal: { outcome: { rank: 'general', lotteryOccurred: false }, note: null }, remainingShares: { kind: 'atLeast', count: 25 } },
       '94': { normal: { outcome: { rank: 'general', lotteryOccurred: false }, note: null }, remainingShares: { kind: 'exact', count: 24 } },
+    },
+  },
+  {
+    asOf: '9/16',
+    label: '第2次募集対象馬一覧',
+    byId: {
+      '1': { normal: { outcome: { rank: 'general', lotteryOccurred: true }, note: null }, remainingShares: null },
+      '2': { normal: { outcome: { rank: 'general', lotteryOccurred: true }, note: null }, remainingShares: null },
+      '3': { normal: { outcome: { rank: 'none', lotteryOccurred: true }, note: null }, remainingShares: null },
+      '4': { damPriority: { outcome: { rank: 'general', lotteryOccurred: true }, note: null }, normal: { outcome: { rank: 'none', lotteryOccurred: true }, note: null }, remainingShares: null },
+      '5': { damPriority: { outcome: { rank: 'general', lotteryOccurred: false }, note: null }, normal: { outcome: { rank: 'none', lotteryOccurred: true }, note: null }, remainingShares: null },
+      '6': { damPriority: { outcome: { rank: 'general', lotteryOccurred: true }, note: null }, normal: { outcome: { rank: 'none', lotteryOccurred: true }, note: null }, remainingShares: null },
+      '7': { normal: { outcome: { rank: 'general', lotteryOccurred: true }, note: null }, remainingShares: null },
+      '8': { damPriority: { outcome: { rank: 'none', lotteryOccurred: true }, note: null }, normal: { outcome: { rank: 'x1', lotteryOccurred: true }, note: null }, remainingShares: null },
+      '9': { normal: { outcome: { rank: 'general', lotteryOccurred: false }, note: null }, remainingShares: null, soldOutInRound: '1.5' },
+      '10': { damPriority: { outcome: { rank: 'general', lotteryOccurred: false }, note: null }, normal: { outcome: { rank: 'general', lotteryOccurred: true }, note: null }, remainingShares: null },
+      '11': { damPriority: { outcome: { rank: 'general', lotteryOccurred: false }, note: null }, normal: { outcome: { rank: 'none', lotteryOccurred: true }, note: null }, remainingShares: null },
+      '12': { normal: { outcome: { rank: 'general', lotteryOccurred: false }, note: null }, remainingShares: { kind: 'exact', count: 65 } },
+      '13': { damPriority: { outcome: { rank: 'general', lotteryOccurred: false }, note: null }, normal: { outcome: { rank: 'general', lotteryOccurred: true }, note: null }, remainingShares: null },
+      '14': { damPriority: { outcome: { rank: 'general', lotteryOccurred: true }, note: null }, normal: { outcome: { rank: 'none', lotteryOccurred: true }, note: null }, remainingShares: null },
+      '15': { damPriority: { outcome: { rank: 'none', lotteryOccurred: true }, note: null }, normal: { outcome: { rank: 'x1', lotteryOccurred: true }, note: null }, remainingShares: null },
+      '16': { normal: { outcome: { rank: 'general', lotteryOccurred: true }, note: null }, remainingShares: null },
+      '17': { normal: { outcome: { rank: 'general', lotteryOccurred: false }, note: null }, remainingShares: null, soldOutInRound: '1.5' },
+      '18': { damPriority: { outcome: { rank: 'general', lotteryOccurred: true }, note: null }, normal: { outcome: { rank: 'general', lotteryOccurred: true }, note: null }, remainingShares: null },
+      '19': { damPriority: { outcome: { rank: 'general', lotteryOccurred: false }, note: null }, normal: { outcome: { rank: 'general', lotteryOccurred: false }, note: null }, remainingShares: null, soldOutInRound: '1.5' },
+      '20': { normal: { outcome: { rank: 'general', lotteryOccurred: false }, note: null }, remainingShares: { kind: 'atLeast', count: 100 } },
+      '21': { normal: { outcome: { rank: 'none', lotteryOccurred: true }, note: null }, remainingShares: null },
+      '22': { damPriority: { outcome: { rank: 'general', lotteryOccurred: false }, note: null }, normal: { outcome: { rank: 'general', lotteryOccurred: true }, note: null }, remainingShares: null },
+      '23': { damPriority: { outcome: { rank: 'general', lotteryOccurred: false }, note: null }, normal: { outcome: { rank: 'general', lotteryOccurred: true }, note: null }, remainingShares: null },
+      '24': { damPriority: { outcome: { rank: 'general', lotteryOccurred: false }, note: null }, normal: { outcome: { rank: 'general', lotteryOccurred: false }, note: null }, remainingShares: null, soldOutInRound: '1.5' },
+      '25': { damPriority: { outcome: { rank: 'general', lotteryOccurred: false }, note: null }, normal: { outcome: { rank: 'general', lotteryOccurred: true }, note: null }, remainingShares: null },
+      '26': { normal: { outcome: { rank: 'general', lotteryOccurred: false }, note: null }, remainingShares: { kind: 'exact', count: 83 } },
+      '27': { damPriority: { outcome: { rank: 'general', lotteryOccurred: false }, note: null }, normal: { outcome: { rank: 'none', lotteryOccurred: true }, note: null }, remainingShares: null },
+      '28': { damPriority: { outcome: { rank: 'general', lotteryOccurred: false }, note: null }, normal: { outcome: { rank: 'general', lotteryOccurred: false }, note: null }, remainingShares: null, soldOutInRound: '1.5' },
+      '29': { normal: { outcome: { rank: 'general', lotteryOccurred: true }, note: null }, remainingShares: null },
+      '30': { normal: { outcome: { rank: 'general', lotteryOccurred: false }, note: null }, remainingShares: { kind: 'atLeast', count: 100 } },
+      '31': { damPriority: { outcome: { rank: 'general', lotteryOccurred: false }, note: null }, normal: { outcome: { rank: 'general', lotteryOccurred: false }, note: null }, remainingShares: { kind: 'exact', count: 100 } },
+      '32': { normal: { outcome: { rank: 'general', lotteryOccurred: false }, note: null }, remainingShares: null, soldOutInRound: '1.5' },
+      '33': { damPriority: { outcome: { rank: 'general', lotteryOccurred: false }, note: null }, normal: { outcome: { rank: 'x1', lotteryOccurred: true }, note: null }, remainingShares: null },
+      '34': { damPriority: { outcome: { rank: 'general', lotteryOccurred: false }, note: null }, normal: { outcome: { rank: 'general', lotteryOccurred: false }, note: null }, remainingShares: { kind: 'atLeast', count: 100 } },
+      '35': { normal: { outcome: { rank: 'general', lotteryOccurred: true }, note: null }, remainingShares: null },
+      '36': { damPriority: { outcome: { rank: 'general', lotteryOccurred: true }, note: null }, normal: { outcome: { rank: 'none', lotteryOccurred: true }, note: null }, remainingShares: null },
+      '37': { damPriority: { outcome: { rank: 'general', lotteryOccurred: false }, note: null }, normal: { outcome: { rank: 'general', lotteryOccurred: false }, note: null }, remainingShares: { kind: 'atLeast', count: 100 } },
+      '38': { normal: { outcome: { rank: 'general', lotteryOccurred: false }, note: null }, remainingShares: { kind: 'exact', count: 79 } },
+      '39': { damPriority: { outcome: { rank: 'general', lotteryOccurred: false }, note: null }, normal: { outcome: { rank: 'general', lotteryOccurred: true }, note: null }, remainingShares: null },
+      '40': { damPriority: { outcome: { rank: 'general', lotteryOccurred: false }, note: null }, normal: { outcome: { rank: 'general', lotteryOccurred: true }, note: null }, remainingShares: null },
+      '41': { damPriority: { outcome: { rank: 'general', lotteryOccurred: false }, note: null }, normal: { outcome: { rank: 'general', lotteryOccurred: true }, note: null }, remainingShares: null },
+      '42': { normal: { outcome: { rank: 'general', lotteryOccurred: true }, note: null }, remainingShares: null },
+      '43': { normal: { outcome: { rank: 'general', lotteryOccurred: true }, note: null }, remainingShares: null },
+      '44': { normal: { outcome: { rank: 'general', lotteryOccurred: true }, note: null }, remainingShares: null },
+      '45': { normal: { outcome: { rank: 'general', lotteryOccurred: true }, note: null }, remainingShares: null },
+      '46': { damPriority: { outcome: { rank: 'general', lotteryOccurred: false }, note: null }, normal: { outcome: { rank: 'general', lotteryOccurred: true }, note: null }, remainingShares: null },
+      '47': { damPriority: { outcome: { rank: 'general', lotteryOccurred: false }, note: null }, normal: { outcome: { rank: 'none', lotteryOccurred: true }, note: null }, remainingShares: null },
+      '48': { damPriority: { outcome: { rank: 'general', lotteryOccurred: false }, note: null }, normal: { outcome: { rank: 'none', lotteryOccurred: true }, note: null }, remainingShares: null },
+      '49': { damPriority: { outcome: { rank: 'none', lotteryOccurred: true }, note: null }, normal: { outcome: { rank: 'x1', lotteryOccurred: true }, note: null }, remainingShares: null },
+      '50': { damPriority: { outcome: { rank: 'general', lotteryOccurred: true }, note: null }, normal: { outcome: { rank: 'x1', lotteryOccurred: true }, note: null }, remainingShares: null },
+      '51': { damPriority: { outcome: { rank: 'general', lotteryOccurred: false }, note: null }, normal: { outcome: { rank: 'x2', lotteryOccurred: true }, note: null }, remainingShares: null },
+      '52': { normal: { outcome: { rank: 'none', lotteryOccurred: true }, note: null }, remainingShares: null },
+      '53': { normal: { outcome: { rank: 'none', lotteryOccurred: true }, note: null }, remainingShares: null },
+      '54': { damPriority: { outcome: { rank: 'general', lotteryOccurred: true }, note: null }, normal: { outcome: { rank: 'none', lotteryOccurred: true }, note: null }, remainingShares: null },
+      '55': { normal: { outcome: { rank: 'general', lotteryOccurred: true }, note: null }, remainingShares: null },
+      '57': { damPriority: { outcome: { rank: 'general', lotteryOccurred: true }, note: null }, normal: { outcome: { rank: 'general', lotteryOccurred: true }, note: null }, remainingShares: null },
+      '58': { damPriority: { outcome: { rank: 'general', lotteryOccurred: true }, note: null }, normal: { outcome: { rank: 'none', lotteryOccurred: true }, note: null }, remainingShares: null },
+      '59': { normal: { outcome: { rank: 'general', lotteryOccurred: true }, note: null }, remainingShares: null },
+      '60': { normal: { outcome: { rank: 'general', lotteryOccurred: true }, note: null }, remainingShares: null },
+      '61': { normal: { outcome: { rank: 'general', lotteryOccurred: false }, note: null }, remainingShares: { kind: 'exact', count: 40 } },
+      '63': { normal: { outcome: { rank: 'general', lotteryOccurred: true }, note: null }, remainingShares: null },
+      '64': { damPriority: { outcome: { rank: 'general', lotteryOccurred: false }, note: null }, normal: { outcome: { rank: 'general', lotteryOccurred: true }, note: null }, remainingShares: null },
+      '65': { damPriority: { outcome: { rank: 'general', lotteryOccurred: true }, note: null }, normal: { outcome: { rank: 'x1', lotteryOccurred: true }, note: null }, remainingShares: null },
+      '66': { normal: { outcome: { rank: 'general', lotteryOccurred: true }, note: null }, remainingShares: null },
+      '67': { damPriority: { outcome: { rank: 'general', lotteryOccurred: false }, note: null }, normal: { outcome: { rank: 'general', lotteryOccurred: true }, note: null }, remainingShares: null },
+      '68': { damPriority: { outcome: { rank: 'general', lotteryOccurred: false }, note: null }, normal: { outcome: { rank: 'general', lotteryOccurred: true }, note: null }, remainingShares: null },
+      '69': { damPriority: { outcome: { rank: 'general', lotteryOccurred: true }, note: null }, normal: { outcome: { rank: 'none', lotteryOccurred: true }, note: null }, remainingShares: null },
+      '70': { damPriority: { outcome: { rank: 'general', lotteryOccurred: true }, note: null }, normal: { outcome: { rank: 'none', lotteryOccurred: true }, note: null }, remainingShares: null },
+      '71': { damPriority: { outcome: { rank: 'general', lotteryOccurred: false }, note: null }, normal: { outcome: { rank: 'none', lotteryOccurred: true }, note: null }, remainingShares: null },
+      '72': { damPriority: { outcome: { rank: 'general', lotteryOccurred: false }, note: null }, normal: { outcome: { rank: 'general', lotteryOccurred: true }, note: null }, remainingShares: null },
+      '73': { damPriority: { outcome: { rank: 'general', lotteryOccurred: false }, note: null }, normal: { outcome: { rank: 'none', lotteryOccurred: true }, note: null }, remainingShares: null },
+      '74': { damPriority: { outcome: { rank: 'general', lotteryOccurred: false }, note: null }, normal: { outcome: { rank: 'general', lotteryOccurred: false }, note: null }, remainingShares: null, soldOutInRound: '1.5' },
+      '75': { damPriority: { outcome: { rank: 'general', lotteryOccurred: true }, note: null }, normal: { outcome: { rank: 'none', lotteryOccurred: true }, note: null }, remainingShares: null },
+      '76': { damPriority: { outcome: { rank: 'general', lotteryOccurred: true }, note: null }, normal: { outcome: { rank: 'general', lotteryOccurred: true }, note: null }, remainingShares: null },
+      '77': { normal: { outcome: { rank: 'general', lotteryOccurred: true }, note: null }, remainingShares: null },
+      '78': { normal: { outcome: { rank: 'general', lotteryOccurred: true }, note: null }, remainingShares: null },
+      '79': { normal: { outcome: { rank: 'general', lotteryOccurred: false }, note: null }, remainingShares: { kind: 'atLeast', count: 100 } },
+      '80': { damPriority: { outcome: { rank: 'general', lotteryOccurred: false }, note: null }, normal: { outcome: { rank: 'general', lotteryOccurred: true }, note: null }, remainingShares: null },
+      '81': { damPriority: { outcome: { rank: 'none', lotteryOccurred: true }, note: null }, normal: { outcome: { rank: 'x1', lotteryOccurred: true }, note: null }, remainingShares: null },
+      '82': { normal: { outcome: { rank: 'general', lotteryOccurred: false }, note: null }, remainingShares: { kind: 'atLeast', count: 100 } },
+      '83': { damPriority: { outcome: { rank: 'general', lotteryOccurred: false }, note: null }, normal: { outcome: { rank: 'none', lotteryOccurred: true }, note: null }, remainingShares: null },
+      '84': { damPriority: { outcome: { rank: 'general', lotteryOccurred: false }, note: null }, normal: { outcome: { rank: 'none', lotteryOccurred: true }, note: null }, remainingShares: null },
+      '85': { damPriority: { outcome: { rank: 'general', lotteryOccurred: false }, note: null }, normal: { outcome: { rank: 'general', lotteryOccurred: true }, note: null }, remainingShares: null },
+      '86': { damPriority: { outcome: { rank: 'general', lotteryOccurred: false }, note: null }, normal: { outcome: { rank: 'general', lotteryOccurred: true }, note: null }, remainingShares: null },
+      '87': { damPriority: { outcome: { rank: 'general', lotteryOccurred: false }, note: null }, normal: { outcome: { rank: 'general', lotteryOccurred: true }, note: null }, remainingShares: null },
+      '88': { damPriority: { outcome: { rank: 'general', lotteryOccurred: false }, note: null }, normal: { outcome: { rank: 'general', lotteryOccurred: true }, note: null }, remainingShares: null },
+      '89': { normal: { outcome: { rank: 'general', lotteryOccurred: true }, note: null }, remainingShares: null },
+      '90': { damPriority: { outcome: { rank: 'general', lotteryOccurred: false }, note: null }, normal: { outcome: { rank: 'general', lotteryOccurred: false }, note: null }, remainingShares: null, soldOutInRound: '1.5' },
+      '91': { normal: { outcome: { rank: 'general', lotteryOccurred: false }, note: null }, remainingShares: { kind: 'atLeast', count: 25 } },
+      '92': { damPriority: { outcome: { rank: 'general', lotteryOccurred: false }, note: null }, normal: { outcome: { rank: 'general', lotteryOccurred: false }, note: null }, remainingShares: { kind: 'atLeast', count: 25 } },
+      '93': { normal: { outcome: { rank: 'general', lotteryOccurred: false }, note: null }, remainingShares: { kind: 'atLeast', count: 25 } },
+      '94': { normal: { outcome: { rank: 'general', lotteryOccurred: false }, note: null }, remainingShares: { kind: 'exact', count: 13 } },
     },
   },
 ];

@@ -248,6 +248,7 @@ test('horseRowHtml: 抽選ステータスの行を渡すと一覧セルに反映
     damPriority: { outcome: { rank: 'x2', lotteryOccurred: true }, note: null },
     normal: { outcome: { rank: 'general', lotteryOccurred: false }, note: null },
     remainingShares: null,
+    soldOutInRound: null,
   });
   const cell = html.match(/<td data-col="lottery"[^]*?<\/td>/)![0];
   assert.match(cell, /×2抽選/);
@@ -264,6 +265,7 @@ test('horseRowHtml: 残口の行を渡すと一覧セルに反映される（口
     id: horse.id,
     hasRemaining: true,
     shares: null,
+    soldOutInRound: null,
   });
   const cell = html.match(/<td data-col="remainingShares"[^]*?<\/td>/)![0];
   assert.match(cell, /class="remaining-badge">あり</);
@@ -274,6 +276,7 @@ test('horseRowHtml: 残口の口数が発表されていれば「N口」を出�
     id: horse.id,
     hasRemaining: true,
     shares: { kind: 'exact', count: 8 },
+    soldOutInRound: null,
   });
   const cell = html.match(/<td data-col="remainingShares"[^]*?<\/td>/)![0];
   assert.match(cell, /class="remaining-badge">8口</);

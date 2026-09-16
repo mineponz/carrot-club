@@ -75,14 +75,49 @@ export function isNoindexPath(pathname: string): boolean {
 export const SITE_TITLE = 'キャロットクラブ出資馬検討ツール';
 
 /**
- * 今どの募集フェーズか。「残口あり/全頭」切替の既定値を1か所で決めるためのフラグ
- * （2026-09-10）。1次募集の抽選が終わり、これから1.5次募集（残口のある馬だけの募集）に
- * 入るため `'secondary'` にしてある。1.5次募集が終わったら `'primary'` に戻すだけでよい
- * （「残口」列・切替・個別ページのバッジ自体は消さない。データが無くなれば自動的に
- * 「—」表示に倒れる。詳細は `src/lib/remaining-shares.ts`）。
+ * 今どの募集回か。「残口あり/全頭」切替の既定値と、画面に出す募集回の名前を1か所で決める
+ * （2026-09-10に `OfferingPhase = 'primary' | 'secondary'` として導入し、2026-09-16に
+ * 募集回そのものを値にする形へ変更した）。
+ *
+ * **`'secondary'` という名前をやめた理由**: クラブの「1.5次募集」を `secondary` と呼んでいた
+ * ところへ本物の「第2次募集」が来て、同じ語が二つの回を指すようになったため。募集回を
+ * そのまま値にすれば衝突しないし、次に増える回も足すだけで済む。
+ *
+ * 募集が終わったら `'1'` に戻すだけでよい（「残口」列・切替・個別ページのバッジ自体は
+ * 消さない。データが無くなれば自動的に「—」表示に倒れる。詳細は
+ * `src/lib/remaining-shares.ts`）。
  */
-export type OfferingPhase = 'primary' | 'secondary';
-export const OFFERING_PHASE: OfferingPhase = 'secondary';
+export type OfferingRound = '1' | '1.5' | '2';
+export const OFFERING_ROUND: OfferingRound = '2';
+
+/**
+ * 募集回→画面に出す名前。**ユーザーに見える募集回の名前はここだけから出す**
+ * （`LOTTERY_RANK_LABELS` と同じ流儀。各ページに「1.5次募集」と直書きすると
+ * 切替のたびに書き換え漏れが出る）。
+ */
+export const OFFERING_ROUND_LABELS: Readonly<Record<OfferingRound, string>> = {
+  '1': '1次募集',
+  '1.5': '1.5次募集',
+  '2': '第2次募集',
+};
+
+/** 今の募集回の名前（例 '第2次募集'）。 */
+export const OFFERING_ROUND_LABEL = OFFERING_ROUND_LABELS[OFFERING_ROUND];
+
+/**
+ * 1次募集の後の追加募集（1.5次・第2次…）の回か。
+ * 定数を直に比べるとTypeScriptが今の値のリテラル型に絞ってしまい「重ならない比較」の
+ * エラーになるので、引数で受ける関数にしてある。
+ */
+export function isAdditionalOfferingRound(round: OfferingRound): boolean {
+  return round !== '1';
+}
+
+/**
+ * 追加募集の期間中か。
+ * 「残口のある馬を主役にする」表示の出し分けはすべてこれで判定する。
+ */
+export const IS_ADDITIONAL_OFFERING: boolean = isAdditionalOfferingRound(OFFERING_ROUND);
 
 /** 公式と誤認されないよう、タイトル・OGP・タブ表示には必ずこの接頭辞を付ける */
 export const UNOFFICIAL_PREFIX = '【非公式】';
