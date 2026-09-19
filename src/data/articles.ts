@@ -20,6 +20,14 @@ export interface AnalysisArticle {
 
 export const analysisArticles: AnalysisArticle[] = [
   {
+    href: '/articles/second-offering/',
+    title: '第2次募集の15頭を、過去のデータで見比べる',
+    description:
+      '第2次募集で今から出資できる15頭（牝11・牡4）を、過去の募集データで確かめた物差しで見比べた。牝は募集時の体重・胸囲がともに過去の中央値を超えると回収率100%超の割合がおよそ2倍になる。牡は測尺で絞れない。',
+    image: '/og-article-second-offering-v1.png',
+    kind: 'analysis',
+  },
+  {
     href: '/articles/horse-names/',
     title: 'キャロの馬名は、どこから来ているのか',
     description:

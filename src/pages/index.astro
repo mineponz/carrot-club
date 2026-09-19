@@ -12,6 +12,7 @@ import SyncPanel from '../components/SyncPanel.astro';
 import AdSlot from '../components/AdSlot.astro';
 import {
   IS_ADDITIONAL_OFFERING,
+  OFFERING_ROUND,
   OFFERING_ROUND_LABEL,
   SITE_DESCRIPTION,
   UNOFFICIAL_NOTICE,
@@ -255,6 +256,16 @@ const faqJsonLd = {
           全頭（{total}頭）
         </button>
       </div>
+    )
+  }
+
+  {
+    OFFERING_ROUND === '2' && (
+      // 第2次募集の対象馬（残口ありの馬と同じ集合）を過去データで見比べた分析記事への導線。
+      // .year-switchを使い回す（margin-block縛りの理由はすぐ下のstyle参照）。
+      <p class="year-switch">
+        <a href="/articles/second-offering/">第2次募集の15頭を、過去のデータで見比べる</a>
+      </p>
     )
   }
 
