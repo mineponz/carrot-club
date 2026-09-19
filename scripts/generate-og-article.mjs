@@ -40,6 +40,10 @@ import { dirname, join } from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import { histogram } from '../src/lib/chart-math.ts';
 import { SITE_URL } from '../src/consts.ts';
+import { horses2026 } from '../src/data/horses2026.ts';
+import { LOTTERY_STATUS_SNAPSHOTS } from '../src/data/lotteryStatus2026.ts';
+import { remainingSharesRows, remainingSharesByHorseId } from '../src/lib/remaining-shares.ts';
+import { categorizeFilly, FEMALE_SIZE_CATEGORY_ORDER } from '../src/lib/second-offering-screen.ts';
 
 /** カード右下に出すURL文言。ドメイン移行時に`src/consts.ts`のSITE_URLだけ直せば揃う。 */
 const SITE_HOST = SITE_URL.replace(/^https?:\/\//, '');
@@ -154,6 +158,13 @@ const ARTICLES = {
     lead: 'キャロットクラブ 2022〜2024年度募集の1.5次募集対象馬 × 現在の競走成績',
     chips: ['過去4年の当たり馬を実名で', '同期トップ10入りが3年連続', '募集価格超えの回収率も'],
     buildChart: secondaryOfferingChart,
+  },
+  'second-offering': {
+    out: 'og-article-second-offering-v1.png',
+    headline: ['第2次募集の15頭を', '過去のデータで見比べる'],
+    lead: 'キャロットクラブ 第2次募集の対象馬 × 2017〜2023年度募集・牝285頭の測尺データ',
+    chips: ['牝は体重・胸囲の中央値超で回収率2倍', '牡は測尺で絞れない', '重賞勝ち兄姉の実例も'],
+    buildChart: secondOfferingScreenChart,
   },
   'stable-leading': {
     // v1は「3歳シーズンのリーディング」基準の記事だった。募集年基準へ作り直したので -v2
@@ -412,6 +423,54 @@ function secondaryOfferingChart() {
     yearRangeLabel: years.length > 0 ? `${years[0]}〜${years[years.length - 1]}年度` : '',
     html: barsHtml(counts),
     caption: '1.5次募集に回った馬の頭数（年度別）',
+  };
+}
+
+/**
+ * 第2次募集15頭の群分けをミニ棒グラフにする（`second-offering.astro`と同じ判定・同じ物差し）。
+ * 測尺の中央値・下位1/4境界は`recruits.json`の募集時データだけから決まり、成績を取り直しても
+ * 動かない（＝カードに焼き込んでよい静的な値。回収率のような成績依存の数字は使わない）。
+ */
+function secondOfferingScreenChart() {
+  const recruits = JSON.parse(readFileSync(join(repoRoot, 'analysis', 'data', 'recruits.json'), 'utf8'));
+  const fillies = recruits.filter(
+    (h) => h.sex === '牝' && h.recruitYear >= 2017 && h.recruitYear <= 2023 && h.pricePerShare != null
+  );
+  const weights = fillies.map((h) => h.weight).sort((a, b) => a - b);
+  const chestGirths = fillies.map((h) => h.chestGirth).sort((a, b) => a - b);
+  const med = (sorted) => {
+    const mid = Math.floor(sorted.length / 2);
+    return sorted.length % 2 === 0 ? (sorted[mid - 1] + sorted[mid]) / 2 : sorted[mid];
+  };
+  const quantile = (sorted, q) => {
+    const pos = (sorted.length - 1) * q;
+    const base = Math.floor(pos);
+    const rest = pos - base;
+    return sorted[base + 1] !== undefined ? sorted[base] + rest * (sorted[base + 1] - sorted[base]) : sorted[base];
+  };
+  const benchmark = {
+    medianWeightKg: med(weights),
+    medianChestGirthCm: med(chestGirths),
+    bottomQuartileWeightBoundaryKg: quantile(weights, 0.25),
+  };
+
+  const targetIds = Object.keys(
+    remainingSharesByHorseId(remainingSharesRows(horses2026, LOTTERY_STATUS_SNAPSHOTS))
+  );
+  const byId = new Map(horses2026.map((h) => [h.id, h]));
+  const targets = targetIds.map((id) => byId.get(id)).filter(Boolean);
+  const femaleTargets = targets.filter((h) => h.sex === '牝');
+  const maleCount = targets.filter((h) => h.sex === '牡').length;
+  const counts = FEMALE_SIZE_CATEGORY_ORDER.map(
+    (cat) => femaleTargets.filter((h) => categorizeFilly(h, benchmark) === cat).length
+  );
+  counts.push(maleCount);
+
+  return {
+    total: targets.length,
+    yearRangeLabel: '',
+    html: barsHtml(counts),
+    caption: '牝の体格群（超・片方・以下・下位1/4）と牡の頭数',
   };
 }
 
