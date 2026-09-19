@@ -1,0 +1,605 @@
+---
+/**
+ * 分析記事「第2次募集の15頭を、過去のデータで見比べる」。
+ *
+ * 2026年度の第2次募集で今から出資できる15頭（`lotteryStatus2026.ts`の最新snapshot＝9/16
+ * 「第2次募集対象馬一覧」）を、[[20260913-size-predicts-roi-for-fillies-only]]（project scope,
+ * secondBrain）の物差しで見比べる。9/13に本人向けに作った提案資料の公開版にあたる。
+ *
+ * ## 15頭の集合は残口データから導く（直書きしない）
+ * `remainingSharesByHorseId(remainingSharesRows(horses2026, LOTTERY_STATUS_SNAPSHOTS))` の
+ * キー一覧＝今の募集回で残口がある馬。第2次募集は期間を決めた抽選で、残口は締切まで
+ * 動かないため9/16snapshotのままでよい（本人回答・2026-09-19）。
+ *
+ * ## 群分けのロジックは`src/lib/second-offering-screen.ts`
+ * 牝の判定（体重・胸囲とも中央値超／片方だけ／どちらも以下／下位1/4）は2017〜2023年度募集の
+ * 牝285頭（一口価格判明）の実データから毎回計算する。牡は募集時データで有意な指標が無いため
+ * 群分けしない（同ノート）。
+ *
+ * ## ◎○△等の印は付けない（本人合意・2026-09-19）
+ * 条件に当てはまる馬を示すところまでで、判断は読者に委ねる。
+ *
+ * ## 他の会員の評価は載せない
+ * D1に集計している「みんな」の評価は表示停止中の将来の有料機能候補
+ * （[[20260821-hide-peer-evaluations]]）。この記事にも一切出さない。
+ *
+ * ## 受付期間は書かない
+ * 第2次募集の受付期間はクラブ会員限定ページが未確認のため不明（本人回答・2026-09-19）。
+ *
+ * ## 本文が置いている前提はビルド時アサーションにしてある
+ * 群の頭数・具体的な馬番の内訳・物差しの数値・15頭という頭数が残口データと一致することを
+ * 実データで検算し、崩れたらビルドを落とす（[[20260825-assert-article-premises-at-build-time]]）。
+ */
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import StatTiles from '../../components/charts/StatTiles.astro';
+import ArticleToc from '../../components/ArticleToc.astro';
+import MethodsLink from '../../components/MethodsLink.astro';
+import AdSlot from '../../components/AdSlot.astro';
+import { horses2026 } from '../../data/horses2026.ts';
+import { LOTTERY_STATUS_SNAPSHOTS } from '../../data/lotteryStatus2026.ts';
+import {
+  remainingSharesRows,
+  remainingSharesByHorseId,
+  type RemainingSharesRow,
+} from '../../lib/remaining-shares.ts';
+import { loadRecruitsWithResults, loadDamRoster } from '../../lib/analysis-data.ts';
+import {
+  screenSecondOffering,
+  gradeWinningSiblingsOf,
+  FEMALE_SIZE_CATEGORY_ORDER,
+  FEMALE_SIZE_CATEGORY_LABEL,
+  type FemaleSizeCategory,
+} from '../../lib/second-offering-screen.ts';
+import { horseDetailHref } from '../../lib/horse-row.ts';
+import { formatP } from '../../lib/chart-math.ts';
+
+const allRecruits = loadRecruitsWithResults();
+const remainingRows = remainingSharesRows(horses2026, LOTTERY_STATUS_SNAPSHOTS);
+const remainingById = new Map<string, RemainingSharesRow>(remainingRows.map((r) => [r.id, r]));
+const targetIds = Object.keys(remainingSharesByHorseId(remainingRows));
+
+const screen = screenSecondOffering(horses2026, targetIds, allRecruits);
+const { benchmark } = screen;
+const damRoster = loadDamRoster();
+
+/** 残口の表示（一覧の「残口」列と同じ規則）。 */
+function sharesLabel(id: string): string {
+  const row = remainingById.get(id);
+  if (!row || row.hasRemaining !== true) return '—';
+  if (row.shares === null) return 'あり';
+  return row.shares.kind === 'exact' ? `${row.shares.count}口` : `${row.shares.count}口以上`;
+}
+
+const bothAboveHorses = screen.females.filter((f) => f.category === 'both-above');
+const regionalPendingRows = [...screen.females, ...screen.males].filter((r) => r.regionalStablePending);
+
+/** 重賞勝ち兄姉がいる馬（15頭のうち）。 */
+const gradeSiblingRows = [...screen.females, ...screen.males]
+  .map((row) => ({ row, siblings: gradeWinningSiblingsOf(row.horse, damRoster) }))
+  .filter((r) => r.siblings.length > 0);
+
+// ---- 本文が置いている前提のビルド時アサーション ----
+const premiseErrors: string[] = [];
+
+// 1. 対象は15頭（牝11・牡4）
+if (targetIds.length !== 15) {
+  premiseErrors.push(`第2次募集の対象頭数が変わった（${targetIds.length}頭 / 期待値15頭）。本文の頭数を直すこと。`);
+}
+if (screen.females.length !== 11) {
+  premiseErrors.push(`牝の頭数が変わった（${screen.females.length}頭 / 期待値11頭）。`);
+}
+if (screen.males.length !== 4) {
+  premiseErrors.push(`牡の頭数が変わった（${screen.males.length}頭 / 期待値4頭）。`);
+}
+
+// 2. 牝の物差し（母集団・中央値・下位1/4境界）
+if (benchmark.n !== 285) {
+  premiseErrors.push(`牝の母集団の頭数が変わった（${benchmark.n}頭 / 期待値285頭）。物差しの根拠の節を直すこと。`);
+}
+if (benchmark.medianWeightKg !== 438) {
+  premiseErrors.push(`体重の中央値が変わった（${benchmark.medianWeightKg}kg / 期待値438kg）。`);
+}
+if (benchmark.medianChestGirthCm !== 174.5) {
+  premiseErrors.push(`胸囲の中央値が変わった（${benchmark.medianChestGirthCm}cm / 期待値174.5cm）。`);
+}
+if (benchmark.bottomQuartileWeightBoundaryKg !== 417) {
+  premiseErrors.push(
+    `体重の下位1/4境界が変わった（${benchmark.bottomQuartileWeightBoundaryKg}kg / 期待値417kg）。` +
+      '下位1/4群の判定に使っている数値なので、群分けと本文を直すこと。'
+  );
+}
+
+// 3. 両方中央値超の群の回収率（35% vs 18%、有意差あり）
+if (benchmark.above.n !== 113 || benchmark.restOrEqual.n !== 172) {
+  premiseErrors.push(
+    `両方中央値超群/それ以外群の頭数が変わった（${benchmark.above.n}頭 / ${benchmark.restOrEqual.n}頭、` +
+      '期待値113頭/172頭）。「物差しの根拠」節の棒グラフの数字を直すこと。'
+  );
+}
+if (!(benchmark.above.over100RatePct > benchmark.restOrEqual.over100RatePct)) {
+  premiseErrors.push(
+    '募集価格以上に稼いだ割合の大小関係が逆転した（両方中央値超群のほうが高い、と書いた本文を直すこと）。'
+  );
+}
+if (!(benchmark.over100RateTest.p < 0.01)) {
+  premiseErrors.push(
+    `割合の差の検定が有意でなくなった（${formatP(benchmark.over100RateTest.p)}）。` +
+      '「はっきりした差」と書いた本文を直すこと。'
+  );
+}
+
+// 4. 15頭の群分け内訳（提案資料の内訳と一致するか）
+const idsOf = (category: FemaleSizeCategory) =>
+  screen.females
+    .filter((f) => f.category === category)
+    .map((f) => f.horse.id)
+    .sort((a, b) => Number(a) - Number(b));
+const EXPECTED_FEMALE_GROUPS: Record<FemaleSizeCategory, string[]> = {
+  'both-above': ['12', '61'],
+  'one-above': ['26', '82'],
+  'below-median': ['20', '30', '34', '92'],
+  'bottom-quartile-weight': ['37', '38', '93'],
+};
+for (const category of FEMALE_SIZE_CATEGORY_ORDER) {
+  const actual = idsOf(category);
+  const expected = EXPECTED_FEMALE_GROUPS[category];
+  if (JSON.stringify(actual) !== JSON.stringify(expected)) {
+    premiseErrors.push(
+      `${FEMALE_SIZE_CATEGORY_LABEL[category]}群の内訳が変わった（No.${actual.join('・')} / ` +
+        `期待値No.${expected.join('・')}）。牝11頭の表と結論の段落を直すこと。`
+    );
+  }
+}
+const EXPECTED_MALE_IDS = ['31', '79', '91', '94'];
+const actualMaleIds = screen.males.map((m) => m.horse.id).sort((a, b) => Number(a) - Number(b));
+if (JSON.stringify(actualMaleIds) !== JSON.stringify(EXPECTED_MALE_IDS)) {
+  premiseErrors.push(`牡の内訳が変わった（No.${actualMaleIds.join('・')} / 期待値No.${EXPECTED_MALE_IDS.join('・')}）。`);
+}
+const EXPECTED_REGIONAL_PENDING_IDS = ['91', '92', '93', '94'];
+const actualRegionalPendingIds = regionalPendingRows
+  .map((r) => r.horse.id)
+  .sort((a, b) => Number(a) - Number(b));
+if (JSON.stringify(actualRegionalPendingIds) !== JSON.stringify(EXPECTED_REGIONAL_PENDING_IDS)) {
+  premiseErrors.push(
+    `地方所属予定フラグの内訳が変わった（No.${actualRegionalPendingIds.join('・')} / ` +
+      `期待値No.${EXPECTED_REGIONAL_PENDING_IDS.join('・')}）。「地方所属予定の注意」節を直すこと。`
+  );
+}
+
+// 5. 重賞勝ち兄姉がいる馬はNo.20だけ（半兄ヒンドゥタイムズ・小倉大賞典(G3)）
+const EXPECTED_GRADE_SIBLING_IDS = ['20'];
+const actualGradeSiblingIds = gradeSiblingRows
+  .map((r) => r.row.horse.id)
+  .sort((a, b) => Number(a) - Number(b));
+if (JSON.stringify(actualGradeSiblingIds) !== JSON.stringify(EXPECTED_GRADE_SIBLING_IDS)) {
+  premiseErrors.push(
+    `重賞勝ち兄姉がいる馬の内訳が変わった（No.${actualGradeSiblingIds.join('・') || 'なし'} / ` +
+      `期待値No.${EXPECTED_GRADE_SIBLING_IDS.join('・')}）。「重賞勝ちの兄姉がいる馬」節を直すこと。`
+  );
+}
+
+// 6. 対象15頭が残口データ（lotteryStatus2026.ts）の頭数と一致する（二重管理の検算）
+if (targetIds.length !== Object.keys(remainingSharesByHorseId(remainingRows)).length) {
+  premiseErrors.push('対象馬IDの取得元が食い違っている（screenSecondOffering呼び出しのバグの可能性）。');
+}
+
+if (premiseErrors.length > 0) {
+  throw new Error(`第2次募集15頭記事の前提が崩れた:\n- ${premiseErrors.join('\n- ')}`);
+}
+
+// 広告コードは他の記事と同じもの（vault: 20260821-article-ad-embed-snippets）
+const AD_SP_WIDE_A = 'f81bbb016a82d6366a0e2f70051b1a0c';
+const AD_SP_WIDE_B = 'b4b7d55c89d5fc92c564979491a16ad1';
+const AD_SP_RECT = '24e3e1a24f40d88ee1a0ca315c54a7b9';
+const AD_PC_WIDE_A = 'f0efb5bd6ae3e164bb584a4dbb846f48';
+const AD_PC_WIDE_B = '0a525f6469ec1f40642b4550e53d39cc';
+
+const description = `第2次募集で今から出資できる15頭（牝11・牡4）を、過去の募集データで確かめた物差しで見比べた。牝は募集時の体重・胸囲がともに過去の中央値を超えると回収率100%超の割合がおよそ2倍になる。該当するのはNo.12・61の2頭。牡は測尺で絞れない。`;
+
+/** 群ごとの見出しに出す短い説明。 */
+const CATEGORY_NOTE: Record<FemaleSizeCategory, string> = {
+  'both-above': `体重438kg・胸囲174.5cmの中央値を両方とも上回る馬（過去データで回収率100%超が35%）`,
+  'one-above': '体重・胸囲のどちらか一方だけが中央値を上回る馬',
+  'below-median': '体重・胸囲とも中央値以下の馬（下位1/4には入らない）',
+  'bottom-quartile-weight': '体重が過去の下位1/4（417kg未満）の馬',
+};
+---
+
+<BaseLayout
+  title="第2次募集の15頭を、過去のデータで見比べる"
+  description={description}
+  breadcrumb={[
+    { label: '分析記事', href: '/articles/' },
+    { label: '第2次募集の15頭を、過去のデータで見比べる', href: '/articles/second-offering/' },
+  ]}
+  showHeaderNotices={false}
+  ogImage="/og-article-second-offering-v1.png"
+  ogImageAlt="分析記事「第2次募集の15頭を、過去のデータで見比べる」のカード画像（【非公式】キャロットクラブ出資馬検討ツール）"
+>
+  <article>
+    <h1>第2次募集の15頭を、過去のデータで見比べる</h1>
+
+    <p>（本文: リード。第2次募集が始まり、今から出資できる馬は15頭に絞られたこと、
+      過去データで確かめた物差しで見比べる、という導入）</p>
+
+    <StatTiles
+      tiles={[
+        { label: '第2次募集の対象', value: `${targetIds.length}頭`, note: `牝${screen.females.length}頭・牡${screen.males.length}頭` },
+        {
+          label: '牝の物差し（過去データ）',
+          value: `${benchmark.medianWeightKg}kg / ${benchmark.medianChestGirthCm}cm`,
+          note: '2017〜2023年度募集・牝の体重・胸囲の中央値',
+        },
+        {
+          label: '両方中央値超の回収率100%超',
+          value: `${Math.round(benchmark.above.over100RatePct)}%`,
+          note: `それ以外は${Math.round(benchmark.restOrEqual.over100RatePct)}%（${formatP(benchmark.over100RateTest.p)}）`,
+        },
+        { label: '条件に当てはまる牝', value: `No.${bothAboveHorses.map((f) => f.horse.id).join('・')}`, note: '体重・胸囲とも中央値超' },
+      ]}
+    />
+
+    <ArticleToc />
+    <MethodsLink />
+
+    <AdSlot sp={AD_SP_WIDE_A} pc={AD_PC_WIDE_A} />
+
+    <h2>条件に当てはまる牝</h2>
+    <p>（本文: 結論。印は付けず「体重・胸囲とも中央値超の牝はNo.{bothAboveHorses.map((f) => f.horse.id).join('・')}」
+      という書き方に留める。判断は読者に委ねる旨）</p>
+    <ul>
+      {
+        bothAboveHorses.map((f) => (
+          <li>
+            <a href={horseDetailHref(f.horse.id)}>No.{f.horse.id} {f.horse.name}</a>
+            （父{f.horse.sire}・体重{f.horse.weight}kg・胸囲{f.horse.chestGirth}cm・
+            一口{f.horse.pricePerShare}万円・残口{sharesLabel(f.horse.id)}）
+          </li>
+        ))
+      }
+    </ul>
+
+    <h2>物差しの根拠</h2>
+    <p>（本文: 2017〜2023年度募集・牝{benchmark.n}頭で、募集時の体重・胸囲がともに中央値
+      （{benchmark.medianWeightKg}kg・{benchmark.medianChestGirthCm}cm）を上回る馬は、
+      それ以外の馬より回収率が高い傾向にあること。詳細は[[20260913-size-predicts-roi-for-fillies-only]]）</p>
+
+    <div class="hbar-group">
+      <p class="hbar-title">募集価格以上に稼いだ割合（回収率100%超）</p>
+      <div class="hbar-row">
+        <span class="hbar-label">体重・胸囲とも中央値超（{benchmark.above.n}頭）</span>
+        <span class="hbar-track">
+          <span class="hbar-fill" style={`width:${Math.max(1.5, benchmark.above.over100RatePct)}%`} />
+        </span>
+        <span class="hbar-value">
+          {Math.round(benchmark.above.over100RatePct)}%（{benchmark.above.over100Count}頭）
+        </span>
+      </div>
+      <div class="hbar-row">
+        <span class="hbar-label">それ以外（{benchmark.restOrEqual.n}頭）</span>
+        <span class="hbar-track">
+          <span class="hbar-fill is-muted" style={`width:${Math.max(1.5, benchmark.restOrEqual.over100RatePct)}%`} />
+        </span>
+        <span class="hbar-value">
+          {Math.round(benchmark.restOrEqual.over100RatePct)}%（{benchmark.restOrEqual.over100Count}頭）
+        </span>
+      </div>
+      <p class="hbar-note">
+        two-proportion z-test {formatP(benchmark.over100RateTest.p)}（両群とも期待成功数5件以上）
+      </p>
+    </div>
+
+    <div class="hbar-group">
+      <p class="hbar-title">回収率の中央値</p>
+      <div class="hbar-row">
+        <span class="hbar-label">体重・胸囲とも中央値超（{benchmark.above.n}頭）</span>
+        <span class="hbar-track">
+          <span class="hbar-fill" style={`width:${Math.max(1.5, Math.min(100, benchmark.above.medianRoiPct))}%`} />
+        </span>
+        <span class="hbar-value">{Math.round(benchmark.above.medianRoiPct)}%</span>
+      </div>
+      <div class="hbar-row">
+        <span class="hbar-label">それ以外（{benchmark.restOrEqual.n}頭）</span>
+        <span class="hbar-track">
+          <span class="hbar-fill is-muted" style={`width:${Math.max(1.5, Math.min(100, benchmark.restOrEqual.medianRoiPct))}%`} />
+        </span>
+        <span class="hbar-value">{Math.round(benchmark.restOrEqual.medianRoiPct)}%</span>
+      </div>
+    </div>
+
+    <p class="table-note">回収率＝獲得賞金 ÷ 募集総額（一口価格×口数）。「中央値超」は境界値ちょうどを含まない。</p>
+
+    <AdSlot sp={AD_SP_WIDE_B} pc={AD_PC_WIDE_B} />
+
+    <h2>牝{screen.females.length}頭を群で見る</h2>
+    <p>（本文: 牝{screen.females.length}頭を上の物差しで4群に分けたこと、群ごとの見方の説明）</p>
+
+    {
+      FEMALE_SIZE_CATEGORY_ORDER.map((category) => {
+        const rows = screen.females.filter((f) => f.category === category);
+        if (rows.length === 0) return null;
+        return (
+          <>
+            <h3>
+              {FEMALE_SIZE_CATEGORY_LABEL[category]}（{rows.length}頭）
+            </h3>
+            <p class="table-note">{CATEGORY_NOTE[category]}</p>
+            <div class="table-scroll">
+              <table class="data-table">
+                <thead>
+                  <tr>
+                    <th>No.</th>
+                    <th>馬名</th>
+                    <th>父</th>
+                    <th>体重</th>
+                    <th>胸囲</th>
+                    <th>一口価格</th>
+                    <th>残口</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {rows.map((f) => (
+                    <tr>
+                      <td data-label="No.">{f.horse.id}</td>
+                      <td data-label="馬名">
+                        <a href={horseDetailHref(f.horse.id)}>{f.horse.name}</a>
+                        {f.regionalStablePending && <span class="regional-tag">地方所属予定</span>}
+                      </td>
+                      <td data-label="父">{f.horse.sire}</td>
+                      <td data-label="体重">{f.horse.weight}kg</td>
+                      <td data-label="胸囲">{f.horse.chestGirth}cm</td>
+                      <td data-label="一口価格">{f.horse.pricePerShare}万円</td>
+                      <td data-label="残口">{sharesLabel(f.horse.id)}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </>
+        );
+      })
+    }
+
+    <AdSlot sp={AD_SP_RECT} pc={AD_PC_WIDE_A} />
+
+    <h2>牡{screen.males.length}頭</h2>
+    <p>（本文: 牡は募集時の測尺・母齢・産次・一口価格のどれでも成績に有意な差が出ない
+      （[[20260913-size-predicts-roi-for-fillies-only]]）ため群分けしないこと、
+      誕生日・体重・一口価格を並べるだけであることの断り）</p>
+
+    <div class="table-scroll">
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>No.</th>
+            <th>馬名</th>
+            <th>誕生日</th>
+            <th>体重</th>
+            <th>一口価格</th>
+            <th>残口</th>
+          </tr>
+        </thead>
+        <tbody>
+          {
+            screen.males.map((m) => (
+              <tr>
+                <td data-label="No.">{m.horse.id}</td>
+                <td data-label="馬名">
+                  <a href={horseDetailHref(m.horse.id)}>{m.horse.name}</a>
+                  {m.regionalStablePending && <span class="regional-tag">地方所属予定</span>}
+                </td>
+                <td data-label="誕生日">
+                  {Number(m.horse.birthDate.split('-')[1])}月{Number(m.horse.birthDate.split('-')[2])}日
+                </td>
+                <td data-label="体重">{m.horse.weight}kg</td>
+                <td data-label="一口価格">{m.horse.pricePerShare}万円</td>
+                <td data-label="残口">{sharesLabel(m.horse.id)}</td>
+              </tr>
+            ))
+          }
+        </tbody>
+      </table>
+    </div>
+
+    <h2>地方所属予定の馬について</h2>
+    <p>（本文: No.{regionalPendingRows.map((r) => r.horse.id).join('・')}は地方競馬所属が決まる予定で、
+      中央競馬所属馬中心の過去データを単純には当てはめにくいこと）</p>
+    <ul>
+      {
+        regionalPendingRows.map((r) => (
+          <li>
+            <a href={horseDetailHref(r.horse.id)}>No.{r.horse.id} {r.horse.name}</a>（{r.horse.stable}）
+          </li>
+        ))
+      }
+    </ul>
+
+    <AdSlot sp={AD_SP_WIDE_A} pc={AD_PC_WIDE_A} />
+
+    <h2>重賞勝ちの兄姉がいる馬</h2>
+    {
+      gradeSiblingRows.length > 0 ? (
+        <>
+          <p>（本文: 測尺の物差しだけでは見えない「血統の実例」として、重賞勝ち馬を兄姉に持つ馬を紹介）</p>
+          <ul>
+            {gradeSiblingRows.map(({ row, siblings }) => (
+              <li>
+                <a href={horseDetailHref(row.horse.id)}>
+                  No.{row.horse.id} {row.horse.name}
+                </a>
+                の半兄姉に
+                {siblings.map((s, i) => (
+                  <>
+                    {i > 0 && '、'}
+                    <strong>{s.name}</strong>（{s.gradeWins.join('、')}）
+                  </>
+                ))}
+                。
+              </li>
+            ))}
+          </ul>
+        </>
+      ) : (
+        <p>今回の15頭では、過去にキャロットが募集していない兄姉も含めて重賞勝ち馬は見つからなかった。</p>
+      )
+    }
+
+    <h2>この記事の限界</h2>
+    <p>（本文: 母集団285頭の測尺は募集時点のもので、体格スコアそのものが成績を保証しないこと。
+      牡は測尺で有意差が出ないため今回の絞り込みに使えないこと。地方所属予定馬は
+      中央データを単純に当てはめにくいこと。回収率は賞金額面ベースで実際の会員配当額ではないこと。
+      他の会員の評価は掲載していないこと、などを正直に書く）</p>
+
+    <h2>残口のある馬をまとめて見る</h2>
+    <p>
+      今から出資できる{targetIds.length}頭は<a href="/?remaining=1">一覧の「残口あり」ビュー</a>にまとまっている。
+      馬名からはこのサイトの個別ページに飛べるので、気になった馬の血統・測尺を見てほしい。
+    </p>
+
+    <h2>データについて</h2>
+    <p>
+      牝の物差しは2017〜2023年度募集・牝{benchmark.n}頭（一口価格判明・測尺判明）から計算した。
+      「中央値超」は境界値ちょうどを含まない。回収率＝獲得賞金 ÷ 募集総額（一口価格×口数）で、
+      管理費・維持費・引退時の売却額を差し引いた実際の会員配当額ではない。
+      第2次募集の対象馬・残り口数はクラブ公式発表（「{LOTTERY_STATUS_SNAPSHOTS.at(-1)!.label}」・
+      {LOTTERY_STATUS_SNAPSHOTS.at(-1)!.asOf}時点）による。
+    </p>
+
+    <p>
+      <a href="/">募集馬一覧へ戻る</a> ／ <a href="/articles/">分析記事一覧へ</a>
+    </p>
+  </article>
+</BaseLayout>
+
+<style>
+  article :global(h2) {
+    margin-top: 2.5rem;
+  }
+  .table-scroll {
+    overflow-x: auto;
+    margin: 1rem 0;
+  }
+  .table-note {
+    font-size: 0.8125rem;
+    color: var(--muted);
+  }
+  table.data-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.875rem;
+  }
+  table.data-table th,
+  table.data-table td {
+    padding: 0.5rem 0.7rem;
+    border-bottom: 1px solid var(--border);
+    text-align: left;
+    vertical-align: top;
+    white-space: nowrap;
+  }
+  table.data-table th {
+    color: var(--muted);
+    font-weight: 600;
+  }
+  .regional-tag {
+    display: inline-block;
+    margin-left: 0.4rem;
+    padding: 0.05rem 0.4rem;
+    font-size: 0.7rem;
+    font-weight: 700;
+    color: var(--accent);
+    background: var(--accent-weak);
+    border-radius: 4px;
+    white-space: nowrap;
+  }
+  .ad-rect {
+    display: flex;
+    justify-content: center;
+    margin: 1.75rem 0 0.5rem;
+  }
+
+  /* 横棒2本の比較（両方中央値超 vs それ以外）。DamSplitTable.astroの.prize-barと同じ考え方。 */
+  .hbar-group {
+    margin: 1.25rem 0;
+  }
+  .hbar-title {
+    margin: 0 0 0.5rem;
+    font-weight: 600;
+    font-size: 0.9375rem;
+    color: var(--text);
+  }
+  .hbar-row {
+    display: grid;
+    grid-template-columns: minmax(9rem, 13rem) 1fr auto;
+    align-items: center;
+    gap: 0.6rem;
+    margin: 0.35rem 0;
+  }
+  .hbar-label {
+    font-size: 0.8125rem;
+    color: var(--muted);
+  }
+  .hbar-track {
+    height: 14px;
+    background: var(--border);
+    border-radius: 999px;
+    overflow: hidden;
+  }
+  .hbar-fill {
+    display: block;
+    height: 100%;
+    background: var(--accent);
+    border-radius: 999px;
+  }
+  .hbar-fill.is-muted {
+    background: var(--muted);
+  }
+  .hbar-value {
+    flex: none;
+    font-variant-numeric: tabular-nums;
+    font-size: 0.8125rem;
+    color: var(--text);
+    white-space: nowrap;
+  }
+  .hbar-note {
+    margin: 0.4rem 0 0;
+    font-size: 0.75rem;
+    color: var(--muted);
+  }
+
+  @media (max-width: 640px) {
+    .hbar-row {
+      grid-template-columns: 1fr;
+      gap: 0.2rem;
+    }
+    table.data-table thead {
+      display: none;
+    }
+    table.data-table,
+    table.data-table tbody,
+    table.data-table tr,
+    table.data-table td {
+      display: block;
+      width: auto;
+    }
+    table.data-table tr {
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 0.6rem 0.85rem;
+      margin-bottom: 0.75rem;
+    }
+    table.data-table td {
+      border: none;
+      padding: 0.15rem 0;
+      display: flex;
+      gap: 0.6rem;
+      white-space: normal;
+    }
+    table.data-table td::before {
+      content: attr(data-label);
+      flex: none;
+      width: 6.5rem;
+      color: var(--muted);
+      font-size: 0.8125rem;
+    }
+  }
+</style>
