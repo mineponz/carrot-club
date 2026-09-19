@@ -48,6 +48,11 @@ import {
   gradeWinningSiblingsOf,
   FEMALE_SIZE_CATEGORY_ORDER,
   FEMALE_SIZE_CATEGORY_LABEL,
+  computeColtChecks,
+  coltSidesOf,
+  COLT_CHECK_LABEL,
+  COLT_CHECK_SIDE_LABEL,
+  type ColtCheck,
   type FemaleSizeCategory,
 } from '../../lib/second-offering-screen.ts';
 import { horseDetailHref } from '../../lib/horse-row.ts';
@@ -183,6 +188,58 @@ if (JSON.stringify(actualGradeSiblingIds) !== JSON.stringify(EXPECTED_GRADE_SIBL
 // 6. 対象15頭が残口データ（lotteryStatus2026.ts）の頭数と一致する（二重管理の検算）
 if (targetIds.length !== Object.keys(remainingSharesByHorseId(remainingRows)).length) {
   premiseErrors.push('対象馬IDの取得元が食い違っている（screenSecondOffering呼び出しのバグの可能性）。');
+}
+
+// 7. 牡の見比べ（4項目×3つの見方＝12通り。差らしきものは体高×重賞だけ、という本文の前提）
+const colt = computeColtChecks(allRecruits);
+const coltByKey = new Map(colt.checks.map((c) => [c.key, c]));
+const coltHeight = coltByKey.get('height')!;
+const coltBirth = coltByKey.get('birthDate')!;
+const coltPs = colt.checks.flatMap((c) => [
+  { label: `${c.key}×勝ち上がり`, p: c.pWin },
+  { label: `${c.key}×重賞`, p: c.pGrade },
+  { label: `${c.key}×回収率`, p: c.pRoi },
+]);
+const coltSignificant = coltPs.filter((x) => x.p < 0.05).map((x) => x.label);
+if (JSON.stringify(coltSignificant) !== JSON.stringify(['height×重賞'])) {
+  premiseErrors.push(
+    `牡でp<0.05になる組み合わせが「体高×重賞」だけではなくなった（${coltSignificant.join('・') || 'なし'}）。牡の節の本文を直すこと。`
+  );
+}
+if (!(coltHeight.focus.gradeRatePct > coltHeight.rest.gradeRatePct)) {
+  premiseErrors.push('体高の高い側のほうが重賞馬の割合が高い、という向きが崩れた。牡の節を直すこと。');
+}
+if (!(coltHeight.rest.winRatePct > coltHeight.focus.winRatePct)) {
+  premiseErrors.push('体高の低い側のほうが勝ち上がり率がわずかに上、という本文の前提が崩れた。');
+}
+if (!(coltBirth.focus.gradeWinners > coltBirth.rest.gradeWinners) || coltBirth.pGrade < 0.05) {
+  premiseErrors.push('早生まれ側の重賞馬が多いが偶然の範囲、という本文の前提が崩れた。');
+}
+const maleRows = screen.males.map((m) => ({ m, sides: coltSidesOf(m.horse, colt.checks) }));
+const tallColts = maleRows.filter((r) => r.sides.height === true);
+const centralColts = maleRows.filter((r) => !r.m.regionalStablePending);
+if (
+  JSON.stringify(tallColts.map((r) => r.m.horse.id)) !== JSON.stringify(['94']) ||
+  !tallColts.every((r) => r.m.regionalStablePending)
+) {
+  premiseErrors.push('体高が中央値超の牡は地方所属予定のNo.94だけ、という本文の前提が崩れた。');
+}
+if (
+  JSON.stringify(centralColts.map((r) => r.m.horse.id)) !== JSON.stringify(['31', '79']) ||
+  !centralColts.every((r) => r.sides.birthDate === true)
+) {
+  premiseErrors.push('中央所属予定の牡はNo.31・79で、どちらも早生まれ側、という本文の前提が崩れた。');
+}
+
+/** 項目の「真ん中の値」の表示。誕生日は1月1日からの日数を月日に直す。 */
+function coltMedianLabel(c: ColtCheck): string {
+  if (c.key === 'birthDate') {
+    const d = new Date(Date.UTC(2025, 0, 1) + Math.round(c.median) * 86_400_000);
+    return `${d.getUTCMonth() + 1}月${d.getUTCDate()}日`;
+  }
+  if (c.key === 'height') return `${c.median}cm`;
+  if (c.key === 'weight') return `${c.median}kg`;
+  return `${c.median}万円`;
 }
 
 if (premiseErrors.length > 0) {
@@ -380,10 +437,55 @@ const CATEGORY_NOTE: Record<FemaleSizeCategory, string> = {
 
     <h2>牡{screen.males.length}頭</h2>
     <p>
-      正直に書くと、牡馬はこの物差しで絞れない。<a href="/articles/weight/">馬体重の記事</a>で調べたとおり、牡では体の大きさと獲得賞金の関係が見えなかった。重い馬ほど勝ち上がりや重賞の数が少し多くはなるが、偶然でも出る程度の差にとどまる。
+      牡も同じように調べた。募集時に分かる4つの項目（体高・馬体重・誕生日・一口価格）について、2017〜2023年度に募集された牡{colt.n}頭をそれぞれ真ん中の値で2つに分け、勝ち上がり率・重賞を勝った馬の数・回収率を比べている。
+    </p>
+
+    <div class="table-scroll">
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>項目（真ん中の値）</th>
+            <th>比べた2つ</th>
+            <th>勝ち上がり率</th>
+            <th>重賞馬</th>
+            <th>回収率の中央値</th>
+          </tr>
+        </thead>
+        <tbody>
+          {
+            colt.checks.map((c) => (
+              <tr class:list={[{ 'is-notable': c.key === 'height' }]}>
+                <td data-label="項目">
+                  {COLT_CHECK_LABEL[c.key]}（{coltMedianLabel(c)}）
+                </td>
+                <td data-label="比べた2つ">
+                  {COLT_CHECK_SIDE_LABEL[c.key].focus} ／ {COLT_CHECK_SIDE_LABEL[c.key].rest}
+                </td>
+                <td data-label="勝ち上がり率">
+                  {Math.round(c.focus.winRatePct)}% ／ {Math.round(c.rest.winRatePct)}%
+                </td>
+                <td data-label="重賞馬">
+                  {c.focus.gradeWinners}頭（{Math.round(c.focus.gradeRatePct)}%） ／ {c.rest.gradeWinners}頭（{Math.round(c.rest.gradeRatePct)}%）
+                </td>
+                <td data-label="回収率の中央値">
+                  {Math.round(c.focus.medianRoiPct)}% ／ {Math.round(c.rest.medianRoiPct)}%
+                </td>
+              </tr>
+            ))
+          }
+        </tbody>
+      </table>
+    </div>
+    <p class="table-note">勝ち上がり率は出走した馬のうち1勝以上した割合。回収率の定義は牝と同じ。「真ん中の値」ちょうどの馬は、体高・体重・価格では低い側、誕生日では遅生まれ側に入れている。</p>
+
+    <p>
+      牝の体の大きさのような、はっきりした差はどこにも出なかった。勝ち上がり率はどの項目で分けてもほぼ同じだ。回収率の中央値は開いて見える項目もあるが、1頭ごとのばらつきが大きく、偶然でも出る程度の差に収まっている。
     </p>
     <p>
-      だから牡の{screen.males.length}頭は、群に分けずに並べるだけにした。選ぶ材料は、血統や厩舎、ツアーで見た印象のほうにある。
+      唯一、差らしく見えるのが<strong>体高と重賞馬の関係</strong>だ。背の高い側から重賞馬が{coltHeight.focus.gradeWinners}頭、低い側からは{coltHeight.rest.gradeWinners}頭。割合にすると{Math.round(coltHeight.focus.gradeRatePct)}%と{Math.round(coltHeight.rest.gradeRatePct)}%になる。ただ、4項目×3つの見方で12回比べた中の1つだけなので、偶然の可能性を消しきれない。勝ち上がり率ではむしろ低い側がわずかに上だ。「背の高い牡からは大物が出やすいかもしれない」くらいに受け取っておくのがいいと思う。
+    </p>
+    <p>
+      今回の牡{screen.males.length}頭を、この4項目で見るとこうなる。印（▲）が付いているのは、背が高い・重い・早生まれ・価格が高い側に入っている項目だ。
     </p>
 
     <div class="table-scroll">
@@ -392,25 +494,27 @@ const CATEGORY_NOTE: Record<FemaleSizeCategory, string> = {
           <tr>
             <th>No.</th>
             <th>馬名</th>
-            <th>誕生日</th>
+            <th>体高</th>
             <th>体重</th>
+            <th>誕生日</th>
             <th>一口価格</th>
             <th>残口</th>
           </tr>
         </thead>
         <tbody>
           {
-            screen.males.map((m) => (
+            maleRows.map(({ m, sides }) => (
               <tr>
                 <td data-label="No.">{m.horse.id}</td>
                 <td data-label="馬名">
                   <a href={horseDetailHref(m.horse.id)}>{m.horse.name}</a>{m.regionalStablePending && <span class="regional-tag">地方所属予定</span>}
                 </td>
+                <td data-label="体高">{m.horse.height}cm{sides.height && <span class="side-mark">▲</span>}</td>
+                <td data-label="体重">{m.horse.weight}kg{sides.weight && <span class="side-mark">▲</span>}</td>
                 <td data-label="誕生日">
-                  {Number(m.horse.birthDate.split('-')[1])}月{Number(m.horse.birthDate.split('-')[2])}日
+                  {Number(m.horse.birthDate.split('-')[1])}月{Number(m.horse.birthDate.split('-')[2])}日{sides.birthDate && <span class="side-mark">▲</span>}
                 </td>
-                <td data-label="体重">{m.horse.weight}kg</td>
-                <td data-label="一口価格">{m.horse.pricePerShare}万円</td>
+                <td data-label="一口価格">{m.horse.pricePerShare}万円{sides.pricePerShare && <span class="side-mark">▲</span>}</td>
                 <td data-label="残口">{sharesLabel(m.horse.id)}</td>
               </tr>
             ))
@@ -418,6 +522,12 @@ const CATEGORY_NOTE: Record<FemaleSizeCategory, string> = {
         </tbody>
       </table>
     </div>
+    <p>
+      体高が真ん中を超えているのは{tallColts.map((r) => `No.${r.m.horse.id}`).join('・')}だけで、地方所属の予定だ。中央に入る予定の{centralColts.map((r) => `No.${r.m.horse.id}`).join('と')}は、どちらも早生まれの側に入っている。早生まれ側からは重賞馬が{coltBirth.focus.gradeWinners}頭、遅生まれ側からは{coltBirth.rest.gradeWinners}頭出ているが、これも偶然で片づけられる程度の差だ。
+    </p>
+    <p>
+      結局、牡の{screen.males.length}頭をデータで順位付けする根拠は無い。選ぶ材料は、血統や厩舎、ツアーで見た印象のほうにある。
+    </p>
 
     <h2>地方所属予定の馬について</h2>
     <p>
@@ -520,6 +630,14 @@ const CATEGORY_NOTE: Record<FemaleSizeCategory, string> = {
   table.data-table th {
     color: var(--muted);
     font-weight: 600;
+  }
+  .side-mark {
+    margin-left: 0.25rem;
+    color: var(--accent);
+    font-size: 0.75rem;
+  }
+  tr.is-notable td {
+    background: var(--accent-weak);
   }
   .regional-tag {
     display: inline-block;

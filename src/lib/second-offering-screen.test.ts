@@ -9,7 +9,10 @@ import { remainingSharesRows, remainingSharesByHorseId } from './remaining-share
 import type { RawDam, RawFoal } from './dam-siblings.ts';
 import {
   categorizeFilly,
+  coltSidesOf,
+  computeColtChecks,
   computeFillyBenchmark,
+  dayOfYear,
   FEMALE_SIZE_CATEGORY_ORDER,
   gradeWinningSiblingsOf,
   isRegionalStablePending,
@@ -322,4 +325,31 @@ test('gradeWinningSiblingsOf（実データ）: 15頭のうち重賞勝ち兄姉
     if (siblings.length > 0) found.push({ id, siblings: siblings.map((s) => s.name ?? '') });
   }
   assert.deepEqual(found, [{ id: '20', siblings: ['ヒンドゥタイムズ'] }]);
+});
+
+
+test('dayOfYear: 1月1日=0・1月25日=24・3月3日=61（平年）', () => {
+  assert.equal(dayOfYear('2025-01-01'), 0);
+  assert.equal(dayOfYear('2025-01-25'), 24);
+  assert.equal(dayOfYear('2025-03-03'), 61);
+  assert.equal(dayOfYear('不明'), null);
+});
+
+test('computeColtChecks: 実データで牡297頭・差らしきものは体高×重賞だけ', () => {
+  const { n, checks } = computeColtChecks(loadRecruitsWithResultsForTest());
+  assert.equal(n, 297);
+  const height = checks.find((c) => c.key === 'height')!;
+  assert.equal(height.median, 154.5);
+  assert.equal(height.focus.gradeWinners, 20);
+  assert.equal(height.rest.gradeWinners, 8);
+  assert.ok(height.pGrade < 0.05);
+  // 12通りのうち p<0.05 は体高×重賞の1つだけ
+  const ps = checks.flatMap((c) => [c.pWin, c.pGrade, c.pRoi]);
+  assert.equal(ps.filter((p) => p < 0.05).length, 1);
+});
+
+test('coltSidesOf: 誕生日は中央値より早いと注目側', () => {
+  const { checks } = computeColtChecks(loadRecruitsWithResultsForTest());
+  const sides = coltSidesOf({ height: 160, weight: 400, birthDate: '2025-01-10', pricePerShare: 5 }, checks);
+  assert.deepEqual(sides, { height: true, weight: false, birthDate: true, pricePerShare: false });
 });

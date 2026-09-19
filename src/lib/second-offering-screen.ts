@@ -15,7 +15,7 @@ import type { Horse } from './horses.ts';
 import type { RecruitWithResult } from './analysis-data.ts';
 import type { RawDam, RawFoal } from './dam-siblings.ts';
 import { netkeibaHorseId } from './sibling-recruits.ts';
-import { median, twoProportionZTest } from './chart-math.ts';
+import { median, mannWhitneyU, twoProportionZTest } from './chart-math.ts';
 
 /** 回収率（％）＝獲得賞金 ÷ 募集総額。secondary-offering.astro / stable-leading.astro と同じ式。 */
 export function roiPctOf(
@@ -235,4 +235,134 @@ export function gradeWinningSiblingsOf(
   const dam = damRoster.get(damId);
   if (!dam) return [];
   return dam.foals.filter((f) => f.gradeWins.length > 0);
+}
+
+// ---- 牡の見比べ（群分けはしないが、募集時4項目で過去の牡を2つに分けた結果は見せる） ----
+
+/**
+ * 牡の比較に使う募集時の4項目。牝の物差し（体重×胸囲）と違い、牡はどれも成績をはっきり
+ * 分けない（[[20260913-size-predicts-roi-for-fillies-only]]）。それでも「見ていない」のではなく
+ * 「見たが差が出なかった」ことを記事で示すため、同じ母集団（2017〜2023年度募集の牡）を
+ * 各項目の中央値で2つに分けた結果を出す（2026-09-19・本人要望「牡馬も少しは見ている感を」）。
+ */
+export type ColtCheckKey = 'height' | 'weight' | 'birthDate' | 'pricePerShare';
+
+export const COLT_CHECK_ORDER: readonly ColtCheckKey[] = ['height', 'weight', 'birthDate', 'pricePerShare'];
+
+export const COLT_CHECK_LABEL: Readonly<Record<ColtCheckKey, string>> = {
+  height: '体高',
+  weight: '馬体重',
+  birthDate: '誕生日',
+  pricePerShare: '一口価格',
+};
+
+/** 「注目する側」の呼び名。誕生日だけは値が小さい側（早生まれ）を注目側にする。 */
+export const COLT_CHECK_SIDE_LABEL: Readonly<Record<ColtCheckKey, { focus: string; rest: string }>> = {
+  height: { focus: '高い側', rest: '低い側' },
+  weight: { focus: '重い側', rest: '軽い側' },
+  birthDate: { focus: '早生まれ側', rest: '遅生まれ側' },
+  pricePerShare: { focus: '高い側', rest: '安い側' },
+};
+
+/** 誕生日を「その年の1月1日から何日目か」にする（年をまたいだ比較用。閏年の1日差は無視）。 */
+export function dayOfYear(birthDate: string): number | null {
+  const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(birthDate);
+  if (!m) return null;
+  const [y, mo, d] = [Number(m[1]), Number(m[2]), Number(m[3])];
+  return Math.round((Date.UTC(y, mo - 1, d) - Date.UTC(y, 0, 1)) / 86_400_000);
+}
+
+function coltValueOf(
+  h: { height: number | null; weight: number | null; birthDate: string | null; pricePerShare: number | null },
+  key: ColtCheckKey,
+): number | null {
+  if (key === 'birthDate') return h.birthDate ? dayOfYear(h.birthDate) : null;
+  return h[key];
+}
+
+/** 注目側か。体高・体重・価格は中央値を厳密に上回る側、誕生日は中央値より早い側。 */
+function isFocusSide(key: ColtCheckKey, value: number, med: number): boolean {
+  return key === 'birthDate' ? value < med : value > med;
+}
+
+export interface ColtSideStats {
+  n: number;
+  /** 出走した頭数（勝ち上がり率の分母）。 */
+  raced: number;
+  winners: number;
+  winRatePct: number;
+  gradeWinners: number;
+  gradeRatePct: number;
+  /** 回収率が計算できた頭数と中央値。 */
+  roiN: number;
+  medianRoiPct: number;
+}
+
+export interface ColtCheck {
+  key: ColtCheckKey;
+  /** 中央値（誕生日は1月1日からの日数）。 */
+  median: number;
+  focus: ColtSideStats;
+  rest: ColtSideStats;
+  pWin: number;
+  pGrade: number;
+  pRoi: number;
+}
+
+function coltSideStatsOf(group: readonly RecruitWithResult[]): ColtSideStats {
+  const raced = group.filter((h) => (h.starts ?? 0) > 0);
+  const winners = raced.filter((h) => (h.wins ?? 0) > 0).length;
+  const gradeWinners = group.filter((h) => h.gradeWins.length > 0).length;
+  const rois = group.map(roiPctOf).filter((r): r is number => r !== null);
+  return {
+    n: group.length,
+    raced: raced.length,
+    winners,
+    winRatePct: raced.length > 0 ? (100 * winners) / raced.length : 0,
+    gradeWinners,
+    gradeRatePct: group.length > 0 ? (100 * gradeWinners) / group.length : 0,
+    roiN: rois.length,
+    medianRoiPct: median(rois),
+  };
+}
+
+/** 2017〜2023年度募集の牡を、4項目それぞれの中央値で2つに分けて成績を比べる。 */
+export function computeColtChecks(recruits: readonly RecruitWithResult[]): { n: number; checks: ColtCheck[] } {
+  const colts = recruits.filter(
+    (h) => h.sex === '牡' && h.recruitYear >= BENCHMARK_YEAR_MIN && h.recruitYear <= BENCHMARK_YEAR_MAX,
+  );
+  const checks = COLT_CHECK_ORDER.map((key): ColtCheck => {
+    const withValue = colts
+      .map((h) => ({ h, v: coltValueOf(h, key) }))
+      .filter((r): r is { h: RecruitWithResult; v: number } => r.v !== null);
+    const med = median(withValue.map((r) => r.v));
+    const focusGroup = withValue.filter((r) => isFocusSide(key, r.v, med)).map((r) => r.h);
+    const restGroup = withValue.filter((r) => !isFocusSide(key, r.v, med)).map((r) => r.h);
+    const focus = coltSideStatsOf(focusGroup);
+    const rest = coltSideStatsOf(restGroup);
+    const roisOf = (g: readonly RecruitWithResult[]) => g.map(roiPctOf).filter((r): r is number => r !== null);
+    return {
+      key,
+      median: med,
+      focus,
+      rest,
+      pWin: twoProportionZTest(focus.winners, focus.raced, rest.winners, rest.raced).p,
+      pGrade: twoProportionZTest(focus.gradeWinners, focus.n, rest.gradeWinners, rest.n).p,
+      pRoi: mannWhitneyU(roisOf(focusGroup), roisOf(restGroup)).p,
+    };
+  });
+  return { n: colts.length, checks };
+}
+
+/** 2026年の牡1頭が、各項目で注目側（中央値の上／早生まれ側）に入るか。 */
+export function coltSidesOf(
+  horse: Pick<Horse, 'height' | 'weight' | 'birthDate' | 'pricePerShare'>,
+  checks: readonly ColtCheck[],
+): Record<ColtCheckKey, boolean | null> {
+  const out = {} as Record<ColtCheckKey, boolean | null>;
+  for (const c of checks) {
+    const v = coltValueOf(horse, c.key);
+    out[c.key] = v === null ? null : isFocusSide(c.key, v, c.median);
+  }
+  return out;
 }
