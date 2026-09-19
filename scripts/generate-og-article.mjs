@@ -163,7 +163,7 @@ const ARTICLES = {
     out: 'og-article-second-offering-v1.png',
     headline: ['第2次募集の15頭を', '過去のデータで見比べる'],
     lead: 'キャロットクラブ 第2次募集の対象馬 × 2017〜2023年度募集・牝285頭の測尺データ',
-    chips: ['牝は体重・胸囲の中央値超で回収率2倍', '牡は測尺で絞れない', '重賞勝ち兄姉の実例も'],
+    chips: ['牝は体重・胸囲の大きさで4群に', '牡は測尺で絞れない', '重賞勝ち兄姉の実例も'],
     buildChart: secondOfferingScreenChart,
   },
   'stable-leading': {

@@ -71,7 +71,9 @@ function sharesLabel(id: string): string {
 }
 
 const bothAboveHorses = screen.females.filter((f) => f.category === 'both-above');
-const regionalPendingRows = [...screen.females, ...screen.males].filter((r) => r.regionalStablePending);
+const regionalPendingRows = [...screen.females, ...screen.males]
+  .filter((r) => r.regionalStablePending)
+  .sort((a, b) => Number(a.horse.id) - Number(b.horse.id));
 
 /** 重賞勝ち兄姉がいる馬（15頭のうち）。 */
 const gradeSiblingRows = [...screen.females, ...screen.males]
@@ -219,8 +221,15 @@ const CATEGORY_NOTE: Record<FemaleSizeCategory, string> = {
   <article>
     <h1>第2次募集の15頭を、過去のデータで見比べる</h1>
 
-    <p>（本文: リード。第2次募集が始まり、今から出資できる馬は15頭に絞られたこと、
-      過去データで確かめた物差しで見比べる、という導入）</p>
+    <p>
+      第2次募集が始まった。1次、1.5次と進んで、今から出資できる馬は{targetIds.length}頭まで減った。
+    </p>
+    <p>
+      私は1.5次募集で1頭に申し込んで、出資が決まった。そのとき困ったのは、残っている馬がどれも同じくらいに見えてしまうことだった。1次で人気が集まらなかった馬どうしを比べるのだから、無理もない。だから、過去の募集馬のデータで確かめられる物差しを1本だけ探して、それで並べ直した。この記事は、その物差しを残りの{targetIds.length}頭に当てたものだ。
+    </p>
+    <p>
+      結論から書く。<strong>牝馬は、募集時の馬体重と胸囲がどちらも過去の牝の真ん中より上かどうかで、その後の稼ぎがはっきり分かれてきた。{targetIds.length}頭の中でそれに当てはまるのはNo.{bothAboveHorses.map((f) => f.horse.id).join('とNo.')}の{bothAboveHorses.length}頭</strong>。牡馬のほうは、この物差しでは差が出ない。そこも正直に書いておく。
+    </p>
 
     <StatTiles
       tiles={[
@@ -245,24 +254,26 @@ const CATEGORY_NOTE: Record<FemaleSizeCategory, string> = {
     <AdSlot sp={AD_SP_WIDE_A} pc={AD_PC_WIDE_A} />
 
     <h2>条件に当てはまる牝</h2>
-    <p>（本文: 結論。印は付けず「体重・胸囲とも中央値超の牝はNo.{bothAboveHorses.map((f) => f.horse.id).join('・')}」
-      という書き方に留める。判断は読者に委ねる旨）</p>
+    <p>
+      募集時の馬体重が{benchmark.medianWeightKg}kgを超え、胸囲も{benchmark.medianChestGirthCm}cmを超えている牝は、今回の{targetIds.length}頭では次の{bothAboveHorses.length}頭だけだ。
+    </p>
     <ul>
       {
         bothAboveHorses.map((f) => (
           <li>
-            <a href={horseDetailHref(f.horse.id)}>No.{f.horse.id} {f.horse.name}</a>
-            （父{f.horse.sire}・体重{f.horse.weight}kg・胸囲{f.horse.chestGirth}cm・
-            一口{f.horse.pricePerShare}万円・残口{sharesLabel(f.horse.id)}）
+            <a href={horseDetailHref(f.horse.id)}>No.{f.horse.id} {f.horse.name}</a>（父{f.horse.sire}・体重{f.horse.weight}kg・胸囲{f.horse.chestGirth}cm・一口{f.horse.pricePerShare}万円・残口{sharesLabel(f.horse.id)}）
           </li>
         ))
       }
     </ul>
+    <p>
+      {bothAboveHorses.length}頭のどちらが上かを決める材料は、このデータには無い。ここから先は血統や厩舎、ツアーで見た印象で選んでほしい。
+    </p>
 
     <h2>物差しの根拠</h2>
-    <p>（本文: 2017〜2023年度募集・牝{benchmark.n}頭で、募集時の体重・胸囲がともに中央値
-      （{benchmark.medianWeightKg}kg・{benchmark.medianChestGirthCm}cm）を上回る馬は、
-      それ以外の馬より回収率が高い傾向にあること。詳細は[[20260913-size-predicts-roi-for-fillies-only]]）</p>
+    <p>
+      2017〜2023年度に募集された牝馬のうち、一口価格が分かる{benchmark.n}頭を2つに分けた。募集時の馬体重と胸囲がどちらも中央値（{benchmark.medianWeightKg}kg・{benchmark.medianChestGirthCm}cm）を超えている{benchmark.above.n}頭と、それ以外の{benchmark.restOrEqual.n}頭だ。
+    </p>
 
     <div class="hbar-group">
       <p class="hbar-title">募集価格以上に稼いだ割合（回収率100%超）</p>
@@ -284,9 +295,7 @@ const CATEGORY_NOTE: Record<FemaleSizeCategory, string> = {
           {Math.round(benchmark.restOrEqual.over100RatePct)}%（{benchmark.restOrEqual.over100Count}頭）
         </span>
       </div>
-      <p class="hbar-note">
-        two-proportion z-test {formatP(benchmark.over100RateTest.p)}（両群とも期待成功数5件以上）
-      </p>
+
     </div>
 
     <div class="hbar-group">
@@ -307,12 +316,20 @@ const CATEGORY_NOTE: Record<FemaleSizeCategory, string> = {
       </div>
     </div>
 
-    <p class="table-note">回収率＝獲得賞金 ÷ 募集総額（一口価格×口数）。「中央値超」は境界値ちょうどを含まない。</p>
+    <p class="table-note">回収率＝獲得賞金 ÷ 募集総額（一口価格×口数）。「中央値超」は境界値ちょうどを含まない。割合の差の検定は{formatP(benchmark.over100RateTest.p)}。</p>
+    <p>
+      募集価格以上に稼いだ馬の割合は、ほぼ2倍の開きになる。回収率の真ん中の値で比べると、差はもっと大きい。偶然でこれだけ開くことは、まず無い。
+    </p>
+    <p>
+      ひとつ断っておくと、体重と胸囲はどちらも「体の大きさ」を測っている。根拠が2つ重なっているわけではなく、「大きい牝」という1本の物差しだと思って読んでほしい。体重だけ、胸囲だけで見た結果は<a href="/articles/weight/">馬体重の記事</a>と<a href="/articles/chest-girth/">胸囲の記事</a>に書いた。
+    </p>
 
     <AdSlot sp={AD_SP_WIDE_B} pc={AD_PC_WIDE_B} />
 
     <h2>牝{screen.females.length}頭を群で見る</h2>
-    <p>（本文: 牝{screen.females.length}頭を上の物差しで4群に分けたこと、群ごとの見方の説明）</p>
+    <p>
+      残りの牝も同じ物差しで並べた。体重と胸囲の片方だけが真ん中を超えている馬、どちらも届かない馬、そして体重が過去の牝の下位1/4（{benchmark.bottomQuartileWeightBoundaryKg}kg未満）に入る馬に分けている。下の群ほど、この物差しの上では分が悪い。ただ、分が悪いというだけで、走らないと決まったわけではない。
+    </p>
 
     {
       FEMALE_SIZE_CATEGORY_ORDER.map((category) => {
@@ -342,8 +359,7 @@ const CATEGORY_NOTE: Record<FemaleSizeCategory, string> = {
                     <tr>
                       <td data-label="No.">{f.horse.id}</td>
                       <td data-label="馬名">
-                        <a href={horseDetailHref(f.horse.id)}>{f.horse.name}</a>
-                        {f.regionalStablePending && <span class="regional-tag">地方所属予定</span>}
+                        <a href={horseDetailHref(f.horse.id)}>{f.horse.name}</a>{f.regionalStablePending && <span class="regional-tag">地方所属予定</span>}
                       </td>
                       <td data-label="父">{f.horse.sire}</td>
                       <td data-label="体重">{f.horse.weight}kg</td>
@@ -363,9 +379,12 @@ const CATEGORY_NOTE: Record<FemaleSizeCategory, string> = {
     <AdSlot sp={AD_SP_RECT} pc={AD_PC_WIDE_A} />
 
     <h2>牡{screen.males.length}頭</h2>
-    <p>（本文: 牡は募集時の測尺・母齢・産次・一口価格のどれでも成績に有意な差が出ない
-      （[[20260913-size-predicts-roi-for-fillies-only]]）ため群分けしないこと、
-      誕生日・体重・一口価格を並べるだけであることの断り）</p>
+    <p>
+      正直に書くと、牡馬はこの物差しで絞れない。<a href="/articles/weight/">馬体重の記事</a>で調べたとおり、牡では体の大きさと獲得賞金の関係が見えなかった。重い馬ほど勝ち上がりや重賞の数が少し多くはなるが、偶然でも出る程度の差にとどまる。
+    </p>
+    <p>
+      だから牡の{screen.males.length}頭は、群に分けずに並べるだけにした。選ぶ材料は、血統や厩舎、ツアーで見た印象のほうにある。
+    </p>
 
     <div class="table-scroll">
       <table class="data-table">
@@ -385,8 +404,7 @@ const CATEGORY_NOTE: Record<FemaleSizeCategory, string> = {
               <tr>
                 <td data-label="No.">{m.horse.id}</td>
                 <td data-label="馬名">
-                  <a href={horseDetailHref(m.horse.id)}>{m.horse.name}</a>
-                  {m.regionalStablePending && <span class="regional-tag">地方所属予定</span>}
+                  <a href={horseDetailHref(m.horse.id)}>{m.horse.name}</a>{m.regionalStablePending && <span class="regional-tag">地方所属予定</span>}
                 </td>
                 <td data-label="誕生日">
                   {Number(m.horse.birthDate.split('-')[1])}月{Number(m.horse.birthDate.split('-')[2])}日
@@ -402,8 +420,9 @@ const CATEGORY_NOTE: Record<FemaleSizeCategory, string> = {
     </div>
 
     <h2>地方所属予定の馬について</h2>
-    <p>（本文: No.{regionalPendingRows.map((r) => r.horse.id).join('・')}は地方競馬所属が決まる予定で、
-      中央競馬所属馬中心の過去データを単純には当てはめにくいこと）</p>
+    <p>
+      次の{regionalPendingRows.length}頭は地方所属の予定だ。ここまでの物差しは、中央に入った馬がほとんどを占めるデータで作っている。走る舞台も賞金の水準も違うので、上の群分けはそのまま当てはめないほうがいい。
+    </p>
     <ul>
       {
         regionalPendingRows.map((r) => (
@@ -420,24 +439,25 @@ const CATEGORY_NOTE: Record<FemaleSizeCategory, string> = {
     {
       gradeSiblingRows.length > 0 ? (
         <>
-          <p>（本文: 測尺の物差しだけでは見えない「血統の実例」として、重賞勝ち馬を兄姉に持つ馬を紹介）</p>
+          <p>
+            一口馬主は夢を見る趣味でもある。体の大きさの物差しでは真ん中より下でも、兄姉が重賞を勝っている馬はいる。
+          </p>
           <ul>
             {gradeSiblingRows.map(({ row, siblings }) => (
               <li>
                 <a href={horseDetailHref(row.horse.id)}>
                   No.{row.horse.id} {row.horse.name}
-                </a>
-                の半兄姉に
-                {siblings.map((s, i) => (
+                </a>の兄姉に{siblings.map((s, i) => (
                   <>
-                    {i > 0 && '、'}
-                    <strong>{s.name}</strong>（{s.gradeWins.join('、')}）
+                    {i > 0 && '、'}<strong>{s.name}</strong>（{s.gradeWins.join('、')}）
                   </>
-                ))}
-                。
+                ))}。
               </li>
             ))}
           </ul>
+          <p>
+            過去の募集馬で確かめると、重賞を勝った兄姉がいる牝は、本人も重賞を勝つ割合が上がっていた。ただ、勝ち上がれるかどうかはほとんど変わらない。「大きく当たるかもしれないが、外れる確率は他の馬と同じくらい」と受け取るのがちょうどいい。
+          </p>
         </>
       ) : (
         <p>今回の15頭では、過去にキャロットが募集していない兄姉も含めて重賞勝ち馬は見つからなかった。</p>
@@ -445,24 +465,25 @@ const CATEGORY_NOTE: Record<FemaleSizeCategory, string> = {
     }
 
     <h2>この記事の限界</h2>
-    <p>（本文: 母集団285頭の測尺は募集時点のもので、体格スコアそのものが成績を保証しないこと。
-      牡は測尺で有意差が出ないため今回の絞り込みに使えないこと。地方所属予定馬は
-      中央データを単純に当てはめにくいこと。回収率は賞金額面ベースで実際の会員配当額ではないこと。
-      他の会員の評価は掲載していないこと、などを正直に書く）</p>
+    <ul>
+      <li>
+        すべて過去の傾向で、1頭ずつの将来を言い当てるものではない。条件を満たした牝でも、募集価格以上に稼いだのは{Math.round(benchmark.above.over100RatePct)}%で、残りは届いていない。
+      </li>
+      <li>
+        判定に使っているのは募集時の測尺だけだ。過去の馬も募集時の値で比べているので、ツアー後の体重は混ぜていない。
+      </li>
+      <li>回収率は獲得賞金の額面で計算している。実際に会員に届く分配は、維持費などが引かれてこれより下がる。</li>
+      <li>手術歴がある馬の影響は確かめていない。</li>
+    </ul>
 
     <h2>残口のある馬をまとめて見る</h2>
     <p>
-      今から出資できる{targetIds.length}頭は<a href="/?remaining=1">一覧の「残口あり」ビュー</a>にまとまっている。
-      馬名からはこのサイトの個別ページに飛べるので、気になった馬の血統・測尺を見てほしい。
+      今から出資できる{targetIds.length}頭は<a href="/?remaining=1">一覧の「残口あり」ビュー</a>にまとまっている。馬名からはこのサイトの個別ページに飛べるので、気になった馬の血統・測尺を見てほしい。
     </p>
 
     <h2>データについて</h2>
     <p>
-      牝の物差しは2017〜2023年度募集・牝{benchmark.n}頭（一口価格判明・測尺判明）から計算した。
-      「中央値超」は境界値ちょうどを含まない。回収率＝獲得賞金 ÷ 募集総額（一口価格×口数）で、
-      管理費・維持費・引退時の売却額を差し引いた実際の会員配当額ではない。
-      第2次募集の対象馬・残り口数はクラブ公式発表（「{LOTTERY_STATUS_SNAPSHOTS.at(-1)!.label}」・
-      {LOTTERY_STATUS_SNAPSHOTS.at(-1)!.asOf}時点）による。
+      牝の物差しは2017〜2023年度募集・牝{benchmark.n}頭（一口価格判明・測尺判明）から計算した。「中央値超」は境界値ちょうどを含まない。回収率＝獲得賞金 ÷ 募集総額（一口価格×口数）で、管理費・維持費・引退時の売却額を差し引いた実際の会員配当額ではない。第2次募集の対象馬・残り口数はクラブ公式発表（「{LOTTERY_STATUS_SNAPSHOTS.at(-1)!.label}」・{LOTTERY_STATUS_SNAPSHOTS.at(-1)!.asOf}時点）による。
     </p>
 
     <p>
