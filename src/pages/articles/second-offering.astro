@@ -231,6 +231,13 @@ if (
   premiseErrors.push('中央所属予定の牡はNo.31・79で、どちらも早生まれ側、という本文の前提が崩れた。');
 }
 
+/** 牡の比較表で、項目名から飛ばす既存記事（その項目を主題にした記事がある項目だけ）。 */
+const COLT_ARTICLE_HREF: Readonly<Record<string, string | undefined>> = {
+  height: '/articles/height/',
+  weight: '/articles/weight/',
+  birthDate: '/articles/birth-month/',
+};
+
 /** 項目の「真ん中の値」の表示。誕生日は1月1日からの日数を月日に直す。 */
 function coltMedianLabel(c: ColtCheck): string {
   if (c.key === 'birthDate') {
@@ -279,7 +286,7 @@ const CATEGORY_NOTE: Record<FemaleSizeCategory, string> = {
     <h1>第2次募集の15頭を、過去のデータで見比べる</h1>
 
     <p>
-      第2次募集が始まった。1次、1.5次と進んで、今から出資できる馬は{targetIds.length}頭まで減った。
+      第2次募集が始まった。1次、1.5次と進んで、今から出資できる馬は{targetIds.length}頭まで減った。1次で満口にならなかった馬が過去にどうなったかは、<a href="/articles/secondary-offering/">1.5次募集に回った馬の記事</a>で追いかけている。
     </p>
     <p>
       私は1.5次募集で1頭に申し込んで、出資が決まった。そのとき困ったのは、残っている馬がどれも同じくらいに見えてしまうことだった。1次で人気が集まらなかった馬どうしを比べるのだから、無理もない。だから、過去の募集馬のデータで確かめられる物差しを1本だけ探して、それで並べ直した。この記事は、その物差しを残りの{targetIds.length}頭に当てたものだ。
@@ -385,7 +392,7 @@ const CATEGORY_NOTE: Record<FemaleSizeCategory, string> = {
 
     <h2>牝{screen.females.length}頭を群で見る</h2>
     <p>
-      残りの牝も同じ物差しで並べた。体重と胸囲の片方だけが真ん中を超えている馬、どちらも届かない馬、そして体重が過去の牝の下位1/4（{benchmark.bottomQuartileWeightBoundaryKg}kg未満）に入る馬に分けている。下の群ほど、この物差しの上では分が悪い。ただ、分が悪いというだけで、走らないと決まったわけではない。
+      残りの牝も同じ物差しで並べた。体重と胸囲の片方だけが真ん中を超えている馬、どちらも届かない馬、そして体重が過去の牝の下位1/4（{benchmark.bottomQuartileWeightBoundaryKg}kg未満）に入る馬に分けている。下の群ほど、この物差しの上では分が悪い。ただ、分が悪いというだけで、走らないと決まったわけではない。牝の体重と成績の関係は、<a href="/articles/weight/">馬体重の記事</a>の「牝では『体高』ではなく『体重』で見る」の節にもう少し詳しく書いた。
     </p>
 
     {
@@ -456,7 +463,11 @@ const CATEGORY_NOTE: Record<FemaleSizeCategory, string> = {
             colt.checks.map((c) => (
               <tr class:list={[{ 'is-notable': c.key === 'height' }]}>
                 <td data-label="項目">
-                  {COLT_CHECK_LABEL[c.key]}（{coltMedianLabel(c)}）
+                  {COLT_ARTICLE_HREF[c.key] ? (
+                    <a href={COLT_ARTICLE_HREF[c.key]}>{COLT_CHECK_LABEL[c.key]}</a>
+                  ) : (
+                    COLT_CHECK_LABEL[c.key]
+                  )}（{coltMedianLabel(c)}）
                 </td>
                 <td data-label="比べた2つ">
                   {COLT_CHECK_SIDE_LABEL[c.key].focus} ／ {COLT_CHECK_SIDE_LABEL[c.key].rest}
@@ -476,7 +487,7 @@ const CATEGORY_NOTE: Record<FemaleSizeCategory, string> = {
         </tbody>
       </table>
     </div>
-    <p class="table-note">勝ち上がり率は出走した馬のうち1勝以上した割合。回収率の定義は牝と同じ。「真ん中の値」ちょうどの馬は、体高・体重・価格では低い側、誕生日では遅生まれ側に入れている。</p>
+    <p class="table-note">項目名のリンク先は、その項目を牡牝あわせて調べた記事。一口価格と賞金の関係は<a href="/articles/height/">体高の記事</a>の「参考: 一口価格との比較」で扱っている。勝ち上がり率は出走した馬のうち1勝以上した割合。回収率の定義は牝と同じ。「真ん中の値」ちょうどの馬は、体高・体重・価格では低い側、誕生日では遅生まれ側に入れている。</p>
 
     <p>
       牝の体の大きさのような、はっきりした差はどこにも出なかった。勝ち上がり率はどの項目で分けてもほぼ同じだ。回収率の中央値は開いて見える項目もあるが、1頭ごとのばらつきが大きく、偶然でも出る程度の差に収まっている。
@@ -523,7 +534,7 @@ const CATEGORY_NOTE: Record<FemaleSizeCategory, string> = {
       </table>
     </div>
     <p>
-      体高が真ん中を超えているのは{tallColts.map((r) => `No.${r.m.horse.id}`).join('・')}だけで、地方所属の予定だ。中央に入る予定の{centralColts.map((r) => `No.${r.m.horse.id}`).join('と')}は、どちらも早生まれの側に入っている。早生まれ側からは重賞馬が{coltBirth.focus.gradeWinners}頭、遅生まれ側からは{coltBirth.rest.gradeWinners}頭出ているが、これも偶然で片づけられる程度の差だ。
+      体高が真ん中を超えているのは{tallColts.map((r) => `No.${r.m.horse.id}`).join('・')}だけで、地方所属の予定だ。中央に入る予定の{centralColts.map((r) => `No.${r.m.horse.id}`).join('と')}は、どちらも早生まれの側に入っている。早生まれ側からは重賞馬が{coltBirth.focus.gradeWinners}頭、遅生まれ側からは{coltBirth.rest.gradeWinners}頭出ているが、これも偶然で片づけられる程度の差だ。誕生日と体格・成績の関係は<a href="/articles/birth-month/">誕生月の記事</a>でまとめて見ている。
     </p>
     <p>
       結局、牡の{screen.males.length}頭をデータで順位付けする根拠は無い。選ぶ材料は、血統や厩舎、ツアーで見た印象のほうにある。
@@ -566,7 +577,7 @@ const CATEGORY_NOTE: Record<FemaleSizeCategory, string> = {
             ))}
           </ul>
           <p>
-            過去の募集馬で確かめると、重賞を勝った兄姉がいる牝は、本人も重賞を勝つ割合が上がっていた。ただ、勝ち上がれるかどうかはほとんど変わらない。「大きく当たるかもしれないが、外れる確率は他の馬と同じくらい」と受け取るのがちょうどいい。
+            過去の募集馬で確かめると、重賞を勝った兄姉がいる牝は、本人も重賞を勝つ割合が上がっていた。ただ、勝ち上がれるかどうかはほとんど変わらない。「大きく当たるかもしれないが、外れる確率は他の馬と同じくらい」と受け取るのがちょうどいい。母がほかのクラブ（サンデーレーシングなど）の出身馬に絞った<a href="/articles/club-siblings/">別の記事</a>でも、「兄姉が重賞を勝っている馬はどうだったか」を追いかけている。
           </p>
         </>
       ) : (
