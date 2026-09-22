@@ -59,10 +59,11 @@ interface Props {
   /** OGP画像の代替テキスト。`ogImage` を渡すときは中身に合わせて必ず一緒に渡す。 */
   ogImageAlt?: string;
   /**
-   * ヘッダーに非公式・転載許可の注記を出すか。既定は出す（全ページ従来どおり）。
-   * 分析記事のような読み物ページは、本文の前に注記2つが割り込むと読み始めが遅くなるため
+   * ヘッダーに非公式の注記を出すか。既定は出す（全ページ従来どおり）。
+   * 分析記事のような読み物ページは、本文の前に注記が割り込むと読み始めが遅くなるため
    * `false` を渡してヘッダーでは省略する。フッターには元々同じ注記が出ているので、
    * 非表示にしても表示自体が消えるわけではない（下の方に移るだけ）。
+   * 転載許可の注記はフッターだけに出す（AdSense審査で冒頭が「転載です」になるのを避けるため）。
    */
   showHeaderNotices?: boolean;
   /**
@@ -98,7 +99,7 @@ const canonical = new URL(Astro.url.pathname, SITE_URL).href;
 // noindex にする条件は3つ:
 //  1. クラブの利用許可が下りるまでのサイト全体の noindex（src/consts.ts の ALLOW_INDEXING）
 //  2. データ転記だけのページ（馬個別・ツアー後馬体重・募集申込票数・抽選ステータス一覧・
-//     出資馬個別）を AdSense 審査向けに個別 noindex（src/consts.ts の NOINDEX_PATH_PREFIXES / isNoindexPath）
+//     出資馬個別・旧年度一覧）を AdSense 審査向けに個別 noindex（src/consts.ts の NOINDEX_PATH_PREFIXES / isNoindexPath）
 //  3. 呼び出し元が明示的に `noindex` prop で強制した場合（404ページ専用。Props の noindex 参照）
 const isNoindex = !ALLOW_INDEXING || isNoindexPath(Astro.url.pathname) || forceNoindex;
 const robotsContent = isNoindex ? 'noindex,follow' : 'index,follow,max-image-preview:large';
