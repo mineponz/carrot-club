@@ -14,6 +14,11 @@ test('isNoindexPath: 抽選ステータス一覧 /2026/lottery/ は noindex（20
   assert.equal(isNoindexPath('/2026/lottery/foo/'), true); // 前方一致
 });
 
+test('isNoindexPath: 旧年度一覧 /2025/ は noindex（2026-09-23追加。配下の /2025/horses/ も前方一致で含む）', () => {
+  assert.equal(isNoindexPath('/2025/'), true);
+  assert.equal(isNoindexPath('/2025/horses/93/'), true);
+});
+
 test('isNoindexPath: 出資馬の個別ページ /my-horses/<slug>/ は noindex（2026-09-12追加）', () => {
   assert.equal(isNoindexPath('/my-horses/eir/'), true);
   assert.equal(isNoindexPath('/my-horses/some-other-horse/'), true);
@@ -42,9 +47,9 @@ test('isNoindexPath: 前方一致だが接頭辞そのものではない紛ら�
   assert.equal(isNoindexPath('/my-horsesx/'), false);
 });
 
-test('NOINDEX_PATH_PREFIXES: 2026-09-12時点で期待する接頭辞が揃っている', () => {
+test('NOINDEX_PATH_PREFIXES: 2026-09-23時点で期待する接頭辞が揃っている', () => {
   assert.deepEqual(NOINDEX_PATH_PREFIXES, [
-    '/2025/horses/',
+    '/2025/',
     '/2026/horses/',
     '/2026/tour-weight/',
     '/2026/votes/',
