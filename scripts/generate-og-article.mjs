@@ -179,6 +179,16 @@ const ARTICLES = {
     chips: ['重賞馬率・獲得賞金で検証', '募集時点の順位で比較', '東西（美浦・栗東）も'],
     buildChart: stableLeadingChart,
   },
+  'hokkaido-departure': {
+    out: 'og-article-hokkaido-departure-v1.png',
+    tag: '育成',
+    headline: ['北海道を出る時期を', '<em>501頭</em>のデータで見る'],
+    countPlaceholder: '501頭',
+    lead: 'キャロットクラブ 2017〜2022年募集の近況データ × 現在の競走成績',
+    yearRangePlaceholder: '2017〜2022年',
+    chips: ['牡は2歳4〜5月に山', '牝は5月・8〜9月に二山', '重賞勝ち馬の実例も'],
+    buildChart: hokkaidoDepartureChart,
+  },
 };
 
 const slug = process.argv[2];
@@ -632,6 +642,50 @@ function stableLeadingChart() {
     yearRangeLabel: `${recruitYears[0]}〜${recruitYears[recruitYears.length - 1]}年`,
     html: barsHtml(counts),
     caption: 'リーディング上位かどうかの重賞馬率',
+  };
+}
+
+/**
+ * 記事と同じ「北海道を出た月」の分布（2歳2〜12月＋3歳以降）をミニ棒グラフにする
+ * （hokkaido-departure.astro の monthBars() と同じ binning・牡牝合計）。
+ *
+ * 使うのは `analysis/data/kinkyo-milestones.json` の本州入り日数（測尺からの経過日数）
+ * だけで、競走成績（`race-results.json`）は見ない。育成段階の実績は過去分が確定しており、
+ * 成績を取り直しても動かない値なのでカードに焼き込んでよい
+ * （generate-og-article.mjs冒頭コメント「画像に今後変わる数字を焼き込まない」を参照）。
+ */
+function hokkaidoDepartureChart() {
+  const file = JSON.parse(readFileSync(join(repoRoot, 'analysis', 'data', 'kinkyo-milestones.json'), 'utf8'));
+  const YEAR_FROM = 2017;
+  const YEAR_TO = 2022;
+  const milestones = file.results.filter(
+    (m) => m.recruitYear >= YEAR_FROM && m.recruitYear <= YEAR_TO && (m.sex === '牡' || m.sex === '牝')
+  );
+  // honshuArrivalDays() と同じ定義（本州の育成場到着とトレセン初入厩の早い方）。
+  const arrivalDays = (m) => {
+    const candidates = [m.honshuDays, m.stableDays].filter((d) => d !== null);
+    return candidates.length ? Math.min(...candidates) : null;
+  };
+  // ageMonthOf() と同じ換算（測尺日は募集年8/15で代用）。
+  const ageMonth = (m, days) => {
+    const d = new Date(Date.UTC(m.recruitYear, 7, 15));
+    d.setUTCDate(d.getUTCDate() + days);
+    return { age: d.getUTCFullYear() - (m.recruitYear - 1), month: d.getUTCMonth() + 1 };
+  };
+  const rows = milestones
+    .map((m) => ({ m, days: arrivalDays(m) }))
+    .filter((r) => r.days !== null);
+  const MONTH_SLOTS = [2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12];
+  const counts = MONTH_SLOTS.map(
+    (month) => rows.filter((r) => { const am = ageMonth(r.m, r.days); return am.age === 2 && am.month === month; }).length
+  );
+  const later = rows.filter((r) => ageMonth(r.m, r.days).age >= 3).length;
+  counts.push(later);
+  return {
+    total: rows.length,
+    yearRangeLabel: `${YEAR_FROM}〜${YEAR_TO}年`,
+    html: barsHtml(counts),
+    caption: '北海道を出た月の分布（2歳・牡牝計）',
   };
 }
 
