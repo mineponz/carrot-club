@@ -685,7 +685,7 @@ function hokkaidoDepartureChart() {
     total: rows.length,
     yearRangeLabel: `${YEAR_FROM}〜${YEAR_TO}年`,
     html: barsHtml(counts),
-    caption: '北海道を出た月の分布（2歳・牡牝計）',
+    caption: '北海道を出た月（2歳）',
   };
 }
 
