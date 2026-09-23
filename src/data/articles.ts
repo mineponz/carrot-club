@@ -14,11 +14,20 @@ export interface AnalysisArticle {
    * 記事の区分。'analysis' = 募集時データと成績を突き合わせた分析記事、
    * 'reading' = 募集時期に紐づかない読み物（例: 馬名の傾向）。`/articles/`一覧の
    * 見出しを分けるのに使う（2026-09-16、キャロ馬名傾向記事の追加に合わせて導入）。
+   * 'training' = 募集後〜デビュー前の育成の節目を扱う記事（2026-09-23、北海道を出る時期の記事で導入）。
    */
-  kind: 'analysis' | 'reading';
+  kind: 'analysis' | 'training' | 'reading';
 }
 
 export const analysisArticles: AnalysisArticle[] = [
+  {
+    href: '/articles/hokkaido-departure/',
+    title: 'キャロの募集馬は、いつ北海道を出るのか',
+    description:
+      '測尺から本州の育成場・トレセンへ移るまでの日数を、2017〜2022年募集の約500頭で数えた。牡は2歳4〜5月、牝は5月と8〜9月に山。早く出た馬ほどよく走るが、ダービー馬もジャパンカップ馬も遅く出た側にいた。',
+    image: '/og-article-hokkaido-departure-v1.png',
+    kind: 'training',
+  },
   {
     href: '/articles/second-offering/',
     title: '第2次募集の15頭を、過去のデータで見比べる',

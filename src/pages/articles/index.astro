@@ -17,6 +17,7 @@ const yearRangeLabel = `${years[0]}〜${years[years.length - 1]}年`;
 
 const sections = [
   { label: 'データ分析', articles: analysisArticles.filter((a) => a.kind === 'analysis') },
+  { label: '育成', articles: analysisArticles.filter((a) => a.kind === 'training') },
   { label: '読み物', articles: analysisArticles.filter((a) => a.kind === 'reading') },
 ].filter((s) => s.articles.length > 0);
 

@@ -284,7 +284,7 @@ const faqJsonLd = {
                 height="630"
                 loading="lazy"
               />
-              <span class="analysis-promo-kind">{a.kind === 'reading' ? '読み物' : '分析'}</span>
+              <span class="analysis-promo-kind">{a.kind === 'reading' ? '読み物' : a.kind === 'training' ? '育成' : '分析'}</span>
             </span>
             <span class="analysis-promo-title">{a.title}</span>
           </a>
