@@ -32,7 +32,8 @@
  *
  * グループ列（＝その馬が記事内のどの分類に入るか）も同じ扱いで、`groupFor`を渡した記事に
  * だけ出る（既定undefined＝列なし）。「大きい/小さい」のような分類の定義は記事ごとに
- * 違うので、判定そのものは呼び出し側の関数に任せる。誕生月記事（birth-month.astro）だけが渡す。
+ * 違うので、判定そのものは呼び出し側の関数に任せる。誕生月記事（birth-month.astro）と
+ * 北海道を出る時期の記事（hokkaido-departure.astro。列は「北海道を出た時期」）が渡す。
  */
 import type { RecruitWithResult } from '../lib/analysis-data.ts';
 import { formatManYen } from '../lib/chart-math.ts';

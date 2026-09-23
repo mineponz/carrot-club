@@ -27,7 +27,14 @@ import { AD_SP_WIDE_A, AD_SP_WIDE_B, AD_SP_RECT, AD_PC_WIDE_A, AD_PC_WIDE_B } fr
 import { loadRecruitsWithResults, RACE_RESULTS_FETCHED_AT, type RecruitWithResult } from '../../lib/analysis-data.ts';
 import { formatResultsAsOf } from '../../lib/sibling-recruits.ts';
 import { loadMilestones, honshuArrivalDays, type KinkyoMilestone } from '../../lib/kinkyo-milestones.ts';
-import { median, formatManYen, spearmanCorrelation } from '../../lib/chart-math.ts';
+import {
+  median,
+  formatManYen,
+  spearmanCorrelation,
+  correlationPValue,
+  twoProportionZTest,
+  formatP,
+} from '../../lib/chart-math.ts';
 
 const resultsAsOf = formatResultsAsOf(RACE_RESULTS_FETCHED_AT);
 
@@ -58,6 +65,12 @@ const rowsBySex = (sex: Sex) => rows.filter((r) => r.sex === sex);
 // 本州入りの記録が無い馬（募集中止・北海道で引退など）。本文で頭数だけ触れる。
 const noArrivalCount = milestonesInRange.filter((m) => honshuArrivalDays(m) === null).length;
 const cancelledCount = milestonesInRange.filter((m) => honshuArrivalDays(m) === null && m.cancelDays !== null).length;
+// 本州入りの日付はあるのに成績と結びつかず落ちた馬がいると、本文の「記録が無い○頭」と数が合わなくなる。
+if (rows.length + noArrivalCount !== milestonesInRange.length) {
+  throw new Error(
+    `[hokkaido-departure] 母数が合わない: 集計${rows.length}＋記録なし${noArrivalCount}≠${milestonesInRange.length}`,
+  );
+}
 
 // ---- 暦に直す ----
 // 測尺は1歳の8月。馬ごとの測尺日は持っていないので8月中旬で代用する（月の境目で1か月ずれうる）。
@@ -87,11 +100,17 @@ function monthBars(sex: Sex) {
   const later = xs.filter((x) => x.age >= 3).length;
   const earlier = xs.filter((x) => x.age < 2 || (x.age === 2 && x.month < MONTH_SLOTS[0])).length;
   bars.push({ label: '3歳〜', value: later, displayValue: `${later}頭` });
-  return { bars, total: xs.length, earlier };
+  // 2歳2月より前に出る馬が入ると、棒の合計がタイトルの頭数より静かに少なくなる。そうなったら階級を広げること。
+  if (earlier > 0) throw new Error(`[hokkaido-departure] 2歳2月より前に北海道を出た馬が${earlier}頭いる（${sex}）。MONTH_SLOTS を広げる`);
+  return { bars, total: xs.length };
 }
 const monthBySex = Object.fromEntries(SEXES.map((s) => [s, monthBars(s)])) as Record<Sex, ReturnType<typeof monthBars>>;
+const monthAxisMax = Math.max(...SEXES.flatMap((s) => monthBySex[s].bars.map((b) => b.value)));
 
-/** 中央値の日数を「2歳5月上旬」のような言い方にする（本文・タイル用）。 */
+/**
+ * 中央値の日数を「2歳5月上旬」のような言い方にする（本文・タイル用）。
+ * 基準年は2021年に固定している（うるう年をまたぐ年だと1日ずれうるが、旬の判定にはほぼ影響しない）。
+ */
 function medianLabel(sex: Sex): { days: number; label: string } {
   const days = median(rowsBySex(sex).map((r) => r.days));
   const d = new Date(Date.UTC(2021, 7, 15));
@@ -113,8 +132,24 @@ const farmToStable = viaFarm
   .sort((a, b) => a - b);
 const farmToStableMedian = median(farmToStable);
 const within7 = farmToStable.filter((d) => d <= 7).length;
+const over14 = farmToStable.filter((d) => d > 14).length;
 
-// ---- 早い／中くらい／遅いの3群（性別ごとに早い順に3等分。端数は遅い群が吸収） ----
+/**
+ * 値の小さい順に並んだ配列を、なるべく同じ頭数の3群に分ける。件数だけで切ると同じ値の馬が
+ * 2つの群に割れ、群の境目が「257日まで／257日〜」のように重なって見えるので、
+ * 切れ目の値と同じ値の馬は前の群に寄せる（どちらに入るかをデータの並び順に任せない）。
+ */
+function splitThirds<T>(sorted: T[], value: (x: T) => number): T[][] {
+  const cuts: number[] = [];
+  for (const target of [Math.floor(sorted.length / 3), Math.floor((2 * sorted.length) / 3)]) {
+    let c = Math.max(target, cuts[cuts.length - 1] ?? 0);
+    while (c < sorted.length && c > 0 && value(sorted[c]) === value(sorted[c - 1])) c++;
+    cuts.push(c);
+  }
+  return [sorted.slice(0, cuts[0]), sorted.slice(cuts[0], cuts[1]), sorted.slice(cuts[1])];
+}
+
+// ---- 早い／中くらい／遅いの3群（性別ごとに早い順に3等分） ----
 interface Group {
   label: string;
   n: number;
@@ -122,6 +157,7 @@ interface Group {
   hi: number;
   loLabel: string;
   hiLabel: string;
+  won: number;
   winRate: number;
   medianPrize: number;
   gradeWinners: number;
@@ -129,9 +165,8 @@ interface Group {
 const GROUP_NAMES = ['早い', '中くらい', '遅い'];
 function groupsOf(sex: Sex): Group[] {
   const sorted = [...rowsBySex(sex)].sort((a, b) => a.days - b.days);
-  const q = Math.floor(sorted.length / 3);
-  return [0, 1, 2].map((i) => {
-    const slice = i === 2 ? sorted.slice(2 * q) : sorted.slice(i * q, (i + 1) * q);
+  return splitThirds(sorted, (r) => r.days).map((slice, i) => {
+    const won = slice.filter((r) => (r.horse.wins ?? 0) > 0).length;
     return {
       label: GROUP_NAMES[i],
       n: slice.length,
@@ -139,13 +174,23 @@ function groupsOf(sex: Sex): Group[] {
       hi: slice[slice.length - 1].days,
       loLabel: ageMonthLabel(slice[0]),
       hiLabel: ageMonthLabel(slice[slice.length - 1]),
-      winRate: (100 * slice.filter((r) => (r.horse.wins ?? 0) > 0).length) / slice.length,
+      won,
+      winRate: (100 * won) / slice.length,
       medianPrize: median(slice.map((r) => r.horse.totalPrizeManYen)),
       gradeWinners: slice.filter((r) => r.horse.gradeWins.length > 0).length,
     };
   });
 }
 const groupsBySex = Object.fromEntries(SEXES.map((s) => [s, groupsOf(s)])) as Record<Sex, Group[]>;
+// 早い群と遅い群の勝ち上がり率の差の検定。
+const earlyVsLate = Object.fromEntries(
+  SEXES.map((s) => {
+    const [e, , l] = groupsBySex[s];
+    return [s, twoProportionZTest(e.won, e.n, l.won, l.n)];
+  }),
+) as Record<Sex, { z: number; p: number }>;
+// 2枚の棒グラフ（牡・牝）を同じ物差しで並べる。
+const prizeAxisMax = Math.max(...SEXES.flatMap((s) => groupsBySex[s].map((g) => g.medianPrize)));
 const groupBars = (sex: Sex) =>
   groupsBySex[sex].map((g) => ({
     label: g.label,
@@ -163,7 +208,7 @@ function weightCorr(sex: Sex) {
     xs.map((x) => x.horse.weight as number),
     xs.map((x) => x.days),
   );
-  return { r, n: xs.length };
+  return { r, p: correlationPValue(r, xs.length), n: xs.length };
 }
 const weightCorrBySex = Object.fromEntries(SEXES.map((s) => [s, weightCorr(s)])) as Record<Sex, ReturnType<typeof weightCorr>>;
 
@@ -173,9 +218,7 @@ function withinWeight(sex: Sex) {
   const xs = rowsBySex(sex)
     .filter((r) => r.horse.weight !== null)
     .sort((a, b) => (a.horse.weight as number) - (b.horse.weight as number));
-  const q = Math.floor(xs.length / 3);
-  return [0, 1, 2].map((i) => {
-    const slice = i === 2 ? xs.slice(2 * q) : xs.slice(i * q, (i + 1) * q);
+  return splitThirds(xs, (r) => r.horse.weight as number).map((slice, i) => {
     const byDays = [...slice].sort((a, b) => a.days - b.days);
     const half = Math.floor(byDays.length / 2);
     const early = byDays.slice(0, half);
@@ -194,6 +237,36 @@ function withinWeight(sex: Sex) {
 const withinWeightBySex = Object.fromEntries(SEXES.map((s) => [s, withinWeight(s)])) as Record<Sex, ReturnType<typeof withinWeight>>;
 const allWeightTiersHold = SEXES.every((s) => withinWeightBySex[s].every((t) => t.earlyRate > t.lateRate));
 
+// ---- 早生まれだから早く出ているだけでは？（誕生月でも同じ確認をする） ----
+const birthMonthOf = (r: Row) => (r.horse.birthDate ? Number(r.horse.birthDate.slice(5, 7)) : null);
+function birthCorr(sex: Sex) {
+  const xs = rowsBySex(sex).filter((r) => birthMonthOf(r) !== null);
+  const toDays = spearmanCorrelation(xs.map((x) => birthMonthOf(x) as number), xs.map((x) => x.days));
+  const toWin = spearmanCorrelation(
+    xs.map((x) => birthMonthOf(x) as number),
+    xs.map((x) => ((x.horse.wins ?? 0) > 0 ? 1 : 0)),
+  );
+  return { toDays, toWin, n: xs.length };
+}
+const birthCorrBySex = Object.fromEntries(SEXES.map((s) => [s, birthCorr(s)])) as Record<Sex, ReturnType<typeof birthCorr>>;
+const BIRTH_TIERS: [string, (m: number) => boolean][] = [
+  ['1〜2月生まれ', (m) => m <= 2],
+  ['3月生まれ', (m) => m === 3],
+  ['4月以降生まれ', (m) => m >= 4],
+];
+function withinBirth(sex: Sex) {
+  return BIRTH_TIERS.map(([label, f]) => {
+    const byDays = rowsBySex(sex)
+      .filter((r) => birthMonthOf(r) !== null && f(birthMonthOf(r) as number))
+      .sort((a, b) => a.days - b.days);
+    const half = Math.floor(byDays.length / 2);
+    const rate = (g: Row[]) => (100 * g.filter((r) => (r.horse.wins ?? 0) > 0).length) / g.length;
+    return { label, n: byDays.length, earlyRate: rate(byDays.slice(0, half)), lateRate: rate(byDays.slice(half)) };
+  });
+}
+const withinBirthBySex = Object.fromEntries(SEXES.map((s) => [s, withinBirth(s)])) as Record<Sex, ReturnType<typeof withinBirth>>;
+const allBirthTiersHold = SEXES.every((s) => withinBirthBySex[s].every((t) => t.earlyRate > t.lateRate));
+
 // ---- 重賞を勝った馬はいつ出たか ----
 const pctRankOf = (r: Row) => {
   const same = rowsBySex(r.sex);
@@ -210,6 +283,7 @@ const gradeGroupLabel = (h: RecruitWithResult) => {
 const lateGradeRows = gradeRows.filter((r) => r.days >= groupsBySex[r.sex][2].lo);
 const gradeCount = gradeRows.length;
 const lateGradeCount = lateGradeRows.length;
+const gradeByGroup = [0, 1, 2].map((i) => SEXES.reduce((sum, s) => sum + groupsBySex[s][i].gradeWinners, 0));
 const gradeLabelOf = (r: Row) => r.horse.gradeWins[0] ?? '';
 
 // ---- 募集年ごとの中央値（年によってどのくらい動くか） ----
@@ -219,6 +293,28 @@ const yearMedians = Array.from({ length: YEAR_TO - YEAR_FROM + 1 }, (_, i) => YE
 }));
 const yearMedMin = Math.min(...yearMedians.map((y) => y.med));
 const yearMedMax = Math.max(...yearMedians.map((y) => y.med));
+const sexMedGap = medFemale.days - medMale.days;
+
+// ---- 本文の読みをビルド時に確かめる ----
+// 成績（race-results.json）は取り直すたびに動く。地の文が固定の解釈なので、前提が崩れたらビルドを落とす。
+const [fE, fM, fL] = groupsBySex['牝'];
+const [mE, mM, mL] = groupsBySex['牡'];
+const assertions: [string, boolean][] = [
+  ['牝の勝ち上がり率が早い＞中くらい＞遅いの階段', fE.winRate > fM.winRate && fM.winRate > fL.winRate],
+  ['牝の賞金中央値が早い＞中くらい＞遅いの階段', fE.medianPrize > fM.medianPrize && fM.medianPrize > fL.medianPrize],
+  ['牡の早い群と中くらいの勝ち上がり率の差が3ポイント以内', Math.abs(mE.winRate - mM.winRate) <= 3],
+  ['牡の遅い群が他の2群より勝ち上がり率で10ポイント以上低い', Math.min(mE.winRate, mM.winRate) - mL.winRate >= 10],
+  ['早い群と遅い群の勝ち上がり率の差が牡牝とも p<0.05', SEXES.every((s) => earlyVsLate[s].p < 0.05)],
+  ['体重3分位の6組すべてで早く出た半分が上', allWeightTiersHold],
+  ['誕生月3区分の6組すべてで早く出た半分が上', allBirthTiersHold],
+  ['誕生月と本州入りの相関が牡牝とも弱い（|r|<0.2）', SEXES.every((s) => Math.abs(birthCorrBySex[s].toDays ?? 1) < 0.2)],
+  ['重い馬ほど早く出る（牡牝とも r<0）', SEXES.every((s) => (weightCorrBySex[s].r ?? 0) < 0)],
+  ['重賞馬は遅い群より早い群に多い（牡牝とも）', SEXES.every((s) => groupsBySex[s][0].gradeWinners > groupsBySex[s][2].gradeWinners)],
+  ['遅い群にダービー馬とジャパンC馬がいる', ['日本ダービー', 'ジャパンC'].every((race) => lateGradeRows.some((r) => r.horse.gradeWins.some((g) => g.includes(race))))],
+  ['牝の2歳8〜9月に山がある（7月より多い）', (() => { const b = monthBySex['牝'].bars; return b[6].value > b[5].value && b[7].value > b[5].value; })()],
+];
+const broken = assertions.filter(([, ok]) => !ok).map(([label]) => label);
+if (broken.length) throw new Error(`[hokkaido-departure] 本文の前提が崩れた: ${broken.join(' / ')}`);
 
 const monthsOf = (d: number) => (d / 30.44).toFixed(1);
 
@@ -276,12 +372,14 @@ const description = `【非公式】キャロットクラブ${YEAR_FROM}〜${YEA
       title={`牡が北海道を出た月（2歳時・${monthBySex['牡'].total}頭）`}
       valueLabel="頭数"
       bars={monthBySex['牡'].bars}
+      axisMax={monthAxisMax}
       height={220}
     />
     <BarChart
       title={`牝が北海道を出た月（2歳時・${monthBySex['牝'].total}頭）`}
       valueLabel="頭数"
       bars={monthBySex['牝'].bars}
+      axisMax={monthAxisMax}
       height={220}
     />
     <p>
@@ -291,23 +389,28 @@ const description = `【非公式】キャロットクラブ${YEAR_FROM}〜${YEA
     <p>
       牝は5月に最初の山があって、中央値は{medFemale.label}（約{monthsOf(medFemale.days)}か月）と牡より1か月ほど遅い。
       そして<strong>8〜9月にもう一つ山がある</strong>。夏まで北海道で過ごしてから出ていく牝馬がまとまっているのは、
-      牡には無い形だった。近況で「まだ北海道」の牝馬がいても、夏の終わりまではごく普通の範囲と見てよさそうだ。
+      牡には無い形だった。近況で夏まで「まだ北海道」が続く牝馬は、頻度で言えば珍しくない。
+      ただ、あとで見るように、その後の成績には差が出ている。
     </p>
     <p>
-      年によるぶれは意外と小さく、募集年ごとの中央値は{Math.round(yearMedMin)}〜{Math.round(yearMedMax)}日の間に収まっていた。
+      募集年ごとの中央値（牡牝あわせて）は{Math.round(yearMedMin)}〜{Math.round(yearMedMax)}日で、
+      年によって{Math.round(yearMedMax - yearMedMin)}日ほど動く。牡と牝の差（{Math.round(sexMedGap)}日）と同じくらいの幅なので、
+      「今年はみんな遅い」ということもありうる。
     </p>
 
-    <h2>天栄・しがらきは、数日の中継地</h2>
+    <h2>天栄・しがらきを経て、すぐトレセンへ</h2>
     <p>
       北海道を出た馬の{Math.round((100 * viaFarm.length) / rows.length)}%（{viaFarm.length}頭）は、
-      まずＮＦ天栄かＮＦしがらきに入る。ただ、そこに長くいるわけではなく、
+      まずＮＦ天栄かＮＦしがらきに入る。ただ、そこに長くいる馬は少なく、
       トレセンに入るまでの日数の中央値は<strong>{farmToStableMedian}日</strong>。
-      {farmToStable.length}頭のうち{within7}頭が1週間以内にトレセンへ移っている。
+      {farmToStable.length}頭のうち{Math.round((100 * within7) / farmToStable.length)}%（{within7}頭）が1週間以内にトレセンへ移っていて、
+      2週間を超えて留まったのは{Math.round((100 * over14) / farmToStable.length)}%（{over14}頭）だった。
     </p>
     <p>
-      つまり「北海道を出る」は、ほとんどの場合そのまま<strong>入厩のための移動</strong>で、天栄・しがらきは長距離輸送の途中で
-      数日体を休める中継地になっている。はじめから天栄・しがらきを通らずにトレセンへ入った馬も{direct}頭いた。
-      なので近況で本州への移動を見たら、ゲート試験やデビューに向けた段階に入ったと思ってよい。
+      北海道からの長い輸送のあと、天栄・しがらきで数日休ませてからトレセンに入る、という流れが多い。
+      だから「北海道を出る」は、たいていそのまま<strong>入厩に向けた移動</strong>になっている。
+      はじめから天栄・しがらきを通らずにトレセンへ入った馬も{direct}頭いた。
+      近況で本州への移動を見たら、ゲート試験やデビューに向けた段階に入ったと思ってよさそうだ。
     </p>
 
     <AdSlot sp={AD_SP_WIDE_B} pc={AD_PC_WIDE_B} />
@@ -323,10 +426,11 @@ const description = `【非公式】キャロットクラブ${YEAR_FROM}〜${YEA
       nLabel="頭数"
       noteLabel="その後"
       bars={groupBars('牡')}
+      axisMax={prizeAxisMax}
     />
     <p class="fig-note">
-      牡の3群の区切り: 早い＝{groupsBySex['牡'][0].hi}日まで（〜{groupsBySex['牡'][0].hiLabel}ごろ）、
-      中くらい＝{groupsBySex['牡'][1].lo}〜{groupsBySex['牡'][1].hi}日、遅い＝{groupsBySex['牡'][2].lo}日以降。
+      牡の3群の区切り（測尺からの日数）: 早い＝{groupsBySex['牡'][0].hi}日まで（〜{groupsBySex['牡'][0].hiLabel}ごろ）、
+      中くらい＝{groupsBySex['牡'][1].lo}〜{groupsBySex['牡'][1].hi}日、遅い＝{groupsBySex['牡'][2].lo}日以降（{groupsBySex['牡'][2].loLabel}ごろ〜）。
     </p>
     <BarChart
       title="北海道を出た早さ別・獲得賞金の中央値（牝）"
@@ -334,28 +438,35 @@ const description = `【非公式】キャロットクラブ${YEAR_FROM}〜${YEA
       nLabel="頭数"
       noteLabel="その後"
       bars={groupBars('牝')}
+      axisMax={prizeAxisMax}
     />
     <p class="fig-note">
-      牝の3群の区切り: 早い＝{groupsBySex['牝'][0].hi}日まで（〜{groupsBySex['牝'][0].hiLabel}ごろ）、
-      中くらい＝{groupsBySex['牝'][1].lo}〜{groupsBySex['牝'][1].hi}日、遅い＝{groupsBySex['牝'][2].lo}日以降。
+      牝の3群の区切り（測尺からの日数）: 早い＝{groupsBySex['牝'][0].hi}日まで（〜{groupsBySex['牝'][0].hiLabel}ごろ）、
+      中くらい＝{groupsBySex['牝'][1].lo}〜{groupsBySex['牝'][1].hi}日、遅い＝{groupsBySex['牝'][2].lo}日以降（{groupsBySex['牝'][2].loLabel}ごろ〜）。
     </p>
     <p>
       牝はきれいな階段になった。勝ち上がり率は早い群{groupsBySex['牝'][0].winRate.toFixed(1)}%、
       中くらい{groupsBySex['牝'][1].winRate.toFixed(1)}%、遅い群{groupsBySex['牝'][2].winRate.toFixed(1)}%。
       賞金の中央値も{formatManYen(groupsBySex['牝'][0].medianPrize)}万円から
       {formatManYen(groupsBySex['牝'][2].medianPrize)}万円まで下がっていく。
+      さきほどの8〜9月の山は、ほぼまるごとこの遅い群に入る。
     </p>
     <p>
       牡は形が少し違って、早い群（{groupsBySex['牡'][0].winRate.toFixed(1)}%）と中くらい（{groupsBySex['牡'][1].winRate.toFixed(1)}%）は
       ほとんど差がなく、遅い群だけが{groupsBySex['牡'][2].winRate.toFixed(1)}%と下がる。
-      牡の場合、春に出るか初夏に出るかはあまり関係なく、{groupsBySex['牡'][2].loLabel}を過ぎても北海道にいるかどうかが分かれ目になっている。
+      牡の場合、春に出るか初夏に出るかはあまり関係なく、6月いっぱいで北海道を出られたかどうかが分かれ目になっている。
+    </p>
+    <p>
+      早い群と遅い群の勝ち上がり率の差は、牡（{formatP(earlyVsLate['牡'].p)}）・牝（{formatP(earlyVsLate['牝'].p)}）とも
+      偶然では説明しにくい大きさだった（<TermLink to="p-value">p値</TermLink>）。
     </p>
 
     <div class="finding">
       <p class="finding-lead">体が大きい馬ほど早く出ているだけでは？</p>
       <p>
         これは気になったので確かめた。募集時の馬体重と北海道を出た早さの<TermLink to="spearman">順位相関</TermLink>は
-        牡{weightCorrBySex['牡'].r?.toFixed(2)}・牝{weightCorrBySex['牝'].r?.toFixed(2)}で、
+        牡{weightCorrBySex['牡'].r?.toFixed(2)}（{formatP(weightCorrBySex['牡'].p ?? NaN)}）・
+        牝{weightCorrBySex['牝'].r?.toFixed(2)}（{formatP(weightCorrBySex['牝'].p ?? NaN)}）で、
         たしかに<strong>重い馬ほど早く出る</strong>傾向がある。
         そこで馬体重の近い馬どうしで比べ直した。性別ごとに馬体重で3等分し、それぞれの中で北海道を出た早い半分と
         遅い半分の勝ち上がり率を並べたのが下の表。
@@ -385,23 +496,61 @@ const description = `【非公式】キャロットクラブ${YEAR_FROM}〜${YEA
         </table>
       </div>
       <p>
-        {allWeightTiersHold
-          ? '6つの組すべてで、早く出た半分のほうが勝ち上がっていた。'
-          : '組によっては差が縮むものの、多くの組で早く出た半分のほうが勝ち上がっていた。'}
-        体の大きさだけでは説明しきれない差が残る。
+        6つの組すべてで、早く出た半分のほうが勝ち上がっていた。体の大きさだけでは説明しきれない差が残る。
+      </p>
+    </div>
+
+    <div class="finding">
+      <p class="finding-lead">早生まれだから早く出ているだけでは？</p>
+      <p>
+        早く生まれた馬ほど早く育って早く出る、なら「早生まれが走る」話の言い換えになってしまう。
+        ところが誕生月と北海道を出た早さの順位相関は牡{birthCorrBySex['牡'].toDays?.toFixed(2)}・
+        牝{birthCorrBySex['牝'].toDays?.toFixed(2)}で、<strong>ほとんど関係がなかった</strong>。
+        誕生月と勝ち上がりの関係も牡{birthCorrBySex['牡'].toWin?.toFixed(2)}・牝{birthCorrBySex['牝'].toWin?.toFixed(2)}とほぼゼロ
+        （<a href="/articles/birth-month/">誕生月の記事</a>でも成績との関係は弱かった）。
+        念のため誕生月で3つに分けて、同じように早く出た半分と遅く出た半分を比べた。
+      </p>
+      <div class="table-scroll">
+        <table class="tier-table">
+          <thead>
+            <tr>
+              <th>性</th>
+              <th>誕生月</th>
+              <th>早く出た半分</th>
+              <th>遅く出た半分</th>
+            </tr>
+          </thead>
+          <tbody>
+            {SEXES.map((s) =>
+              withinBirthBySex[s].map((t) => (
+                <tr>
+                  <th scope="row">{s}</th>
+                  <td>{t.label}（{t.n}頭）</td>
+                  <td class="num">{t.earlyRate.toFixed(1)}%</td>
+                  <td class="num">{t.lateRate.toFixed(1)}%</td>
+                </tr>
+              )),
+            )}
+          </tbody>
+        </table>
+      </div>
+      <p>
+        こちらも6つの組すべてで早く出た半分が上。北海道を出る時期は、生まれ月とは別に、
+        その馬の育ち具合を見て決まっているように見える。
       </p>
     </div>
 
     <h2>これは「早く出せば走る」ではない</h2>
     <p>
       ここは読み違えたくないところで、北海道を出る日付は馬の能力を作るものではない。
-      牧場が「この馬は態勢が整った」と判断した結果が、移動日という形で外から見えているだけだ。
-      毎日その馬に乗っている人たちの評価が日付に出ている、と考えると、
+      牧場や厩舎が「この馬は態勢が整った」と判断した結果が、移動日という形で外から見えている、と考えるのが自然だと思う。
+      毎日その馬に乗っている人たちの評価が日付に出ているのなら、
       早い群がよく走っているのは不思議でも何でもない。
     </p>
     <p>
-      逆に北海道に残るのは、成長を待っているのか、どこかに不安があるのか。近況の本文を読まないと分からないし、
-      その中には時間をかけたからこそ大成した馬もいる。次の表がそれだ。
+      逆に北海道に残るのは、成長を待っているのか、どこかに不安があるのか。近況の本文を読まないと分からない。
+      近況に本州へ来た記録が見当たらない馬も、{YEAR_FROM}〜{YEAR_TO}年募集で{noArrivalCount}頭
+      （うち{cancelledCount}頭は募集中止）いた。一方で、時間をかけたからこそ大成した馬もいる。次の節がそれだ。
     </p>
 
     <div class="ad-rect">
@@ -410,13 +559,9 @@ const description = `【非公式】キャロットクラブ${YEAR_FROM}〜${YEA
 
     <h2>遅く出ても、重賞を勝った馬はいる</h2>
     <p>
-      {rows.length}頭のうち重賞を勝った{gradeCount}頭を、北海道を出た早い順に並べた。
-      「北海道を出た時期」の列のパーセントは、同じ性の馬の中で早い方から何%の位置かを表している。
-    </p>
-    <GradeWinnerTable rows={gradeRows.map((r) => r.horse)} groupFor={gradeGroupLabel} groupLabel="北海道を出た時期" />
-    <p>
-      重賞馬は早い側に多い。それでも遅い群（性別ごとの3等分の最後）からも{lateGradeCount}頭が出ていて、
-      その顔ぶれがすごい。
+      {rows.length}頭のうち重賞を勝ったのは{gradeCount}頭。3群に分けると早い群{gradeByGroup[0]}頭・
+      中くらい{gradeByGroup[1]}頭・遅い群{gradeByGroup[2]}頭で、やはり早い側に多い。
+      それでも遅い群からの{lateGradeCount}頭は、顔ぶれがすごい。
     </p>
     <ul class="late-winners">
       {lateGradeRows.map((r) => (
@@ -425,6 +570,14 @@ const description = `【非公式】キャロットクラブ${YEAR_FROM}〜${YEA
         </li>
       ))}
     </ul>
+    <p>
+      重賞馬全員の一覧は下に畳んである（北海道を出た早い順。「北海道を出た時期」の列のパーセントは、
+      同じ性の馬の中で早い方から何%の位置か）。
+    </p>
+    <details class="more-winners">
+      <summary>重賞を勝った{gradeCount}頭をすべて見る</summary>
+      <GradeWinnerTable rows={gradeRows.map((r) => r.horse)} groupFor={gradeGroupLabel} groupLabel="北海道を出た時期" />
+    </details>
     <p>
       ダービー馬もジャパンカップの勝ち馬も、夏を越して北海道を出た側にいる。確率で見れば遅い群は分が悪いけれど、
       近況で「まだ北海道」が続いても、それだけで見限る理由にはならない。
@@ -439,14 +592,14 @@ const description = `【非公式】キャロットクラブ${YEAR_FROM}〜${YEA
         牝は8〜9月にもう一つ山がある。
       </li>
       <li>
-        天栄・しがらきは多くの馬にとって数日の中継地で、北海道を出る＝入厩に向かう、とほぼ同じ意味になる。
+        天栄・しがらきからトレセンまでは中央値{farmToStableMedian}日。北海道を出るのは、たいていそのまま入厩に向けた移動になっている。
       </li>
       <li>
-        早く出た馬ほどその後よく走っていた。牝は早い・中くらい・遅いの順にきれいに下がり、牡は遅い群だけが下がる。
-        募集時の馬体重が近い馬どうしで比べても、この差は残った。
+        その後の成績は、牝は早い・中くらい・遅いの順にきれいに下がり、牡は遅い群だけが下がる。
+        募集時の馬体重が近い馬どうし、誕生月が近い馬どうしで比べても、この差は残った。
       </li>
       <li>
-        ただしこれは牧場の判断が日付に出たもので、「早く出せば走る」ではない。
+        ただしこれは牧場や厩舎の判断が日付に出たものと考えられ、「早く出せば走る」ではない。
         遅く出た側からもダービー馬やジャパンカップ馬が出ている。
       </li>
       <li>
@@ -464,7 +617,6 @@ const description = `【非公式】キャロットクラブ${YEAR_FROM}〜${YEA
       北海道を出た日は、クラブの近況に付いている日付と所在地から数えた。本州の育成場（ＮＦ天栄・ＮＦしがらき）に
       着いた日とトレセンに初めて入った日の早い方を「本州に来た日」としている。
       月に直すときは測尺日を1歳の8月中旬として計算しているので、月の変わり目近くの馬は実際と1か月ずれることがある。
-      {YEAR_FROM}〜{YEAR_TO}年募集のうち、募集中止（{cancelledCount}頭）などで本州に来た記録が無い{noArrivalCount}頭は含めていない。
       成績は{resultsAsOf}時点で、勝ち上がりは中央・地方で1勝以上、獲得賞金は中央と地方の合計。
       成績がほぼ出そろった世代だけを使っているので、今の2〜3歳は含めていない。
     </p>
@@ -522,6 +674,20 @@ const description = `【非公式】キャロットクラブ${YEAR_FROM}〜${YEA
   .tier-table .num {
     text-align: right;
     font-variant-numeric: tabular-nums;
+  }
+  .more-winners {
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 0.5rem 0.85rem;
+    margin: 0.5rem 0 1rem;
+  }
+  .more-winners summary {
+    cursor: pointer;
+    font-weight: 600;
+    padding: 0.25rem 0;
+  }
+  .more-winners :global(.table-scroll) {
+    margin-top: 0.5rem;
   }
   .late-winners {
     padding-left: 1.25rem;
