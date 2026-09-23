@@ -16,6 +16,7 @@
  */
 import BaseLayout from '../../layouts/BaseLayout.astro';
 import BarChart from '../../components/charts/BarChart.astro';
+import ScatterChart from '../../components/charts/ScatterChart.astro';
 import StatTiles from '../../components/charts/StatTiles.astro';
 import ChartTooltip from '../../components/charts/ChartTooltip.astro';
 import ArticleToc from '../../components/ArticleToc.astro';
@@ -200,6 +201,48 @@ const groupBars = (sex: Sex) =>
     note: `勝ち上がり${g.winRate.toFixed(1)}%・重賞馬${g.gradeWinners}頭`,
   }));
 
+// ---- 北海道を出た日 × 獲得賞金の散布図 ----
+// 横軸は測尺からの日数のまま置き、目盛りだけ「2歳3月」のような暦で読めるようにする
+// （基準は medianLabel と同じ 2021-08-15。月初の日数を目盛りにする）。
+const SCATTER_X_MAX = 600;
+const SCATTER_Y_MAX = 20000;
+const daysToMonthStart = (year: number, month: number) =>
+  Math.round((Date.UTC(year, month - 1, 1) - Date.UTC(2021, 7, 15)) / 86400000);
+const scatterXTicks: [number, string][] = [
+  [daysToMonthStart(2022, 3), '2歳3月'],
+  [daysToMonthStart(2022, 6), '6月'],
+  [daysToMonthStart(2022, 9), '9月'],
+  [daysToMonthStart(2022, 12), '12月'],
+  [daysToMonthStart(2023, 3), '3歳3月'],
+];
+const scatterTickLabel = new Map(scatterXTicks);
+const scatterPoints = rows
+  .filter((r) => r.days <= SCATTER_X_MAX && r.horse.totalPrizeManYen <= SCATTER_Y_MAX)
+  .map((r) => ({
+    x: r.days,
+    y: r.horse.totalPrizeManYen,
+    seriesKey: r.sex === '牡' ? 'male' : 'female',
+    tipTitle: r.horse.displayName,
+    tipRows: [
+      ['北海道を出た時期', `${ageMonthLabel(r)}（測尺から${r.days}日）`],
+      ['獲得賞金合計', `${formatManYen(r.horse.totalPrizeManYen)}万円`],
+      ['通算成績', `${r.horse.starts}戦${r.horse.wins ?? 0}勝`],
+    ] as [string, string][],
+  }));
+const scatterOmittedPrize = rows.filter((r) => r.horse.totalPrizeManYen > SCATTER_Y_MAX).length;
+const scatterOmittedLate = rows.filter((r) => r.days > SCATTER_X_MAX && r.horse.totalPrizeManYen <= SCATTER_Y_MAX).length;
+const scatterSeries = [
+  { key: 'male', label: '牡', colorVar: '--series-1' },
+  { key: 'female', label: '牝', colorVar: '--series-2' },
+];
+// 北海道を出た早さと獲得賞金の順位相関（全頭。グラフで省いた馬も含む）。
+function prizeCorr(sex: Sex) {
+  const xs = rowsBySex(sex);
+  const r = spearmanCorrelation(xs.map((x) => x.days), xs.map((x) => x.horse.totalPrizeManYen));
+  return { r, p: correlationPValue(r, xs.length) };
+}
+const prizeCorrBySex = Object.fromEntries(SEXES.map((s) => [s, prizeCorr(s)])) as Record<Sex, ReturnType<typeof prizeCorr>>;
+
 // ---- 体の大きさで揃えても差は残るか ----
 // 馬体重と本州入りの早さの順位相関（重い馬ほど早く出るか）。
 function weightCorr(sex: Sex) {
@@ -308,6 +351,7 @@ const assertions: [string, boolean][] = [
   ['体重3分位の6組すべてで早く出た半分が上', allWeightTiersHold],
   ['誕生月3区分の6組すべてで早く出た半分が上', allBirthTiersHold],
   ['誕生月と本州入りの相関が牡牝とも弱い（|r|<0.2）', SEXES.every((s) => Math.abs(birthCorrBySex[s].toDays ?? 1) < 0.2)],
+  ['遅く出た馬ほど賞金が少ない（牡牝とも r<0・p<0.05）', SEXES.every((s) => (prizeCorrBySex[s].r ?? 0) < 0 && (prizeCorrBySex[s].p ?? 1) < 0.05)],
   ['重い馬ほど早く出る（牡牝とも r<0）', SEXES.every((s) => (weightCorrBySex[s].r ?? 0) < 0)],
   ['重賞馬は遅い群より早い群に多い（牡牝とも）', SEXES.every((s) => groupsBySex[s][0].gradeWinners > groupsBySex[s][2].gradeWinners)],
   ['遅い群にダービー馬とジャパンC馬がいる', ['日本ダービー', 'ジャパンC'].every((race) => lateGradeRows.some((r) => r.horse.gradeWins.some((g) => g.includes(race))))],
@@ -417,7 +461,36 @@ const description = `【非公式】キャロットクラブ${YEAR_FROM}〜${YEA
 
     <h2>早く出た馬は、その後どうだったか</h2>
     <p>
-      牡・牝それぞれを北海道を出た早い順に並べて3等分し、その後の成績を比べた。
+      まずは1頭ずつ点で見てみる。横が北海道を出た時期、縦がその後の獲得賞金。
+    </p>
+    <ScatterChart
+      title={`北海道を出た時期 × 獲得賞金合計（${scatterPoints.length}頭）`}
+      points={scatterPoints}
+      series={scatterSeries}
+      xLabel="北海道を出た時期"
+      yLabel="獲得賞金合計(万円)"
+      xDomain={[150, SCATTER_X_MAX]}
+      yDomain={[0, SCATTER_Y_MAX]}
+      xTicks={scatterXTicks.map(([d]) => d)}
+      yTicks={[0, 5000, 10000, 15000, 20000]}
+      formatX={(v) => scatterTickLabel.get(v) ?? ''}
+      formatY={(v) => (v === 0 ? '0' : `${v / 10000}億`)}
+    />
+    <p class="fig-note">
+      獲得賞金が2億円を超える{scatterOmittedPrize}頭はグラフの上に出るので省いた（重賞馬の一覧に全員入っている）。
+      {scatterOmittedLate > 0 && <>測尺から{SCATTER_X_MAX}日（3歳4月上旬）より遅く出た{scatterOmittedLate}頭も右端の外なので省いている。</>}
+      点にカーソルを合わせる（スマホはタップ）と馬名が出る。
+    </p>
+    <p>
+      左の方ほど縦に伸びる点が多く、右へ行くほど下の方に固まっていく。
+      ただ、左側にも賞金がほとんど無い点はたくさんあるし、右側にもぽつぽつ高い点がある。
+      北海道を出た早さと賞金の<TermLink to="spearman">順位相関</TermLink>は
+      牡{prizeCorrBySex['牡'].r?.toFixed(2)}（{formatP(prizeCorrBySex['牡'].p ?? NaN)}）・
+      牝{prizeCorrBySex['牝'].r?.toFixed(2)}（{formatP(prizeCorrBySex['牝'].p ?? NaN)}）。
+      向きははっきりしているけれど、1頭ごとの成績を言い当てられるほど強くはない、という程度だ。
+    </p>
+    <p>
+      これを3つの群に分けてまとめたのが次のグラフ。牡・牝それぞれを北海道を出た早い順に並べて3等分し、その後の成績を比べた。
       棒は獲得賞金の中央値で、下に勝ち上がり率と重賞馬の頭数を添えている。
     </p>
     <BarChart
