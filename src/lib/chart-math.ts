@@ -313,3 +313,18 @@ export function twoProportionZTest(x1: number, n1: number, x2: number, n2: numbe
   const z = se === 0 ? 0 : (p1 - p2) / se;
   return { z, p: 2 * (1 - normCdf(Math.abs(z))) };
 }
+
+/**
+ * 値の小さい順に並んだ配列を、なるべく同じ頭数の3群に分ける。件数だけで切ると同じ値の馬が
+ * 2つの群に割れ、群の境目が「257日まで／257日〜」のように重なって見えるので、
+ * 切れ目の値と同じ値の馬は前の群に寄せる（どちらに入るかをデータの並び順に任せない）。
+ */
+export function splitThirds<T>(sorted: T[], value: (x: T) => number): T[][] {
+  const cuts: number[] = [];
+  for (const target of [Math.floor(sorted.length / 3), Math.floor((2 * sorted.length) / 3)]) {
+    let c = Math.max(target, cuts[cuts.length - 1] ?? 0);
+    while (c < sorted.length && c > 0 && value(sorted[c]) === value(sorted[c - 1])) c++;
+    cuts.push(c);
+  }
+  return [sorted.slice(0, cuts[0]), sorted.slice(cuts[0], cuts[1]), sorted.slice(cuts[1])];
+}

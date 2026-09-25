@@ -16,6 +16,7 @@ import {
   correlationPValue,
   formatP,
   probabilityOfSuperiority,
+  splitThirds,
 } from './chart-math.ts';
 
 test('mean averages values', () => {
@@ -194,4 +195,15 @@ test('probabilityOfSuperiority measures overlap between two groups', () => {
   assert.ok(auc !== null && auc > 0.4 && auc < 0.6);
   assert.equal(probabilityOfSuperiority([], [1]), null);
   assert.equal(probabilityOfSuperiority([1], []), null);
+});
+
+test('splitThirds: 同値は前の群に寄せ、群の境目で値が重ならない', () => {
+  const xs = [1, 2, 3, 3, 3, 4, 5, 6, 7];
+  const groups = splitThirds(xs, (x) => x);
+  assert.deepEqual(groups, [[1, 2, 3, 3, 3], [4], [5, 6, 7]]);
+  assert.equal(groups.flat().length, xs.length);
+});
+
+test('splitThirds: 同値が無ければ件数で3等分し、端数は最後の群', () => {
+  assert.deepEqual(splitThirds([1, 2, 3, 4, 5, 6, 7], (x) => x), [[1, 2], [3, 4], [5, 6, 7]]);
 });

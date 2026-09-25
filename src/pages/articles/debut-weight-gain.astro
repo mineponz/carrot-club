@@ -1,0 +1,646 @@
+---
+/**
+ * 育成記事「デビューまでにたくさん増えた馬は、走るのか」。
+ *
+ * 1歳8月の測尺時の馬体重（`analysis/data/recruits.json` の weight）と、デビュー戦の馬体重
+ * （`analysis/data/debut-weights.json`。取得は `scripts/fetch-debut-weights.mjs`）の差＝増加量で、
+ * その後の成績が違うかを見る。区分は 'training'（育成）。北海道を出る時期の記事
+ * （hokkaido-departure.astro）と母集団・書き方・3等分の仕方を揃えている。
+ *
+ * 結論は「増え方そのものからはほぼ何も読めない」。見かけの差はデビューまでの日数（遅いデビューほど
+ * 増えていて、成績も落ちる）で説明できる、という形。打ち消しに使う数字（1日あたりの増加・日数で揃えた比較）
+ * もページ内で計算し、読みの前提はビルド時アサーションで守る。
+ *
+ * デビューした馬しか比べられない（未出走馬は増加量が無い）点は本文で断る。
+ */
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import BarChart from '../../components/charts/BarChart.astro';
+import ScatterChart from '../../components/charts/ScatterChart.astro';
+import StatTiles from '../../components/charts/StatTiles.astro';
+import ChartTooltip from '../../components/charts/ChartTooltip.astro';
+import ArticleToc from '../../components/ArticleToc.astro';
+import MethodsLink from '../../components/MethodsLink.astro';
+import TermLink from '../../components/TermLink.astro';
+import AdSlot from '../../components/AdSlot.astro';
+import GradeWinnerTable from '../../components/GradeWinnerTable.astro';
+import { AD_SP_WIDE_A, AD_SP_WIDE_B, AD_SP_RECT, AD_PC_WIDE_A, AD_PC_WIDE_B } from '../../data/ad-slots.ts';
+import { loadRecruitsWithResults, RACE_RESULTS_FETCHED_AT, type RecruitWithResult } from '../../lib/analysis-data.ts';
+import { formatResultsAsOf } from '../../lib/sibling-recruits.ts';
+import {
+  median,
+  formatManYen,
+  histogram,
+  spearmanCorrelation,
+  correlationPValue,
+  twoProportionZTest,
+  formatP,
+  splitThirds,
+} from '../../lib/chart-math.ts';
+import debutJson from '../../../analysis/data/debut-weights.json';
+
+const resultsAsOf = formatResultsAsOf(RACE_RESULTS_FETCHED_AT);
+
+const YEAR_FROM = 2017;
+const YEAR_TO = 2022;
+const SEXES = ['牡', '牝'] as const;
+type Sex = (typeof SEXES)[number];
+
+interface DebutRecord {
+  netkeibaUrl: string;
+  recruitYear: number;
+  no: string;
+  starts: number | null;
+  debut: { date: string; venue: string; region: string; raceName: string; weightKg: number | null } | null;
+}
+const debutByKey = new Map(
+  (debutJson as unknown as { results: DebutRecord[] }).results.map((d) => [`${d.recruitYear}-${Number(d.no)}`, d]),
+);
+
+// ---- 母集団: 成績が固まった2017〜2022年募集 ----
+const cohort = loadRecruitsWithResults().filter(
+  (h) => h.recruitYear >= YEAR_FROM && h.recruitYear <= YEAR_TO && (h.sex === '牡' || h.sex === '牝'),
+);
+const unraced = cohort.filter((h) => h.starts === 0).length;
+
+interface Row {
+  horse: RecruitWithResult;
+  sex: Sex;
+  measured: number;
+  debutWeight: number;
+  gain: number;
+  days: number;
+  debutDate: string;
+}
+/** 測尺日は馬ごとに持っていないので、北海道を出る時期の記事と同じく募集年の8月15日で代用する。 */
+function daysFromMeasure(recruitYear: number, date: string): number {
+  const [y, m, d] = date.split('/').map(Number);
+  return Math.round((Date.UTC(y, m - 1, d) - Date.UTC(recruitYear, 7, 15)) / 86400000);
+}
+const rows: Row[] = cohort.flatMap((h) => {
+  const d = debutByKey.get(`${h.recruitYear}-${Number(h.no)}`);
+  if (!d?.debut || d.debut.weightKg === null || h.weight === null || !h.starts) return [];
+  return [
+    {
+      horse: h,
+      sex: h.sex as Sex,
+      measured: h.weight,
+      debutWeight: d.debut.weightKg,
+      gain: d.debut.weightKg - h.weight,
+      days: daysFromMeasure(h.recruitYear, d.debut.date),
+      debutDate: d.debut.date,
+    },
+  ];
+});
+const rowsBySex = (sex: Sex) => rows.filter((r) => r.sex === sex);
+const racedCount = cohort.filter((h) => (h.starts ?? 0) > 0).length;
+// デビューしたのに増加量が出せない馬（デビュー戦の馬体重が「計不」など）。本文には出さず検算だけする。
+const racedButMissing = racedCount - rows.length;
+if (racedButMissing < 0 || racedButMissing > 10) {
+  throw new Error(`[debut-weight-gain] デビューしたのに増加量が出せない馬が${racedButMissing}頭。データを確認する`);
+}
+
+const winRate = (g: Row[]) => (100 * g.filter((r) => (r.horse.wins ?? 0) > 0).length) / g.length;
+const won = (g: Row[]) => g.filter((r) => (r.horse.wins ?? 0) > 0).length;
+const signed = (v: number) => (v > 0 ? `+${v}` : `${v}`);
+
+// ---- 分布 ----
+const stat = (sex: Sex) => {
+  const g = rowsBySex(sex);
+  return { n: g.length, gainMed: median(g.map((r) => r.gain)), daysMed: median(g.map((r) => r.days)), lost: g.filter((r) => r.gain < 0).length };
+};
+const statBySex = Object.fromEntries(SEXES.map((s) => [s, stat(s)])) as Record<Sex, ReturnType<typeof stat>>;
+const GAIN_LO = -60;
+const GAIN_HI = 110;
+function gainBars(sex: Sex) {
+  return histogram(rowsBySex(sex).map((r) => r.gain), 10, GAIN_LO, GAIN_HI).map((b) => ({
+    label: `${b.binStart}`,
+    value: b.count,
+    displayValue: `${b.count}頭`,
+  }));
+}
+const gainBarsBySex = Object.fromEntries(SEXES.map((s) => [s, gainBars(s)])) as Record<Sex, ReturnType<typeof gainBars>>;
+for (const s of SEXES) {
+  const total = gainBarsBySex[s].reduce((a, b) => a + b.value, 0);
+  if (total !== rowsBySex(s).length) throw new Error(`[debut-weight-gain] ヒストグラムの合計${total}≠${rowsBySex(s).length}（${s}）。範囲を広げる`);
+}
+const gainAxisMax = Math.max(...SEXES.flatMap((s) => gainBarsBySex[s].map((b) => b.value)));
+
+// ---- 増加量の3群 ----
+const GROUP_NAMES = ['少ない', '中くらい', '多い'];
+function groupsOf(sex: Sex) {
+  const sorted = [...rowsBySex(sex)].sort((a, b) => a.gain - b.gain);
+  return splitThirds(sorted, (r) => r.gain).map((g, i) => ({
+    label: GROUP_NAMES[i],
+    n: g.length,
+    lo: g[0].gain,
+    hi: g[g.length - 1].gain,
+    won: won(g),
+    winRate: winRate(g),
+    medianPrize: median(g.map((r) => r.horse.totalPrizeManYen)),
+    gradeWinners: g.filter((r) => r.horse.gradeWins.length > 0).length,
+  }));
+}
+const groupsBySex = Object.fromEntries(SEXES.map((s) => [s, groupsOf(s)])) as Record<Sex, ReturnType<typeof groupsOf>>;
+const manyVsFew = Object.fromEntries(
+  SEXES.map((s) => {
+    const [few, , many] = groupsBySex[s];
+    return [s, twoProportionZTest(many.won, many.n, few.won, few.n)];
+  }),
+) as Record<Sex, { z: number; p: number }>;
+const prizeAxisMax = Math.max(...SEXES.flatMap((s) => groupsBySex[s].map((g) => g.medianPrize)));
+const groupBars = (sex: Sex) =>
+  groupsBySex[sex].map((g) => ({
+    label: `${g.label}（${signed(g.lo)}〜${signed(g.hi)}kg）`,
+    value: g.medianPrize,
+    displayValue: `${formatManYen(g.medianPrize)}万円`,
+    n: g.n,
+    note: `勝ち上がり${g.winRate.toFixed(1)}%・重賞馬${g.gradeWinners}頭`,
+  }));
+
+// ---- 順位相関 ----
+function corr(xs: number[], ys: number[]) {
+  const r = spearmanCorrelation(xs, ys);
+  return { r, p: correlationPValue(r, xs.length) ?? NaN };
+}
+const corrOf = (sex: Sex, x: (r: Row) => number, y: (r: Row) => number) => {
+  const g = rowsBySex(sex);
+  return corr(g.map(x), g.map(y));
+};
+const birthMonth = (r: Row) => Number((r.horse.birthDate ?? '0000-00').slice(5, 7));
+const C = Object.fromEntries(
+  SEXES.map((s) => [
+    s,
+    {
+      gainPrize: corrOf(s, (r) => r.gain, (r) => r.horse.totalPrizeManYen),
+      gainDays: corrOf(s, (r) => r.gain, (r) => r.days),
+      daysPrize: corrOf(s, (r) => r.days, (r) => r.horse.totalPrizeManYen),
+      perDayPrize: corrOf(s, (r) => r.gain / r.days, (r) => r.horse.totalPrizeManYen),
+      gainMeasured: corrOf(s, (r) => r.gain, (r) => r.measured),
+      gainBirth: (() => {
+        const g = rowsBySex(s).filter((r) => r.horse.birthDate);
+        return corr(g.map((r) => r.gain), g.map(birthMonth));
+      })(),
+      debutPrize: corrOf(s, (r) => r.debutWeight, (r) => r.horse.totalPrizeManYen),
+    },
+  ]),
+) as unknown as Record<Sex, Record<string, { r: number | null; p: number }>>;
+const f2 = (x: { r: number | null }) => (x.r === null ? '—' : x.r.toFixed(2));
+
+// ---- 1日あたりの増加に直した3群 ----
+function perDayGroups(sex: Sex) {
+  const sorted = [...rowsBySex(sex)].sort((a, b) => a.gain / a.days - b.gain / b.days);
+  return splitThirds(sorted, (r) => r.gain / r.days).map((g, i) => ({ label: GROUP_NAMES[i], n: g.length, winRate: winRate(g) }));
+}
+const perDayBySex = Object.fromEntries(SEXES.map((s) => [s, perDayGroups(s)])) as Record<Sex, ReturnType<typeof perDayGroups>>;
+
+// ---- デビューまでの日数で揃えた比較（日数3分位ごとに、増加量の多い半分と少ない半分） ----
+const DAY_NAMES = ['早いデビュー', '中くらい', '遅いデビュー'];
+function withinDays(sex: Sex) {
+  const sorted = [...rowsBySex(sex)].sort((a, b) => a.days - b.days);
+  return splitThirds(sorted, (r) => r.days).map((tier, i) => {
+    const byGain = [...tier].sort((a, b) => a.gain - b.gain);
+    const half = Math.floor(byGain.length / 2);
+    return {
+      label: DAY_NAMES[i],
+      lo: tier[0].days,
+      hi: tier[tier.length - 1].days,
+      winRate: winRate(tier),
+      fewRate: winRate(byGain.slice(0, half)),
+      manyRate: winRate(byGain.slice(half)),
+    };
+  });
+}
+const withinDaysBySex = Object.fromEntries(SEXES.map((s) => [s, withinDays(s)])) as Record<Sex, ReturnType<typeof withinDays>>;
+const manyWinsInDayTiers = SEXES.reduce((n, s) => n + withinDaysBySex[s].filter((t) => t.manyRate > t.fewRate).length, 0);
+
+// ---- デビュー戦の馬体重そのもの（増加量でなく絶対値）の3群 ----
+function debutWeightGroups(sex: Sex) {
+  const sorted = [...rowsBySex(sex)].sort((a, b) => a.debutWeight - b.debutWeight);
+  return splitThirds(sorted, (r) => r.debutWeight).map((g, i) => ({
+    label: ['軽め', '中くらい', '重め'][i],
+    lo: g[0].debutWeight,
+    hi: g[g.length - 1].debutWeight,
+    n: g.length,
+    winRate: winRate(g),
+    medianPrize: median(g.map((r) => r.horse.totalPrizeManYen)),
+  }));
+}
+const debutGroupsBySex = Object.fromEntries(SEXES.map((s) => [s, debutWeightGroups(s)])) as Record<Sex, ReturnType<typeof debutWeightGroups>>;
+
+// ---- 散布図: 増加量 × 獲得賞金 ----
+const SCATTER_Y_MAX = 20000;
+const scatterPoints = rows
+  .filter((r) => r.horse.totalPrizeManYen <= SCATTER_Y_MAX)
+  .map((r) => ({
+    x: r.gain,
+    y: r.horse.totalPrizeManYen,
+    seriesKey: r.sex === '牡' ? 'male' : 'female',
+    tipTitle: r.horse.displayName,
+    tipRows: [
+      ['測尺→デビュー', `${r.measured}kg → ${r.debutWeight}kg（${signed(r.gain)}kg）`],
+      ['デビュー', `${r.debutDate}（測尺から${r.days}日）`],
+      ['獲得賞金合計', `${formatManYen(r.horse.totalPrizeManYen)}万円`],
+    ] as [string, string][],
+  }));
+const scatterOmitted = rows.length - scatterPoints.length;
+
+// ---- 重賞馬 ----
+const gradeRows = rows.filter((r) => r.horse.gradeWins.length > 0).sort((a, b) => b.gain - a.gain);
+const gradeRowByHorse = new Map(gradeRows.map((r) => [r.horse, r]));
+const gradeGroupLabel = (h: RecruitWithResult) => {
+  const r = gradeRowByHorse.get(h);
+  return r ? `${signed(r.gain)}kg（${r.measured}→${r.debutWeight}）` : '—';
+};
+const gradeGainMin = Math.min(...gradeRows.map((r) => r.gain));
+const gradeGainMax = Math.max(...gradeRows.map((r) => r.gain));
+const pick = (name: string) => gradeRows.find((r) => r.horse.displayName === name);
+const featured = ['シックスペンス', 'エフフォーリア', 'タスティエーラ', 'サートゥルナーリア', 'スルーセブンシーズ']
+  .map(pick)
+  .filter((r): r is Row => !!r);
+const femaleManyGrade = groupsBySex['牝'][2].gradeWinners;
+const femaleFewGrade = groupsBySex['牝'][0].gradeWinners;
+
+// ---- 本文の読みをビルド時に確かめる ----
+const assertions: [string, boolean][] = [
+  ['多い群と少ない群の勝ち上がり率の差が牡牝とも p≥0.05', SEXES.every((s) => manyVsFew[s].p >= 0.05)],
+  ['多い群の勝ち上がり率が牡牝とも少ない群より低い', SEXES.every((s) => groupsBySex[s][2].winRate < groupsBySex[s][0].winRate)],
+  ['増加量と日数が牡牝とも正の相関（p<0.05）', SEXES.every((s) => (C[s].gainDays.r ?? 0) > 0 && C[s].gainDays.p < 0.05)],
+  ['日数と賞金が牡牝とも負の相関', SEXES.every((s) => (C[s].daysPrize.r ?? 0) < 0)],
+  ['1日あたり増加と賞金は牡牝とも |r|<0.1 かつ p≥0.05', SEXES.every((s) => Math.abs(C[s].perDayPrize.r ?? 1) < 0.1 && C[s].perDayPrize.p >= 0.05)],
+  ['日数で揃えた6組で、増加量の多い半分が上の組は2〜4組（向きが揃わない）', manyWinsInDayTiers >= 2 && manyWinsInDayTiers <= 4],
+  ['増加量と測尺時体重が牡牝とも負の相関', SEXES.every((s) => (C[s].gainMeasured.r ?? 0) < 0 && C[s].gainMeasured.p < 0.05)],
+  ['増加量と誕生月が牡牝とも正の相関', SEXES.every((s) => (C[s].gainBirth.r ?? 0) > 0 && C[s].gainBirth.p < 0.05)],
+  ['牝はデビュー時の体重が重い群ほど勝ち上がり率が高い', (() => { const g = debutGroupsBySex['牝']; return g[0].winRate < g[1].winRate && g[1].winRate < g[2].winRate; })()],
+  ['牡はデビュー時の体重の3群で勝ち上がり率の差が5ポイント以内', (() => { const w = debutGroupsBySex['牡'].map((g) => g.winRate); return Math.max(...w) - Math.min(...w) <= 5; })()],
+  ['紹介する重賞馬5頭がそろっている', featured.length === 5],
+  ['安田記念馬は大きく増え（+40kg以上）、ダービー馬・皐月賞馬はほとんど増えていない（+10kg以下）',
+    (pick('シックスペンス')?.gain ?? 0) >= 40 && ['タスティエーラ', 'サートゥルナーリア'].every((n) => (pick(n)?.gain ?? 99) <= 10)],
+  ['重賞を勝った牝馬の半数以上が+10kg以下', (() => { const f = gradeRows.filter((r) => r.sex === '牝'); return f.filter((r) => r.gain <= 10).length * 2 >= f.length; })()],
+  ['早いデビューの組ほど勝ち上がり率が高い（牡牝とも）', SEXES.every((s) => { const t = withinDaysBySex[s]; return t[0].winRate > t[1].winRate && t[1].winRate > t[2].winRate; })],
+  ['牝の増加量が多い群から重賞馬が少ない群より少ない', femaleManyGrade < femaleFewGrade],
+];
+const broken = assertions.filter(([, ok]) => !ok).map(([label]) => label);
+if (broken.length) throw new Error(`[debut-weight-gain] 本文の前提が崩れた: ${broken.join(' / ')}`);
+
+const title = 'デビューまでにたくさん増えた馬は、走るのか';
+const description = `【非公式】キャロットクラブ${YEAR_FROM}〜${YEAR_TO}年募集${rows.length}頭の、1歳8月の測尺からデビュー戦までの馬体重の増え方と、その後の成績を突き合わせた育成記事。たくさん増えた馬が走るとは言えず、見かけの差はデビューまでの日数で説明できた。`;
+---
+
+<BaseLayout
+  title={title}
+  description={description}
+  breadcrumb={[{ label: '記事一覧', href: '/articles/' }, { label: title, href: '/articles/debut-weight-gain/' }]}
+  showHeaderNotices={false}
+  ogImage="/og-article-debut-weight-gain-v1.png"
+  ogImageAlt={`育成記事「${title}」のカード画像（【非公式】キャロットクラブ出資馬検討ツール）`}
+>
+  <article>
+    <h1>{title}</h1>
+
+    <p>
+      出資馬の近況で馬体重が出ると、つい前回と見比べてしまう。私のスイートリディアも、5月の444kgから8月には465kgまで増えて、
+      それだけで少し嬉しくなった。負荷を上げながら体が大きくなっているなら、順調ということだろう、と。
+    </p>
+    <p>
+      でも、たくさん増えてデビューした馬は本当によく走るのか。{YEAR_FROM}〜{YEAR_TO}年募集でデビューした{rows.length}頭について、
+      1歳8月の測尺の馬体重とデビュー戦の馬体重を比べ、{resultsAsOf}時点の成績と突き合わせてみた。
+    </p>
+
+    <StatTiles
+      tiles={[
+        { label: '対象頭数', value: `${rows.length}頭`, note: `${YEAR_FROM}〜${YEAR_TO}年募集でデビューした馬` },
+        { label: '牡の増え方（中央値）', value: `${signed(statBySex['牡'].gainMed)}kg`, note: `測尺からデビューまで約${Math.round(statBySex['牡'].daysMed / 30.44)}か月` },
+        { label: '牝の増え方（中央値）', value: `${signed(statBySex['牝'].gainMed)}kg`, note: `測尺からデビューまで約${Math.round(statBySex['牝'].daysMed / 30.44)}か月` },
+        { label: '増え方 × 獲得賞金', value: `牡${f2(C['牡'].gainPrize)}・牝${f2(C['牝'].gainPrize)}`, note: '順位相関。弱い負の向き' },
+      ]}
+    />
+
+    <ArticleToc />
+    <MethodsLink />
+
+    <AdSlot sp={AD_SP_WIDE_A} pc={AD_PC_WIDE_A} />
+
+    <h2>どのくらい増えてデビューするのか</h2>
+    <p>
+      測尺からデビュー戦までの増え方を10kg刻みで並べた。牡は中央値で{signed(statBySex['牡'].gainMed)}kg、
+      牝は{signed(statBySex['牝'].gainMed)}kgと、牡のほうがずっと増える。
+    </p>
+    <BarChart
+      title={`測尺からデビューまでの増え方（牡${statBySex['牡'].n}頭・10kg刻み）`}
+      valueLabel="頭数"
+      bars={gainBarsBySex['牡']}
+      axisMax={gainAxisMax}
+      labelEvery={2}
+      height={220}
+    />
+    <BarChart
+      title={`測尺からデビューまでの増え方（牝${statBySex['牝'].n}頭・10kg刻み）`}
+      valueLabel="頭数"
+      bars={gainBarsBySex['牝']}
+      axisMax={gainAxisMax}
+      labelEvery={2}
+      height={220}
+    />
+    <p class="fig-note">横軸は増え方（kg）。「0」の棒は0〜9kg増えた馬、「-10」は10kg減〜1kg減の馬。</p>
+    <p>
+      意外だったのは、<strong>牝の{Math.round((100 * statBySex['牝'].lost) / statBySex['牝'].n)}%（{statBySex['牝'].lost}頭）は測尺のときより軽くなってデビューしている</strong>こと。
+      牡でも{statBySex['牡'].lost}頭が減っていた。測尺は放牧地で草を食べている時期の体で、デビュー戦は絞ってレースに出る体なので、
+      同じ「馬体重」でも中身が違うのかもしれない。
+    </p>
+
+    <AdSlot sp={AD_SP_WIDE_B} pc={AD_PC_WIDE_B} />
+
+    <h2>たくさん増えた馬は、走ったか</h2>
+    <p>まずは1頭ずつ。横が増え方、縦がその後の獲得賞金。</p>
+    <ScatterChart
+      title={`増え方 × 獲得賞金合計（${scatterPoints.length}頭）`}
+      points={scatterPoints}
+      series={[
+        { key: 'male', label: '牡', colorVar: '--series-1' },
+        { key: 'female', label: '牝', colorVar: '--series-2' },
+      ]}
+      xLabel="測尺からデビューまでの増え方(kg)"
+      yLabel="獲得賞金合計(万円)"
+      xDomain={[GAIN_LO, GAIN_HI]}
+      yDomain={[0, SCATTER_Y_MAX]}
+      xTicks={[-50, -25, 0, 25, 50, 75, 100]}
+      yTicks={[0, 5000, 10000, 15000, 20000]}
+      formatX={(v) => signed(v)}
+      formatY={(v) => (v === 0 ? '0' : `${v / 10000}億`)}
+    />
+    <p class="fig-note">
+      獲得賞金が2億円を超える{scatterOmitted}頭はグラフの上に出るので省いた（重賞馬の一覧に全員入っている）。
+      点にカーソルを合わせる（スマホはタップ）と馬名が出る。
+    </p>
+    <p>
+      見ての通り、形らしい形が無い。増え方と賞金の<TermLink to="spearman">順位相関</TermLink>は
+      牡{f2(C['牡'].gainPrize)}（{formatP(C['牡'].gainPrize.p)}）・牝{f2(C['牝'].gainPrize)}（{formatP(C['牝'].gainPrize.p)}）。
+      向きはむしろ<strong>増えた馬ほどわずかに賞金が少ない</strong>側に出ている。
+    </p>
+    <p>性別ごとに増え方で3等分して比べると、こうなる。</p>
+    <BarChart
+      title="増え方別・獲得賞金の中央値（牡）"
+      valueLabel="獲得賞金の中央値"
+      nLabel="頭数"
+      noteLabel="その後"
+      bars={groupBars('牡')}
+      axisMax={prizeAxisMax}
+    />
+    <BarChart
+      title="増え方別・獲得賞金の中央値（牝）"
+      valueLabel="獲得賞金の中央値"
+      nLabel="頭数"
+      noteLabel="その後"
+      bars={groupBars('牝')}
+      axisMax={prizeAxisMax}
+    />
+    <p>
+      牡も牝も、増え方が「多い」群がいちばん低い。勝ち上がり率は牡で{groupsBySex['牡'][0].winRate.toFixed(1)}%→{groupsBySex['牡'][2].winRate.toFixed(1)}%、
+      牝で{groupsBySex['牝'][0].winRate.toFixed(1)}%→{groupsBySex['牝'][2].winRate.toFixed(1)}%（少ない群→多い群）。
+      ただこの差は、牡（{formatP(manyVsFew['牡'].p)}）・牝（{formatP(manyVsFew['牝'].p)}）とも<TermLink to="p-value">偶然でも起こりうる大きさ</TermLink>だった。
+    </p>
+
+    <div class="finding">
+      <p class="finding-lead">「多い」群が少し低く見えるのは、デビューが遅いから</p>
+      <p>
+        増え方には、測尺からデビューまでの日数がそのまま乗っている。日数が長いほど体は大きくなるので、
+        増え方と日数の順位相関は牡{f2(C['牡'].gainDays)}・牝{f2(C['牝'].gainDays)}。
+        そして、デビューが遅い馬ほど成績は振るわない（日数と賞金は牡{f2(C['牡'].daysPrize)}・牝{f2(C['牝'].daysPrize)}）。
+        つまり「たくさん増えた馬」には「デビューが遅れた馬」が多く混ざっている。
+      </p>
+      <p>
+        そこで日数の影響を外すために、増え方を<strong>1日あたり</strong>に直すと、賞金との相関は
+        牡{f2(C['牡'].perDayPrize)}・牝{f2(C['牝'].perDayPrize)}まで消える。3等分した勝ち上がり率も
+        牡{perDayBySex['牡'].map((g) => `${g.winRate.toFixed(1)}%`).join('・')}、
+        牝{perDayBySex['牝'].map((g) => `${g.winRate.toFixed(1)}%`).join('・')}（少ない→多い）と、ほぼ横並びになった。
+      </p>
+      <p>デビューまでの日数が近い馬どうしで、増え方の多い半分と少ない半分を比べても、向きはばらばらだった。</p>
+      <div class="table-scroll">
+        <table class="tier-table">
+          <thead>
+            <tr>
+              <th>性</th>
+              <th>測尺からデビューまで</th>
+              <th>組全体</th>
+              <th>増え方が少ない半分</th>
+              <th>多い半分</th>
+            </tr>
+          </thead>
+          <tbody>
+            {SEXES.map((s) =>
+              withinDaysBySex[s].map((t) => (
+                <tr>
+                  <th scope="row">{s}</th>
+                  <td>{t.label}（{t.lo}〜{t.hi}日）</td>
+                  <td class="num">{t.winRate.toFixed(1)}%</td>
+                  <td class="num">{t.fewRate.toFixed(1)}%</td>
+                  <td class="num">{t.manyRate.toFixed(1)}%</td>
+                </tr>
+              )),
+            )}
+          </tbody>
+        </table>
+      </div>
+      <p>
+        6つの組のうち、増え方が多い半分のほうが勝ち上がっていたのは{manyWinsInDayTiers}組で、残りは少ない半分のほうが上。
+        組によって向きが入れ替わり、はっきりした傾向は無い。
+        一方で「組全体」の列を縦に見ると、<strong>早いデビューの組ほど勝ち上がり率が高い</strong>のははっきりしている。
+        効いているのは増え方ではなく、いつデビューできたか、のほうだった。
+      </p>
+    </div>
+
+    <h2>増え方を決めているもの</h2>
+    <p>
+      では、どんな馬がたくさん増えるのか。はっきり出たのは2つ。
+    </p>
+    <ul class="points">
+      <li>
+        <strong>測尺のときに小さかった馬ほど増える</strong>（測尺時の馬体重との順位相関 牡{f2(C['牡'].gainMeasured)}・牝{f2(C['牝'].gainMeasured)}）。
+        小さい馬が追いついていく形。
+      </li>
+      <li>
+        <strong>遅く生まれた馬ほど増える</strong>（誕生月との順位相関 牡{f2(C['牡'].gainBirth)}・牝{f2(C['牝'].gainBirth)}）。
+        測尺は全頭同じ8月なので、遅生まれの馬はそのとき月齢が若く、そこから伸びしろが大きい。
+      </li>
+    </ul>
+    <p>
+      どちらも「その馬がどれだけ走るか」とは別の話で、増え方の大小は、生まれた時期と測尺時の体の大きさの裏返しに近い。
+      近況で体重が大きく増えていても、それだけで期待を上乗せするのは難しそうだ。
+    </p>
+
+    <div class="ad-rect">
+      <AdSlot sp={AD_SP_RECT} pc={AD_PC_WIDE_A} />
+    </div>
+
+    <h2>牝は、デビュー時の体重そのものが効く</h2>
+    <p>
+      増え方ではなく、デビュー戦の馬体重そのもので3等分すると、牝でだけ差が出た。
+    </p>
+    <div class="table-scroll">
+      <table class="tier-table">
+        <thead>
+          <tr>
+            <th>性</th>
+            <th>デビュー時の馬体重</th>
+            <th>勝ち上がり率</th>
+            <th>賞金中央値</th>
+          </tr>
+        </thead>
+        <tbody>
+          {SEXES.map((s) =>
+            debutGroupsBySex[s].map((g) => (
+              <tr>
+                <th scope="row">{s}</th>
+                <td>{g.label}（{g.lo}〜{g.hi}kg）</td>
+                <td class="num">{g.winRate.toFixed(1)}%</td>
+                <td class="num">{formatManYen(g.medianPrize)}万円</td>
+              </tr>
+            )),
+          )}
+        </tbody>
+      </table>
+    </div>
+    <p>
+      牝は重い群ほど勝ち上がり率が高く、賞金との順位相関も{f2(C['牝'].debutPrize)}（{formatP(C['牝'].debutPrize.p)}）。
+      牡はほぼ横並び（{f2(C['牡'].debutPrize)}）。これは<a href="/articles/weight/">測尺の馬体重の記事</a>で見た
+      「牝でだけ馬体重が効く」とまったく同じ形で、デビューの時点でもその傾向が続いている。
+      牝馬の近況で見るなら、増えた量よりも、何kgでデビューを迎えそうかのほうが材料になる。
+    </p>
+
+    <AdSlot sp={AD_SP_WIDE_A} pc={AD_PC_WIDE_A} />
+
+    <h2>重賞馬は、どのくらい増えていたか</h2>
+    <p>
+      重賞を勝った{gradeRows.length}頭の増え方は、{signed(gradeGainMin)}kgから{signed(gradeGainMax)}kgまで。本当にばらばらだ。
+    </p>
+    <ul class="late-winners">
+      {featured.map((r) => (
+        <li>
+          <strong>{r.horse.displayName}</strong>（{r.sex}）… 測尺{r.measured}kg → デビュー{r.debutWeight}kg（{signed(r.gain)}kg）・{r.horse.gradeWins[0]}
+        </li>
+      ))}
+    </ul>
+    <p>
+      安田記念馬は大きく増えてデビューし、ダービー馬と皐月賞馬はほとんど増えずにデビューしている。
+      ひとつ目についたのは、牝で増え方が「多い」群からは重賞馬が出ておらず（少ない群は{femaleFewGrade}頭）、
+      重賞を勝った牝馬の多くは測尺とほぼ同じか、むしろ軽くなってデビューしていたこと。
+      ただ牝の重賞馬は全部で十数頭しかいないので、偶然の偏りの可能性も十分ある。
+    </p>
+    <details class="more-winners">
+      <summary>重賞を勝った{gradeRows.length}頭をすべて見る（増え方の多い順）</summary>
+      <GradeWinnerTable rows={gradeRows.map((r) => r.horse)} groupFor={gradeGroupLabel} groupLabel="測尺→デビューの増え方" />
+    </details>
+
+    <h2>まとめ</h2>
+    <ul class="conclusion">
+      <li>
+        測尺からデビューまでに、牡は中央値{signed(statBySex['牡'].gainMed)}kg、牝は{signed(statBySex['牝'].gainMed)}kg増える。
+        牝の{Math.round((100 * statBySex['牝'].lost) / statBySex['牝'].n)}%は測尺より軽くなってデビューする。
+      </li>
+      <li>
+        たくさん増えた馬がよく走る、とは言えなかった。むしろ多い群がわずかに低く見えるが、それはデビューが遅い馬が混ざるからで、
+        1日あたりに直したり日数で揃えたりすると差は消える。
+      </li>
+      <li>増え方の大小は、測尺時に小さかったか、遅生まれか、でほぼ決まっている。</li>
+      <li>牝はデビュー時の馬体重そのものが重いほうが勝ち上がっていた（測尺の馬体重と同じ傾向）。</li>
+      <li>
+        近況の体重の増減に一喜一憂しすぎなくていい。私もスイートリディアの21kgは、眺めて楽しむだけにしておく。
+      </li>
+    </ul>
+
+    <div class="ad-rect">
+      <AdSlot sp={AD_SP_RECT} pc={AD_PC_WIDE_B} />
+    </div>
+
+    <h2>データについて</h2>
+    <p>
+      測尺の馬体重は1歳8月の募集時のもの、デビュー戦の馬体重はレース当日の発表値（netkeibaの戦績表）。
+      デビュー戦は中央・地方を問わず最初に走ったレース。測尺からの日数は、測尺日を1歳の8月中旬として数えている。
+      比べられるのはデビューした馬だけで、{YEAR_FROM}〜{YEAR_TO}年募集のうち未出走の{unraced}頭は入っていない。
+      成績は{resultsAsOf}時点で、勝ち上がりは中央・地方で1勝以上、獲得賞金は中央と地方の合計。
+    </p>
+
+    <p>
+      <a href="/">募集馬一覧へ戻る</a> ／ <a href="/articles/">記事一覧へ</a>
+    </p>
+  </article>
+
+  <ChartTooltip />
+</BaseLayout>
+
+<style>
+  article :global(h2) {
+    margin-top: 2.5rem;
+  }
+  .fig-note {
+    margin-top: -0.5rem;
+    color: var(--muted);
+    font-size: 0.875rem;
+    line-height: 1.7;
+  }
+  .finding {
+    margin: 1.25rem 0;
+    padding: 0.9rem 1.1rem;
+    background: var(--accent-weak);
+    border-left: 3px solid var(--accent);
+    border-radius: 0 6px 6px 0;
+  }
+  .finding-lead {
+    margin: 0 0 0.5rem;
+    font-weight: 700;
+  }
+  .finding p:last-child {
+    margin-bottom: 0;
+  }
+  .table-scroll {
+    overflow-x: auto;
+    margin: 0.75rem 0;
+  }
+  .tier-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.9375rem;
+  }
+  .tier-table th,
+  .tier-table td {
+    border: 1px solid var(--border);
+    padding: 0.4rem 0.65rem;
+    text-align: left;
+  }
+  .tier-table thead th {
+    background: var(--surface);
+  }
+  .tier-table .num {
+    text-align: right;
+    font-variant-numeric: tabular-nums;
+  }
+  .points,
+  .late-winners,
+  .conclusion {
+    padding-left: 1.25rem;
+  }
+  .points li + li,
+  .late-winners li + li,
+  .conclusion li + li {
+    margin-top: 0.5rem;
+  }
+  .more-winners {
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 0.5rem 0.85rem;
+    margin: 0.5rem 0 1rem;
+  }
+  .more-winners summary {
+    cursor: pointer;
+    font-weight: 600;
+    padding: 0.25rem 0;
+  }
+  .more-winners :global(.table-scroll) {
+    margin-top: 0.5rem;
+  }
+  .ad-rect {
+    display: flex;
+    justify-content: center;
+    margin: 1.75rem 0 0.5rem;
+  }
+</style>

@@ -35,6 +35,7 @@ import {
   correlationPValue,
   twoProportionZTest,
   formatP,
+  splitThirds,
 } from '../../lib/chart-math.ts';
 
 const resultsAsOf = formatResultsAsOf(RACE_RESULTS_FETCHED_AT);
@@ -134,21 +135,6 @@ const farmToStable = viaFarm
 const farmToStableMedian = median(farmToStable);
 const within7 = farmToStable.filter((d) => d <= 7).length;
 const over14 = farmToStable.filter((d) => d > 14).length;
-
-/**
- * 値の小さい順に並んだ配列を、なるべく同じ頭数の3群に分ける。件数だけで切ると同じ値の馬が
- * 2つの群に割れ、群の境目が「257日まで／257日〜」のように重なって見えるので、
- * 切れ目の値と同じ値の馬は前の群に寄せる（どちらに入るかをデータの並び順に任せない）。
- */
-function splitThirds<T>(sorted: T[], value: (x: T) => number): T[][] {
-  const cuts: number[] = [];
-  for (const target of [Math.floor(sorted.length / 3), Math.floor((2 * sorted.length) / 3)]) {
-    let c = Math.max(target, cuts[cuts.length - 1] ?? 0);
-    while (c < sorted.length && c > 0 && value(sorted[c]) === value(sorted[c - 1])) c++;
-    cuts.push(c);
-  }
-  return [sorted.slice(0, cuts[0]), sorted.slice(cuts[0], cuts[1]), sorted.slice(cuts[1])];
-}
 
 // ---- 早い／中くらい／遅いの3群（性別ごとに早い順に3等分） ----
 interface Group {

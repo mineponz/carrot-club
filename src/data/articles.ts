@@ -21,6 +21,14 @@ export interface AnalysisArticle {
 
 export const analysisArticles: AnalysisArticle[] = [
   {
+    href: '/articles/debut-weight-gain/',
+    title: 'デビューまでにたくさん増えた馬は、走るのか',
+    description:
+      '1歳8月の測尺からデビュー戦まで、馬体重がどれだけ増えたかと、その後の成績を約500頭で比べた。たくさん増えた馬が走るとは言えず、見かけの差はデビューまでの日数だった。増え方を決めていたのは、測尺時の小ささと遅生まれ。',
+    image: '/og-article-debut-weight-gain-v1.png',
+    kind: 'training',
+  },
+  {
     href: '/articles/hokkaido-departure/',
     title: 'キャロの募集馬は、いつ北海道を出るのか',
     description:
