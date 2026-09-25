@@ -189,6 +189,15 @@ const ARTICLES = {
     chips: ['牡は2歳4〜5月に山', '牝は5月・8〜9月に二山', '重賞勝ち馬の実例も'],
     buildChart: hokkaidoDepartureChart,
   },
+  'debut-weight-gain': {
+    out: 'og-article-debut-weight-gain-v1.png',
+    tag: '育成',
+    headline: ['デビューまでに増えた馬は', '走るのか？'],
+    lead: 'キャロットクラブ 2017〜2022年募集の測尺・デビュー馬体重 × 現在の競走成績',
+    yearRangePlaceholder: '2017〜2022年',
+    chips: ['牡は中央値+31kg', '牝の3割近くは軽くなってデビュー', '重賞馬の実例も'],
+    buildChart: debutWeightGainChart,
+  },
 };
 
 const slug = process.argv[2];
@@ -686,6 +695,37 @@ function hokkaidoDepartureChart() {
     yearRangeLabel: `${YEAR_FROM}〜${YEAR_TO}年`,
     html: barsHtml(counts),
     caption: '北海道を出た月（2歳）',
+  };
+}
+
+/**
+ * 記事と同じ「測尺からデビューまでの増え方」の分布（10kg刻み・牡牝計）をミニ棒グラフにする
+ * （debut-weight-gain.astro の gainBars() と同じ binning）。チップの数字（牡の中央値・牝の
+ * 軽くなった割合）もここと同じ母集団から出しているので、記事本文と食い違わない。
+ *
+ * 使うのは `analysis/data/recruits.json`（測尺時の馬体重）と `analysis/data/debut-weights.json`
+ * （デビュー戦の馬体重）で、競走成績（`race-results.json`）は見ない。デビュー済みかどうかの判定に
+ * `starts` は使うが、値そのものは育成段階の測尺・体重差で成績を取り直しても動かない。
+ */
+function debutWeightGainChart() {
+  const recruits = JSON.parse(readFileSync(join(repoRoot, 'analysis', 'data', 'recruits.json'), 'utf8'));
+  const debutFile = JSON.parse(readFileSync(join(repoRoot, 'analysis', 'data', 'debut-weights.json'), 'utf8'));
+  const YEAR_FROM = 2017;
+  const YEAR_TO = 2022;
+  const debutByKey = new Map(debutFile.results.map((d) => [`${d.recruitYear}-${Number(d.no)}`, d]));
+  const rows = recruits
+    .filter((h) => h.recruitYear >= YEAR_FROM && h.recruitYear <= YEAR_TO && (h.sex === '牡' || h.sex === '牝'))
+    .flatMap((h) => {
+      const d = debutByKey.get(`${h.recruitYear}-${Number(h.no)}`);
+      if (!d?.starts || !d.debut || d.debut.weightKg === null || h.weight === null) return [];
+      return [{ sex: h.sex, gain: d.debut.weightKg - h.weight }];
+    });
+  const bins = histogram(rows.map((r) => r.gain), 10, -60, 110);
+  return {
+    total: rows.length,
+    yearRangeLabel: `${YEAR_FROM}〜${YEAR_TO}年`,
+    html: barsHtml(bins.map((b) => b.count)),
+    caption: '増え方の分布（10kg刻み）',
   };
 }
 
