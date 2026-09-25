@@ -26,7 +26,7 @@
  * 含まれるかで判定する（fetch-my-horse-races.mjsのJRA判定と同じ配列）。
  *
  * ## 馬体重が取れないケース
- * 33列目の馬体重セルが `NNN(+M)` 形式でなければ（例: "計不"・空欄）、weightKgはnullにして
+ * 馬体重セル（33列中の29番目＝0基準28）が `NNN(+M)` 形式でなければ（例: "計不"・空欄）、weightKgはnullにして
  * 生のセル文字列を weightRaw に残す（理由を追えるように）。
  */
 import { readFileSync, writeFileSync, mkdirSync, existsSync } from 'node:fs';
@@ -92,7 +92,7 @@ const strip = (html) =>
     .replace(/\s+/g, ' ')
     .trim();
 
-const COL = { date: 0, venue: 1, raceName: 4, bodyWeight: 28 };
+const COL = { date: 0, venue: 1, raceName: 4, finish: 11, bodyWeight: 28 };
 
 /** ajaxが返す詳細表（33列）を1走ずつ開いて、日付昇順（古い順）に並べ替えて返す。 */
 function parseRacesOldestFirst(tableHtml) {
@@ -107,6 +107,11 @@ function parseRacesOldestFirst(tableHtml) {
     const bw = bwRaw.match(/^(\d{3})\(([-+]?\d+)\)$/);
     const venueRaw = c[COL.venue];
     const venue = venueRaw.replace(/^\d+/, '').replace(/\d+$/, '') || null;
+    // 出走取消（着順「取」）・競走除外（「除」）の行は走っていないので飛ばす。競走中止（「中」）は出走なので残す。
+    // 着順が空欄の行（出走予定など）も飛ばす。これを拾うと、未出走の登録や取消をデビュー戦と取り違える
+    // （ザダルは2歳新馬を取り消したあと3歳1月にデビューしている）。
+    const finish = c[COL.finish];
+    if (!finish || finish === '取' || finish === '除') continue;
     rows.push({
       date: c[COL.date] || null,
       venue,

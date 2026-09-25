@@ -192,7 +192,7 @@ const ARTICLES = {
   'debut-weight-gain': {
     out: 'og-article-debut-weight-gain-v1.png',
     tag: '育成',
-    headline: ['デビューまでに増えた馬は', '走るのか？'],
+    headline: ['デビューまでにたくさん', '増えた馬は走るのか？'],
     lead: 'キャロットクラブ 2017〜2022年募集の測尺とデビュー時の馬体重 × 成績',
     yearRangePlaceholder: '2017〜2022年',
     chips: ['牡は中央値+31kg', '牝の3割近くは軽くなってデビュー', '重賞馬の実例も'],

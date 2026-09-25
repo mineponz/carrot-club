@@ -1,5 +1,5 @@
 {
-  "fetchedAt": "2026-09-25T14:22:31.555Z",
+  "fetchedAt": "2026-09-25T14:46:59.264Z",
   "source": "db.netkeiba.com/horse/ajax_horse_results.html（1走ごとの詳細戦績、id指定・JSON）。race-results.jsonでstarts=0の馬はnetkeibaへ問い合わせずに未出走として記録",
   "note": "デビュー戦＝戦績表を日付昇順に並べた最初の行。馬体重が取れない場合はweightKg:null・weightRawに生の表記を残す。中央/地方はJRA10場のリストで判定（venueがリストに無ければ地方）",
   "yearFrom": 2017,
@@ -648,16 +648,16 @@
       "no": "40",
       "starts": 16,
       "debut": {
-        "date": "2018/12/16",
-        "venue": "阪神",
-        "venueRaw": "5阪神6",
+        "date": "2019/01/12",
+        "venue": "中山",
+        "venueRaw": "1中山3",
         "region": "中央",
-        "raceName": "2歳新馬",
-        "weightKg": null,
-        "weightDiff": null,
-        "weightRaw": "計不"
+        "raceName": "3歳新馬",
+        "weightKg": 486,
+        "weightDiff": 0,
+        "weightRaw": "486(0)"
       },
-      "note": "馬体重取得不可（表記: \"計不\"）"
+      "note": null
     },
     {
       "netkeibaUrl": "https://db.sp.netkeiba.com/horse/2016104845/",
@@ -3847,14 +3847,14 @@
       "no": "67",
       "starts": 8,
       "debut": {
-        "date": "2020/10/03",
+        "date": "2021/01/16",
         "venue": "中京",
-        "venueRaw": "2中京8",
+        "venueRaw": "1中京5",
         "region": "中央",
-        "raceName": "2歳新馬",
-        "weightKg": 476,
+        "raceName": "3歳新馬",
+        "weightKg": 482,
         "weightDiff": 0,
-        "weightRaw": "476(0)"
+        "weightRaw": "482(0)"
       },
       "note": null
     },
@@ -5711,16 +5711,16 @@
       "no": "4",
       "starts": 8,
       "debut": {
-        "date": "2022/12/10",
-        "venue": "中山",
-        "venueRaw": "5中山3",
+        "date": "2023/01/28",
+        "venue": "東京",
+        "venueRaw": "1東京1",
         "region": "中央",
-        "raceName": "2歳新馬",
-        "weightKg": null,
-        "weightDiff": null,
-        "weightRaw": "計不"
+        "raceName": "3歳新馬",
+        "weightKg": 442,
+        "weightDiff": 0,
+        "weightRaw": "442(0)"
       },
-      "note": "馬体重取得不可（表記: \"計不\"）"
+      "note": null
     },
     {
       "netkeibaUrl": "https://db.netkeiba.com/horse/2020103213/",
