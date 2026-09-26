@@ -10,6 +10,7 @@ import {
   DOCUMENT_TITLE,
   ALLOW_INDEXING,
   ADSENSE_CLIENT_ID,
+  ADMAX_ENABLED,
   isNoindexPath,
 } from '../consts';
 
@@ -287,7 +288,7 @@ const webAppJsonLd = {
         <span aria-hidden="true"> ・ </span>
         <a href={homeHref}>馬一覧へ戻る</a>
       </p>
-      {showAds && (
+      {showAds && ADMAX_ENABLED && (
         <>
           <div class="ad-slot ad-slot-sp">
             <!-- admax -->
@@ -594,6 +595,8 @@ const webAppJsonLd = {
          （`src/components/AdSlot.astro`）でも同じクラスを使い回す。枠コードは設置場所ごとに
          別物なので、クラスは共通・script の src は設置場所ごとに使い分けること。 */
       .ad-slot { margin-top: 1rem; }
+      /* 記事側で AdSlot を包んでいる枠（.ad-rect）は、AdMax 停止中（ADMAX_ENABLED=false）は中身が空になるので余白ごと消す。 */
+      .ad-rect:empty { display: none; }
       .ad-slot-pc { display: none; }
       @media (min-width: 48rem) {
         .ad-slot-sp { display: none; }

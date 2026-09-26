@@ -14,7 +14,7 @@
  */
 import BaseLayout from '../../layouts/BaseLayout.astro';
 import SyncPanel from '../../components/SyncPanel.astro';
-import { SITE_DESCRIPTION_2025, SITE_TAGLINE_2025, UNOFFICIAL_NOTICE } from '../../consts.ts';
+import { SITE_DESCRIPTION_2025, SITE_TAGLINE_2025, UNOFFICIAL_NOTICE, ADMAX_ENABLED } from '../../consts.ts';
 import { horses2025 } from '../../data/horses2025.ts';
 import {
   sortHorses,
@@ -347,16 +347,20 @@ const faqJsonLd = {
     2つ置いて `.ad-slot-sp` / `.ad-slot-pc`（BaseLayout の is:global CSS）で出し分ける。
     フッターの枠（BaseLayout の `showAds`）とも記事用の枠とも別コードなので混同しないこと。
   -->
-  <div class="ad-slot ad-slot-sp">
-    <!-- admax -->
-    <script is:inline src="https://adm.shinobi.jp/s/dfe9af84d9224f830432d2f925ac402d"></script>
-    <!-- admax -->
-  </div>
-  <div class="ad-slot ad-slot-pc">
-    <!-- admax -->
-    <script is:inline src="https://adm.shinobi.jp/s/b2b04d2af29b3c00936214b62e84900a"></script>
-    <!-- admax -->
-  </div>
+  {ADMAX_ENABLED && (
+    <>
+      <div class="ad-slot ad-slot-sp">
+        <!-- admax -->
+        <script is:inline src="https://adm.shinobi.jp/s/dfe9af84d9224f830432d2f925ac402d"></script>
+        <!-- admax -->
+      </div>
+      <div class="ad-slot ad-slot-pc">
+        <!-- admax -->
+        <script is:inline src="https://adm.shinobi.jp/s/b2b04d2af29b3c00936214b62e84900a"></script>
+        <!-- admax -->
+      </div>
+    </>
+  )}
 
   <!--
     メモは評価の隣の列にあり、既定では📝アイコンだけが出ている（本人の指示・2026-08-25）。

@@ -173,3 +173,11 @@ export const CONTACT_FORM_URL = 'https://forms.gle/3r55coJm62YbYZkF7';
  * 忍者AdMax（`src/components/AdSlot.astro`）とは別枠で、こちらはページ全体に自動で挿入される。
  */
 export const ADSENSE_CLIENT_ID = 'ca-pub-7478797109606594';
+
+/**
+ * 忍者AdMaxの広告枠を出すか。`false` にすると記事の枠（`src/components/AdSlot.astro`）・フッター枠・
+ * 2025年一覧の枠がまとめて消え、プライバシーポリシーの AdMax の記載も外れる。
+ * 2026-09-26 本人判断で停止（成人向けの広告が出ていたうえ、今は収益面でも良い時期ではないため）。
+ * 枠コードは各所に残してあるので、戻すときはここを `true` にするだけ。
+ */
+export const ADMAX_ENABLED = false;
