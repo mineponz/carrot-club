@@ -15,7 +15,8 @@ import StatTiles from '../../../components/charts/StatTiles.astro';
 import MethodsLink from '../../../components/MethodsLink.astro';
 import TermLink from '../../../components/TermLink.astro';
 import AdSlot from '../../../components/AdSlot.astro';
-import { AD_SP_WIDE_A, AD_SP_WIDE_B, AD_PC_WIDE_A, AD_PC_WIDE_B } from '../../../data/ad-slots.ts';
+// AdMax 停止中も例外で出すページなので、成人向け広告が出ていなかったトップの枠を使う（consts.ts の ADMAX_EXCEPTION_PATHS）。
+import { AD_SP_TOP, AD_PC_TOP } from '../../../data/ad-slots.ts';
 import { loadRecruitsWithResults, RACE_RESULTS_FETCHED_AT } from '../../../lib/analysis-data.ts';
 import { formatResultsAsOf } from '../../../lib/sibling-recruits.ts';
 import {
@@ -278,7 +279,7 @@ const description = `出資している2歳牝馬スイートリディアを、2
       これほど何の主張もない数字が並ぶことがあるのかと。
     </p>
 
-    <AdSlot sp={AD_SP_WIDE_A} pc={AD_PC_WIDE_A} />
+    <AdSlot sp={AD_SP_TOP} pc={AD_PC_TOP} />
 
     <h2>母は堅実に走る馬を出している。でも、それは当てにならない</h2>
     <p>
@@ -385,7 +386,7 @@ const description = `出資している2歳牝馬スイートリディアを、2
       移動日という形で外から見えている、というだけの話です。
     </p>
 
-    <AdSlot sp={AD_SP_WIDE_B} pc={AD_PC_WIDE_B} />
+    <AdSlot sp={AD_SP_TOP} pc={AD_PC_TOP} />
 
     <h2>父アドマイヤマーズという追い風</h2>
     <p>

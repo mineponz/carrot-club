@@ -5,7 +5,7 @@
  * PC/SPで別の枠コードが発行されるため、同じ場所に2つ置いて `.ad-slot-sp` / `.ad-slot-pc`
  * （BaseLayout の is:global CSS）で画面幅により出し分ける。枠コードは**設置場所ごとに**
  * 発行されたものを props で渡すこと（別の場所のコードを流用しない）。
- * `ADMAX_ENABLED`（src/consts.ts）が false のときは何も出さない。
+ * `ADMAX_ENABLED`（src/consts.ts）が false のときは何も出さない（`ADMAX_EXCEPTION_PATHS` のページを除く）。
  */
 interface Props {
   /** スマホ用の枠コード（`https://adm.shinobi.jp/s/` に続く部分） */
@@ -14,14 +14,15 @@ interface Props {
   pc: string;
 }
 
-import { ADMAX_ENABLED } from '../consts';
+import { ADMAX_ENABLED, ADMAX_EXCEPTION_PATHS } from '../consts';
 
 const { sp, pc } = Astro.props;
+const show = ADMAX_ENABLED || ADMAX_EXCEPTION_PATHS.includes(Astro.url.pathname);
 const spSrc = `https://adm.shinobi.jp/s/${sp}`;
 const pcSrc = `https://adm.shinobi.jp/s/${pc}`;
 ---
 
-{ADMAX_ENABLED && (
+{show && (
   <>
     <div class="ad-slot ad-slot-sp">
       <!-- admax -->

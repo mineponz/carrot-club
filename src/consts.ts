@@ -181,3 +181,13 @@ export const ADSENSE_CLIENT_ID = 'ca-pub-7478797109606594';
  * 枠コードは各所に残してあるので、戻すときはここを `true` にするだけ。
  */
 export const ADMAX_ENABLED = false;
+
+/**
+ * `ADMAX_ENABLED=false` の間も、例外として AdMax の記事枠（`AdSlot`）を出すページ。
+ * 使う枠コードはトップページの枠（`src/data/ad-slots.ts` の `AD_SP_TOP` / `AD_PC_TOP`）だけにすること。
+ * 停止の原因になった成人向け広告はトップの枠では出ていなかった（本人確認・2026-09-30）。
+ */
+export const ADMAX_EXCEPTION_PATHS = ['/my-horses/article/sweet-lydia/'];
+
+/** サイトのどこかで AdMax を出しているか。プライバシーポリシーの記載はこちらに合わせる。 */
+export const ADMAX_IN_USE = ADMAX_ENABLED || ADMAX_EXCEPTION_PATHS.length > 0;
