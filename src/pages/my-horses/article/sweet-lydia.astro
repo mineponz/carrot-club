@@ -26,6 +26,7 @@ import {
 } from '../../../lib/kinkyo-milestones.ts';
 import { median, formatManYen, histogram } from '../../../lib/chart-math.ts';
 import { recruitPhotoUrl, loadRecruitPhotos } from '../../../lib/my-horses.ts';
+import sireCropsJson from '../../../../analysis/data/sire-crops.json';
 
 const resultsAsOf = formatResultsAsOf(RACE_RESULTS_FETCHED_AT);
 
@@ -129,10 +130,61 @@ const cohortMedianWeight = median(
 );
 const weightDiff = (me.weight as number) - cohortMedianWeight;
 
+// ---- 父アドマイヤマーズ ----
+// 種付け料と世代ごとの出走/勝ち上がりは netkeiba の「種付け料推移」から取った sire-crops.json。
+// 「年度」列は種付け年で、産駒はその翌年に生まれる（scripts/fetch-sire-crops.mjs 参照）。
+const SIRE = 'アドマイヤマーズ';
+const MY_BIRTH_YEAR = 2024;
+const sireCrops = sireCropsJson as unknown as {
+  sire: string;
+  rows: {
+    year: number;
+    serviceYear: number;
+    fee: number | null;
+    starters: number | null;
+    winners: number | null;
+    representative: string | null;
+  }[];
+}[];
+const marsRows = [...sireCrops.find((s) => s.sire === SIRE)!.rows].sort((a, b) => a.year - b.year);
+const feeBars = marsRows.filter((r) => r.fee !== null);
+const myCoverFee = feeBars.find((r) => r.year === MY_BIRTH_YEAR - 1)!.fee as number;
+const latestFee = feeBars[feeBars.length - 1].fee as number;
+const firstCrop = marsRows.find((r) => r.serviceYear === 1)!;
+const firstCropWinRate = (100 * firstCrop.winners!) / firstCrop.starters!;
+const myCrop = marsRows.find((r) => r.year === MY_BIRTH_YEAR - 1)!;
+
+// 比べる相手: 産駒が4歳以上になっている（成績がほぼ出そろった）初年度世代で、出走30頭以上の父。
+const firstCropRates = sireCrops
+  .flatMap((s) => s.rows)
+  .filter((r) => r.serviceYear === 1 && r.year <= 2021 && (r.starters ?? 0) >= 30)
+  .map((r) => (100 * r.winners!) / r.starters!);
+const firstCropMedianRate = median(firstCropRates);
+
+// キャロットのマーズ産駒（出走済みのみ）
+const carrotMars = all.filter((h) => h.sire === SIRE && (h.starts ?? 0) > 0);
+const carrotMarsWinners = carrotMars.filter((h) => (h.wins ?? 0) > 0).length;
+
+// 外部の実績で、このリポジトリのデータに無いもの（2026-09-17にnetkeibaで確認）。
+const SIRE_FACTS = {
+  leadingRank2024: 80,
+  leadingRank2025: 23,
+};
+
+// ---- トレセン初入厩の早さ（本州入りと同じ物差しで並べる） ----
+const stableDaysAll = loadMilestones()
+  .filter((m) => m.sex === '牝' && m.recruitYear >= 2017 && m.recruitYear <= 2022)
+  .map((m) => m.stableDays)
+  .filter((d): d is number => d !== null)
+  .sort((a, b) => a - b);
+const myStableDays = myMilestone.stableDays as number;
+const myStableRank = stableDaysAll.filter((d) => d < myStableDays).length + 1;
+const stableMedian = median(stableDaysAll);
+
 const photo = loadRecruitPhotos()['sweet-lydia'];
 
 const title = `${HORSE_NAME}は走ってくれるだろうか`;
-const description = `出資している2歳牝馬スイートリディアを、2017〜2022年募集の牝馬データに当ててみた。測尺も価格も半兄姉もきれいに中央値。ひとつだけ平均を超えていたのは、北海道を出た時期だった。`;
+const description = `出資している2歳牝馬スイートリディアを、2017〜2022年募集の牝馬データに当ててみた。測尺も価格も半兄姉もきれいに中央値。平均を超えていたのは北海道を出た時期と、初年度からG1牝馬を出した父アドマイヤマーズ。10月4日の京都で、北村友一騎手を背にデビュー予定。`;
 ---
 
 <BaseLayout
@@ -146,6 +198,8 @@ const description = `出資している2歳牝馬スイートリディアを、2
     <p class="lede">
       キャロットクラブで出資している2歳牝馬の話です。{HORSE_NAME}（{RECRUIT_YEAR}年募集{RECRUIT_NO}番・
       父アドマイヤマーズ×母クラシックリディア）は、この記事を書いている時点でまだ1度も走っていません。
+      9月11日に栗東へ戻り、10月4日の京都（2歳新馬・牝馬限定・芝1400m）で、
+      <strong>北村友一騎手</strong>を背にデビューする予定です。
       デビュー前の馬について語れることは本来そう多くないのですが、
       せっかく<a href="/articles/">募集馬のデータ</a>を集めているので、
       自分の馬をその物差しに当てたらどう見えるのか、正直にやってみました。
@@ -309,15 +363,15 @@ const description = `出資している2歳牝馬スイートリディアを、2
       bars={groups.map((g) => ({
         label: `${monthsOf(g.lo)}〜${monthsOf(g.hi)}か月`,
         value: g.medianPrize,
-        displayValue: formatManYen(g.medianPrize),
+        displayValue: `${formatManYen(g.medianPrize)}万円`,
         n: g.n,
         note: `${g.winRate.toFixed(1)}%`,
       }))}
     />
     <p>
-      早い群ほど走っています。一番早い群は賞金中央値{formatManYen(groups[0].medianPrize)}・
+      早い群ほど走っています。一番早い群は賞金中央値{formatManYen(groups[0].medianPrize)}万円・
       勝ち上がり{groups[0].winRate.toFixed(1)}%、一番遅い群は
-      {formatManYen(groups[3].medianPrize)}・{groups[3].winRate.toFixed(1)}%。
+      {formatManYen(groups[3].medianPrize)}万円・{groups[3].winRate.toFixed(1)}%。
       順位相関は-0.262（p&lt;0.0001）で、<strong>牝馬でいちばん効くとされる募集時馬体重（+0.230）より強い</strong>。
       しかも馬体重を<TermLink to="partial">統制</TermLink>しても-0.206（p=0.0009）が残るので、
       体重の言い換えではありません。牡馬でも同じ向きに出ていて、
@@ -333,24 +387,81 @@ const description = `出資している2歳牝馬スイートリディアを、2
 
     <AdSlot sp={AD_SP_WIDE_B} pc={AD_PC_WIDE_B} />
 
+    <h2>父アドマイヤマーズという追い風</h2>
+    <p>
+      ここまでは牝馬{cohort.length}頭という物差しの話でした。
+      その物差しの外に、もうひとつ楽しみにしている材料があります。父のアドマイヤマーズです。
+    </p>
+    <p>
+      アドマイヤマーズ自身は、2歳の6月にデビューしてそのまま4連勝、暮れの朝日杯フューチュリティステークスまで
+      無敗で勝ち切った馬でした。3歳でNHKマイルカップ、その年の暮れには香港マイルも勝っています。
+      2歳の夏からもう走れていた、早くから完成度の高いマイラーです。
+    </p>
+    <p>
+      その初年度産駒から、いきなり<strong>エンブロイダリー</strong>が出ました。
+      {HORSE_NAME}と同じ<strong>牝馬</strong>で、2歳6月にデビューし、11月には芝1400mの1勝クラスを勝ち、
+      3歳で桜花賞と秋華賞、4歳の今年はヴィクトリアマイルまで勝っています。
+      2025年のJRA最優秀3歳牝馬です。父の産駒として走った最初の世代から、牝馬のG1馬が出たことになります。
+    </p>
+    <BarChart
+      title={`${SIRE}の種付け料の推移（種付けした年ごと）`}
+      valueLabel="種付け料"
+      bars={feeBars.map((r) => ({
+        label: `${r.year}`,
+        value: r.fee as number,
+        displayValue: `${r.fee}万円`,
+        note: r.year === MY_BIRTH_YEAR - 1 ? `←${HORSE_NAME}` : `${r.serviceYear}年目`,
+      }))}
+      noteLabel="供用"
+      height={220}
+    />
+    <p class="fig-note">
+      横軸は種付けした年（産駒はその翌年に生まれます）。{HORSE_NAME}が種付けされたのは{MY_BIRTH_YEAR - 1}年（供用{myCrop.serviceYear}年目）。
+      数字はnetkeibaの種付け料推移から。
+    </p>
+    <p>
+      市場の評価もはっきり動きました。{HORSE_NAME}が種付けされた{MY_BIRTH_YEAR - 1}年の種付け料は
+      {myCoverFee}万円。それが初年度産駒の活躍を受けて、いまは<strong>{latestFee}万円</strong>と
+      {(latestFee / myCoverFee).toFixed(0)}倍になっています。
+      種牡馬ランキング（中央の産駒の獲得賞金順）も、2024年の{SIRE_FACTS.leadingRank2024}位から
+      2025年は{SIRE_FACTS.leadingRank2025}位まで上がりました。
+      言い方を変えると、{HORSE_NAME}は<strong>父の評価が跳ね上がる前に配合された世代</strong>です。
+      出資者としては、ちょっと得をした気分になります。
+    </p>
+    <p>
+      正直に書いておくと、初年度産駒の勝ち上がり率そのものは
+      {firstCropWinRate.toFixed(1)}%（{firstCrop.starters}頭出走・{firstCrop.winners}頭勝ち上がり）で、
+      成績の出そろった他の種牡馬の初年度（{firstCropRates.length}頭）の中央値
+      {firstCropMedianRate.toFixed(1)}%とほぼ同じです。
+      「どの子もよく勝つ父」というより、<strong>勝ち上がりは平均的で、そこから上に突き抜ける子が出る父</strong>。
+      キャロットのマーズ産駒も、出走した{carrotMars.length}頭のうち{carrotMarsWinners}頭が勝ち上がっています。
+      {HORSE_NAME}の世代（{MY_BIRTH_YEAR}年生まれ）はまだデビューが始まったばかりで、
+      いまのところ{myCrop.starters}頭が走って{myCrop.winners}頭が勝ち上がっています。
+    </p>
+    <p>
+      ちなみに育成牧場の近況には「父産駒らしく少しワガママなところ」という一文がありました。
+      早くから走れる父の気の強さを、ちゃんと受け継いでいるのかもしれません。
+    </p>
+
     <h2>いまのところの見通し</h2>
     <p>
       材料を並べ直すと、{HORSE_NAME}はこうなります。測尺は平均的、価格も平均的、
-      血統は「よく走る半兄姉がいるが、その情報自体に予測力がない」。
-      そして移動時期は平均より早い側。
+      母系は「よく走る半兄姉がいるが、その情報自体に予測力がない」。
+      そして移動時期は平均より早い側で、父は初年度からG1牝馬を出して評価が倍になった種牡馬。
     </p>
     <p>
       移動が早い側の牝馬は、勝ち上がり率が{myGroup.winRate.toFixed(1)}%
       （牝馬全体は{cohortWinRate.toFixed(1)}%）、賞金の中央値が
-      {formatManYen(myGroup.medianPrize)}。
+      {formatManYen(myGroup.medianPrize)}万円。
       重賞まで届く確率は、正直に言えば数%です。半兄姉に重賞勝ち馬がいない分を差し引くと3%前後。
       これは特別悪い数字ではなく、キャロットの牝馬としてごく普通の期待値です。
     </p>
     <p>
       つまり<strong>「勝ち上がりは十分に期待していい。重賞は夢を見る領域」</strong>というあたり。
       派手な結論ではありませんが、データに当ててこれ以上のことは言えません。
-      むしろ、全部まんなかの馬にひとつだけ平均超えの材料が見つかったのは、
-      出資者としては素直に嬉しいところです。走ってくれるかもなあ、と思いながら見ています。
+      それでも、全部まんなかの馬に平均超えの材料がふたつ見つかったのは、
+      出資者としては素直に嬉しいところです。重賞の数%を「夢」に留めない何かがあるとしたら、
+      それはたぶん父から来るのだろうと思っています。走ってくれるかもなあ、と思いながら見ています。
     </p>
 
     <h2>気をつけていること</h2>
@@ -364,24 +475,106 @@ const description = `出資している2歳牝馬スイートリディアを、2
         一番良い群でも4頭に1頭は勝ち上がれていません。
       </li>
       <li>
+        <strong>父の実績は、この馬の能力の保証ではないこと。</strong>エンブロイダリーはあくまで同じ父の1頭で、
+        父ごとの成績が子の成績をどれだけ予測するかは、このサイトではまだ検証していません。
+      </li>
+      <li>
         <strong>募集馬を選ぶときには使えないこと。</strong>移動日は出資を決めた後にしか分からないので、
         カタログを見比べる場面では役に立ちません。すでに出資している馬を眺めるための物差しです。
       </li>
     </ul>
 
+    <h2>デビュー戦が決まった</h2>
+    <p>
+      ここからは近況の話です。{HORSE_NAME}は6月25日に栗東の高橋亮厩舎へ初めて入厩しました。
+      測尺日から{myStableDays}日で、これも牝馬{stableDaysAll.length}頭の中では早い順に
+      {myStableRank}番目（中央値は{stableMedian.toFixed(0)}日）と、本州入りと同じく早い側です。
+      入厩直後に先生からは、北海道ではピリッとしたタイプに見えたがトレセンでは大人しく行儀が良い、
+      動きも素軽くて楽しみ、というコメントが出ていました。
+      7月8日にはゲート試験に一発で合格しています。
+    </p>
+    <p>
+      そのあとＮＦしがらきへ戻って、夏の間じっくり乗り込みました。
+      坂路で15-15から始めて、8月には終いを13〜14秒まで伸ばし、1日2本の登坂もこなしています。
+      9月に入ると15-14を週2回コンスタントに乗れるようになり、牧場からは
+      「息遣いも良くなってきた」「堪えるようなこともなく順調」という報告が続きました。
+      暑い時期も体調は安定したまま、ここまで予定どおりに来られたのは何よりです。
+    </p>
+    <p>
+      そして9月11日に栗東へ帰厩。9月17日には坂路で55秒1−40秒1−26秒2−13秒6の追い切りを行い、
+      <strong>10月4日の京都・2歳新馬（牝馬限定・芝1400m）</strong>に出走予定と発表されました。
+      新しい開催の開幕週で、相手は牝馬だけ。父自身はマイルで結果を出した馬で、産駒の芝の平均出走距離も1,600m台。1400mは無理のない距離ですし、
+      エンブロイダリーが2歳時に勝ったのと同じ距離でもあります。
+    </p>
+    <p>
+      帰厩直後の先生のコメントは「動きが悪いわけではないが、もう少し乗り込んだほうが良さそう」という
+      慎重なものでした。牧場でも「一度実戦を経験してからかな」と言われていて、
+      完成しきる前にデビューを迎えるタイプなのは確かです。
+    </p>
+
+    <h2>この2週間で、ちゃんと変わってきた</h2>
+    <p>
+      ただ、そこから2週間の中身を追っていくと、私はけっこう前向きになれました。
+    </p>
+    <p>
+      9月25日はポリトラックで併せ馬を行い、6ハロン83秒1、<strong>ラスト1ハロン12秒3</strong>。
+      そして9月30日の最終追い切りは坂路で併せて56秒1−40秒7−26秒1−13秒2でした。
+      全体の時計だけ見ると2週前より遅いのですが、この日は馬場が重く、しかも<strong>馬なり</strong>です。
+      それでいて最後の1ハロンは2週前の13秒6から13秒2へ詰まっていて、
+      ラスト2ハロンも26秒1とむしろ速くなっています。
+      先生も「馬場が重いことを考えると合格点と言える内容」と話していました。
+    </p>
+    <p>
+      ほかにも良い話が続いています。9月24日のゲート練習では「練習のときに比べると出るのも速く」なっていて、
+      調教を重ねてもテンションが上がらず、おとなしくて扱いやすいとのこと。
+      そして<strong>「体は以前に比べて立派になっていますから」</strong>という一言もありました。
+      北海道にいた頃は「馬体が細くなりやすいタイプ」と言われていた馬なので、この言葉はかなり嬉しかったです。
+    </p>
+    <p>
+      最終追い切りのあとも、先生は「もう少しグッと前向きさが出てきてほしい」と話していて、
+      ここも伏せずに書いておきます。ただ、もともと育成牧場でも
+      「もう少し前向きさが欲しいと感じさせるくらいの落ち着き」と言われていた馬です。
+      初めての競馬で入れ込まないのは、それ自体が武器になります。
+      <strong>使ってからの上積み</strong>もまだ残している、と思って見ています。
+    </p>
+
+    <h2>鞍上は北村友一騎手</h2>
+    <p>
+      そして何より嬉しかったのが、9月24日に発表されたデビュー戦の鞍上、<strong>北村友一騎手</strong>です。
+    </p>
+    <p>
+      デビュー21年目、JRA通算1,037勝、G1は11勝、重賞は47勝。
+      2025年は73勝でリーディング12位、今年もここまで45勝の17位と、第一線で乗り続けている騎手です。
+      代表馬のクロワデュノールには、<strong>2歳の新馬戦からデビュー11戦続けて乗り</strong>、G1馬へと育て上げました。
+      まだ完成していない2歳馬を、最初の一戦から先を見据えて乗れる騎手だと私は思っています。
+    </p>
+    <p>
+      舞台との相性も悪くありません。直近1年の競馬場別で、北村友騎手がいちばん勝っているのが
+      <strong>京都</strong>です（210戦25勝・勝率11.9%）。
+      そして、うちの高橋亮厩舎の馬に乗ったときは13戦で1着1回・2着2回・3着3回、
+      <strong>複勝率46.2%</strong>。騎手全体の複勝率（今年29.7%）よりずっと高く、
+      まだ13戦とはいえ、厩舎との呼吸は合っているように見えます。
+      （数字はnetkeibaの騎手データ、2026年9月30日時点）
+    </p>
+    <p>
+      前向きさがもう一歩で、使いながら良くなっていくタイプの馬にとって、
+      初戦でどんな経験をさせてもらえるかはとても大事です。
+      そこにこの騎手を依頼してもらえたのは、陣営の期待の表れと受け取っていいのではないでしょうか。
+      出資者としては、ここがいちばん大きなプラス材料だと感じています。
+    </p>
+
     <h2>これから見るところ</h2>
     <p>
-      {HORSE_NAME}は7月8日にゲート試験へ一発合格したあと、いったんＮＦしがらきへ戻って
-      乗り込みを重ねています。馬体重は5月の444kgから8月には465kgまで増えました。
+      馬体重は5月の444kgから8月には465kgまで増えました。
       負荷を上げながら増えているので良い形に見えるのですが、
       <strong>育成期の体重の増え方が成績を予測するかを16頭で調べたところ、差は出ませんでした</strong>
       （増加量トップ2はどちらも未勝利、最小の馬はシンザン記念を勝っています）。
       なので、この21kgは眺めて楽しむだけにしておきます。
     </p>
     <p>
-      入厩はまだで、10月の京都開催（Bコース）を目標にしていると聞いています。
-      トレセンに入って坂路でどんな時計を出すのかが、
-      データではなく本人の能力を直接に映す最初の数字になります。
+      あとは10月4日の当日の馬体重と、北村友騎手がどんな競馬をさせてくれるか。
+      先生の言うとおり「まずはこの条件でどんな走りを見せてくれるか」です。
+      データではなく{HORSE_NAME}自身の能力を直接に映す、最初の数字になります。
     </p>
     <p>
       正直なところ、ここまで調べてきて分かったのは「ごく普通の牝馬です」ということでした。
