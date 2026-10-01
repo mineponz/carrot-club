@@ -11,8 +11,10 @@ import {
   ALLOW_INDEXING,
   ADSENSE_CLIENT_ID,
   ADMAX_ENABLED,
+  ADMAX_TOP_SLOT_ONLY,
   isNoindexPath,
 } from '../consts';
+import { AD_SP_TOP, AD_PC_TOP } from '../data/ad-slots.ts';
 
 interface Props {
   /** ページ固有のタイトル。トップページでは省略する */
@@ -292,12 +294,12 @@ const webAppJsonLd = {
         <>
           <div class="ad-slot ad-slot-sp">
             <!-- admax -->
-            <script is:inline src="https://adm.shinobi.jp/s/8209f8c1f0b6861adf36d20d24ddf5b3"></script>
+            <script is:inline src={`https://adm.shinobi.jp/s/${ADMAX_TOP_SLOT_ONLY ? AD_SP_TOP : '8209f8c1f0b6861adf36d20d24ddf5b3'}`}></script>
             <!-- admax -->
           </div>
           <div class="ad-slot ad-slot-pc">
             <!-- admax -->
-            <script is:inline src="https://adm.shinobi.jp/s/e63321a780d5a46c4027a2812076c695"></script>
+            <script is:inline src={`https://adm.shinobi.jp/s/${ADMAX_TOP_SLOT_ONLY ? AD_PC_TOP : 'e63321a780d5a46c4027a2812076c695'}`}></script>
             <!-- admax -->
           </div>
         </>

@@ -15,7 +15,6 @@ import StatTiles from '../../../components/charts/StatTiles.astro';
 import MethodsLink from '../../../components/MethodsLink.astro';
 import TermLink from '../../../components/TermLink.astro';
 import AdSlot from '../../../components/AdSlot.astro';
-// AdMax 停止中も例外で出すページなので、成人向け広告が出ていなかったトップの枠を使う（consts.ts の ADMAX_EXCEPTION_PATHS）。
 import { AD_SP_TOP, AD_PC_TOP } from '../../../data/ad-slots.ts';
 import { loadRecruitsWithResults, RACE_RESULTS_FETCHED_AT } from '../../../lib/analysis-data.ts';
 import { formatResultsAsOf } from '../../../lib/sibling-recruits.ts';

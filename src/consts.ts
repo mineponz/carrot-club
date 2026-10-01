@@ -178,16 +178,19 @@ export const ADSENSE_CLIENT_ID = 'ca-pub-7478797109606594';
  * 忍者AdMaxの広告枠を出すか。`false` にすると記事の枠（`src/components/AdSlot.astro`）・フッター枠・
  * 2025年一覧の枠がまとめて消え、プライバシーポリシーの AdMax の記載も外れる。
  * 2026-09-26 本人判断で停止（成人向けの広告が出ていたうえ、今は収益面でも良い時期ではないため）。
- * 枠コードは各所に残してあるので、戻すときはここを `true` にするだけ。
+ * 2026-10-01 に再開（下の `ADMAX_TOP_SLOT_ONLY` で全枠をトップの枠に差し替えた状態）。
+ * 枠コードは各所に残してあるので、止める・戻すはここを切り替えるだけ。
  */
-export const ADMAX_ENABLED = false;
+export const ADMAX_ENABLED = true;
 
 /**
- * `ADMAX_ENABLED=false` の間も、例外として AdMax の記事枠（`AdSlot`）を出すページ。
- * 使う枠コードはトップページの枠（`src/data/ad-slots.ts` の `AD_SP_TOP` / `AD_PC_TOP`）だけにすること。
- * 停止の原因になった成人向け広告はトップの枠では出ていなかった（本人確認・2026-09-30）。
+ * 一時しのぎ（本人指示・2026-10-01）: AdMax の全枠を、トップページの枠コード
+ * （`src/data/ad-slots.ts` の `AD_SP_TOP` / `AD_PC_TOP`）に差し替えて出す。
+ * 2026-09-26 に全体停止した原因の成人向け広告は、トップの枠では出ていなかった（本人確認・2026-09-30）ため。
+ * 全部が同じ枠になるので、AdMax 側の枠ごとの数値は分けて見られなくなる（本人了承）。
+ * 元の枠コードは各所に残してあり、`false` にすれば場所ごとの枠に戻る。
  */
-export const ADMAX_EXCEPTION_PATHS = ['/my-horses/article/sweet-lydia/'];
+export const ADMAX_TOP_SLOT_ONLY = true;
 
 /** サイトのどこかで AdMax を出しているか。プライバシーポリシーの記載はこちらに合わせる。 */
-export const ADMAX_IN_USE = ADMAX_ENABLED || ADMAX_EXCEPTION_PATHS.length > 0;
+export const ADMAX_IN_USE = ADMAX_ENABLED;
