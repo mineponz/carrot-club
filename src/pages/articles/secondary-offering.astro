@@ -43,7 +43,7 @@ import {
   secondaryOfferingAnnounced,
   soldOutInRoundByHorseId,
 } from '../../lib/remaining-shares.ts';
-import { OFFERING_ROUND_LABEL } from '../../consts.ts';
+import { OFFERING_ROUND_LABELS } from '../../consts.ts';
 import {
   loadRecruitsWithResults,
   RACE_RESULTS_FETCHED_AT,
@@ -188,6 +188,17 @@ const stillRemainingCount = Object.keys(remainingSharesByHorseId(remainingRows))
 const soldOutInSecondaryCount = Object.keys(soldOutInRoundByHorseId(remainingRows)).length;
 /** 1.5次募集の結果が出ているか（満口になった馬が1頭でもいるか）。出ていなければ結果の段落を出さない。 */
 const secondaryRoundSettled = soldOutInSecondaryCount > 0;
+
+/**
+ * この記事が指している募集回の名前（固定）。
+ *
+ * `consts.ts` の `OFFERING_ROUND_LABEL` は**今の**募集回を指すので、募集が進んで
+ * `OFFERING_ROUND` が変わると本文の意味が変わってしまう（9/16公開時点では「第2次募集」だった
+ * 文が、`'1'` に戻すと「1次募集」に化ける）。この記事は公開時点（9/16発表・第2次募集）の
+ * 事実を指したまま固定するので、`OFFERING_ROUND_LABELS` から回を直接指定して引く
+ * （2026-10-10・OFFERING_ROUND解除）。
+ */
+const SECOND_OFFERING_ROUND_LABEL = OFFERING_ROUND_LABELS['2'];
 
 // 1.5次募集の時点で残り口数の「実数」が出ていた馬＝残口が100口（地方入厩予定馬は25口）以下
 // だった馬。そのうち何頭が満口になったかを数える（本文の「小さい残口から埋まった」の根拠）。
@@ -389,7 +400,7 @@ const description = `1次募集で満口にならなかった馬たちのその�
           label: '今年の1.5次募集対象',
           value: `${leftoverThisYear}頭`,
           note: secondaryRoundSettled
-            ? `${soldOutInSecondaryCount}頭が満口・${stillRemainingCount}頭が${OFFERING_ROUND_LABEL}へ`
+            ? `${soldOutInSecondaryCount}頭が満口・${stillRemainingCount}頭が${SECOND_OFFERING_ROUND_LABEL}へ`
             : '1次募集で満口にならなかった馬',
         },
         { label: '集計した世代（成熟3世代）', value: `${matureCount}頭`, note: '2022〜2024年度募集' },
@@ -639,10 +650,10 @@ const description = `1次募集で満口にならなかった馬たちのその�
     {secondaryRoundSettled && (
       <>
         <p>
-          その受付が終わり、クラブから{OFFERING_ROUND_LABEL}の対象馬が発表された。
+          その受付が終わり、クラブから{SECOND_OFFERING_ROUND_LABEL}の対象馬が発表された。
           <strong>
             {leftoverThisYear}頭のうち{soldOutInSecondaryCount}頭が1.5次募集で満口になり、
-            残る{stillRemainingCount}頭が{OFFERING_ROUND_LABEL}に回っている
+            残る{stillRemainingCount}頭が{SECOND_OFFERING_ROUND_LABEL}に回っている
           </strong>
           。1回の優先受付で3分の1が埋まった計算になる。
         </p>

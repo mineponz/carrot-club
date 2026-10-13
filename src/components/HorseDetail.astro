@@ -51,9 +51,12 @@ import { ENTRY_VOTE_SNAPSHOTS } from '../data/entryVotes2026.ts';
 import { LOTTERY_STATUS_SNAPSHOTS } from '../data/lotteryStatus2026.ts';
 import { lotteryLabel, lotteryStatusRows } from '../lib/lottery-status.ts';
 // 残口（今の募集回で出資できる馬）。出所は上の抽選ランク発表と同じsnapshot（remaining-shares.tsのコメント参照）。
-import { remainingSharesRows } from '../lib/remaining-shares.ts';
+// 追加募集中でなければ liveSnapshotsForDisplay() が残口・満口フラグを剥がすので、
+// lotteryFacts の「残り口数」行・バッジ・HorseNavの●印の3か所すべてここを経由させる
+// （呼び出し漏れで満口のはずの馬に「残口あり」が出ないように。2026-10-10）。
+import { liveSnapshotsForDisplay, remainingSharesRows } from '../lib/remaining-shares.ts';
 import { soldOutLabel } from '../lib/remaining-shares-row.ts';
-import { OFFERING_ROUND_LABEL } from '../consts.ts';
+import { IS_ADDITIONAL_OFFERING, OFFERING_ROUND_LABEL } from '../consts.ts';
 import { horseDetailHref } from '../lib/horse-row.ts';
 import { formatDiff } from '../lib/tour-weight-row.ts';
 import { formatManYen } from '../lib/chart-math.ts';
@@ -217,7 +220,7 @@ const entryVoteFacts =
 const lotteryFacts: { term: string; value: string }[] =
   recruitYear === 2026
     ? (() => {
-        const [row] = lotteryStatusRows([horse], LOTTERY_STATUS_SNAPSHOTS);
+        const [row] = lotteryStatusRows([horse], liveSnapshotsForDisplay(LOTTERY_STATUS_SNAPSHOTS, IS_ADDITIONAL_OFFERING));
         const labelOf = (frame: (typeof row)['normal'], frameKind: 'damPriority' | 'normal') =>
           frame === null ? '発表待ち' : lotteryLabel(frame, frameKind).text;
         const rows = row.hasDamPriority
@@ -240,7 +243,9 @@ const lotteryFacts: { term: string; value: string }[] =
  * こちらは h1 の下のバッジと下部の導線に使う。2026年募集にしか情報源が無い。
  */
 const remainingRows2026 =
-  recruitYear === 2026 ? remainingSharesRows(allHorses, LOTTERY_STATUS_SNAPSHOTS) : [];
+  recruitYear === 2026
+    ? remainingSharesRows(allHorses, liveSnapshotsForDisplay(LOTTERY_STATUS_SNAPSHOTS, IS_ADDITIONAL_OFFERING))
+    : [];
 const remaining = remainingRows2026.find((r) => r.id === horse.id) ?? null;
 /** 残口のある馬のID（ジャンププルダウンの印）・馬一覧（ページ下部のチップ）。No.順。 */
 const remainingHorseIds = new Set(
@@ -309,8 +314,11 @@ const facts: { term: string; value: string; note?: string }[] = [
       など・remainingがnull）では出さない。
       1次募集では残口があったのに、その後の追加募集で満口になった馬は「1.5次完売」と書き分ける
       （2026-09-16）。ただの「満口」だと1次募集で満口になった馬と見分けが付かないため。
+      `remaining.hasRemaining === null`（未発表・または追加募集中でない＝liveSnapshotsForDisplay
+      で剥がされた状態）も出さない ―― これを素通りさせると「残口あり」ではない全馬に
+      「満口」バッジが付いてしまう（2026-10-10・OFFERING_ROUND解除で実際に露出した）。
     */
-    remaining && (
+    remaining && remaining.hasRemaining !== null && (
       <p class="remaining-flag">
         {remaining.hasRemaining ? (
           <span class="remaining-flag-badge is-remaining">

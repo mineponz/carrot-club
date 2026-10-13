@@ -5,7 +5,8 @@ import {
   lotteryStatusRowHtml,
   LOTTERY_STATUS_COLUMNS,
 } from './lottery-status-row.ts';
-import type { LotteryStatusRow } from './lottery-status.ts';
+import { IS_OFFERING_CLOSED } from '../consts.ts';
+import { normalNoLotteryText, type LotteryStatusRow } from './lottery-status.ts';
 import type { FrameLotteryResult } from '../data/lotteryStatus2026.ts';
 
 function frame(outcome: FrameLotteryResult['outcome']): FrameLotteryResult {
@@ -52,11 +53,13 @@ test('lotteryListCellHtml: 母馬優先対象馬は「母優先」「通常」�
   assert.equal((html.match(/lottery-line-label/g) ?? []).length, 2);
 });
 
-test('lotteryListCellHtml: 通常枠のlotteryOccurred:falseは「残口あり」', () => {
+test('lotteryListCellHtml: 通常枠のlotteryOccurred:falseは「残口あり」（募集終了後は「抽選なし」）', () => {
   const html = lotteryListCellHtml(
     makeRow({ hasDamPriority: false, normal: frame({ rank: 'general', lotteryOccurred: false }) }),
   );
-  assert.match(html, /class="lottery-badge rank-general secured">残口あり/);
+  assert.ok(
+    html.includes(`class="lottery-badge rank-general secured">${normalNoLotteryText(IS_OFFERING_CLOSED)}`),
+  );
 });
 
 test('lotteryListCellHtml: 未発表（normalがnull）は「発表待ち」', () => {

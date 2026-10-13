@@ -1,7 +1,9 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
+import { IS_OFFERING_CLOSED } from '../consts.ts';
 import {
   lotteryLabel,
+  normalNoLotteryText,
   lotterySeverity,
   lotteryStatusRows,
   sortLotteryStatusRows,
@@ -55,13 +57,26 @@ test('lotteryLabel: 抽選発生ならランク名+抽選（x2/x1/noneは「最�
   });
 });
 
-test('lotteryLabel: 通常枠で口数に届かなければ「残口あり」（「確保」等ぴったり満口を思わせる文言は使わない、既定はnormal扱い）', () => {
-  assert.deepEqual(lotteryLabel(frame({ rank: 'general', lotteryOccurred: false })), {
+test('lotteryLabel: 募集中、通常枠で口数に届かなければ「残口あり」（「確保」等ぴったり満口を思わせる文言は使わない）', () => {
+  assert.deepEqual(lotteryLabel(frame({ rank: 'general', lotteryOccurred: false }), 'normal', false), {
     text: '残口あり',
     rank: 'general',
   });
-  assert.deepEqual(lotteryLabel(frame({ rank: 'general', lotteryOccurred: false }), 'normal'), {
-    text: '残口あり',
+});
+
+test('lotteryLabel: 募集が全部終わったあとは通常枠も「抽選なし」（満口なのに出資できるように読ませない）', () => {
+  assert.deepEqual(lotteryLabel(frame({ rank: 'general', lotteryOccurred: false }), 'normal', true), {
+    text: '抽選なし',
+    rank: 'general',
+  });
+  // 抽選が発生した馬・母馬優先枠の文言は募集終了後も変わらない
+  assert.equal(lotteryLabel(frame({ rank: 'x1', lotteryOccurred: true }), 'normal', true).text, '×1抽選');
+  assert.equal(lotteryLabel(frame({ rank: 'general', lotteryOccurred: false }), 'damPriority', true).text, '当選');
+});
+
+test('lotteryLabel: 既定はnormal扱い・募集状態は consts の IS_OFFERING_CLOSED に従う', () => {
+  assert.deepEqual(lotteryLabel(frame({ rank: 'general', lotteryOccurred: false })), {
+    text: normalNoLotteryText(IS_OFFERING_CLOSED),
     rank: 'general',
   });
 });

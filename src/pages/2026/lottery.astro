@@ -28,13 +28,20 @@ import { LOTTERY_STATUS_SNAPSHOTS } from '../../data/lotteryStatus2026.ts';
 import { lotteryStatusRows, sortLotteryStatusRows } from '../../lib/lottery-status.ts';
 import { LOTTERY_STATUS_COLUMNS, lotteryStatusRowHtml } from '../../lib/lottery-status-row.ts';
 // 1.5次募集（残口のある馬）。出所は同じsnapshot（remaining-shares.tsのコメント参照）。
-import { remainingSharesRows } from '../../lib/remaining-shares.ts';
-import { IS_ADDITIONAL_OFFERING, OFFERING_ROUND_LABEL } from '../../consts.ts';
+// 追加募集中でなければ liveSnapshotsForDisplay() が残口・満口フラグを剥がすので、
+// 「残り口数」列も初期並び替えもこれを経由させる（呼び出し漏れで満口の馬に
+// 「残口あり」が出ないように。2026-10-10）。
+import { liveSnapshotsForDisplay, remainingSharesRows } from '../../lib/remaining-shares.ts';
+import { IS_ADDITIONAL_OFFERING, IS_OFFERING_CLOSED, OFFERING_ROUND_LABEL } from '../../consts.ts';
 
 // 馬名から飛ぶ個別ページも年度付きが正本。既定値まかせにせず年度ごとに明示する（tour-weight/votesと同じ書き方）
 const DETAIL_BASE_PATH = '/2026/horses/';
 
-const rows = lotteryStatusRows(horses2026, LOTTERY_STATUS_SNAPSHOTS);
+// 検算（整合性チェック）は発表時点のデータ自体を見るので、表示用の変数とは別に
+// 生のsnapshotsも残す（`idsWithoutNormalLotteryOutcome`等、本ページでは直接使わないが
+// 他ページ・テストと同じ出し分けに揃える）。
+const displaySnapshots = liveSnapshotsForDisplay(LOTTERY_STATUS_SNAPSHOTS, IS_ADDITIONAL_OFFERING);
+const rows = lotteryStatusRows(horses2026, displaySnapshots);
 const total = rows.length;
 
 // まだ抽選ランク発表が1件も無い（配列自体が空）状態か。器の段階ではここが true。
@@ -46,9 +53,9 @@ const lotteryOccurredCount = rows.filter(
   (r) => r.normal?.outcome?.lotteryOccurred === true || r.damPriority?.outcome?.lotteryOccurred === true,
 ).length;
 
-// 残口（1.5次募集の対象馬）の募集番号の集合。1.5次募集の間だけ初期表示の並びに使う。
+// 残口（1.5次募集の対象馬）の募集番号の集合。追加募集中だけ初期表示の並びに使う。
 const remainingIds = new Set(
-  remainingSharesRows(horses2026, LOTTERY_STATUS_SNAPSHOTS)
+  remainingSharesRows(horses2026, displaySnapshots)
     .filter((r) => r.hasRemaining === true)
     .map((r) => r.id),
 );
@@ -108,6 +115,13 @@ const description = `【非公式】キャロットクラブ2026年募集馬${to
   }
 
   <div class="table-wrap">
+    {
+      // 募集終了後は「残り口数」列を見出し・セルごと隠す（全頭「—」の列を残さない。
+      // 行はクライアント側でも描き直すので、行のHTMLを変えずCSSで消す）。
+      IS_OFFERING_CLOSED && (
+        <style is:inline set:html={'#lottery-table [data-col="remainingShares"] { display: none; }'} />
+      )
+    }
     <table id="lottery-table">
       <caption class="visually-hidden">
         2026年募集馬{total}頭の抽選ステータス（抽選ランク発表）の一覧
@@ -340,16 +354,18 @@ const description = `【非公式】キャロットクラブ2026年募集馬${to
     // 行のマークアップはビルド時と共有する（二重管理にすると初期HTMLとずれる）
     import { lotteryStatusRowHtml } from '../../lib/lottery-status-row.ts';
     // 1.5次募集（残口のある馬）。frontmatterと同じ出所・同じ考え方で初期表示だけ並びを動かす。
-    import { remainingSharesRows } from '../../lib/remaining-shares.ts';
+    // 追加募集中でなければ liveSnapshotsForDisplay() が残口・満口フラグを剥がす（frontmatterと同じ）。
+    import { liveSnapshotsForDisplay, remainingSharesRows } from '../../lib/remaining-shares.ts';
     import { IS_ADDITIONAL_OFFERING } from '../../consts.ts';
 
     // frontmatter の定数はクライアント側から参照できないので同じ値をここにも置く
     const DETAIL_BASE_PATH = '/2026/horses/';
 
-    const rows = lotteryStatusRows(horses2026, LOTTERY_STATUS_SNAPSHOTS);
+    const displaySnapshots = liveSnapshotsForDisplay(LOTTERY_STATUS_SNAPSHOTS, IS_ADDITIONAL_OFFERING);
+    const rows = lotteryStatusRows(horses2026, displaySnapshots);
 
     const remainingIds = new Set(
-      remainingSharesRows(horses2026, LOTTERY_STATUS_SNAPSHOTS)
+      remainingSharesRows(horses2026, displaySnapshots)
         .filter((r) => r.hasRemaining === true)
         .map((r) => r.id),
     );

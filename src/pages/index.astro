@@ -12,6 +12,7 @@ import SyncPanel from '../components/SyncPanel.astro';
 import AdSlot from '../components/AdSlot.astro';
 import {
   IS_ADDITIONAL_OFFERING,
+  IS_OFFERING_CLOSED,
   OFFERING_ROUND,
   OFFERING_ROUND_LABEL,
   SITE_DESCRIPTION,
@@ -40,6 +41,7 @@ import { lotteryStatusRows } from '../lib/lottery-status.ts';
 // （最新snapshotで残り口数が入っている馬＝対象馬。src/lib/remaining-shares.ts のコメント参照）。
 import {
   assertRemainingSharesConsistent,
+  liveSnapshotsForDisplay,
   remainingSharesRows,
   secondaryOfferingAnnounced,
 } from '../lib/remaining-shares.ts';
@@ -77,22 +79,34 @@ const columns: readonly {
 }[] = COLUMNS;
 
 // 「表示設定」で出す列（No・馬名・評価・メモ以外）。並びは表と同じにする。
-const columnOptions = toggleableColumns();
+// 募集が全部終わったあと（IS_OFFERING_CLOSED）は「残口」列を表示設定にも出さない
+// （列そのものは下の <style is:inline> で隠す。出したままだと全頭「発表待ち」になり、
+// これから発表があるように読めるため。2026-10-11）。
+const columnOptions = toggleableColumns().filter(
+  (col) => !(IS_OFFERING_CLOSED && col.key === 'remainingShares'),
+);
+
+// 残口の表示に使うsnapshots。追加募集中（IS_ADDITIONAL_OFFERING）でなければ、発表データ
+// （remainingShares・soldOutInRound）を書き換えずに表示側だけ「無し」に倒す
+// （`liveSnapshotsForDisplay` 参照。呼び出し漏れで満口の馬に「残口あり」が出ないよう、
+// 抽選ステータス・残口の両方のrowsをこれ経由で作る）。
+const displaySnapshots = liveSnapshotsForDisplay(LOTTERY_STATUS_SNAPSHOTS, IS_ADDITIONAL_OFFERING);
 
 // 抽選ステータス（本人依頼・2026-09-05）。馬ID→行データのMapにしておき、行を作るたびに引く。
 // `lotteryStatusRows()` は最新snapshotの結果を突き合わせるだけの純関数（`src/lib/lottery-status.ts`）。
 const lotteryById = new Map(
-  lotteryStatusRows(horses2026, LOTTERY_STATUS_SNAPSHOTS).map((row) => [row.id, row]),
+  lotteryStatusRows(horses2026, displaySnapshots).map((row) => [row.id, row]),
 );
 
 // 残口（今の募集回で出資できる馬）も同じ形で突き合わせる（本人合意・2026-09-10）。
-// 手入力どうし（抽選ランクと残り口数）が食い違ったらここでビルドを止める。
+// 手入力どうし（抽選ランクと残り口数）が食い違ったらここでビルドを止める。検算は発表時点の
+// データ自体の整合性チェックなので、表示判定とは別に生のsnapshotsで行う。
 assertRemainingSharesConsistent(LOTTERY_STATUS_SNAPSHOTS);
-const remainingRows = remainingSharesRows(horses2026, LOTTERY_STATUS_SNAPSHOTS);
+const remainingRows = remainingSharesRows(horses2026, displaySnapshots);
 const remainingById = new Map(remainingRows.map((row) => [row.id, row]));
-// 追加募集の発表自体がまだ無いあいだは、切替・絞り込みの「残口」・列を出さない
+// 追加募集中でない・発表自体がまだ無いあいだは、切替・絞り込みの「残口」・列を出さない
 // （押しても何も起きない死んだUIを並べない。hasSurgeryDataと同じ考え方）。
-const hasRemainingSharesData = secondaryOfferingAnnounced(LOTTERY_STATUS_SNAPSHOTS);
+const hasRemainingSharesData = secondaryOfferingAnnounced(displaySnapshots);
 const remainingCount = remainingRows.filter((r) => r.hasRemaining === true).length;
 // 前の募集回では残口があったが、今回の対象馬一覧から消えた＝その回で満口になった馬
 // （2026年度なら1.5次募集で満口の8頭）。「1.5次完売」ラベルの頭数はここから出す。
@@ -547,6 +561,13 @@ const faqJsonLd = {
   -->
   <style id="column-visibility-style" is:inline></style>
   <div class="table-wrap">
+    {
+      // 募集終了後は「残口」列を見出し・セルごと隠す。行はクライアント側でも描き直すので、
+      // 行のHTMLを変えずCSSで消す（「表示設定」の列を隠す仕組みと同じセレクタ）。
+      IS_OFFERING_CLOSED && (
+        <style is:inline set:html={'#horse-table [data-col="remainingShares"] { display: none; }'} />
+      )
+    }
     <table id="horse-table">
       <caption class="visually-hidden">
         2026年募集馬{total}頭の血統・測尺・一口価格・厩舎の一覧（評価欄つき）
@@ -1570,7 +1591,13 @@ const faqJsonLd = {
     import { LOTTERY_STATUS_SNAPSHOTS } from '../data/lotteryStatus2026.ts';
     import { lotteryStatusRows } from '../lib/lottery-status.ts';
     // 1.5次募集（残口のある馬）。frontmatterと同じ出所（抽選ランク発表のsnapshot）。
-    import { remainingSharesByHorseId, remainingSharesRows } from '../lib/remaining-shares.ts';
+    // 追加募集中でなければ liveSnapshotsForDisplay が残口・満口フラグを剥がすので、
+    // frontmatterと同じくこちらを経由してから渡す（呼び出し漏れで残口ありが出ないように）。
+    import {
+      liveSnapshotsForDisplay,
+      remainingSharesByHorseId,
+      remainingSharesRows,
+    } from '../lib/remaining-shares.ts';
     import { IS_ADDITIONAL_OFFERING } from '../consts.ts';
     import { queueEvaluationSync } from '../lib/evaluation-client.ts';
     import { EVALUATIONS_RESTORED_EVENT } from '../lib/sync.ts';
@@ -1684,13 +1711,16 @@ const faqJsonLd = {
     // frontmatter の定数はクライアント側から参照できないので同じ値をここにも置く
     const DETAIL_BASE_PATH = '/2026/horses/';
     const RECRUIT_YEAR = 2026;
+    // frontmatterと同じく、表示用には生のsnapshotsではなくliveSnapshotsForDisplay()を通した
+    // ものを使う（追加募集中でなければ残口・満口フラグが剥がれた状態になる）。
+    const displaySnapshots = liveSnapshotsForDisplay(LOTTERY_STATUS_SNAPSHOTS, IS_ADDITIONAL_OFFERING);
     // 抽選ステータスも frontmatter と同じ組み立て（馬ID→行データのMap）をここに置く
     const lotteryById = new Map(
-      lotteryStatusRows(horses2026, LOTTERY_STATUS_SNAPSHOTS).map((row) => [row.id, row]),
+      lotteryStatusRows(horses2026, displaySnapshots).map((row) => [row.id, row]),
     );
     // 残口（1.5次募集の対象馬）も同じ組み立て。絞り込みの「残口」で使う馬ID→残口ありかの
     // 対応表もここから作る（frontmatterのremainingRows/remainingByIdと同じ出所）。
-    const remainingRows = remainingSharesRows(horses2026, LOTTERY_STATUS_SNAPSHOTS);
+    const remainingRows = remainingSharesRows(horses2026, displaySnapshots);
     const remainingById = new Map(remainingRows.map((row) => [row.id, row]));
     const remainingSharesMap = remainingSharesByHorseId(remainingRows);
 

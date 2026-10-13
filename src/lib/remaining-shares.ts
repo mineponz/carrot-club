@@ -24,6 +24,52 @@ import type {
   RemainingShares,
 } from '../data/lotteryStatus2026.ts';
 
+/**
+ * 残口のUI（切替・列・絞り込みの「残口」・FAQ・個別ページのバッジ・HorseNavの●印・
+ * `/2026/lottery/` の残り口数列）を今出すべきか。
+ *
+ * **追加募集中（`consts.ts` の `IS_ADDITIONAL_OFFERING`）かつ、その回の残口が発表済み
+ * （`secondaryOfferingAnnounced`）のときだけ true。** 募集が終わって `OFFERING_ROUND` を
+ * `'closed'` にすると、snapshotのデータ（`remainingShares`）を書き換えなくても自動的に false に
+ * なる（2026-10-10。snapshotはクラブ発表の記録として残し、表示側だけを倒す運用）。
+ */
+export function isAdditionalOfferingLive(
+  isAdditionalOfferingRound: boolean,
+  snapshots: readonly LotteryStatusSnapshot[],
+): boolean {
+  return isAdditionalOfferingRound && secondaryOfferingAnnounced(snapshots);
+}
+
+/**
+ * 表示用に出す snapshots。
+ *
+ * **残口を参照する表示ロジック（`remainingSharesRows` / `lotteryStatusRows`）は、ページ側から
+ * 生の `LOTTERY_STATUS_SNAPSHOTS` を直接渡さず、必ずこの関数を通した結果を渡すこと。**
+ * `isAdditionalOfferingLive` が false のときは最新snapshotの `remainingShares` と
+ * `soldOutInRound` を全馬ぶん剥がした配列を返すので、呼び出し側のページがそれぞれ
+ * `IS_ADDITIONAL_OFFERING` を確認し忘れても「満口のはずの馬に残口あり/1.5次完売が出る」
+ * 事故が起きない（判定をここ1か所に寄せ、ページごとに条件を書き足さない。2026-10-10）。
+ *
+ * **検算系（`assertRemainingSharesConsistent` / `idsWithoutNormalLotteryOutcome`）には渡さない。**
+ * あちらは発表時点の手入力データ自体の整合性チェックで、表示を今出すかとは別軸のため、
+ * 生のsnapshotsのまま呼ぶこと。記事ページ（`secondary-offering.astro`/`second-offering.astro`）も
+ * 公開時点の固定データを指すためこの関数を使わず、生のsnapshotsをそのまま使う。
+ */
+export function liveSnapshotsForDisplay(
+  snapshots: readonly LotteryStatusSnapshot[],
+  isAdditionalOfferingRound: boolean,
+): readonly LotteryStatusSnapshot[] {
+  if (isAdditionalOfferingLive(isAdditionalOfferingRound, snapshots)) return snapshots;
+  const latest = snapshots.length > 0 ? snapshots[snapshots.length - 1] : null;
+  if (!latest) return snapshots;
+  const scrubbedById: Record<string, LotteryStatusEntry> = {};
+  for (const [id, e] of Object.entries(latest.byId)) {
+    const { soldOutInRound: _soldOutInRound, ...rest } = e;
+    scrubbedById[id] = { ...rest, remainingShares: null };
+  }
+  return [...snapshots.slice(0, -1), { ...latest, byId: scrubbedById }];
+}
+
 /** 満口になった募集回（`LotteryStatusEntry['soldOutInRound']` の非undefined側）。 */
 export type SoldOutRound = NonNullable<LotteryStatusEntry['soldOutInRound']>;
 

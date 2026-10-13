@@ -8,6 +8,7 @@
  * 複数回の発表があっても**最新（配列末尾）のsnapshotだけ**を見る。中間発表を並べて
  * 比較したい `entry-votes.ts` とは違い、抽選ステータスは「今の結果」だけが意味を持つため。
  */
+import { IS_OFFERING_CLOSED } from '../consts.ts';
 import type { Horse, Sex } from './horses.ts';
 import type { SoldOutRound } from './remaining-shares.ts';
 import type {
@@ -48,6 +49,11 @@ export interface LotteryLabel {
   rank: LotteryBadgeRank;
 }
 
+/** 通常枠で抽選にならなかった馬のバッジ文言。募集中は「残口あり」、募集終了後は「抽選なし」。 */
+export function normalNoLotteryText(offeringClosed: boolean): string {
+  return offeringClosed ? '抽選なし' : '残口あり';
+}
+
 /**
  * 1つの枠（母馬優先／通常）の結果をバッジ文言に変換する。
  *
@@ -62,17 +68,22 @@ export interface LotteryLabel {
  *   （本人指摘・2026-09-05「ぴったりじゃないとこの表現ない」——通常枠側でも実際にぴったり
  *   満口になることは稀で、大半は口数が余るため「残口あり」で表す。「一般で確保」のような
  *   「ちょうど満口」を思わせる文言は使わない）。
+ *   **募集が全部終わったあと（`offeringClosed`）は通常枠も「抽選なし」にする**（2026-10-10）。
+ *   全頭満口になったあとも「残口あり」と出ていると、まだ出資できるように読めるため。
+ *   既定値は `consts.ts` の `IS_OFFERING_CLOSED`（呼び出し側のページが渡し忘れても
+ *   「残口あり」が残らないよう、判定をここ1か所に寄せてある）。
  */
 export function lotteryLabel(
   frame: FrameLotteryResult,
   frameKind: 'damPriority' | 'normal' = 'normal',
+  offeringClosed: boolean = IS_OFFERING_CLOSED,
 ): LotteryLabel {
   if (frame.outcome === null) {
     return { text: '発表待ち', rank: 'mid' };
   }
   const { rank, lotteryOccurred } = frame.outcome;
   if (!lotteryOccurred) {
-    return { text: frameKind === 'damPriority' ? '当選' : '残口あり', rank };
+    return { text: frameKind === 'damPriority' ? '当選' : normalNoLotteryText(offeringClosed), rank };
   }
   const text = `${LOTTERY_RANK_LABELS[rank]}抽選`;
   return { text, rank };

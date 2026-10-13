@@ -87,12 +87,23 @@ export const SITE_TITLE = 'キャロットクラブ出資馬検討ツール';
  * ところへ本物の「第2次募集」が来て、同じ語が二つの回を指すようになったため。募集回を
  * そのまま値にすれば衝突しないし、次に増える回も足すだけで済む。
  *
- * 募集が終わったら `'1'` に戻すだけでよい（「残口」列・切替・個別ページのバッジ自体は
- * 消さない。データが無くなれば自動的に「—」表示に倒れる。詳細は
- * `src/lib/remaining-shares.ts`）。
+ * **募集が全部終わったら `'closed'` にする**（2026-10-10・第2次募集の15頭が全頭満口になった
+ * 回で追加）。`'1'` に戻すのではない ―― `'1'` は「1次募集の結果が出た直後で、残口のある馬に
+ * まだ出資できる」状態を指すので、通常枠の「残口あり」バッジが出たままになる。
+ * `'closed'` にすると:
+ * - `IS_ADDITIONAL_OFFERING` が false になり、`src/lib/remaining-shares.ts` の
+ *   `liveSnapshotsForDisplay` を通した表示（トップの切替・「残口」列・絞り込み・FAQ・
+ *   個別ページのバッジ・`/2026/lottery/` の残り口数）が「無し」へ倒れる。
+ * - `IS_OFFERING_CLOSED` が true になり、通常枠で抽選にならなかった馬のバッジが
+ *   「残口あり」から「抽選なし」に変わる（`src/lib/lottery-status.ts` の `lotteryLabel`）。
+ *
+ * **データ（`lotteryStatus2026.ts` の `remainingShares`）は書き換えない。** クラブ発表の
+ * 記録としてそのまま残す（公開済みの記事 `secondary-offering.astro` / `second-offering.astro`
+ * がその時点の対象馬を読んでいる）。残口列・切替・バッジのコード自体も消さない（来年また使う）。
+ * 翌年度の1次募集の結果を入れるときに `'1'` へ戻す。
  */
-export type OfferingRound = '1' | '1.5' | '2';
-export const OFFERING_ROUND: OfferingRound = '2';
+export type OfferingRound = '1' | '1.5' | '2' | 'closed';
+export const OFFERING_ROUND: OfferingRound = 'closed';
 
 /**
  * 募集回→画面に出す名前。**ユーザーに見える募集回の名前はここだけから出す**
@@ -103,6 +114,7 @@ export const OFFERING_ROUND_LABELS: Readonly<Record<OfferingRound, string>> = {
   '1': '1次募集',
   '1.5': '1.5次募集',
   '2': '第2次募集',
+  closed: '募集終了',
 };
 
 /** 今の募集回の名前（例 '第2次募集'）。 */
@@ -114,8 +126,19 @@ export const OFFERING_ROUND_LABEL = OFFERING_ROUND_LABELS[OFFERING_ROUND];
  * エラーになるので、引数で受ける関数にしてある。
  */
 export function isAdditionalOfferingRound(round: OfferingRound): boolean {
-  return round !== '1';
+  return round !== '1' && round !== 'closed';
 }
+
+/** その年度の募集が全部終わった（全頭満口）か。引数で受ける理由は上と同じ。 */
+export function isOfferingClosedRound(round: OfferingRound): boolean {
+  return round === 'closed';
+}
+
+/**
+ * 募集が全部終わったか。通常枠の「残口あり」バッジを出すかどうかはこれで判定する
+ * （終わったあとも「残口あり」と出ていると、まだ出資できるように読めるため）。
+ */
+export const IS_OFFERING_CLOSED: boolean = isOfferingClosedRound(OFFERING_ROUND);
 
 /**
  * 追加募集の期間中か。

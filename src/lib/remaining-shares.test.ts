@@ -4,6 +4,8 @@ import {
   assertRemainingSharesConsistent,
   checkRemainingSharesConsistency,
   idsWithoutNormalLotteryOutcome,
+  isAdditionalOfferingLive,
+  liveSnapshotsForDisplay,
   remainingSharesByHorseId,
   remainingSharesInfo,
   remainingSharesRows,
@@ -201,6 +203,55 @@ test('checkRemainingSharesConsistency: 残口と満口フラグが両方立っ�
   const result = checkRemainingSharesConsistency(broken);
   assert.equal(result.ok, false);
   assert.deepEqual(result.bothRemainingAndSoldOut, ['9']);
+});
+
+// --- 募集回を '1' に戻した後（追加募集の表示を消す）の挙動 ---
+
+test('isAdditionalOfferingLive: 追加募集中でなければ発表済みでもfalse', () => {
+  assert.equal(isAdditionalOfferingLive(false, withSecondary), false);
+});
+
+test('isAdditionalOfferingLive: 追加募集中でも未発表ならfalse', () => {
+  assert.equal(isAdditionalOfferingLive(true, lotteryOnly), false);
+});
+
+test('isAdditionalOfferingLive: 追加募集中かつ発表済みならtrue', () => {
+  assert.equal(isAdditionalOfferingLive(true, withSecondary), true);
+});
+
+test('liveSnapshotsForDisplay: 表示が有効なら元のsnapshotsをそのまま返す', () => {
+  assert.equal(liveSnapshotsForDisplay(withSecondary, true), withSecondary);
+});
+
+test('liveSnapshotsForDisplay: 追加募集中でなければ残口・満口フラグを全馬ぶん剥がす', () => {
+  const scrubbed = liveSnapshotsForDisplay(withSecondary, false);
+  // 発表前のsnapshotはそのまま（1次抽選の結果はこの関数の対象外）
+  assert.deepEqual(scrubbed[0], withSecondary[0]);
+  // 最新snapshotはremainingSharesがすべてnullになる
+  const latest = scrubbed.at(-1)!;
+  for (const entry of Object.values(latest.byId)) {
+    assert.equal(entry.remainingShares, null);
+    assert.equal(entry.soldOutInRound, undefined);
+  }
+  // 1次抽選の結果（normal.outcome）自体は変えない
+  assert.equal(latest.byId['1'].normal.outcome?.lotteryOccurred, true);
+  // 剥がした結果、残口あり・満口フラグの両方とも消える
+  assert.equal(secondaryOfferingAnnounced(scrubbed), false);
+  assert.deepEqual(remainingSharesByHorseId(remainingSharesRows(horses, scrubbed)), {});
+  assert.deepEqual(soldOutInRoundByHorseId(remainingSharesRows(horses, scrubbed)), {});
+});
+
+test('liveSnapshotsForDisplay: snapshotsが空ならそのまま返す', () => {
+  assert.deepEqual(liveSnapshotsForDisplay([], false), []);
+});
+
+test('liveSnapshotsForDisplay（実データ）: 追加募集解除後は残口・1.5次完売が両方消える', () => {
+  const scrubbed = liveSnapshotsForDisplay(LOTTERY_STATUS_SNAPSHOTS, false);
+  const rows = remainingSharesRows(horses2026, scrubbed);
+  assert.deepEqual(remainingSharesByHorseId(rows), {});
+  assert.deepEqual(soldOutInRoundByHorseId(rows), {});
+  // 検算（1次抽選の整合性チェック）は生のsnapshotsで行うので影響を受けない
+  assert.equal(checkRemainingSharesConsistency(LOTTERY_STATUS_SNAPSHOTS).ok, true);
 });
 
 test('checkRemainingSharesConsistency: 満口フラグだけでも「残口ありだった馬」として数える', () => {

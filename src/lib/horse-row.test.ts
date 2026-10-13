@@ -12,6 +12,8 @@ import {
   stableSexLine,
   toggleableColumns,
 } from './horse-row.ts';
+import { IS_OFFERING_CLOSED } from '../consts.ts';
+import { normalNoLotteryText } from './lottery-status.ts';
 import { DEFAULT_EVALUATION } from './evaluations.ts';
 import type { Horse } from './horses.ts';
 
@@ -252,7 +254,7 @@ test('horseRowHtml: 抽選ステータスの行を渡すと一覧セルに反映
   });
   const cell = html.match(/<td data-col="lottery"[^]*?<\/td>/)![0];
   assert.match(cell, /×2抽選/);
-  assert.match(cell, /残口あり/);
+  assert.ok(cell.includes(normalNoLotteryText(IS_OFFERING_CLOSED)));
 });
 
 test('horseRowHtml: 残口の行を渡さなければ「—」（2025年募集など情報源が無い年度）', () => {
