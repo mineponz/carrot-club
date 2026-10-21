@@ -19,12 +19,12 @@ test('isNoindexPath: 旧年度一覧 /2025/ は noindex（2026-09-23追加。配
   assert.equal(isNoindexPath('/2025/horses/93/'), true);
 });
 
-test('isNoindexPath: 出資馬の個別ページ /my-horses/<slug>/ は noindex（2026-09-12追加）', () => {
-  assert.equal(isNoindexPath('/my-horses/eir/'), true);
-  assert.equal(isNoindexPath('/my-horses/some-other-horse/'), true);
+test('isNoindexPath: 出資馬の個別ページ /my-horses/<slug>/ は index（2026-10-21に独自の分析節を足して noindex を外した）', () => {
+  assert.equal(isNoindexPath('/my-horses/eir/'), false);
+  assert.equal(isNoindexPath('/my-horses/some-other-horse/'), false);
 });
 
-test('isNoindexPath: /my-horses/ 一覧そのものは index のまま', () => {
+test('isNoindexPath: /my-horses/ 一覧そのものも index', () => {
   assert.equal(isNoindexPath('/my-horses/'), false);
 });
 

@@ -4,6 +4,8 @@
  *
  * 中身は本人の指定（2026-09-09）で4点:
  *  父・母・母父 / 競走成績 / 馬体重の推移（放牧・育成・レース） / 募集時の測尺
+ * ＋ 2026-10-21に「データで見る○○」（分析記事の傾向をこの馬の数字に当てはめた節）を追加
+ *  （これで noindex を外した。項目は `src/lib/horse-insights.ts`）
  *
  * 読み物（`/my-horses/article/<馬>/`）とはURLを分けてある。ここはデータのページで、
  * 記事は別。記事がある馬だけ相互リンクする。
@@ -20,6 +22,7 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
 import WeightTimeline from '../../components/charts/WeightTimeline.astro';
 import ChartTooltip from '../../components/charts/ChartTooltip.astro';
 import StatTiles from '../../components/charts/StatTiles.astro';
+import HorseInsights from '../../components/HorseInsights.astro';
 import {
   loadMyHorses,
   STATUS_LABEL,
@@ -29,7 +32,8 @@ import {
   loadOwnPhotos,
   ownPhotoUrl,
 } from '../../lib/my-horses.ts';
-import { loadRecruitsWithResults } from '../../lib/analysis-data.ts';
+import { loadRecruitsWithResults, loadDamRoster, leadingRankOf } from '../../lib/analysis-data.ts';
+import { buildHorseInsights, checkInsightPremises } from '../../lib/horse-insights.ts';
 import { formatPrizeJa } from '../../lib/chart-math.ts';
 import trainingJson from '../../../analysis/data/my-horse-training-weights.json';
 
@@ -49,6 +53,28 @@ const recruit = loadRecruitsWithResults().find(
   (r) => r.recruitYear === horse.recruitYear && r.no === horse.no,
 );
 const measuredAt = horse.measuredAt ?? null;
+
+/**
+ * 「データで見る○○」節。分析記事の傾向をこの馬の数字に当てはめる（`horse-insights.ts`）。
+ * 追加募集の馬は `recruits.json` に行が無く（測尺が2歳春で記事の物差しに合わない）、項目は空になる。
+ * 本文に焼いた解釈（「牡では関係が見えない」等）が崩れたらビルドを落とす。
+ */
+const insightPool = loadRecruitsWithResults();
+const damResults = [...loadDamRoster().values()];
+const brokenPremises = checkInsightPremises(insightPool, damResults, leadingRankOf);
+if (brokenPremises.length > 0) {
+  throw new Error('出資馬ページの分析節の前提が崩れた: ' + brokenPremises.join(' / '));
+}
+const insights = buildHorseInsights({
+  recruit: horse.supplementary ? null : recruit ?? null,
+  pool: insightPool,
+  damResults,
+  trainer: horse.trainer,
+  leadingRankOf,
+});
+const poolYears = insightPool.map((r) => r.recruitYear);
+const poolLabel = `${Math.min(...poolYears)}〜${Math.max(...poolYears)}年募集の${insightPool.length}頭`;
+console.log(`[my-horses] ${slug}: 分析節の項目 ${insights.length}件 (${insights.map((i) => i.key).join(',') || 'なし'})`);
 const photo = loadRecruitPhotos()[slug] ?? null;
 // 自分で撮った写真はレース単位でまとめる（同じレースで複数枚あるため）。
 const ownPhotos = loadOwnPhotos()[slug] ?? [];
@@ -245,6 +271,8 @@ const description = `【非公式】${horse.name}（${horse.recruitYear}年募�
   ) : (
     <p class="note">記録がありません。</p>
   )}
+
+  <HorseInsights horseName={horse.name} poolLabel={poolLabel} insights={insights} />
 
   {ownByRace.length > 0 && (
     <>

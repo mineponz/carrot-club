@@ -23,7 +23,7 @@ export const ALLOW_INDEXING = true;
  * サイト全体では index するが、この接頭辞に一致するページだけは `noindex` にする。
  *
  * 対象は「よそのデータを転記して並べただけ」のページ（馬個別ページ・ツアー後馬体重・
- * 募集申込票数・抽選ステータス一覧・出資馬個別ページ・旧年度の募集馬一覧）。Google AdSense
+ * 募集申込票数・抽選ステータス一覧・旧年度の募集馬一覧）。Google AdSense
  * の審査で不合格（初回2026-09-02、再審査2026-09-12・2026-09-23、いずれも同じ主旨の
  * 「有用性の低いコンテンツ」/ [[20260823-mineponz-domain-migration-and-adsense]]）。
  * 薄いテンプレページが、自分で書いた記事（十数本）を数で押し流してサイト全体の評価を
@@ -33,12 +33,15 @@ export const ALLOW_INDEXING = true;
  * 募集馬一覧本体。中身は転記データの表が大半）には9/12時点の判定が及んでいなかったため
  * 2026-09-23に追加（`/2025/horses/` を包含するので個別の接頭辞は削除。配下は
  * `/2025/horses/[id]` と `/2025/index` のみで、index化すべき自作ページは無いことを確認済み）。
+ * 出資馬個別ページ（`/my-horses/<slug>/`）も9/12から noindex にしていたが、2026-10-21に
+ * サイト独自の分析節（「データで見る○○」）を足して index に戻した。
  * 審査botに見せる面を〈ツール＋記事＋about＋ポリシー〉へ絞るための措置で、
  * **クラブの転載許可の話とは別問題**。
  *
  * これは元に戻せる。AdSense通過後にロングテール検索を取りにいくなら
- * この配列を空にする（＋下の `isNoindexPath` の出資馬個別判定を外す）だけでよい
- * （ページ自体は消していない）。
+ * この配列を空にするだけでよい（ページ自体は消していない）。
+ * 外す前に、サイトの分析記事の知見をその馬に当てはめた節のような「独自の中身」を足すこと
+ * （出資馬個別ページはそうして戻した）。
  *
  * BaseLayout の robots メタと astro.config.mjs の sitemap フィルタの両方がこの関数を見る。
  * 2か所に別々の正規表現を書くと片方だけ直し忘れるため、判定はここに一本化する。
@@ -51,28 +54,8 @@ export const NOINDEX_PATH_PREFIXES = [
   '/2026/lottery/',
 ];
 
-/**
- * 出資馬の個別ページ（`/my-horses/<slug>/`）だけ noindex にするための接頭辞。
- * 単純な前方一致では `/my-horses/` 一覧（9頭のサマリー・自作の説明文が中心）や
- * `/my-horses/article/*`（自作記事）まで巻き込んでしまうため、`isNoindexPath()` 側で
- * 「`/my-horses/` 配下だが一覧そのものでも記事配下でもない」を明示的に判定する。
- */
-const MY_HORSES_PREFIX = '/my-horses/';
-const MY_HORSES_ARTICLE_PREFIX = '/my-horses/article/';
-
 export function isNoindexPath(pathname: string): boolean {
-  if (NOINDEX_PATH_PREFIXES.some((prefix) => pathname === prefix || pathname.startsWith(prefix))) {
-    return true;
-  }
-  // /my-horses/ 一覧そのものと /my-horses/article/*（自作記事）は index のまま残す
-  if (
-    pathname.startsWith(MY_HORSES_PREFIX) &&
-    pathname !== MY_HORSES_PREFIX &&
-    !pathname.startsWith(MY_HORSES_ARTICLE_PREFIX)
-  ) {
-    return true;
-  }
-  return false;
+  return NOINDEX_PATH_PREFIXES.some((prefix) => pathname === prefix || pathname.startsWith(prefix));
 }
 
 /** アプリ名。構造化データやフッターなど「名前」として扱う場所で使う */
