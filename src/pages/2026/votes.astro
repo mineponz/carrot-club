@@ -155,8 +155,7 @@ const description = `【非公式】キャロットクラブ2026年募集馬${to
     .placeholder {
       margin-block: 0 0.75rem;
       padding: 0.75rem 1rem;
-      background: var(--surface);
-      border: 1px solid var(--border);
+      background: var(--card);
       border-radius: 8px;
       font-size: 0.875rem;
       color: var(--muted);
@@ -221,11 +220,11 @@ const description = `【非公式】キャロットクラブ2026年募集馬${to
       z-index: 2;
     }
     #votes-table thead th {
-      background: var(--accent-weak);
+      background: var(--card);
     }
     #votes-table th.num,
     #votes-table td.num { text-align: right; }
-    #votes-table tbody tr:hover td { background: var(--accent-weak); }
+    #votes-table tbody tr:hover td { background: var(--card); }
 
     #votes-table .sort-btn {
       font: inherit;
@@ -269,10 +268,10 @@ const description = `【非公式】キャロットクラブ2026年募集馬${to
       box-shadow: 6px 0 5px -5px rgb(0 0 0 / 0.28);
     }
     #votes-table thead [data-col="name"] {
-      background: var(--accent-weak);
+      background: var(--card);
       z-index: 3;
     }
-    #votes-table tbody tr:hover [data-col="name"] { background: var(--accent-weak); }
+    #votes-table tbody tr:hover [data-col="name"] { background: var(--card); }
 
     /* ---- 狭い画面（SP）: No・父・牡牝を馬名セルに畳む ---- */
     @media (max-width: 40rem) {
@@ -325,10 +324,10 @@ const description = `【非公式】キャロットクラブ2026年募集馬${to
         left: 3rem;
       }
       #votes-table thead [data-col="id"] {
-        background: var(--accent-weak);
+        background: var(--card);
         z-index: 3;
       }
-      #votes-table tbody tr:hover [data-col="id"] { background: var(--accent-weak); }
+      #votes-table tbody tr:hover [data-col="id"] { background: var(--card); }
     }
   </style>
 

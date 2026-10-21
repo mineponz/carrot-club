@@ -92,11 +92,10 @@ const { recruitYear } = Astro.props;
 </section>
 
 <style>
-  /* カードの強調は枠線だけ（背景・影と二重使いしない）。余白は8px系に寄せる */
+  /* 面は塗りだけで区切る（枠線は使わない）。余白は8px系に寄せる */
   .sync {
-    border: 1px solid var(--border);
     border-radius: 8px;
-    background: var(--surface);
+    background: var(--card);
     padding: 1rem;
     margin-top: 2rem;
   }
@@ -127,7 +126,6 @@ const { recruitYear } = Astro.props;
   }
 
   .sync-step {
-    border-top: 1px solid var(--border);
     margin-top: 1rem;
     padding-top: 1rem;
     font-size: 0.875rem;
@@ -149,7 +147,7 @@ const { recruitYear } = Astro.props;
     gap: 0.5rem;
   }
   .sync-id {
-    background: var(--accent-weak);
+    background: var(--card);
     padding: 0.25rem 0.5rem;
     border-radius: 4px;
     /* IDは長いので、狭い画面では折り返して全体を見せる（横スクロールにしない） */
@@ -168,7 +166,7 @@ const { recruitYear } = Astro.props;
     padding: 0.5rem;
     border: 1px solid var(--border);
     border-radius: 4px;
-    background: var(--bg);
+    background: var(--surface);
     color: var(--text);
   }
 
@@ -215,13 +213,12 @@ const { recruitYear } = Astro.props;
     cursor: progress;
   }
 
-  /* 警告はヘッダーの注意書きと同じ形（危険色の縦線＋淡い塗り）に揃える */
+  /* 警告はヘッダーの注意書きと同じ形（淡い塗りだけ）に揃える */
   .sync-warning {
     margin: 0.5rem 0 0;
-    border-left: 3px solid var(--danger);
-    background: var(--accent-weak);
+    background: var(--card);
     padding: 0.5rem 0.75rem;
-    border-radius: 0 4px 4px 0;
+    border-radius: 4px;
   }
 
   .sync-note {
@@ -237,12 +234,11 @@ const { recruitYear } = Astro.props;
   .sync-status {
     margin: 1rem 0 0;
     padding: 0.5rem 0.75rem;
-    border-left: 3px solid var(--accent);
-    background: var(--accent-weak);
+    background: var(--card);
     font-size: 0.875rem;
   }
   .sync-status[data-state='error'] {
-    border-left-color: var(--danger);
+    color: var(--danger);
   }
 </style>
 

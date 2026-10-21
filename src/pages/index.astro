@@ -808,10 +808,8 @@ const faqJsonLd = {
     .analysis-promo {
       margin-block: 0 0.75rem;
       padding: 0.85rem 0 0.85rem 1.1rem;
-      border: 1px solid var(--border);
-      border-left: 3px solid var(--info);
-      border-radius: 0 8px 8px 0;
-      background: var(--info-weak);
+      border-radius: 8px;
+      background: var(--card);
     }
     .analysis-promo-eyebrow {
       margin: 0 1.1rem 0.55rem;
@@ -843,7 +841,6 @@ const faqJsonLd = {
       display: flex;
       flex-direction: column;
       overflow: hidden;
-      border: 1px solid var(--border);
       border-radius: 8px;
       background: var(--surface);
       text-decoration: none;
@@ -865,7 +862,7 @@ const faqJsonLd = {
       height: auto;
       aspect-ratio: 1200 / 630;
       object-fit: cover;
-      background: var(--accent-weak);
+      background: var(--card);
     }
     /*
       記事の区分（分析／読み物）。CTAではなくメタ情報なので枠線のみの控えめな見た目にし、
@@ -876,7 +873,6 @@ const faqJsonLd = {
       top: 0.3rem;
       left: 0.3rem;
       padding: 0.1rem 0.45rem;
-      border: 1px solid var(--border);
       border-radius: 999px;
       background: var(--surface);
       color: var(--muted);
@@ -906,8 +902,7 @@ const faqJsonLd = {
     .unofficial {
       margin: 0 0 0.5rem;
       padding: 0.6rem 0.8rem;
-      border-left: 3px solid var(--accent);
-      background: var(--accent-weak);
+      background: var(--card);
       font-size: 0.8125rem;
     }
 
@@ -916,8 +911,7 @@ const faqJsonLd = {
        畳んである＝見落とされやすいので、枠線と見出し行だけアクセント色にして目立たせ、
        下側の余白は詰めて表とひと続きに見せる（本人の指示）。 */
     .filter-details {
-      background: var(--surface);
-      border: 1px solid var(--accent);
+      background: var(--card);
       border-radius: 8px;
       margin-block: 1rem 0.4rem;
       font-size: 0.875rem;
@@ -928,7 +922,6 @@ const faqJsonLd = {
       font-size: 1rem;
       font-weight: 700;
       color: var(--accent);
-      background: var(--accent-weak);
       border-radius: 7px;
       /* 三角マーカーを内側に置く（既定の list-item 表示だと箱の外にはみ出す） */
       list-style-position: inside;
@@ -936,7 +929,6 @@ const faqJsonLd = {
     /* 開いている間は下の入力欄と地続きに見せるため、角丸は上側だけ残す */
     .filter-details[open] > summary {
       border-radius: 7px 7px 0 0;
-      border-bottom: 1px solid var(--accent);
     }
     /* タップ後もホバー状態が残る端末があるので、ホバーできる環境だけ色を反転させる */
     @media (hover: hover) {
@@ -984,7 +976,7 @@ const faqJsonLd = {
       padding: 0.4rem 0.5rem;
       border: 1px solid var(--border);
       border-radius: 5px;
-      background: var(--bg);
+      background: var(--surface);
       color: var(--text);
       max-width: 11rem;
     }
@@ -1002,7 +994,6 @@ const faqJsonLd = {
       align-items: center;
       gap: 0.9rem;
       width: 100%;
-      border-top: 1px solid var(--border);
       padding-top: 0.9rem;
     }
 
@@ -1014,7 +1005,6 @@ const faqJsonLd = {
       align-items: center;
       gap: 0.5rem 0.9rem;
       width: 100%;
-      border-top: 1px solid var(--border);
       padding-top: 0.9rem;
     }
     .rating-filters-label { color: var(--muted); }
@@ -1054,7 +1044,7 @@ const faqJsonLd = {
       width: 100%;
       border: 1px solid var(--border);
       border-radius: 5px;
-      background: var(--bg);
+      background: var(--surface);
     }
     .multi-filter > summary {
       cursor: pointer;
@@ -1076,7 +1066,6 @@ const faqJsonLd = {
       max-height: 14rem;
       overflow-y: auto;
       padding: 0.6rem;
-      border-top: 1px solid var(--border);
     }
     .multi-filter-n {
       margin-left: 0.3rem;
@@ -1206,7 +1195,6 @@ const faqJsonLd = {
       width: min(24rem, 88vw);
       margin-top: 0.4rem;
       padding: 0.8rem;
-      border: 1px solid var(--border);
       border-radius: 8px;
       background: var(--surface);
       /* 表の上に浮いていることが分かる程度の弱い影だけ（枠線と二重に主張させない） */
@@ -1247,7 +1235,6 @@ const faqJsonLd = {
       grid-template-columns: 5rem 1fr;
       gap: 0.5rem 1rem;
       padding: 0.6rem 0;
-      border-top: 1px solid var(--border);
     }
     .measure-item dt { font-weight: 600; }
     .measure-item dd { margin: 0; }
@@ -1313,14 +1300,14 @@ const faqJsonLd = {
       vertical-align: middle;
     }
     #horse-table thead th {
-      background: var(--accent-weak);
+      background: var(--card);
       position: sticky;
       top: 0;
       z-index: 2;
     }
     #horse-table th.num,
     #horse-table td.num { text-align: right; }
-    #horse-table tbody tr:hover td { background: var(--accent-weak); }
+    #horse-table tbody tr:hover td { background: var(--card); }
 
     /* 左端3列（No・馬名・評価）は固定するので、幅を固定して left オフセットと一致させる。
        auto レイアウトのままだと中身に応じて列幅が伸び、固定位置とずれて列が重なる。
@@ -1362,10 +1349,10 @@ const faqJsonLd = {
       box-shadow: 6px 0 5px -5px rgb(0 0 0 / 0.28);
     }
     #horse-table thead th:nth-child(2) {
-      background: var(--accent-weak);
+      background: var(--card);
       z-index: 3; /* 縦横どちらの固定にも勝つ必要がある */
     }
-    #horse-table tbody tr:hover td:nth-child(2) { background: var(--accent-weak); }
+    #horse-table tbody tr:hover td:nth-child(2) { background: var(--card); }
 
     @media (min-width: 56rem) {
       #horse-table th:nth-child(1),
@@ -1392,11 +1379,11 @@ const faqJsonLd = {
       }
       #horse-table thead th:nth-child(1),
       #horse-table thead th:nth-child(3) {
-        background: var(--accent-weak);
+        background: var(--card);
         z-index: 3;
       }
       #horse-table tbody tr:hover td:nth-child(1),
-      #horse-table tbody tr:hover td:nth-child(3) { background: var(--accent-weak); }
+      #horse-table tbody tr:hover td:nth-child(3) { background: var(--card); }
     }
 
     #horse-table .sort-btn {
@@ -1443,7 +1430,7 @@ const faqJsonLd = {
       padding: 0.2rem 0.3rem;
       border: 1px solid var(--border);
       border-radius: 4px;
-      background: var(--bg);
+      background: var(--surface);
       color: var(--text);
     }
     #horse-table .favorite-btn {
@@ -1483,7 +1470,7 @@ const faqJsonLd = {
       border: none;
       cursor: pointer;
     }
-    #horse-table .memo-flag:hover { background: var(--accent-weak); border-radius: 4px; }
+    #horse-table .memo-flag:hover { background: var(--card); border-radius: 4px; }
     /* メモが入っている馬だけ通知ドットを付ける。アイコン自体は空の馬にも出しているので、
        「押せる場所」と「中身がある馬」をこの点で描き分ける。 */
     #horse-table .memo-flag[data-has-memo='true']::after {
@@ -1509,7 +1496,7 @@ const faqJsonLd = {
       padding: 0.25rem 0.4rem;
       border: 1px solid var(--border);
       border-radius: 4px;
-      background: var(--bg);
+      background: var(--surface);
       color: var(--text);
       width: 11rem;
     }

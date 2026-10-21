@@ -772,9 +772,8 @@ const description =
   .tldr {
     margin: 1.5rem 0;
     padding: 1rem 1.2rem;
-    background: var(--info-weak);
-    border-left: 3px solid var(--info);
-    border-radius: 0 6px 6px 0;
+    background: var(--card);
+    border-radius: 6px;
   }
   .tldr-lead {
     margin: 0 0 0.5rem;
@@ -790,9 +789,8 @@ const description =
   .note-box {
     margin: 1.25rem 0;
     padding: 0.9rem 1.1rem;
-    background: var(--accent-weak);
-    border-left: 3px solid var(--accent);
-    border-radius: 0 6px 6px 0;
+    background: var(--card);
+    border-radius: 6px;
   }
   .note-box p {
     margin: 0;
@@ -835,7 +833,7 @@ const description =
   /* 管囲の行だけ強調する。この表の主役は「見た目0.9cmなのに86%」という対比なので、
      どこを見ればいいかを色で示す。 */
   table.sd-table tr.highlight td {
-    background: var(--info-weak);
+    background: var(--card);
     font-weight: 700;
   }
 
@@ -843,9 +841,8 @@ const description =
   .diagram {
     margin: 1.5rem 0;
     padding: 0.9rem 0.6rem 0.2rem;
-    border: 1px solid var(--border);
     border-radius: 8px;
-    background: var(--surface);
+    background: var(--card);
 
     --fig-dot: #2a78d6;
     --fig-out: #eb6834;
@@ -931,7 +928,7 @@ const description =
     stroke-dasharray: 5 3;
   }
   .diagram :global(.gauge-track) {
-    fill: var(--accent-weak);
+    fill: var(--card);
     stroke: var(--fig-line);
   }
   .diagram :global(.gauge-mid) {

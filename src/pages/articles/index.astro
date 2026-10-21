@@ -87,14 +87,12 @@ const description = `【非公式】${yearRangeLabel}のキャロットクラブ
     flex-direction: column;
     height: 100%;
     overflow: hidden;
-    border: 1px solid var(--border);
     border-radius: 10px;
-    background: var(--surface);
+    background: var(--card);
     text-decoration: none;
-    transition: transform 0.15s ease, border-color 0.15s ease;
+    transition: transform 0.15s ease;
   }
   .article-card:hover {
-    border-color: var(--info);
     transform: translateY(-2px);
   }
   .article-card-thumb {
@@ -103,7 +101,7 @@ const description = `【非公式】${yearRangeLabel}のキャロットクラブ
     height: auto;
     aspect-ratio: 1200 / 630;
     object-fit: cover;
-    background: var(--accent-weak);
+    background: var(--card);
   }
   .article-card-body {
     display: flex;
@@ -131,8 +129,7 @@ const description = `【非公式】${yearRangeLabel}のキャロットクラブ
      カード一覧の前に置いて「先に読む案内」だと分かる見た目にする。 */
   .methods-note {
     padding: 0.7rem 0.95rem;
-    background: var(--info-weak);
-    border: 1px solid var(--info);
+    background: var(--card);
     border-radius: 8px;
     font-size: 0.9375rem;
     line-height: 1.6;

@@ -610,7 +610,6 @@ const facts: { term: string; value: string; note?: string }[] = [
     color: var(--surface);
   }
   .remaining-flag-badge.is-full {
-    border: 1px solid var(--border);
     color: var(--muted);
     font-weight: 600;
   }
@@ -647,7 +646,6 @@ const facts: { term: string; value: string; note?: string }[] = [
     display: block;
     max-width: 100%;
     height: auto;
-    border: 1px solid var(--border);
     border-radius: 8px;
   }
   .horse-photo figcaption {
@@ -672,8 +670,7 @@ const facts: { term: string; value: string; note?: string }[] = [
     gap: 0.75rem 1rem;
     margin: 1.5rem 0 0;
     padding: 1rem;
-    background: var(--surface);
-    border: 1px solid var(--border);
+    background: var(--card);
     border-radius: 8px;
   }
   /* 2列に詰まるSPでは、余白まで広いままだと1列あたりが狭くなりすぎるので少しだけ削る */
@@ -745,7 +742,7 @@ const facts: { term: string; value: string; note?: string }[] = [
     left: 0;
     /* 表はページ背景の上に直接置いているので、固定列も同じ --bg で塗る
        （--surface だと馬名列だけ白く浮いて別の表に見える） */
-    background: var(--bg);
+    background: var(--surface);
     z-index: 1;
     box-shadow: 6px 0 5px -5px rgb(0 0 0 / 0.28);
   }
@@ -753,7 +750,7 @@ const facts: { term: string; value: string; note?: string }[] = [
      （既定の --surface のままだと）左端だけ色が切れて別の行に見える。 */
   table.sibling-table tr.self td,
   table.sibling-table tr.self td:first-child {
-    background: var(--accent-weak);
+    background: var(--card);
     font-weight: 700;
   }
   /* 兄姉の中で獲得賞金が最も多い1頭だけ強調する（本人希望） */
@@ -778,8 +775,7 @@ const facts: { term: string; value: string; note?: string }[] = [
     flex-wrap: wrap;
     align-items: center;
     gap: 0.75rem 1rem;
-    background: var(--surface);
-    border: 1px solid var(--border);
+    background: var(--card);
     border-radius: 8px;
     padding: 1rem;
     font-size: 0.875rem;
@@ -804,7 +800,7 @@ const facts: { term: string; value: string; note?: string }[] = [
     padding: 0.35rem 0.5rem;
     border: 1px solid var(--border);
     border-radius: 4px;
-    background: var(--bg);
+    background: var(--surface);
     color: var(--text);
   }
   .eval-panel .memo-input {

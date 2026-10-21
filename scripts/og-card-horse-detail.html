@@ -1,0 +1,44 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8" />
+<title>OGP card horse detail 1200x630</title>
+<!--
+  馬詳細ページ用OGP画像（public/og-horse-detail-v2.png）の元。generate-og-v3.mjs が撮る。
+  色は src/layouts/BaseLayout.astro のライトテーマと同値（--bg #f3f4f5 / --text / --muted / --accent / --danger）。
+  body に has-carrot クラスを付けると（generate-og-v3.mjs の ALT_DIR 指定時）にんじんを小さく添えた版になる。
+  「◯年募集馬◯頭」は src/consts.ts の SITE_TAGLINE と同じ内容にする（自動連動しない）。
+-->
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@500;700;900&display=swap" rel="stylesheet" />
+<style>
+  :root { --bg:#f3f4f5; --surface:#fff; --text:#1f2123; --muted:#5f6368; --accent:#2f7a3a; --danger:#9d2f24;
+    --sans:"Noto Sans JP",sans-serif; }
+  html{color-scheme:light}
+  *{box-sizing:border-box}
+  html,body{margin:0;width:1200px;height:630px;overflow:hidden}
+  body{background:var(--bg);color:var(--text);font-family:var(--sans);-webkit-font-smoothing:antialiased;padding:28px}
+  .card{width:1144px;height:574px;background:var(--surface);border-radius:16px;display:flex;flex-direction:column;justify-content:center;padding:0 80px 56px;position:relative}
+  .top{display:flex;align-items:center;gap:16px;margin:0 0 20px;font-size:28px;font-weight:700;color:var(--muted);letter-spacing:.04em}
+  .carrot{display:none;height:64px;width:auto;margin-right:2px}
+  body.has-carrot .carrot{display:block}
+  .badge{background:var(--danger);color:#fff;font-size:28px;font-weight:700;letter-spacing:.04em;padding:4px 16px;border-radius:6px}
+  .kicker{margin:0 0 6px;font-size:36px;font-weight:700;color:var(--accent);letter-spacing:.02em}
+  h1{margin:0;font-size:92px;font-weight:900;line-height:1.16;letter-spacing:-.01em}
+  h1.green{color:var(--text)}
+  .lead{margin:22px 0 0;font-size:34px;font-weight:700;color:var(--text)}
+  ul{list-style:none;margin:18px 0 0;padding:0;font-size:29px;font-weight:500;line-height:1.55;color:var(--muted)}
+  .note{position:absolute;left:80px;bottom:24px;margin:0;font-size:20px;font-weight:500;color:var(--muted)}
+</style>
+</head>
+<body>
+<div class="card">
+  <p class="top"><img class="carrot" src="og-carrot.png" alt="" /><span class="badge">非公式</span>CARROT CLUB</p>
+  <p class="kicker">キャロットクラブ出資馬検討ツール</p>
+  <h1>募集馬の詳細ページ</h1>
+  <ul style="margin-top:22px"><li>兄姉との測尺比較</li><li>全募集馬内の測尺ランキング</li><li>自分の評価・メモを保存</li><li>netkeibaやXへのリンク</li></ul>
+  <p class="note">※ 株式会社キャロットクラブとは関係のない非公式サイトです（キャロットクラブ様の許可を頂いております）</p>
+</div>
+</body>
+</html>

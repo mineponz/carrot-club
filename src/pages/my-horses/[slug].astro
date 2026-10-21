@@ -290,9 +290,9 @@ const description = `【非公式】${horse.name}（${horse.recruitYear}年募�
     font-size: 0.75rem;
     font-weight: 700;
   }
-  .badge-active { background: var(--info-weak); color: var(--info); }
+  .badge-active { background: var(--card); color: var(--info); }
   .badge-retired,
-  .badge-transferred { background: var(--accent-weak); color: var(--muted); }
+  .badge-transferred { background: var(--card); color: var(--muted); }
   .horse-head {
     display: grid;
     grid-template-columns: minmax(0, 22rem) minmax(0, 1fr);
@@ -432,14 +432,14 @@ const description = `【非公式】${horse.name}（${horse.recruitYear}年募�
     font-variant-numeric: tabular-nums;
   }
   .finish-1 { background: var(--info); color: #fff; font-weight: 800; }
-  .finish-23 { background: var(--info-weak); color: var(--info); font-weight: 700; }
-  .finish-45 { border: 1px solid var(--border); color: var(--text); font-weight: 600; }
+  .finish-23 { background: var(--card); color: var(--info); font-weight: 700; }
+  .finish-45 { color: var(--text); font-weight: 600; }
   .finish-out { color: var(--muted); }
   /* 好走した行そのものも薄く持ち上げて、流し読みで拾えるようにする */
-  tr.row-1 { background: var(--info-weak); }
+  tr.row-1 { background: var(--card); }
   /* 行全体を太字にすると騎手名まで太くなって列ごとに太さが揺れる（本人指摘・2026-09-10）。
      強調はレース名・着順・タイムに限り、行は薄い地色だけで示す。 */
-  tr.row-23 { background: color-mix(in srgb, var(--info-weak) 45%, transparent); }
+  tr.row-23 { background: color-mix(in srgb, var(--card) 45%, transparent); }
   tr.row-out td { color: var(--muted); }
   /*
    * グレードの色はJRAの慣例に合わせる（G1=青 / G2=赤 / G3=緑）。JpnI〜III も同じ。

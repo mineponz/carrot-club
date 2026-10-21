@@ -54,7 +54,7 @@ interface Props {
   wide?: boolean;
   /**
    * OGP画像のパス（サイト直下からの絶対パス。例: `/og-article-height-v1.png`）。
-   * 既定はサイト共通の `/og-v2.png`。記事ページのようにカードで内容を見分けたいページだけ
+   * 既定はサイト共通の `/og-v3.png`。記事ページのようにカードで内容を見分けたいページだけ
    * 専用画像を渡す（生成は `scripts/generate-og-article.mjs`）。
    * 渡す画像は1200x630で作ること（下の og:image:width / height は固定値）。
    */
@@ -89,7 +89,7 @@ const {
   showAds = true,
   wide = false,
   showHeaderNotices = true,
-  ogImage: ogImagePath = '/og-v2.png',
+  ogImage: ogImagePath = '/og-v3.png',
   ogImageAlt: ogImageAltProp,
   noindex: forceNoindex = false,
 } = Astro.props;
@@ -112,7 +112,7 @@ const robotsContent = isNoindex ? 'noindex,follow' : 'index,follow,max-image-pre
 // 忍者AdMax の枠（footer / src/components/AdSlot.astro）はそのまま残す。
 const showAdsenseScript = !isNoindex;
 
-// OGP画像は既定で public/og-v2.png（1200x630）を絶対URLで参照する。
+// OGP画像は既定で public/og-v3.png（1200x630）を絶対URLで参照する。
 // ページ側から `ogImage` を渡すと差し替えられる（記事ページはこちら）。
 // 中身は本人のデザイン画像を scripts/generate-og-wide.mjs で横長に組み直したもの。
 // サイズを変えたら下の og:image:width / height も直すこと。
@@ -183,6 +183,12 @@ const webAppJsonLd = {
     <meta name="robots" content={robotsContent} />
     <link rel="canonical" href={canonical} />
     <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      rel="stylesheet"
+      href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700&display=swap"
+    />
 
     <meta property="og:type" content="website" />
     <meta property="og:locale" content="ja_JP" />
@@ -308,23 +314,26 @@ const webAppJsonLd = {
 
     <style is:global>
       :root {
-        --bg: #fbfaf7;
+        /* 面は塗りだけで区切る（design.md 最優先ルール・2026-10-21）。
+           ページ=--bg ／ セクション（main）=--surface ／ 中のカード=--card。
+           --border は表の罫線・入力欄・ボタンの枠だけに使う（面の枠線には使わない）。
+           色味は無彩色（黄みを抜いたグレー）。アクセントは --accent の1色だけで、
+           リンク・主ボタン・注目させたい数字にのみ使う。 */
+        --bg: #f3f4f5;
         --surface: #ffffff;
-        --border: #ddd8cd;
-        --text: #23201c;
-        --muted: #6b6558;
-        --accent: #b5651d;
-        --accent-weak: #f5e9dc;
+        --card: #f3f4f5;
+        --border: #d6d9db;
+        --text: #1f2123;
+        --muted: #5f6368;
+        --accent: #2f7a3a;
         --danger: #9d2f24;
         /* データ分析記事の導線だけに使う色。絞り込み等の操作系ボックスと同じ--accentだと
            見分けが付かないという指摘（2026-08-24）を受けて新設。グラフ（BarChart/ScatterChart
            の--series-1）と同じ青系に揃え、「青＝データ分析系の読み物」「オレンジ＝操作・注記」
            で役割を色分けする。 */
         --info: #1d5fa8;
-        --info-weak: #e7eff9;
         --mono: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace;
-        --sans: -apple-system, BlinkMacSystemFont, "Hiragino Kaku Gothic ProN",
-          "Noto Sans JP", "Yu Gothic", sans-serif;
+        --sans: "Noto Sans JP", system-ui, sans-serif;
 
         /* 評価A〜Eの色。パワプロの能力ランク配色を意識し、最高評価Aをピンクにして
            ピンク→オレンジ→黄→緑→グレーで下るグラデーションにしている
@@ -337,8 +346,8 @@ const webAppJsonLd = {
         --rating-c-fg: #5a4611;
         --rating-d-bg: #dbe9cf;
         --rating-d-fg: #33501d;
-        --rating-e-bg: #e4e2dd;
-        --rating-e-fg: #55524c;
+        --rating-e-bg: #e3e5e6;
+        --rating-e-fg: #53575a;
 
         /* 他会員の評価分布（「みんな」列・個別ページ）の棒グラフ用。A〜Eと同じ色相のまま、
            細い棒でも隣の段と見分けが付く明度に振ってある（上の背景色は淡すぎて、
@@ -349,7 +358,7 @@ const webAppJsonLd = {
         --rating-b-bar: #c26a28;
         --rating-c-bar: #a98a1f;
         --rating-d-bar: #5f8f3e;
-        --rating-e-bar: #8a877f;
+        --rating-e-bar: #868a8d;
 
         /* 抽選ステータスのバッジ配色。ランクが強いほど濃くする（本人依頼・2026-09-05
            「最優先バツ2から濃色に」）。色相はaccent（オレンジ）1つに固定し、彩度・明度だけ
@@ -367,16 +376,15 @@ const webAppJsonLd = {
 
       @media (prefers-color-scheme: dark) {
         :root {
-          --bg: #17181a;
-          --surface: #1f2124;
-          --border: #34373c;
-          --text: #e8e6e1;
-          --muted: #9b978f;
-          --accent: #e0a45c;
-          --accent-weak: #2b241c;
+          --bg: #141516;
+          --surface: #1e1f21;
+          --card: #2a2c2e;
+          --border: #3d4043;
+          --text: #e8e9ea;
+          --muted: #9a9ea2;
+          --accent: #6cc28a;
           --danger: #e08278;
           --info: #7ab0e8;
-          --info-weak: #1b2a3d;
 
           /* ダークでは同じ色相のまま明度を反転させる（背景は沈ませ、文字を明るく） */
           --rating-a-bg: #4a1f38;
@@ -387,8 +395,8 @@ const webAppJsonLd = {
           --rating-c-fg: #dfcb93;
           --rating-d-bg: #2a3a1f;
           --rating-d-fg: #b9d9a0;
-          --rating-e-bg: #33322e;
-          --rating-e-fg: #cfccc5;
+          --rating-e-bg: #35373a;
+          --rating-e-fg: #cdd0d2;
 
           /* ダークでは同じ色相のまま明度を反転させる（rating-*と同じ考え方） */
           --lottery-x2-bg: #6b3410;
@@ -434,6 +442,12 @@ const webAppJsonLd = {
         max-width: 64rem;
         margin-inline: auto;
         padding-inline: 1.25rem;
+      }
+
+      /* 本文はページ（グレー）の上に置く白いセクション面。区切りは塗りの差だけ。 */
+      main {
+        background: var(--surface);
+        border-radius: 8px;
       }
 
       /* 一覧ページ（`wide`）だけ本文を画面幅いっぱいに使う。表が約2000px あり、
@@ -491,7 +505,6 @@ const webAppJsonLd = {
       .owner-room {
         margin-left: auto;
         padding: 0.25rem 0.7rem;
-        border: 1px solid var(--border);
         border-radius: 999px;
         background: var(--surface);
         color: var(--muted);
@@ -501,7 +514,6 @@ const webAppJsonLd = {
       }
       .owner-room:hover,
       .owner-room:focus-visible {
-        border-color: var(--accent);
         color: var(--accent);
       }
 
@@ -534,10 +546,9 @@ const webAppJsonLd = {
         font-size: 0.8125rem;
         line-height: 1.6;
         color: var(--text);
-        background: var(--accent-weak);
-        border-left: 3px solid var(--danger);
+        background: var(--surface);
         padding: 0.5rem 0.75rem;
-        border-radius: 0 4px 4px 0;
+        border-radius: 4px;
       }
 
       .breadcrumb ol {
@@ -576,13 +587,12 @@ const webAppJsonLd = {
       code, kbd, pre { font-family: var(--mono); font-size: 0.9em; }
 
       code:not(pre code) {
-        background: var(--accent-weak);
+        background: var(--card);
         padding: 0.1em 0.35em;
         border-radius: 3px;
       }
 
       .site-footer {
-        border-top: 1px solid var(--border);
         padding-block: 1.5rem 3rem;
         color: var(--muted);
         font-size: 0.8125rem;

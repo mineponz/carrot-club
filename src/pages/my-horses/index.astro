@@ -243,14 +243,13 @@ const description = `【非公式】管理人みねらるがキャロットク�
     aspect-ratio: 10 / 7;
     object-fit: cover;
     border-radius: 10px 10px 0 0;
-    background: var(--accent-weak);
+    background: var(--card);
   }
   .horse-card {
     overflow: hidden;
     padding: 1rem 1.1rem;
-    border: 1px solid var(--border);
     border-radius: 10px;
-    background: var(--surface);
+    background: var(--card);
   }
   .horse-card.is-past { opacity: 0.85; }
   .horse-card-head {
@@ -267,9 +266,9 @@ const description = `【非公式】管理人みねらるがキャロットク�
     font-size: 0.6875rem;
     font-weight: 700;
   }
-  .badge-active { background: var(--info-weak); color: var(--info); }
-  .badge-retired { background: var(--accent-weak); color: var(--text); }
-  .badge-transferred { background: var(--accent-weak); color: var(--muted); }
+  .badge-active { background: var(--card); color: var(--info); }
+  .badge-retired { background: var(--card); color: var(--text); }
+  .badge-transferred { background: var(--card); color: var(--muted); }
   .horse-card-meta { margin: 0 0 0.15rem; color: var(--muted); font-size: 0.8125rem; }
   /* 父母はカードで一番見られる情報なので、募集番号より一段強くする（本人要望・2026-09-09） */
   .horse-card-ped {
@@ -392,12 +391,12 @@ const description = `【非公式】管理人みねらるがキャロットク�
     font-variant-numeric: tabular-nums;
   }
   .finish-1 { background: var(--info); color: #fff; font-weight: 800; }
-  .finish-23 { background: var(--info-weak); color: var(--info); font-weight: 700; }
-  .finish-45 { border: 1px solid var(--border); color: var(--text); font-weight: 600; }
+  .finish-23 { background: var(--card); color: var(--info); font-weight: 700; }
+  .finish-45 { color: var(--text); font-weight: 600; }
   .finish-out { color: var(--muted); }
   /* 好走した行そのものも薄く持ち上げて、流し読みで拾えるようにする */
-  tr.row-1 { background: var(--info-weak); }
-  tr.row-23 { background: color-mix(in srgb, var(--info-weak) 45%, transparent); }
+  tr.row-1 { background: var(--card); }
+  tr.row-23 { background: color-mix(in srgb, var(--card) 45%, transparent); }
   tr.row-out td { color: var(--muted); }
   /*
    * グレードの色はJRAの慣例に合わせる（G1=青 / G2=赤 / G3=緑）。JpnI〜III も同じ。
