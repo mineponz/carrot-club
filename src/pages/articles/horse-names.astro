@@ -33,6 +33,7 @@ import ArticleToc from '../../components/ArticleToc.astro';
 import MethodsLink from '../../components/MethodsLink.astro';
 import TermLink from '../../components/TermLink.astro';
 import AdSlot from '../../components/AdSlot.astro';
+import InArticleAd from '../../components/InArticleAd.astro';
 import implicitJson from '../../../analysis/data/horse-name-implicit-dam-links.json';
 import sireCropJson from '../../../analysis/data/sire-crop-index.json';
 import extraSiresJson from '../../../analysis/data/horse-name-extra-sires.json';
@@ -1075,6 +1076,7 @@ const description =
 
     <div class="ad-rect">
       <AdSlot sp={AD_SP_RECT} pc={AD_PC_WIDE_A} />
+      <InArticleAd />
     </div>
 
     <h2>同じ母の仔は、シリーズになる</h2>
@@ -1433,6 +1435,7 @@ const description =
 
     <div class="ad-rect">
       <AdSlot sp={AD_SP_RECT} pc={AD_PC_WIDE_B} />
+      <InArticleAd />
     </div>
 
     <h2>重賞を勝った馬の名前</h2>

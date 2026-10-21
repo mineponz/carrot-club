@@ -23,6 +23,7 @@
 import BaseLayout from '../../layouts/BaseLayout.astro';
 import ArticleToc from '../../components/ArticleToc.astro';
 import AdSlot from '../../components/AdSlot.astro';
+import InArticleAd from '../../components/InArticleAd.astro';
 import { loadRecruitsWithResults, racedOnly } from '../../lib/analysis-data.ts';
 import {
   pearsonCorrelation,
@@ -504,6 +505,7 @@ const description =
 
     <div class="ad-rect">
       <AdSlot sp="24e3e1a24f40d88ee1a0ca315c54a7b9" pc="f0efb5bd6ae3e164bb584a4dbb846f48" />
+      <InArticleAd />
     </div>
 
     <h2 id="superiority">優越確率 — 1頭ずつ比べたら何%勝つか</h2>

@@ -1,0 +1,32 @@
+---
+/**
+ * Google AdSense の「記事内広告」ユニット（手動配置）。記事の `.ad-rect` 枠の中で使う。
+ *
+ * - `ADSENSE_IN_ARTICLE_ENABLED`（src/consts.ts）が false、または noindex ページでは何も出さない。
+ *   noindex ページは BaseLayout が adsbygoogle.js を読まない（showAdsenseScript）ので、
+ *   ここでも同じ `isNoindexPath()` で揃える。adsbygoogle.js の読み込みは BaseLayout のみ（重複させない）。
+ * - 未配信（`data-ad-status="unfilled"`）のときの非表示は BaseLayout の is:global CSS で行う。
+ */
+import {
+  ADSENSE_CLIENT_ID,
+  ADSENSE_IN_ARTICLE_ENABLED,
+  ADSENSE_IN_ARTICLE_SLOT_ID,
+  isNoindexPath,
+} from '../consts';
+
+const show = ADSENSE_IN_ARTICLE_ENABLED && !isNoindexPath(Astro.url.pathname);
+---
+
+{show && (
+  <>
+    <ins
+      class="adsbygoogle"
+      style="display:block; text-align:center;"
+      data-ad-layout="in-article"
+      data-ad-format="fluid"
+      data-ad-client={ADSENSE_CLIENT_ID}
+      data-ad-slot={ADSENSE_IN_ARTICLE_SLOT_ID}
+    ></ins>
+    <script is:inline>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+  </>
+)}

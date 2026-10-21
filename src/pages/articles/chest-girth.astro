@@ -22,6 +22,7 @@ import ArticleToc from '../../components/ArticleToc.astro';
 import MethodsLink from '../../components/MethodsLink.astro';
 import TermLink from '../../components/TermLink.astro';
 import AdSlot from '../../components/AdSlot.astro';
+import InArticleAd from '../../components/InArticleAd.astro';
 import GradeWinnerTable from '../../components/GradeWinnerTable.astro';
 import {
   loadRecruitsWithResults,
@@ -437,6 +438,7 @@ const description = `【非公式】キャロットクラブ${yearRangeLabel}${a
 
     <div class="ad-rect">
       <AdSlot sp={AD_SP_RECT} pc={AD_PC_WIDE_A} />
+      <InArticleAd />
     </div>
 
     <h2>実際にどんな馬がいたか</h2>
@@ -470,6 +472,7 @@ const description = `【非公式】キャロットクラブ${yearRangeLabel}${a
 
     <div class="ad-rect">
       <AdSlot sp={AD_SP_RECT} pc={AD_PC_WIDE_B} />
+      <InArticleAd />
     </div>
 
     <h2>まとめ</h2>

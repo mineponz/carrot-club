@@ -40,6 +40,7 @@ import ArticleToc from '../../components/ArticleToc.astro';
 import MethodsLink from '../../components/MethodsLink.astro';
 import TermLink from '../../components/TermLink.astro';
 import AdSlot from '../../components/AdSlot.astro';
+import InArticleAd from '../../components/InArticleAd.astro';
 import GradeWinnerTable from '../../components/GradeWinnerTable.astro';
 import {
   loadRecruitsWithResults,
@@ -868,6 +869,7 @@ const description = `【非公式】キャロットクラブ${yearRangeLabel}募
 
     <div class="ad-rect">
       <AdSlot sp={AD_SP_RECT} pc={AD_PC_WIDE_A} />
+      <InArticleAd />
     </div>
 
     <h2>いちばんはっきり出たのは、出走率の逆転</h2>
@@ -1149,6 +1151,7 @@ const description = `【非公式】キャロットクラブ${yearRangeLabel}募
 
     <div class="ad-rect">
       <AdSlot sp={AD_SP_RECT} pc={AD_PC_WIDE_B} />
+      <InArticleAd />
     </div>
 
     <h2>東西（美浦と栗東）は、言うほど差がない</h2>

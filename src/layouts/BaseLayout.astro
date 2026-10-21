@@ -599,6 +599,10 @@ const webAppJsonLd = {
       .ad-slot { margin-top: 1rem; }
       /* 記事側で AdSlot を包んでいる枠（.ad-rect）は、AdMax 停止中（ADMAX_ENABLED=false）は中身が空になるので余白ごと消す。 */
       .ad-rect:empty { display: none; }
+      /* AdSense 記事内広告（InArticleAd）。ins は flex 子なので幅を張らせる。未配信（unfilled）なら枠ごと消して空白を残さない。 */
+      .ad-rect > ins.adsbygoogle { flex: 1; min-width: 0; }
+      ins.adsbygoogle[data-ad-status="unfilled"] { display: none !important; }
+      .ad-rect:has(> ins.adsbygoogle[data-ad-status="unfilled"]) { display: none; }
       .ad-slot-pc { display: none; }
       @media (min-width: 48rem) {
         .ad-slot-sp { display: none; }

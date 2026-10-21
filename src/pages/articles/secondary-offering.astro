@@ -33,6 +33,7 @@ import ArticleToc from '../../components/ArticleToc.astro';
 import MethodsLink from '../../components/MethodsLink.astro';
 import TermLink from '../../components/TermLink.astro';
 import AdSlot from '../../components/AdSlot.astro';
+import InArticleAd from '../../components/InArticleAd.astro';
 import leftoversJson from '../../../analysis/data/first-offering-leftovers.json';
 import { horses2026 } from '../../data/horses2026.ts';
 import { LOTTERY_STATUS_SNAPSHOTS } from '../../data/lotteryStatus2026.ts';
@@ -542,6 +543,7 @@ const description = `1次募集で満口にならなかった馬たちのその�
 
     <div class="ad-rect">
       <AdSlot sp={AD_SP_RECT} pc={AD_PC_WIDE_A} />
+      <InArticleAd />
     </div>
 
     <h2>「1頭だけたまたま」ではない</h2>
@@ -640,6 +642,7 @@ const description = `1次募集で満口にならなかった馬たちのその�
 
     <div class="ad-rect">
       <AdSlot sp={AD_SP_RECT} pc={AD_PC_WIDE_B} />
+      <InArticleAd />
     </div>
 
     <h2>今年の{leftoverThisYear}頭</h2>

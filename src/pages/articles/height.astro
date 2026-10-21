@@ -30,6 +30,7 @@ import ArticleToc from '../../components/ArticleToc.astro';
 import MethodsLink from '../../components/MethodsLink.astro';
 import TermLink from '../../components/TermLink.astro';
 import AdSlot from '../../components/AdSlot.astro';
+import InArticleAd from '../../components/InArticleAd.astro';
 import GradeWinnerTable from '../../components/GradeWinnerTable.astro';
 import { loadRecruitsWithResults, racedOnly, RACE_RESULTS_FETCHED_AT } from '../../lib/analysis-data.ts';
 import { formatResultsAsOf } from '../../lib/sibling-recruits.ts';
@@ -491,6 +492,7 @@ const description = `【非公式】キャロットクラブ${yearRangeLabel}${a
 
     <div class="ad-rect">
       <AdSlot sp={AD_SP_RECT} pc={AD_PC_WIDE_A} />
+      <InArticleAd />
     </div>
 
     <h2>参考: 一口価格との比較</h2>
@@ -588,6 +590,7 @@ const description = `【非公式】キャロットクラブ${yearRangeLabel}${a
     */}
     <div class="ad-rect">
       <AdSlot sp={AD_SP_RECT} pc={AD_PC_WIDE_B} />
+      <InArticleAd />
     </div>
 
     <h2>データについて</h2>

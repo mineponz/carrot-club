@@ -218,3 +218,14 @@ export const ADMAX_TOP_SLOT_ONLY = true;
 
 /** サイトのどこかで AdMax を出しているか。プライバシーポリシーの記載はこちらに合わせる。 */
 export const ADMAX_IN_USE = ADMAX_ENABLED;
+
+/**
+ * AdSense の記事内広告（手動配置）を出すか。記事の `.ad-rect` 枠の中身
+ * （`src/components/InArticleAd.astro`）が対象。`false` にすると全記事から消える
+ * （枠は `.ad-rect:empty` で余白ごと消える）。noindex ページには `isNoindexPath()` で出さない。
+ * 2026-10-21 追加（AdMax 停止後の空き枠に AdSense の記事内広告を入れる）。
+ */
+export const ADSENSE_IN_ARTICLE_ENABLED = true;
+
+/** 記事内広告ユニットの slot ID（AdSense 管理画面の `data-ad-slot`）。 */
+export const ADSENSE_IN_ARTICLE_SLOT_ID = '1270270437';

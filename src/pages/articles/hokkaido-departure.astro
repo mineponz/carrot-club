@@ -23,6 +23,7 @@ import ArticleToc from '../../components/ArticleToc.astro';
 import MethodsLink from '../../components/MethodsLink.astro';
 import TermLink from '../../components/TermLink.astro';
 import AdSlot from '../../components/AdSlot.astro';
+import InArticleAd from '../../components/InArticleAd.astro';
 import GradeWinnerTable from '../../components/GradeWinnerTable.astro';
 import { AD_SP_WIDE_A, AD_SP_WIDE_B, AD_SP_RECT, AD_PC_WIDE_A, AD_PC_WIDE_B } from '../../data/ad-slots.ts';
 import { loadRecruitsWithResults, RACE_RESULTS_FETCHED_AT, type RecruitWithResult } from '../../lib/analysis-data.ts';
@@ -614,6 +615,7 @@ const description = `【非公式】キャロットクラブ${YEAR_FROM}〜${YEA
 
     <div class="ad-rect">
       <AdSlot sp={AD_SP_RECT} pc={AD_PC_WIDE_A} />
+      <InArticleAd />
     </div>
 
     <h2>遅く出ても、重賞を勝った馬はいる</h2>
@@ -669,6 +671,7 @@ const description = `【非公式】キャロットクラブ${YEAR_FROM}〜${YEA
 
     <div class="ad-rect">
       <AdSlot sp={AD_SP_RECT} pc={AD_PC_WIDE_B} />
+      <InArticleAd />
     </div>
 
     <h2>データについて</h2>
