@@ -666,31 +666,29 @@ const description =
 
     <p>
       出資した馬に名前が付く日は、ちょっとしたイベントだ。応募した名前が採用されたかどうか、
-      外れたとしてもどんな名前になったのか。発表を待つ時間は、抽選の結果を待つのとはまた別の楽しさがある。
+      外れたとしてもどんな名前になったのか。発表を待つ時間には、抽選の結果を待つのとはまた別の楽しさがある。
     </p>
     <p>
       私が初めて命名書をもらったのは<a href="/my-horses/sweet-lydia/">スイートリディア</a>だった。
-      応募のときに意識したのは2つで、母クラシックリディアの名前から取ることと、
-      検索に引っかかりやすい単語にすること。あとで愛馬の名前を検索したときに探しやすいほうがいい、
-      という理由だ。前者はどうやら、多数派の付け方だったらしい。
+      応募のときに意識したのは、母クラシックリディアの名前から取ることと、検索に引っかかりやすい単語にすることの2つ。
+      あとで愛馬の名前を検索したときに探しやすいほうがいい、という理由だ。前者はどうやら多数派の付け方だったらしい。
     </p>
     <p>
-      クラブの会員ページには「馬名一覧」があって、全頭ぶんの言語と、馬名の意味・由来が載っている。
-      {yearRangeLabel}生まれの{total}頭ぶんを1頭ずつ読んで、数えてみた。
+      クラブの会員ページの「馬名一覧」には、全頭ぶんの言語と馬名の意味・由来が載っている。
+      {yearRangeLabel}生まれの{total}頭ぶんを1頭ずつ読んで数えた。
     </p>
-    <p>
-      結論から書く。<strong>4頭に3頭は、由来に母が出てくる</strong>。父の名前だけから付いた馬は1割に満たない。
-      言語は英語がおよそ半分で、残りは{languageKinds}種類に散らばる。そして母の名前から付けるとき、
-      <strong>母と同じ言語が選ばれやすい</strong>。
-    </p>
+
+    <p class="answer">4頭に3頭は、由来に母が出てくる。</p>
 
     <StatTiles
       tiles={[
-        { label: '読んだ馬名', value: `${total}頭`, note: `${yearRangeLabel}生まれ` },
-        { label: '由来に母が出てくる', value: `${pct(damInvolved, total)}%`, note: `${damInvolved}頭` },
-        { label: '父だけから', value: `${pct(sireOnly, total)}%`, note: `${sireOnly}頭` },
-        { label: '言語の種類', value: `${languageKinds}種`, note: `英語が${pct(languageCounts.get('英語') ?? 0, total)}%` },
-        { label: 'いちばん多い文字数', value: mostCommonLength.label, note: `${mostCommonLength.value}頭` },
+        { label: '由来に母が出てくる', value: `${pct(damInvolved, total)}%`, note: `父の名前だけからは${pct(sireOnly, total)}%` },
+        { label: '英語の名前', value: `${pct(languageCounts.get('英語') ?? 0, total)}%`, note: `言語は全部で${languageKinds}種類` },
+        {
+          label: '母名由来の仔が、母と同じ言語',
+          value: `${damMatch.matchPct.toFixed(0)}%`,
+          note: `偶然そろう目安は${damMatch.chancePct.toFixed(0)}%`,
+        },
       ]}
     />
 
@@ -699,11 +697,11 @@ const description =
 
     <AdSlot sp={AD_SP_WIDE_A} pc={AD_PC_WIDE_A} />
 
-    <h2>名前の出どころは、圧倒的に母</h2>
+    <h2>名前の出どころは圧倒的に母</h2>
     <p>
-      由来の文に何と書かれているかで、4つに分けた。「母名より連想」と書いてあれば母、
-      「父名より連想」なら父、両方書いてあれば両方、どちらも出てこなければ「どちらでもない」。
-      母には母名だけでなく、母母名・母父名・母系（牝系）・「母の生産国より」も含めている。
+      由来の文に何と書かれているかで4つに分けた。「母名より連想」とあれば母、
+      「父名より連想」なら父、両方あれば両方、どちらも出てこなければ「どちらでもない」。
+      母には母名のほか、母母名・母父名・母系（牝系）・「母の生産国より」も含めている。
     </p>
 
     <BarChart title={`馬名の由来（${yearRangeLabel}生まれ・${total}頭）`} bars={originBars} valueLabel="頭数" noteLabel="内訳" />
@@ -712,12 +710,11 @@ const description =
       <strong>母から{damOnly}頭（{pct(damOnly, total)}%）</strong>に対して、
       <strong>父だけからは{sireOnly}頭（{pct(sireOnly, total)}%）</strong>。
       両方を挙げている{both}頭を母側に足すと{damInvolved}頭になる。
-      名付けの中心が母にあるのは、一口馬主なら肌感覚で分かっていることだと思うが、
-      数えるとここまではっきりしている。
+      名付けの中心が母にあることは、一口馬主ならなんとなく分かっていると思うが、数えるとここまではっきりしている。
     </p>
     <p>
       父から付いた馬は少ないぶん、印象に残るものが多い。
-      ゾネブルーム（ひまわり）は父ヴァンゴッホから。ロックターミガン（雷鳥）は父シスキン――
+      ゾネブルーム（ひまわり）は父ヴァンゴッホから。ロックターミガン（雷鳥）は父シスキンからで、
       シスキンは鳥のマヒワなので、鳥から鳥へ渡している。
     </p>
 
@@ -749,6 +746,9 @@ const description =
       </div>
     </details>
 
+    <p>年ごとに上下はあるが、母が中心という形はどの世代でも変わらない。</p>
+    <details class="more-examples">
+      <summary>生まれた年ごとの内訳を見る</summary>
     <div class="table-scroll" role="region" tabindex="0" aria-label="表（横にスクロールできます）">
       <table class="data-table">
         <thead>
@@ -773,14 +773,12 @@ const description =
         </tbody>
       </table>
     </div>
-    <p class="table-note">
-      年ごとの上下はあるが、母が中心という形はどの世代でも変わらない。
-    </p>
+    </details>
 
-    <h2>書いていないけど、母から来ている名前</h2>
+    <h2>由来文に書かれていない母とのつながり</h2>
     <p>
-      ここで少し注意がいる。上の数字は「由来文に母名と書いてあるか」で数えたものだ。
-      書いていないのに、読むと母の名前とつながっている馬がかなりいる。
+      上の数字は「由来文に母名と書いてあるか」で数えたものだ。
+      書いていなくても、読むと母の名前とつながっている馬がかなりいる。
     </p>
 
     <div class="table-scroll" role="region" tabindex="0" aria-label="表（横にスクロールできます）">
@@ -807,13 +805,13 @@ const description =
     </div>
 
     <p>
-      天皇賞・春を勝ったヘデントールは「救世主」で、由来文には母の名前が出てこない。
+      天皇賞・春を勝ったヘデントールは「救世主」で、由来文に母の名前は出てこない。
       だが母はコルコバードで、リオデジャネイロのコルコバードの丘にはキリスト像が立っている。
-      母の名前の由来もその丘だ。名前が2代でつながっている。
+      母の名前の由来もその丘で、名前が2代でつながっている。
     </p>
     <p>
       こうした馬を目で拾うと{implicitLinks.length}頭見つかった。
-      数字のほうには入れていないので、<strong>実際に母から来ている名前は{pct(damInvolved, total)}%より多い</strong>ということになる。
+      上の数字には入れていないので、<strong>実際に母から来ている名前は{pct(damInvolved, total)}%より多い</strong>。
     </p>
 
     <details class="more-examples">
@@ -847,7 +845,7 @@ const description =
       </p>
     </details>
 
-    <h2>母からも父からも離れると、馬自身の話になる</h2>
+    <h2>母も父も使わない名前</h2>
     <p>
       では、どちらの名前も使わなかった{other}頭は何から付けているのか。由来文に出てくる要素を数えると、
       母から付けた{damOnly}頭とはっきり違うところがあった。
@@ -915,24 +913,24 @@ const description =
     }
 
     <p>
-      いちばん差が出るのが<strong>「願い」だけで付けた名前</strong>だ。
+      いちばん差が出るのは「願い」だけで付けた名前だ。
       血統の言葉を使わない代わりに、速さや強さ、活躍してほしいという気持ちがそのまま名前になる。
-      次に多いのが<strong>誕生花・誕生石・星座</strong>、そして<strong>毛色や顔の流星</strong>。
+      次に多いのが誕生花・誕生石・星座、そして毛色や顔の流星。
       どれも<strong>その馬自身から取った名前</strong>で、母から付けるときにはほとんど出てこない要素だ。
     </p>
     <p>
-      逆に言うと、名前の出どころは「血統からもらう」か「その馬を見て決める」かの二択に近い。
+      名前の出どころは「血統からもらう」か「その馬を見て決める」かの二択に近い。
       母の名前を使わなかった分を、生まれた日や毛色、送り出す側の願いが埋めている。
     </p>
     <p>
-      なお、言語と文字数はこのグループでも変わらない。英語が{otherEnglishPct.toFixed(0)}%（全体{allEnglishPct.toFixed(0)}%）、
-      平均{otherMeanLength.toFixed(2)}字（全体{allMeanLength.toFixed(2)}字）。
-      変わるのは<strong>何から取るか</strong>であって、名前の見た目ではない。
+      なお、言語と文字数はこのグループでも変わらない（英語{otherEnglishPct.toFixed(0)}%・全体{allEnglishPct.toFixed(0)}%、
+      平均{otherMeanLength.toFixed(2)}字・全体{allMeanLength.toFixed(2)}字）。
+      変わるのは何から取るかであって、名前の見た目ではない。
     </p>
 
     <AdSlot sp={AD_SP_WIDE_B} pc={AD_PC_WIDE_B} />
 
-    <h2>英語が半分、残りは30種類以上に散らばる</h2>
+    <h2>言語は英語が半分</h2>
     <p>クラブの一覧には言語も書いてある。多い順に並べるとこうなる。</p>
 
     <ShareBar
@@ -941,6 +939,8 @@ const description =
       note={`「その他」は${languageRanking.length - SHARE_SLOTS}区分ぶんの合計。「複数」は2つ以上の言語を並べて書いてある馬、「記載なし」は言語国の欄が空の馬。`}
     />
 
+    <details class="more-examples">
+      <summary>言語ごとの頭数を見る</summary>
     <div class="table-scroll" role="region" tabindex="0" aria-label="表（横にスクロールできます）">
       <table class="data-table">
         <thead>
@@ -968,9 +968,10 @@ const description =
         </tbody>
       </table>
     </div>
+    </details>
 
     <p>
-      英語・仏語・伊語・西語・独語で大半を占めるが、その外側が賑やかだ。
+      英語・仏語・伊語・西語・独語で大半を占めるが、その外側がにぎやかだ。
       少数派には{rareLanguageExamples.slice(0, 4).map((r) => `${r.lang}（${r.name}）`).join('、')}といった名前がいる。
       1頭しかいない言語がいくつもあって、一覧を眺めているだけで飽きない。
     </p>
@@ -1001,9 +1002,9 @@ const description =
       </div>
     </details>
 
-    <h2>母が独語なら、仔も独語になるのか</h2>
+    <h2>母が独語なら仔も独語か</h2>
     <p>
-      母がキャロットの所属馬だった場合、母自身もこの一覧に載っている。つまり母の言語が分かる。
+      母がキャロットの所属馬だった場合は、母自身もこの一覧に載っているので、母の言語が分かる。
       母から名前を付けるとき、言語まで母に合わせるのかを見た。
     </p>
     <p>
@@ -1079,7 +1080,7 @@ const description =
       <InArticleAd />
     </div>
 
-    <h2>同じ母の仔は、シリーズになる</h2>
+    <h2>同じ母の仔はシリーズになる</h2>
     <p>
       言語が母に寄るなら、同じ母から続けて出た仔は名前が揃うことになる。実際に並べてみると、
       きれいにシリーズになっている母がいる。
@@ -1158,7 +1159,7 @@ const description =
       </p>
     </details>
 
-    <h2>7字がいちばん多く、上限いっぱいも多い</h2>
+    <h2>文字数は7字が最多</h2>
     <p>
       競走馬の名前はカタカナ2字から9字までと決まっている。長音「ー」や小さい「ッ」も1字だ。
     </p>
@@ -1214,6 +1215,8 @@ const description =
       </ul>
     </details>
 
+    <details class="more-examples">
+      <summary>言語ごとの平均文字数を見る</summary>
     <div class="table-scroll" role="region" tabindex="0" aria-label="表（横にスクロールできます）">
       <table class="data-table">
         <thead>
@@ -1237,14 +1240,14 @@ const description =
       </table>
     </div>
     <p class="table-note">10頭以上いる言語だけ。</p>
+    </details>
 
     <AdSlot sp={AD_SP_WIDE_A} pc={AD_PC_WIDE_A} />
 
-    <h2>母が外国産だと、名前も変わる</h2>
+    <h2>母が外国産だと名前も変わる</h2>
     <p>
       母が外国で生まれた馬（輸入繁殖牝馬・外国産馬）かどうかで分けてみた。
-      外国産の母が{foreignDamHorses.length}頭、国内産の母が{domesticDamHorses.length}頭
-      （母をたどれなかった{damOriginUnknown}頭は除いた）。
+      外国産の母が{foreignDamHorses.length}頭、国内産の母が{domesticDamHorses.length}頭。
     </p>
 
     <div class="table-scroll" role="region" tabindex="0" aria-label="表（横にスクロールできます）">
@@ -1275,7 +1278,7 @@ const description =
       その言語を引き継いだ結果だろう。
     </p>
     <p>
-      面白いのは「<strong>母の生産国より連想</strong>」という付け方だ。{homelandHorses.length}頭いて、
+      面白いのは「母の生産国より連想」という付け方だ。{homelandHorses.length}頭いて、
       母をたどれた{homelandForeign.length}頭は<strong>すべて外国産の母</strong>の仔だった。阪神JFを勝ったレシステンシアはアルゼンチンの州都の名前で、
       母マラコスタムブラダがアルゼンチン産。ユニコーンSのカナルビーグルも同じ母で、
       アルゼンチンとチリの間の海峡だ。母の故郷を名前にして送り出している。
@@ -1311,12 +1314,11 @@ const description =
       </div>
     </details>
 
-    <h2>父の初年度産駒は、父から名前を付けられやすい</h2>
+    <h2>父の初年度産駒は父の名前から付きやすい</h2>
     <p>
       父が種牡馬になって最初の世代なら、父の名前から付けたくなるのではないか。
-      各馬の父が「何世代目の産駒か」を調べて、由来と突き合わせた。
-      最初の年に数頭しか登録されていない種牡馬もいるので、
-      <strong>登録20頭未満の世代は数えずに数えた「実質何世代目か」</strong>で分けている。
+      各馬が父の何世代目の産駒かを調べて、由来と突き合わせた。
+      最初の年に数頭しか登録されていない種牡馬もいるので、登録20頭未満の世代は飛ばして数えた「実質何世代目か」で分けている。
     </p>
 
     <BarChart
@@ -1327,19 +1329,13 @@ const description =
     />
 
     <p>
-      <strong>1世代目は{firstCrop.sirePct.toFixed(0)}%（{firstCrop.sire}/{firstCrop.n}頭）、
-      3世代目以降は{laterCrop.sirePct.toFixed(0)}%（{laterCrop.sire}/{laterCrop.n}頭）</strong>。
-      3倍以上の開きがある（<TermLink to="p-value">p値</TermLink>は{formatP(cropTest.p)}）。
-      父の名前と両方を挙げた馬まで含めると、1世代目は{pct(firstCrop.sireInvolved, firstCrop.n)}%、
-      3世代目以降は{pct(laterCrop.sireInvolved, laterCrop.n)}%になる。
+      父の名前だけから付いた割合は、<strong>1世代目が{firstCrop.sirePct.toFixed(0)}%、3世代目以降が{laterCrop.sirePct.toFixed(0)}%</strong>。
+      3倍以上の開きがある（{firstCrop.sire}/{firstCrop.n}頭と{laterCrop.sire}/{laterCrop.n}頭、<TermLink to="p-value">p値</TermLink>は{formatP(cropTest.p)}）。
     </p>
     <p>
-      ただし、この差は<strong>特定の年に寄っている</strong>。いちばん高いのは{topCropYear.year}年産で、
-      1世代目{topCropYear.firstN}頭のうち{topCropYear.firstSire}頭が父の名前から付いていた。
-      この年を除くと<strong>{cropExclTop.fp.toFixed(0)}%（{cropExclTop.fs}/{cropExclTop.fn}頭）対
-      {cropExclTop.lp.toFixed(0)}%（{cropExclTop.ls}/{cropExclTop.ln}頭）</strong>まで縮む（{formatP(cropExclTop.test.p)}）。
-      向きは変わらないが、そもそも父名由来の馬自体が少ないので、
-      「そういう傾向がありそうだ」くらいに受け取ってほしい。年ごとの内訳は下の折りたたみに出した。
+      ただし、この差は特定の年に寄っている。いちばん高い{topCropYear.year}年産を除くと、
+      {cropExclTop.fp.toFixed(0)}%対{cropExclTop.lp.toFixed(0)}%まで縮む。
+      向きは変わらないが、父名由来の馬自体が少ないので、「そういう傾向がありそうだ」くらいに受け取ってほしい。
     </p>
     <p>
       新しい父にはまだ産駒のイメージが無いぶん、父の名前そのものが手がかりになるのだと思う。
@@ -1403,7 +1399,15 @@ const description =
     </details>
 
     <details class="more-examples">
-      <summary>年ごとの内訳を見る（差が1年に偏っていないかの確認）</summary>
+      <summary>年ごとの内訳と細かい数字を見る</summary>
+      <p>
+        父の名前と母の名前の両方を挙げた馬まで含めると、1世代目は{pct(firstCrop.sireInvolved, firstCrop.n)}%、
+        3世代目以降は{pct(laterCrop.sireInvolved, laterCrop.n)}%になる。
+      </p>
+      <p>
+        {topCropYear.year}年産は、1世代目{topCropYear.firstN}頭のうち{topCropYear.firstSire}頭が父の名前から付いていた。
+        この年を除いた比較は{cropExclTop.fs}/{cropExclTop.fn}頭と{cropExclTop.ls}/{cropExclTop.ln}頭（{formatP(cropExclTop.test.p)}）。
+      </p>
       <div class="table-scroll" role="region" tabindex="0" aria-label="表（横にスクロールできます）">
         <table class="data-table">
           <thead>
@@ -1554,6 +1558,12 @@ const description =
    * `.bucket-accordion` / `.more-winners` に合わせる。JSは使わない（`<details>`のまま）ので
    * 検索エンジンからは中身も本文として読める。
    */
+  .answer {
+    margin: 1.5rem 0 0.25rem;
+    font-size: 1.25rem;
+    font-weight: 700;
+    line-height: 1.6;
+  }
   .more-examples {
     background: var(--card);
     border-radius: 8px;

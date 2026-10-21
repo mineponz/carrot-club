@@ -331,6 +331,10 @@ const assertions: [string, boolean][] = [
 const broken = assertions.filter(([, ok]) => !ok).map(([label]) => label);
 if (broken.length) throw new Error(`[debut-weight-gain] 本文の前提が崩れた: ${broken.join(' / ')}`);
 
+// 冒頭の数字タイルと本文で使う表示用の値。
+const lostPctF = Math.round((100 * statBySex['牝'].lost) / statBySex['牝'].n);
+const pct0 = (v: number) => `${Math.round(v)}%`;
+
 const title = 'デビューまでにたくさん増えた馬は、走るのか';
 const description = `【非公式】キャロットクラブ${YEAR_FROM}〜${YEAR_TO}年募集${rows.length}頭の、1歳8月の測尺からデビュー戦までの馬体重の増え方と、その後の成績を突き合わせた育成記事。たくさん増えた馬が走るとは言えず、見かけの差はデビューまでの日数で説明できた。`;
 ---
@@ -347,21 +351,34 @@ const description = `【非公式】キャロットクラブ${YEAR_FROM}〜${YEA
     <h1>{title}</h1>
 
     <p>
-      出資馬の近況で馬体重が出ると、つい前回と見比べてしまう。私のスイートリディアも、{lydiaMonth(lydiaFrom.date)}の{lydiaFrom.weightKg}kgから
-      {lydiaMonth(lydiaTo.date)}には{lydiaTo.weightKg}kgまで増えて、
-      それだけで少し嬉しくなった。負荷を上げながら体が大きくなっているなら、順調ということだろう、と。
+      出資馬の近況で馬体重が出ると、つい前回と見比べてしまう。私のスイートリディアも{lydiaMonth(lydiaFrom.date)}の{lydiaFrom.weightKg}kgから
+      {lydiaMonth(lydiaTo.date)}には{lydiaTo.weightKg}kgまで増えて、それだけで少し嬉しくなった。
+      負荷を上げながら体が大きくなっているなら、順調ということだろう、と。
     </p>
     <p>
       でも、たくさん増えてデビューした馬は本当によく走るのか。{YEAR_FROM}〜{YEAR_TO}年募集でデビューした{rows.length}頭について、
-      1歳8月の測尺の馬体重とデビュー戦の馬体重を比べ、{resultsAsOf}時点の成績と突き合わせてみた。
+      1歳8月の測尺の馬体重とデビュー戦の馬体重を比べ、{resultsAsOf}時点の成績と突き合わせた。
     </p>
+
+    <p class="answer">増え方の大小からは、その後の成績はほぼ読めなかった。</p>
 
     <StatTiles
       tiles={[
-        { label: '対象頭数', value: `${rows.length}頭`, note: `${YEAR_FROM}〜${YEAR_TO}年募集でデビューした馬` },
-        { label: '牡の増え方（中央値）', value: `${signed(statBySex['牡'].gainMed)}kg`, note: `測尺からデビューまで約${Math.round(statBySex['牡'].daysMed / 30.44)}か月` },
-        { label: '牝の増え方（中央値）', value: `${signed(statBySex['牝'].gainMed)}kg`, note: `測尺からデビューまで約${Math.round(statBySex['牝'].daysMed / 30.44)}か月` },
-        { label: '増え方 × 獲得賞金', value: `牡${f2(C['牡'].gainPrize)}・牝${f2(C['牝'].gainPrize)}`, note: '順位相関。弱い負の向き' },
+        {
+          label: '牡の増え方（測尺→デビュー）',
+          value: `${signed(statBySex['牡'].gainMed)}kg`,
+          note: `牝は${signed(statBySex['牝'].gainMed)}kg。牝の${lostPctF}%は軽くなる`,
+        },
+        {
+          label: '牡の勝ち上がり率',
+          value: `${pct0(withinDaysBySex['牡'][0].winRate)}→${pct0(withinDaysBySex['牡'][2].winRate)}`,
+          note: '早いデビュー→遅いデビュー',
+        },
+        {
+          label: '牝の勝ち上がり率',
+          value: `${pct0(debutGroupsBySex['牝'][0].winRate)}→${pct0(debutGroupsBySex['牝'][2].winRate)}`,
+          note: 'デビュー時の体重 軽め→重め',
+        },
       ]}
     />
 
@@ -370,7 +387,7 @@ const description = `【非公式】キャロットクラブ${YEAR_FROM}〜${YEA
 
     <AdSlot sp={AD_SP_WIDE_A} pc={AD_PC_WIDE_A} />
 
-    <h2>どのくらい増えてデビューするのか</h2>
+    <h2>デビューまでに増える量</h2>
     <p>
       測尺からデビュー戦までの増え方を10kg刻みで並べた。牡は中央値で{signed(statBySex['牡'].gainMed)}kg、
       牝は{signed(statBySex['牝'].gainMed)}kgと、牡のほうがずっと増える。
@@ -393,15 +410,17 @@ const description = `【非公式】キャロットクラブ${YEAR_FROM}〜${YEA
     />
     <p class="fig-note">横軸は増え方（kg）。「0」の棒は0〜9kg増えた馬、「-10」は10kg減〜1kg減の馬。</p>
     <p>
-      意外だったのは、<strong>牝の{Math.round((100 * statBySex['牝'].lost) / statBySex['牝'].n)}%（{statBySex['牝'].lost}頭）は測尺のときより軽くなってデビューしている</strong>こと。
-      牡でも{statBySex['牡'].lost}頭が減っていた。測尺は放牧地で草を食べている時期の体で、デビュー戦は絞ってレースに出る体なので、
-      同じ「馬体重」でも中身が違うのかもしれない。
+      意外だったのは、<strong>牝の{lostPctF}%（{statBySex['牝'].lost}頭）が測尺のときより軽くなってデビューしている</strong>こと。
+      牡でも{statBySex['牡'].lost}頭が減っていた。
+    </p>
+    <p>
+      測尺は放牧地で草を食べている時期の体で、デビュー戦は絞ってレースに出る体だ。同じ「馬体重」でも中身が違うのかもしれない。
     </p>
 
     <AdSlot sp={AD_SP_WIDE_B} pc={AD_PC_WIDE_B} />
 
-    <h2>たくさん増えた馬は、走ったか</h2>
-    <p>まずは1頭ずつ。横が増え方、縦がその後の獲得賞金。</p>
+    <h2>たくさん増えた馬の成績</h2>
+    <p>まずは1頭ずつ見る。横が増え方、縦がその後の獲得賞金。</p>
     <ScatterChart
       title={`増え方 × 獲得賞金合計（${scatterPoints.length}頭）`}
       points={scatterPoints}
@@ -423,9 +442,8 @@ const description = `【非公式】キャロットクラブ${YEAR_FROM}〜${YEA
       点にカーソルを合わせる（スマホはタップ）と馬名が出る。
     </p>
     <p>
-      見ての通り、形らしい形が無い。増え方と賞金の<TermLink to="spearman">順位相関</TermLink>は
-      牡{f2(C['牡'].gainPrize)}（{formatP(C['牡'].gainPrize.p)}）・牝{f2(C['牝'].gainPrize)}（{formatP(C['牝'].gainPrize.p)}）。
-      向きはむしろ<strong>増えた馬ほどわずかに賞金が少ない</strong>側に出ている。
+      見ての通り、形らしい形が無い。向きはむしろ<strong>増えた馬ほどわずかに賞金が少ない</strong>側に出ている
+      （<TermLink to="spearman">順位相関</TermLink>は牡{f2(C['牡'].gainPrize)}・{formatP(C['牡'].gainPrize.p)}、牝{f2(C['牝'].gainPrize)}・{formatP(C['牝'].gainPrize.p)}）。
     </p>
     <p>性別ごとに増え方で3等分して比べると、こうなる。</p>
     <BarChart
@@ -445,92 +463,100 @@ const description = `【非公式】キャロットクラブ${YEAR_FROM}〜${YEA
       axisMax={prizeAxisMax}
     />
     <p>
-      牡も牝も、増え方が「多い」群がいちばん低い。勝ち上がり率は牡で{groupsBySex['牡'][0].winRate.toFixed(1)}%→{groupsBySex['牡'][2].winRate.toFixed(1)}%、
-      牝で{groupsBySex['牝'][0].winRate.toFixed(1)}%→{groupsBySex['牝'][2].winRate.toFixed(1)}%（少ない群→多い群）。
-      ただこの差は、牡（{formatP(manyVsFew['牡'].p)}）・牝（{formatP(manyVsFew['牝'].p)}）とも<TermLink to="p-value">偶然でも起こりうる大きさ</TermLink>だった。
+      牡も牝も、増え方が「多い」群がいちばん低い。勝ち上がり率は少ない群から多い群へ、
+      牡で{groupsBySex['牡'][0].winRate.toFixed(1)}%→{groupsBySex['牡'][2].winRate.toFixed(1)}%、
+      牝で{groupsBySex['牝'][0].winRate.toFixed(1)}%→{groupsBySex['牝'][2].winRate.toFixed(1)}%と下がる。
+      ただこの差は牡牝とも<TermLink to="p-value">偶然でも起こりうる大きさ</TermLink>だった
+      （牡{formatP(manyVsFew['牡'].p)}・牝{formatP(manyVsFew['牝'].p)}）。
     </p>
 
-    <div class="finding">
-      <p class="finding-lead">「多い」群が少し低く見えるのは、デビューが遅い馬が混ざるから</p>
-      <p>
-        増え方には、測尺からデビューまでの日数がそのまま乗っている。日数が長いほど体は大きくなるので、
-        増え方と日数の順位相関は牡{f2(C['牡'].gainDays)}・牝{f2(C['牝'].gainDays)}。
-        そして、デビューが遅い馬ほど成績は振るわない（日数と賞金は牡{f2(C['牡'].daysPrize)}・牝{f2(C['牝'].daysPrize)}）。
-        つまり「たくさん増えた馬」には「デビューが遅れた馬」が多く混ざっている。
-      </p>
-      <p>
-        そこで日数の影響を外すために、増え方を<strong>1日あたり</strong>に直すと、賞金との相関は
-        牡{f2(C['牡'].perDayPrize)}・牝{f2(C['牝'].perDayPrize)}までほぼ消える。3等分した勝ち上がり率も
-        牡{perDayBySex['牡'].map((g) => `${g.winRate.toFixed(1)}%`).join('・')}、
-        牝{perDayBySex['牝'].map((g) => `${g.winRate.toFixed(1)}%`).join('・')}（少ない→多い）と、ほぼ横並びになった。
-        ただ賞金の中央値で見ると、牡は{perDayBySex['牡'].map((g) => `${formatManYen(g.medianPrize)}`).join('・')}万円と
-        まだ下がって見える（中央値は稼いだ数頭の入れ替わりで動きやすい）。
-      </p>
-      <p>そこで、デビューまでの日数が近い馬どうしで、増え方の多い半分と少ない半分を比べた。</p>
-      <div class="table-scroll">
-        <table class="tier-table">
-          <thead>
-            <tr>
-              <th>性</th>
-              <th>測尺からデビューまで</th>
-              <th>組全体</th>
-              <th>少ない半分</th>
-              <th>多い半分</th>
-              <th>賞金中央値（少ない／多い）</th>
-            </tr>
-          </thead>
-          <tbody>
-            {SEXES.map((s) =>
-              withinDaysBySex[s].map((t) => (
-                <tr>
-                  <th scope="row">{s}</th>
-                  <td>{t.label}（{t.lo}〜{t.hi}日）</td>
-                  <td class="num">{t.winRate.toFixed(1)}%</td>
-                  <td class="num">{t.fewRate.toFixed(1)}%</td>
-                  <td class="num">{t.manyRate.toFixed(1)}%</td>
-                  <td class="num">{formatManYen(t.fewPrize)}／{formatManYen(t.manyPrize)}万円</td>
-                </tr>
-              )),
-            )}
-          </tbody>
-        </table>
-      </div>
-      <p class="fig-note">「少ない半分」「多い半分」は、その組の中で増え方が少ない半分・多い半分の勝ち上がり率。</p>
-      <p>
-        6つの組のうち、増え方が多い半分のほうが勝ち上がっていたのは{manyWinsInDayTiers}組、賞金の中央値で上だったのは{manyPrizeInDayTiers}組。
-        組によって向きが入れ替わり、どちらに見てもはっきりした傾向は無い。
-        一方で「組全体」の列を縦に見ると、<strong>早いデビューの組ほど勝ち上がり率が高い</strong>。
-        増え方よりも、デビューの時期のほうが成績と結びついていた。
-      </p>
-      <p>
-        ただ、これも「早くデビューさせれば走る」ではない。デビューが遅れるのは、成長を待ったり、どこかに不安があったりした結果で、
-        時期そのものが原因とは言えない。遅いデビューは走れる回数そのものも少なく、平均出走数は
-        牡で{withinDaysBySex['牡'].map((t) => t.meanStarts.toFixed(1)).join('・')}戦、
-        牝で{withinDaysBySex['牝'].map((t) => t.meanStarts.toFixed(1)).join('・')}戦（早い→遅い）。
-        勝ち上がり率や賞金の差には、この「機会の少なさ」もそのまま入っている。
-      </p>
+    <h2>多い群が低く見える理由</h2>
+    <p>増え方の多い群には、デビューが遅かった馬が多く混ざっている。次の2つが重なるためだ。</p>
+    <ul class="points">
+      <li>デビューが遅い馬ほど、測尺からの日数が長いぶん体重が増えている。</li>
+      <li>デビューが遅い馬ほど、成績は振るわない。</li>
+    </ul>
+    <p>そこで、デビューまでの日数が近い馬どうしで、増え方の多い半分と少ない半分を比べた。</p>
+    <div class="table-scroll">
+      <table class="tier-table">
+        <thead>
+          <tr>
+            <th>性</th>
+            <th>測尺からデビューまで</th>
+            <th>組全体</th>
+            <th>増え方が少ない半分</th>
+            <th>多い半分</th>
+            <th>賞金中央値（少ない／多い）</th>
+          </tr>
+        </thead>
+        <tbody>
+          {SEXES.map((s) =>
+            withinDaysBySex[s].map((t) => (
+              <tr>
+                <th scope="row">{s}</th>
+                <td>{t.label}（{t.lo}〜{t.hi}日）</td>
+                <td class="num">{t.winRate.toFixed(1)}%</td>
+                <td class="num">{t.fewRate.toFixed(1)}%</td>
+                <td class="num">{t.manyRate.toFixed(1)}%</td>
+                <td class="num">{formatManYen(t.fewPrize)}／{formatManYen(t.manyPrize)}万円</td>
+              </tr>
+            )),
+          )}
+        </tbody>
+      </table>
     </div>
+    <p class="fig-note">「組全体」「少ない半分」「多い半分」の列は勝ち上がり率。</p>
+    <p>
+      6つの組のうち、増え方の多い半分のほうが勝ち上がっていたのは{manyWinsInDayTiers}組、賞金の中央値で上だったのは{manyPrizeInDayTiers}組。
+      組によって向きが入れ替わり、はっきりした傾向は無い。
+    </p>
+    <p>
+      一方で「組全体」の列を縦に見ると、<strong>早くデビューした組ほど勝ち上がり率が高い</strong>。
+      増え方よりも、デビューの時期のほうが成績と結びついていた。
+    </p>
+    <p>
+      ただし「早くデビューさせれば走る」という話ではない。デビューが遅れるのは、成長を待ったり、どこかに不安があったりした結果で、
+      時期そのものが原因とは言えない。遅くデビューした馬は走る回数も少ないので、勝ち上がり率や賞金の差には、この機会の少なさも入っている。
+    </p>
+    <details class="fold">
+      <summary>細かい数字を見る（相関・1日あたりの増え方・出走数）</summary>
+      <p>
+        増え方と日数の順位相関は牡{f2(C['牡'].gainDays)}・牝{f2(C['牝'].gainDays)}、
+        日数と賞金は牡{f2(C['牡'].daysPrize)}・牝{f2(C['牝'].daysPrize)}。
+      </p>
+      <p>
+        日数の影響を外すために増え方を1日あたりに直すと、賞金との相関は牡{f2(C['牡'].perDayPrize)}・牝{f2(C['牝'].perDayPrize)}までほぼ消える。
+        3等分した勝ち上がり率も牡{perDayBySex['牡'].map((g) => `${g.winRate.toFixed(1)}%`).join('・')}、
+        牝{perDayBySex['牝'].map((g) => `${g.winRate.toFixed(1)}%`).join('・')}（少ない→多い）と、ほぼ横並びになった。
+        賞金の中央値は牡で{perDayBySex['牡'].map((g) => `${formatManYen(g.medianPrize)}`).join('・')}万円とまだ下がって見えるが、
+        中央値は稼いだ数頭の入れ替わりで動きやすい。
+      </p>
+      <p>
+        日数で分けた組の平均出走数は、牡{withinDaysBySex['牡'].map((t) => t.meanStarts.toFixed(1)).join('・')}戦、
+        牝{withinDaysBySex['牝'].map((t) => t.meanStarts.toFixed(1)).join('・')}戦（早い→遅い）。
+      </p>
+    </details>
 
     <h2>増え方を決めているもの</h2>
-    <p>
-      では、どんな馬がたくさん増えるのか。はっきり出たのは2つ。
-    </p>
+    <p>たくさん増えるのは、測尺のときに小さかった馬と、遅く生まれた馬だった。</p>
     <ul class="points">
       <li>
-        <strong>測尺のときに小さかった馬ほど増え方は大きい</strong>（測尺時の馬体重との順位相関 牡{f2(C['牡'].gainMeasured)}・牝{f2(C['牝'].gainMeasured)}）。
-        ただ差が少し縮む程度で、測尺で軽かった馬はデビューのときも軽い側にいることが多い
-        （測尺とデビューの体重の順位相関は牡{f2(C['牡'].measuredDebut)}・牝{f2(C['牝'].measuredDebut)}）。
+        <strong>測尺で小さかった馬ほど増える</strong>。ただ差が少し縮む程度で、測尺で軽かった馬はデビューのときも軽い側にいることが多い。
       </li>
       <li>
-        <strong>遅く生まれた馬ほど増える</strong>（誕生月との順位相関 牡{f2(C['牡'].gainBirth)}・牝{f2(C['牝'].gainBirth)}）。
-        測尺は全頭同じ8月なので、遅生まれの馬はそのとき月齢が若く、体も小さい（誕生月と測尺時の体重の順位相関
-        牡{f2(C['牡'].birthMeasured)}・牝{f2(C['牝'].birthMeasured)}）。それがデビューのときには
-        牡{f2(C['牡'].birthDebut)}・牝{f2(C['牝'].birthDebut)}まで弱まるので、遅生まれの馬はデビューまでにかなり追いついている。
+        <strong>遅く生まれた馬ほど増える</strong>。測尺は全頭同じ8月なので、遅生まれの馬はそのとき月齢が若く、体も小さい。
+        デビューまでに、その差をかなり取り戻している。
       </li>
     </ul>
+    <p class="fig-note">
+      増え方との順位相関は、測尺時の馬体重が牡{f2(C['牡'].gainMeasured)}・牝{f2(C['牝'].gainMeasured)}、
+      誕生月が牡{f2(C['牡'].gainBirth)}・牝{f2(C['牝'].gainBirth)}。
+      測尺とデビューの体重どうしは牡{f2(C['牡'].measuredDebut)}・牝{f2(C['牝'].measuredDebut)}。
+      誕生月と体重は、測尺時の牡{f2(C['牡'].birthMeasured)}・牝{f2(C['牝'].birthMeasured)}から、
+      デビュー時には牡{f2(C['牡'].birthDebut)}・牝{f2(C['牝'].birthDebut)}まで弱まる。
+    </p>
     <p>
-      どちらも「その馬がどれだけ走るか」とは別の話で、増え方の大小は、生まれた時期と測尺時の体の大きさにかなり左右されている。
-      近況で体重が大きく増えていても、それだけで期待を上乗せするのは難しそうだ。
+      どちらも、その馬がどれだけ走るかとは別の話だ。近況で体重が大きく増えていても、それだけで期待を上乗せするのは難しそうだ。
     </p>
 
     <div class="ad-rect">
@@ -538,10 +564,8 @@ const description = `【非公式】キャロットクラブ${YEAR_FROM}〜${YEA
       <InArticleAd />
     </div>
 
-    <h2>牝は、デビュー時の体重そのものが効く</h2>
-    <p>
-      増え方ではなく、デビュー戦の馬体重そのもので3等分すると、牝でだけ差が出た。
-    </p>
+    <h2>牝はデビュー時の体重で差が出る</h2>
+    <p>増え方ではなく、デビュー戦の馬体重そのもので3等分すると、牝でだけ差が出た。</p>
     <div class="table-scroll">
       <table class="tier-table">
         <thead>
@@ -567,17 +591,19 @@ const description = `【非公式】キャロットクラブ${YEAR_FROM}〜${YEA
       </table>
     </div>
     <p>
-      牝は重い群ほど勝ち上がり率が高く、賞金との順位相関も{f2(C['牝'].debutPrize)}（{formatP(C['牝'].debutPrize.p)}）。
-      牡はほぼ横並び（{f2(C['牡'].debutPrize)}）。これは<a href="/articles/weight/">測尺の馬体重の記事</a>で見た
-      「牝でだけ馬体重が効く」とまったく同じ形で、デビューの時点でもその傾向が続いている。
-      牝馬の近況で見るなら、増えた量よりも、何kgでデビューを迎えそうかのほうが材料になる。
+      牝は重い群ほど勝ち上がり率が高い（賞金との順位相関{f2(C['牝'].debutPrize)}・{formatP(C['牝'].debutPrize.p)}）。
+      牡はほぼ横並びだった（{f2(C['牡'].debutPrize)}）。
+    </p>
+    <p>
+      <a href="/articles/weight/">測尺の馬体重の記事</a>で見た、牝でだけ馬体重が成績と結びつくという形が、デビューの時点でも続いている。
+      牝馬の近況を見るなら、増えた量よりも、何kgでデビューを迎えそうかのほうが材料になる。
     </p>
 
     <AdSlot sp={AD_SP_WIDE_A} pc={AD_PC_WIDE_A} />
 
-    <h2>重賞馬は、どのくらい増えていたか</h2>
+    <h2>重賞馬の増え方</h2>
     <p>
-      重賞を勝った{gradeRows.length}頭の増え方は、{signed(gradeGainMin)}kgから{signed(gradeGainMax)}kgまで。本当にばらばらだ。
+      重賞を勝った{gradeRows.length}頭の増え方は{signed(gradeGainMin)}kgから{signed(gradeGainMax)}kgまでで、本当にばらばらだ。
     </p>
     <ul class="late-winners">
       {featured.map((r) => (
@@ -586,13 +612,13 @@ const description = `【非公式】キャロットクラブ${YEAR_FROM}〜${YEA
         </li>
       ))}
     </ul>
+    <p>安田記念馬は大きく増えてデビューし、ダービー馬と皐月賞馬はほとんど増えずにデビューしている。</p>
     <p>
-      安田記念馬は大きく増えてデビューし、ダービー馬と皐月賞馬はほとんど増えずにデビューしている。
-      ひとつ目についたのは、牝で増え方が「多い」群からは重賞馬が出ておらず（少ない群は{femaleFewGrade}頭）、
-      重賞を勝った牝馬の多くは、測尺から+10kg以内か、むしろ軽くなってデビューしていたこと。
+      目についたのは牝のほうだ。増え方が「多い」群からは重賞馬が出ておらず（少ない群は{femaleFewGrade}頭）、
+      重賞を勝った牝馬の多くは、測尺から+10kg以内か、むしろ軽くなってデビューしていた。
       ただ牝の重賞馬は全部で十数頭しかいないので、偶然の偏りの可能性も十分ある。
     </p>
-    <details class="more-winners">
+    <details class="fold">
       <summary>重賞を勝った{gradeRows.length}頭をすべて見る（増え方の多い順）</summary>
       <GradeWinnerTable rows={gradeRows.map((r) => r.horse)} groupFor={gradeGroupLabel} groupLabel="測尺→デビューの増え方" />
     </details>
@@ -601,20 +627,16 @@ const description = `【非公式】キャロットクラブ${YEAR_FROM}〜${YEA
     <ul class="conclusion">
       <li>
         測尺からデビューまでに、牡は中央値{signed(statBySex['牡'].gainMed)}kg、牝は{signed(statBySex['牝'].gainMed)}kg増える。
-        牝の{Math.round((100 * statBySex['牝'].lost) / statBySex['牝'].n)}%は測尺より軽くなってデビューする。
+        牝の{lostPctF}%は軽くなってデビューする。
       </li>
-      <li>
-        たくさん増えた馬がよく走る、とは言えなかった。むしろ多い群がわずかに低く見えるが、デビューが遅い馬が混ざっているためで、
-        デビューまでの日数が近い馬どうしで比べると、勝ち上がり率でも賞金でも向きがばらばらになる。
-      </li>
-      <li>増え方の大小は、測尺時に小さかったか、遅生まれか、にかなり左右されている。</li>
-      <li>牝はデビュー時の馬体重そのものが重いほうが勝ち上がっていた（測尺の馬体重と同じ傾向）。</li>
-      <li>
-        今回見たのは測尺からデビューまでの合計の増え方で、月ごとの増減の形まではまだ見ていない。
-        それでも、体重が大きく増えたというだけで期待を上乗せするのは難しそうだ。
-        近況の数字は、デビュー時に何kgくらいになりそうかを想像する材料くらいに見ておこうと思う。
-      </li>
+      <li>たくさん増えた馬がよく走る、とは言えなかった。多い群が少し低く見えるのは、デビューが遅い馬が混ざっているため。</li>
+      <li>増え方の大小は、測尺のときに小さかったか、遅く生まれたかにかなり左右されている。</li>
+      <li>牝はデビュー時の馬体重が重いほど勝ち上がっていた（測尺の馬体重と同じ傾向）。</li>
     </ul>
+    <p>
+      今回見たのは測尺からデビューまでの合計の増え方で、月ごとの増減の形まではまだ見ていない。
+      それでも、近況の数字はデビュー時に何kgくらいになりそうかを想像する材料くらいに見ておこうと思う。
+    </p>
 
     <div class="ad-rect">
       <AdSlot sp={AD_SP_RECT} pc={AD_PC_WIDE_B} />
@@ -624,7 +646,7 @@ const description = `【非公式】キャロットクラブ${YEAR_FROM}〜${YEA
     <h2>データについて</h2>
     <p>
       測尺の馬体重は1歳8月の募集時のもの、デビュー戦の馬体重はレース当日の発表値（netkeibaの戦績表）。
-      デビュー戦は中央・地方を問わず最初に走ったレース。測尺からの日数は、測尺日を1歳の8月中旬として数えている。
+      デビュー戦は中央・地方を問わず最初に走ったレース。測尺からの日数は測尺日を1歳の8月中旬として数えている。
       比べられるのはデビューした馬だけで、{YEAR_FROM}〜{YEAR_TO}年募集のうち未出走の{unraced}頭は入っていない。
       成績は{resultsAsOf}時点で、勝ち上がりは中央・地方で1勝以上、獲得賞金は中央と地方の合計。
     </p>
@@ -647,18 +669,8 @@ const description = `【非公式】キャロットクラブ${YEAR_FROM}〜${YEA
     font-size: 0.875rem;
     line-height: 1.7;
   }
-  .finding {
-    margin: 1.25rem 0;
-    padding: 0.9rem 1.1rem;
-    background: var(--card);
-    border-radius: 6px;
-  }
-  .finding-lead {
-    margin: 0 0 0.5rem;
-    font-weight: 700;
-  }
-  .finding p:last-child {
-    margin-bottom: 0;
+  .fold p {
+    font-size: 0.9375rem;
   }
   .table-scroll {
     overflow-x: auto;
@@ -693,18 +705,24 @@ const description = `【非公式】キャロットクラブ${YEAR_FROM}〜${YEA
   .conclusion li + li {
     margin-top: 0.5rem;
   }
-  .more-winners {
+  .answer {
+    margin: 1.5rem 0 0.25rem;
+    font-size: 1.25rem;
+    font-weight: 700;
+    line-height: 1.6;
+  }
+  .fold {
     background: var(--card);
     border-radius: 8px;
     padding: 0.5rem 0.85rem;
     margin: 0.5rem 0 1rem;
   }
-  .more-winners summary {
+  .fold summary {
     cursor: pointer;
     font-weight: 600;
     padding: 0.25rem 0;
   }
-  .more-winners :global(.table-scroll) {
+  .fold :global(.table-scroll) {
     margin-top: 0.5rem;
   }
   .ad-rect {
