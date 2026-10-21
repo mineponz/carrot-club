@@ -1,14 +1,13 @@
 /**
  * 記事以外のOGP画像（サイトの新デザイン版）を生成する手動ツール。
- *   public/og-v3.png              … サイト共通の既定（og-card-v3.html）
- *   public/og-horse-detail-v2.png … 馬詳細ページ用（og-card-horse-detail.html）
+ *   public/og-v4.png              … サイト共通の既定（og-card-v3.html）
+ *   public/og-horse-detail-v3.png … 馬詳細ページ用（og-card-horse-detail.html）
+ * にんじんは各HTMLの body の has-carrot で出している（外すとにんじん無し版。2026-10-21 本人の判断でにんじん付きを採用）。
  * 作り替えたらファイル名を変えること（SNSのキャッシュ対策。BaseLayout.astro のコメント参照）。
  * playwright は依存に入れず、PLAYWRIGHT_PATH（既定は fnm のグローバル）から借りる。
  * Googleフォント（Noto Sans JP）を読むのでネット接続が要る。
- *   node scripts/generate-og-v3.mjs            # 本番2枚
- *   ALT_DIR=/path node scripts/generate-og-v3.mjs  # にんじん付きの比較案も ALT_DIR に出す
+ *   node scripts/generate-og-v3.mjs
  */
-import { mkdirSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 
@@ -17,16 +16,15 @@ const { chromium } = (await import(pathToFileURL(PW).href)).default ?? (await im
 const dir = dirname(fileURLToPath(import.meta.url));
 const pub = join(dir, '..', 'public');
 const jobs = [
-  { html: 'og-card-v3.html', out: join(pub, 'og-v3.png'), alt: 'og-v3-carrot.png' },
-  { html: 'og-card-horse-detail.html', out: join(pub, 'og-horse-detail-v2.png'), alt: 'og-horse-detail-v2-carrot.png' },
+  { html: 'og-card-v3.html', out: join(pub, 'og-v4.png') },
+  { html: 'og-card-horse-detail.html', out: join(pub, 'og-horse-detail-v3.png') },
 ];
 const browser = await chromium.launch();
 try {
-  const shoot = async (html, carrot, out) => {
+  const shoot = async (html, out) => {
     const page = await browser.newPage({ viewport: { width: 1200, height: 630 }, deviceScaleFactor: 1, colorScheme: 'light' });
     page.on('pageerror', (e) => console.error('[og][page]', e.message));
     await page.goto(pathToFileURL(join(dir, html)).href, { waitUntil: 'networkidle' });
-    if (carrot) await page.evaluate(() => document.body.classList.add('has-carrot'));
     await page.evaluate(() => document.fonts.ready.then(() => true));
     await page.waitForFunction(() => ['500', '700', '900'].every((w) => [...document.fonts].some((f) => f.family.includes('Noto Sans JP') && f.weight === w && f.status === 'loaded')), null, { timeout: 15000 }).catch(() => {});
     const ok = await page.evaluate(() => ['500', '700', '900'].every((w) => [...document.fonts].some((f) => f.family.includes('Noto Sans JP') && f.weight === w && f.status === 'loaded')));
@@ -38,7 +36,6 @@ try {
     await page.close();
   };
   for (const j of jobs) {
-    await shoot(j.html, false, j.out);
-    if (process.env.ALT_DIR) { mkdirSync(process.env.ALT_DIR, { recursive: true }); await shoot(j.html, true, join(process.env.ALT_DIR, j.alt)); }
+    await shoot(j.html, j.out);
   }
 } finally { await browser.close(); }
