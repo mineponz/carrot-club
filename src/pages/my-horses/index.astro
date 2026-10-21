@@ -391,12 +391,13 @@ const description = `【非公式】管理人みねらるがキャロットク�
     font-variant-numeric: tabular-nums;
   }
   .finish-1 { background: var(--info); color: #fff; font-weight: 800; }
-  .finish-23 { background: var(--card); color: var(--info); font-weight: 700; }
+  .finish-23 { background: color-mix(in srgb, var(--info) 14%, transparent); color: var(--info); font-weight: 700; }
   .finish-45 { color: var(--text); font-weight: 600; }
   .finish-out { color: var(--muted); }
   /* 好走した行そのものも薄く持ち上げて、流し読みで拾えるようにする */
-  tr.row-1 { background: var(--card); }
-  tr.row-23 { background: color-mix(in srgb, var(--card) 45%, transparent); }
+  /* 地色はグレーだと「無効」に見えるので、着順バッジと同じ青を薄く敷く（本人指摘・2026-10-21） */
+  tr.row-1 { background: color-mix(in srgb, var(--info) 9%, transparent); }
+  tr.row-23 { background: color-mix(in srgb, var(--info) 4%, transparent); }
   tr.row-out td { color: var(--muted); }
   /*
    * グレードの色はJRAの慣例に合わせる（G1=青 / G2=赤 / G3=緑）。JpnI〜III も同じ。
