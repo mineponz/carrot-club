@@ -51,7 +51,9 @@ export const NOINDEX_PATH_PREFIXES = [
   '/2026/horses/',
   '/2026/tour-weight/',
   '/2026/votes/',
-  '/2026/lottery/',
+  // 追加募集の2頭は測尺（2歳春）・母の産駒表が無く、独自の分析節が出せないため（2026-10-21）
+  '/my-horses/diogenite/',
+  '/my-horses/eir/',
 ];
 
 export function isNoindexPath(pathname: string): boolean {

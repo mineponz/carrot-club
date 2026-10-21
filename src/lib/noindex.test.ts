@@ -24,6 +24,11 @@ test('isNoindexPath: 出資馬の個別ページ /my-horses/<slug>/ は index（
   assert.equal(isNoindexPath('/my-horses/some-other-horse/'), false);
 });
 
+test('isNoindexPath: 追加募集の2頭（diogenite・eir）は分析節が出せないので noindex のまま', () => {
+  assert.equal(isNoindexPath('/my-horses/diogenite/'), true);
+  assert.equal(isNoindexPath('/my-horses/eir/'), true);
+});
+
 test('isNoindexPath: /my-horses/ 一覧そのものも index', () => {
   assert.equal(isNoindexPath('/my-horses/'), false);
 });
@@ -47,12 +52,14 @@ test('isNoindexPath: 前方一致だが接頭辞そのものではない紛ら�
   assert.equal(isNoindexPath('/my-horsesx/'), false);
 });
 
-test('NOINDEX_PATH_PREFIXES: 2026-09-23時点で期待する接頭辞が揃っている', () => {
+test('NOINDEX_PATH_PREFIXES: 2026-10-21時点で期待する接頭辞が揃っている', () => {
   assert.deepEqual(NOINDEX_PATH_PREFIXES, [
     '/2025/',
     '/2026/horses/',
     '/2026/tour-weight/',
     '/2026/votes/',
     '/2026/lottery/',
+    '/my-horses/diogenite/',
+    '/my-horses/eir/',
   ]);
 });

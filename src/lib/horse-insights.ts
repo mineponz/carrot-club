@@ -363,10 +363,10 @@ export function buildHorseInsights(input: InsightInput): HorseInsight[] {
     const s = standing(f.rows.map((h) => h.caretGirth as number), recruit.caretGirth);
     const body =
       recruit.sex === '牡'
-        ? `管囲は牡牝で水準が違い、管囲で並べることはほぼ性別で並べることでした。牡の中で見ると管囲と成績の関係は見当たりません（順位相関 r=${fmtR(f.r ?? 0)}）。`
+        ? `管囲は牡のほうが太く、牡牝をまとめて比べると性別の差を見ているだけになります。牡の中で見ると管囲と成績の関係は見当たりません（順位相関 r=${fmtR(f.r ?? 0)}）。`
         : recruit.caretGirth < f.t.lo
-          ? `管囲は牡牝で水準が違い、管囲で並べることはほぼ性別で並べることでした。牝には弱い傾向（順位相関 r=${fmtR(f.r ?? 0)}）が残り、沈んでいるのは細い側の1/3（${f.t.thinMax}cm以下）だけで、この馬はそこに入ります。ただし両端の検定は通っていません。`
-          : `管囲は牡牝で水準が違い、管囲で並べることはほぼ性別で並べることでした。牝には弱い傾向が残りますが、沈んでいるのは細い側の1/3（${f.t.thinMax}cm以下）だけで、この馬はそこに入りません。`;
+          ? `管囲は牡のほうが太く、牡牝をまとめて比べると性別の差を見ているだけになります。牝には弱い傾向（順位相関 r=${fmtR(f.r ?? 0)}）が残り、沈んでいるのは細い側の1/3（${f.t.thinMax}cm以下）だけで、この馬はそこに入ります。ただし両端の検定は通っていません。`
+          : `管囲は牡のほうが太く、牡牝をまとめて比べると性別の差を見ているだけになります。牝には弱い傾向が残りますが、沈んでいるのは細い側の1/3（${f.t.thinMax}cm以下）だけで、この馬はそこに入りません。`;
     out.push({
       key: 'caret',
       figure: `${recruit.caretGirth}cm`,
@@ -486,9 +486,12 @@ export function buildHorseInsights(input: InsightInput): HorseInsight[] {
     const raced = siblings.filter((s) => (s.starts ?? 0) > 0);
     const won = raced.filter((s) => (s.wins ?? 0) > 0);
     const top = [...raced].sort((a, b) => (b.totalPrizeManYen ?? 0) - (a.totalPrizeManYen ?? 0))[0];
-    const topText = top
-      ? `最も稼いでいるのは${top.name}（${top.starts}戦${top.wins}勝・${formatManYen(top.totalPrizeManYen ?? 0)}万円）です。`
-      : '';
+    const rec = top ? `${top.name}（${top.starts}戦${top.wins}勝・${formatManYen(top.totalPrizeManYen ?? 0)}万円）` : '';
+    const topText = !top
+      ? ''
+      : siblings.length === 1
+        ? `キャロットで先に募集された兄姉は${rec}の1頭です。`
+        : `最も稼いでいるのは${rec}です。`;
     out.push({
       key: 'siblings',
       figure: `${siblings.length}頭`,
