@@ -192,5 +192,29 @@
   "measuredAt": "2025-04-02",
   "namedByOwner": false,
   "clubId": "23100"
+ },
+ {
+  "name": "プルメリアスターの25",
+  "horseId": "2025107273",
+  "recruitYear": 2026,
+  "no": "19",
+  "sex": "牡",
+  "recruitName": "プルメリアスターの25",
+  "sire": "ロードカナロア",
+  "broodmareSire": "ゼンノロブロイ",
+  "weight": 436,
+  "trainer": "千葉直人",
+  "offeringTotalManYen": 6000,
+  "supplementary": false,
+  "shareCountEstimated": true,
+  "slug": "plumeria-star-25",
+  "status": "active",
+  "fundEndedAt": null,
+  "retiredReason": null,
+  "namedByOwner": false,
+  "clubId": "25019",
+  "height": 152.0,
+  "chestGirth": 172.5,
+  "caretGirth": 20.0
  }
 ]

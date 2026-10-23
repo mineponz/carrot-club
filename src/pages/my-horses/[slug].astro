@@ -157,7 +157,9 @@ const description = `【非公式】${horse.name}（${horse.recruitYear}年募�
           onerror="this.closest('figure').hidden = true"
         />
         <figcaption>
-          募集時（{photo.date.replace(/-/g, '/')}・{photo.place}）の馬体写真。
+          {photo.date && photo.place
+            ? `募集時（${photo.date.replace(/-/g, '/')}・${photo.place}）の馬体写真。`
+            : '募集時の馬体写真。'}
           キャロットクラブより許可をもらって転載しています。
         </figcaption>
       </figure>

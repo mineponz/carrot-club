@@ -50,8 +50,9 @@ export interface RecruitPhoto {
   /** 取り込み後の寸法。9頭とも 720x502〜505（比率およそ 10:7）。 */
   width?: number;
   height?: number;
-  date: string;
-  place: string;
+  /** 撮影日・場所。バックナンバーが会員限定で取れない募集中の馬は null。 */
+  date: string | null;
+  place: string | null;
 }
 
 export function loadRecruitPhotos(): Record<string, RecruitPhoto> {

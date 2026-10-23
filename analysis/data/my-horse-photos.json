@@ -83,6 +83,15 @@
    "localFile": "recruit.jpg",
    "width": 720,
    "height": 505
+  },
+  "plumeria-star-25": {
+   "clubId": "25019",
+   "file": "bd-25019.jpg",
+   "date": null,
+   "place": null,
+   "localFile": "recruit.jpg",
+   "width": 720,
+   "height": 505
   }
  },
  "own": {

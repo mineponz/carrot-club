@@ -1,5 +1,5 @@
 {
- "fetchedAt": "2026-10-20T12:06:51.067Z",
+ "fetchedAt": "2026-10-23T12:35:45.895Z",
  "source": "db.sp.netkeiba.com/horse/<id>/（公開個体ページ・簡易表示）",
  "note": "タイム・着差・通過・上り・馬体重は個体ページのHTMLに含まれないため未取得。",
  "results": [
@@ -2652,6 +2652,38 @@
      "inFund": true
     }
    ]
+  },
+  {
+   "name": "プルメリアスターの25",
+   "horseId": "2025107273",
+   "recruitYear": 2026,
+   "no": "19",
+   "sex": "牡",
+   "recruitName": "プルメリアスターの25",
+   "sire": "ロードカナロア",
+   "broodmareSire": "ゼンノロブロイ",
+   "weight": 436,
+   "trainer": "千葉直人",
+   "offeringTotalManYen": 6000,
+   "supplementary": false,
+   "shareCountEstimated": true,
+   "slug": "plumeria-star-25",
+   "status": "active",
+   "fundEndedAt": null,
+   "retiredReason": null,
+   "namedByOwner": false,
+   "clubId": "25019",
+   "damName": "プルメリアスター",
+   "chuoPrizeManYen": 0,
+   "chihoPrizeManYen": 0,
+   "record": null,
+   "mainWins": "-",
+   "totalPrizeManYen": 0,
+   "transferredToNar": false,
+   "narDebutDate": null,
+   "ownerPrizeManYen": 0,
+   "recoveryRatePct": 0,
+   "races": []
   }
  ]
 }
