@@ -1,0 +1,191 @@
+---
+/**
+ * 折れ線チャート（2系列以上）。年ごとの率の推移のように、x軸が並びのあるカテゴリ（募集年）で、
+ * 系列（牡・牝）の動きを重ねて見る用。縦軸は0始まり（率の大小を見誤らせない）。
+ * 系列の色は`GroupedBarChart.astro`と同じ`--series-1`（牡・青）/`--series-2`（牝・橙）。
+ * 色だけに意味を持たせないため凡例を出し、値は各点に直接ラベルを付ける（その年で高いほうは点の上、
+ * 低いほうは点の下に置いて重なりを避ける）。ホバー/フォーカスで詳細（`.viz-hit[data-tip]`）。
+ */
+interface SeriesDef {
+  key: string;
+  label: string;
+  /** CSS変数名。例: '--series-1' */
+  colorVar: string;
+}
+interface Point {
+  seriesKey: string;
+  value: number;
+  /** 点に添える文字（単位込みの短い表記。例: "53.8%"） */
+  displayValue: string;
+  n: number;
+  /** ツールチップに足す行（例: ["勝ち上がり", "21/39頭"]） */
+  extra?: [string, string][];
+}
+interface Group {
+  label: string;
+  points: Point[];
+}
+interface Props {
+  title: string;
+  series: SeriesDef[];
+  groups: Group[];
+  valueLabel: string;
+  nLabel?: string;
+  height?: number;
+  /** 縦軸の上限（既定100）。 */
+  axisMax?: number;
+  /** 縦軸の目盛りの単位（既定25。上限を割り切れる値にする）。 */
+  axisStep?: number;
+}
+
+const { title, series, groups, valueLabel, nLabel = '頭数', height = 300, axisMax = 100, axisStep = 25 } = Astro.props;
+
+const width = 640;
+const marginTop = 24;
+const marginBottom = 40;
+const marginLeft = 36;
+const marginRight = 16;
+const plotWidth = width - marginLeft - marginRight;
+const plotHeight = height - marginTop - marginBottom;
+const step = plotWidth / groups.length;
+
+const maxValue = Math.max(...groups.flatMap((g) => g.points.map((p) => p.value)));
+if (maxValue > axisMax) throw new Error(`[LineChart] 値${maxValue}が縦軸の上限${axisMax}を超えている`);
+
+const yFor = (v: number) => marginTop + plotHeight * (1 - v / axisMax);
+const xFor = (gi: number) => marginLeft + step * gi + step / 2;
+const ticks: number[] = [];
+for (let v = 0; v <= axisMax; v += axisStep) ticks.push(v);
+
+/** 同じ年で値が高いほうは点の上、低いほうは下にラベルを置く（線が交差しても重ならない）。 */
+function isUpper(gi: number, key: string): boolean {
+  const pts = groups[gi].points;
+  const mine = pts.find((p) => p.seriesKey === key)!;
+  const max = Math.max(...pts.map((p) => p.value));
+  return mine.value === max && pts.findIndex((p) => p.value === max) === pts.indexOf(mine);
+}
+
+const lines = series.map((s, si) => {
+  const pts = groups.map((g, gi) => {
+    const p = g.points.find((x) => x.seriesKey === s.key);
+    if (!p) throw new Error(`[LineChart] ${g.label}に系列${s.key}の値が無い`);
+    return { gi, p, x: xFor(gi), y: yFor(p.value) };
+  });
+  return { s, si, pts, d: pts.map((q, i) => `${i === 0 ? 'M' : 'L'}${q.x.toFixed(1)},${q.y.toFixed(1)}`).join(' ') };
+});
+---
+
+<div class="viz-root">
+  <div class="viz-header">
+    <p class="viz-title">{title}</p>
+    <ul class="viz-legend">
+      {series.map((s) => (
+        <li>
+          <span class="viz-swatch" style={`background: var(${s.colorVar})`}></span>
+          {s.label}
+        </li>
+      ))}
+    </ul>
+  </div>
+  <svg viewBox={`0 0 ${width} ${height}`} role="img" aria-label={title} class="viz-svg">
+    {ticks.map((v) => (
+      <g>
+        <line x1={marginLeft} x2={width - marginRight} y1={yFor(v)} y2={yFor(v)} class={v === 0 ? 'viz-baseline' : 'viz-grid'} />
+        <text x={marginLeft - 6} y={yFor(v) + 3.5} class="viz-axis-label" text-anchor="end">{v}%</text>
+      </g>
+    ))}
+    {groups.map((g, gi) => (
+      <text x={xFor(gi)} y={height - marginBottom + 20} class="viz-axis-label" text-anchor="middle">{g.label}</text>
+    ))}
+    {lines.map((l) => (
+      <g>
+        <path d={l.d} class="viz-line" style={`stroke: var(${l.s.colorVar})`} />
+        {l.pts.map((q) => {
+          const tip = JSON.stringify({
+            title: `${groups[q.gi].label}（${l.s.label}）`,
+            rows: [[valueLabel, q.p.displayValue], [nLabel, `${q.p.n}頭`], ...(q.p.extra ?? [])] as [string, string][],
+          });
+          return (
+            <g>
+              <circle cx={q.x} cy={q.y} r="5" class="viz-hit viz-dot" tabindex="0" data-tip={tip} style={`fill: var(${l.s.colorVar})`} />
+              <text x={q.x} y={isUpper(q.gi, q.p.seriesKey) ? q.y - 10 : q.y + 18} class="viz-bar-label" text-anchor="middle">{q.p.displayValue}</text>
+            </g>
+          );
+        })}
+      </g>
+    ))}
+  </svg>
+  <p class="visually-hidden">
+    {title}: {groups
+      .map((g) => `${g.label}は` + g.points.map((p) => `${series.find((s) => s.key === p.seriesKey)?.label}が${valueLabel}${p.displayValue}（${nLabel}${p.n}頭）`).join('、'))
+      .join('。 ')}
+  </p>
+</div>
+
+<style>
+  .viz-root {
+    --series-1: #2a78d6;
+    --series-1-dark: #3987e5;
+    --series-2: #eb6834;
+    --series-2-dark: #d95926;
+    position: relative;
+    margin: 1.25rem 0;
+  }
+  @media (prefers-color-scheme: dark) {
+    .viz-root {
+      --series-1: var(--series-1-dark);
+      --series-2: var(--series-2-dark);
+    }
+  }
+  .viz-header {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 0.5rem 1rem;
+    margin-bottom: 0.5rem;
+  }
+  .viz-title {
+    margin: 0;
+    font-weight: 600;
+    font-size: 0.9375rem;
+    color: var(--text);
+  }
+  .viz-legend {
+    display: flex;
+    gap: 1rem;
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    font-size: 0.8125rem;
+    color: var(--muted);
+  }
+  .viz-legend li {
+    display: flex;
+    align-items: center;
+    gap: 0.35rem;
+  }
+  .viz-swatch {
+    width: 10px;
+    height: 10px;
+    border-radius: 2px;
+    display: inline-block;
+  }
+  .viz-svg { width: 100%; height: auto; display: block; overflow: visible; }
+  .viz-grid { stroke: var(--border); stroke-width: 1; }
+  .viz-baseline { stroke: var(--muted); stroke-width: 1; }
+  .viz-line { fill: none; stroke-width: 2.5; stroke-linejoin: round; stroke-linecap: round; }
+  .viz-dot { cursor: pointer; transition: opacity 0.1s ease; }
+  .viz-dot:hover,
+  .viz-dot:focus-visible { opacity: 0.75; outline: none; }
+  .viz-bar-label { font-size: 10px; font-weight: 600; fill: var(--text); }
+  .viz-axis-label { font-size: 11px; fill: var(--muted); }
+  .visually-hidden {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+  }
+</style>

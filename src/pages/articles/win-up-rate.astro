@@ -1,0 +1,495 @@
+---
+/**
+ * 分析記事「勝ち上がり率は下がっているのか？2017〜2024年募集を振り返る」。
+ *
+ * キャロの募集馬（2017〜2024年募集）が、中央（JRA）で1勝以上した率（＝勝ち上がり率。分母は募集馬で、
+ * デビューしなかった馬も含む）を、募集年ごとに並べる。集計と検定は `scripts/build-win-up-rate.mjs` が
+ * `analysis/data/win-up-rate-stats.json` に書き出したものを読むだけで、このページでは計算しない。
+ * 本文の主張の前提は `src/lib/win-up-rate.ts` の `assertWinUpRateClaims` がビルド時に固定する
+ * （崩れたらビルドが止まる）。2025年募集は扱わない。
+ *
+ * 本文はyomiyasu推敲済みの稿をそのまま入れてある。数値は `win-up-rate-stats.json` の実測値を写したもので、
+ * 集計を更新したら本文と assertWinUpRateClaims を合わせて直すこと。
+ */
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import BarChart from '../../components/charts/BarChart.astro';
+import LineChart from '../../components/charts/LineChart.astro';
+import StatTiles from '../../components/charts/StatTiles.astro';
+import ChartTooltip from '../../components/charts/ChartTooltip.astro';
+import ArticleToc from '../../components/ArticleToc.astro';
+import MethodsLink from '../../components/MethodsLink.astro';
+import AdSlot from '../../components/AdSlot.astro';
+import InArticleAd from '../../components/InArticleAd.astro';
+import GradeWinnerTable from '../../components/GradeWinnerTable.astro';
+import { AD_SP_WIDE_A, AD_SP_WIDE_B, AD_SP_RECT, AD_PC_WIDE_A, AD_PC_WIDE_B } from '../../data/ad-slots.ts';
+import { formatResultsAsOf } from '../../lib/sibling-recruits.ts';
+import { formatP } from '../../lib/chart-math.ts';
+import { assertWinUpRateClaims, gradeWinnerRow, type WinUpRateStats } from '../../lib/win-up-rate.ts';
+import statsJson from '../../../analysis/data/win-up-rate-stats.json';
+
+const stats = statsJson as unknown as WinUpRateStats;
+// 本文の前提が崩れていたらここで止まる（閾値と実測値は src/lib/win-up-rate.ts）。
+assertWinUpRateClaims(stats);
+
+const title = '勝ち上がり率は下がっているのか？2017〜2024年募集を振り返る';
+const resultsAsOf = formatResultsAsOf(stats.resultsFetchedAt);
+const YEAR_FROM = stats.years[0];
+const YEAR_TO = stats.years[stats.years.length - 1];
+
+const pct1 = (v: number) => `${v.toFixed(1)}%`;
+const byYear = stats.byYear;
+const best = byYear.reduce((a, b) => (b.all.rate > a.all.rate ? b : a));
+const worst = byYear.reduce((a, b) => (b.all.rate < a.all.rate ? b : a));
+const termOf = (model: 'yearSex' | 'yearSexPrice', label: string) =>
+  stats.regression[model].terms.find((t) => t.label === label)!;
+
+// ---- 2. 年ごとの棒グラフ（全体）。3歳9月末時点は軸ラベルの下に添える ----
+const rateBars = byYear.map((b) => ({
+  label: `${b.year}`,
+  value: b.all.rate,
+  displayValue: pct1(b.all.rate),
+  n: b.all.n,
+  note: `9月末 ${pct1(b.all.sep3Rate)}`,
+}));
+
+// ---- 3. 牡と牝の折れ線 ----
+const SEX_SERIES = [
+  { key: 'male', label: '牡', colorVar: '--series-1' },
+  { key: 'female', label: '牝', colorVar: '--series-2' },
+];
+const sexGroups = byYear.map((b) => ({
+  label: `${b.year}`,
+  points: (['male', 'female'] as const).map((k) => ({
+    seriesKey: k,
+    value: b[k].rate,
+    displayValue: pct1(b[k].rate),
+    n: b[k].n,
+    extra: [['勝ち上がり', `${b[k].winUp}頭`]] as [string, string][],
+  })),
+}));
+const maleRange = [Math.min(...byYear.map((b) => b.male.rate)), Math.max(...byYear.map((b) => b.male.rate))];
+const femaleRange = [Math.min(...byYear.map((b) => b.female.rate)), Math.max(...byYear.map((b) => b.female.rate))];
+
+// ---- 5. 2歳のうちに初勝利 ----
+const age2Bars = byYear.map((b) => ({
+  label: `${b.year}`,
+  value: b.all.age2RateOfAll,
+  displayValue: pct1(b.all.age2RateOfAll),
+  n: b.all.n,
+  note: `勝者中${Math.round(b.all.age2ShareOfWinners)}%`,
+}));
+
+// ---- 6. 重賞馬（募集年ごと） ----
+const gradeByYear = stats.years.map((year) => ({
+  year,
+  count: stats.gradeCounts.find((c) => c.year === year)!,
+  rows: stats.gradeWinners.filter((g) => g.recruitYear === year).map(gradeWinnerRow),
+  kindOf: new Map(stats.gradeWinners.filter((g) => g.recruitYear === year).map((g) => [gradeWinnerRow(g).displayName, g.kindLabel])),
+}));
+const gradeTotal = stats.gradeWinners.length;
+
+const description =
+  'キャロの募集馬が中央で勝ち上がった割合は、年によって4割台から6割弱まで上下していた。新しい年ほど下がっているとまでは言えない。はっきり差が出たのは牡と牝で、牡55.6%・牝45.1%だった。2017〜2024年募集の721頭で調べた。';
+---
+
+<BaseLayout
+  title={title}
+  description={description}
+  breadcrumb={[{ label: '記事一覧', href: '/articles/' }, { label: title, href: '/articles/win-up-rate/' }]}
+  showHeaderNotices={false}
+  ogImage="/og-article-win-up-rate-v1.png"
+  ogImageAlt={`分析記事「${title}」のカード画像（【非公式】キャロットクラブ出資馬検討ツール）`}
+>
+  <article>
+    <h1>{title}</h1>
+
+
+    <p class="answer">
+      キャロの募集馬が中央で1勝を挙げた割合は、年によって4割台から6割弱まで上下していた。ただ、新しい年ほど下がっている、とまでは言えない。
+    </p>
+    <p>はっきり差が出たのは牡と牝で、全期間では牡が55.6%、牝が45.1%。8年のうち7年で牡のほうが高かった。</p>
+
+    <StatTiles
+      tiles={[
+        { label: `全体の勝ち上がり率（${YEAR_FROM}〜${YEAR_TO}年募集・${stats.poolSize}頭）`, value: pct1(stats.totals.all.rate) },
+        { label: `最も高い年（${best.year}年募集）`, value: pct1(best.all.rate) },
+        { label: `最も低い年（${worst.year}年募集）`, value: pct1(worst.all.rate) },
+      ]}
+    />
+
+    <div class="table-scroll">
+      <table class="tier-table">
+        <thead>
+          <tr>
+            <th>募集年</th>
+            <th>全体</th>
+            <th>牡</th>
+            <th>牝</th>
+          </tr>
+        </thead>
+        <tbody>
+          {byYear.map((b) => (
+            <tr>
+              <th scope="row">{b.year}年</th>
+              <td class="num">{pct1(b.all.rate)}<span class="n">{b.all.n}頭</span></td>
+              <td class="num">{pct1(b.male.rate)}<span class="n">{b.male.n}頭</span></td>
+              <td class="num">{pct1(b.female.rate)}<span class="n">{b.female.n}頭</span></td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+    <p class="fig-note">
+      勝ち上がり＝中央（JRA）で1勝以上。率の分母は募集馬で、デビューしなかった馬も含む。成績は{resultsAsOf}時点。
+    </p>
+
+    <ArticleToc />
+    <MethodsLink />
+
+    <AdSlot sp={AD_SP_WIDE_A} pc={AD_PC_WIDE_A} />
+
+    <h2>年ごとの勝ち上がり率</h2>
+    <p>
+      いちばん高いのは2018年募集の59.0%、いちばん低いのは2024年募集の40.6%だった。
+      2020・2021年募集で4割台まで落ち、2023年募集で57.9%まで戻ってから、2024年募集でまた下がっている。
+    </p>
+    <p>未勝利戦が終わってから経った時間は年によって違うので、どの年も3歳9月末の時点にそろえた率も載せた。並びはほとんど変わらない。</p>
+    <p>
+      この上下がたまたま出ただけかを調べると、p=0.038だった。ただ、3歳9月末の時点にそろえると0.061になり、年によってはっきり差があるとまでは言えない。
+      「新しい年ほど下がっている」かを調べてもp=0.05〜0.06で、偶然でも出うる範囲にとどまる。
+    </p>
+    <BarChart
+      title={`募集年ごとの勝ち上がり率（${YEAR_FROM}〜${YEAR_TO}年募集）`}
+      valueLabel="中央で1勝以上"
+      bars={rateBars}
+      axisMax={70}
+      height={280}
+    />
+    <p class="fig-note">
+      棒は{resultsAsOf}時点の率。軸ラベルの下の「9月末」は、3歳の9月末までに勝ち上がっていた率（どの年も同じ時点でそろえた値）。
+    </p>
+    <details class="fold">
+      <summary>検定の数字（年による差があるか）</summary>
+      <p>
+        全体: 年による差のカイ二乗検定 {formatP(stats.tests.all.final.chiP)}、年が進むほど下がる傾向の検定 {formatP(stats.tests.all.final.trendP)}。
+        3歳9月末時点では {formatP(stats.tests.all.sep3.chiP)}・{formatP(stats.tests.all.sep3.trendP)}。
+      </p>
+      <p>
+        性別をそろえたロジスティック回帰の募集年は {formatP(termOf('yearSex', '募集年').p)}（オッズ比 {termOf('yearSex', '募集年').oddsRatio.toFixed(3)}/年）。
+        一口価格も入れると {formatP(termOf('yearSexPrice', '募集年').p)}。
+      </p>
+    </details>
+
+    <h2>牡と牝に分けると</h2>
+    <p>牡と牝に分けると、ほとんどの年で牡のほうが高い。</p>
+    <p>
+      全期間では牡が55.6%（342頭中190頭）、牝が45.1%（379頭中171頭）で、この差は偶然では説明しにくい（p=0.005）。牝のほうが高かったのは2017年募集だけだった。
+    </p>
+    <p>
+      年ごとに見ると、牡は46〜69%、牝は32〜62%の間で動いている。牝は2020・2021・2022・2024年募集で3〜4割にとどまった。
+      ただ、牡と牝で年ごとの動き方が違うとまでは言えなかった（p=0.53）。
+    </p>
+    <LineChart
+      title="募集年ごとの勝ち上がり率（牡・牝）"
+      series={SEX_SERIES}
+      groups={sexGroups}
+      valueLabel="中央で1勝以上"
+      axisMax={80}
+      axisStep={20}
+      height={300}
+    />
+    <p class="fig-note">
+      牡は{pct1(maleRange[0])}〜{pct1(maleRange[1])}、牝は{pct1(femaleRange[0])}〜{pct1(femaleRange[1])}の範囲で動いている。
+    </p>
+    <details class="fold">
+      <summary>検定の数字（性別ごと）</summary>
+      <div class="table-scroll">
+        <table class="tier-table">
+          <thead>
+            <tr>
+              <th>性別</th>
+              <th>年による差（カイ二乗）</th>
+              <th>年が進むほど下がる傾向</th>
+              <th>3歳9月末時点（カイ二乗／傾向）</th>
+            </tr>
+          </thead>
+          <tbody>
+            {([['牡', 'male'], ['牝', 'female']] as const).map(([label, k]) => (
+              <tr>
+                <th scope="row">{label}</th>
+                <td class="num">{formatP(stats.tests[k].final.chiP)}</td>
+                <td class="num">{formatP(stats.tests[k].final.trendP)}</td>
+                <td class="num">{formatP(stats.tests[k].sep3.chiP)}／{formatP(stats.tests[k].sep3.trendP)}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+      <p>
+        年×性別の交互作用（年ごとの動き方が牡と牝で違うか）の尤度比検定は {formatP(stats.regression.interaction.p)}
+        （LRT={stats.regression.interaction.lrt.toFixed(3)}、自由度{stats.regression.interaction.df}）。
+      </p>
+    </details>
+
+    <AdSlot sp={AD_SP_WIDE_B} pc={AD_PC_WIDE_B} />
+
+    <h2>一口価格や牡牝の割合をそろえると</h2>
+    <p>
+      年によって、牝馬の多さも一口価格の高さも違う。率が上下して見えるのは、その違いのせいかもしれない。
+      そこで、牡と牝の割合と価格帯（全期間で3つに分けた帯）の割合を、どの年も同じにそろえて計算し直した。
+    </p>
+    <p>
+      牡と牝の割合だけをそろえた率は、どの年も実際の率とほぼ同じだった。
+      価格帯までそろえると、2024年募集は35.0%まで下がる。ただ、2024年募集は7万円以下の馬が18頭と少ないので、この値は幅をもって見たほうがいい。
+      一口価格の高さそのものは、勝ち上がれるかどうかとほとんど関係がなかった（p=0.65）。
+    </p>
+    <div class="table-scroll">
+      <table class="tier-table">
+        <thead>
+          <tr>
+            <th>募集年</th>
+            <th>観測された率</th>
+            <th>性別をそろえた率</th>
+            <th>性別×価格帯をそろえた率</th>
+          </tr>
+        </thead>
+        <tbody>
+          {stats.standardized.map((s) => (
+            <tr>
+              <th scope="row">{s.year}年</th>
+              <td class="num">{pct1(s.observed)}</td>
+              <td class="num">{pct1(s.sexOnly)}</td>
+              <td class="num">{pct1(s.sexPrice)}</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+    <p class="fig-note">
+      「そろえた率」は、全期間の構成（牡{(stats.standardPopulation.maleRatio * 100).toFixed(1)}%・牝{((1 - stats.standardPopulation.maleRatio) * 100).toFixed(1)}%、
+      一口価格を{stats.standardPopulation.priceTertiles.low.max}万円以下／{stats.standardPopulation.priceTertiles.mid.max}万円以下／それ超の3つに分けた帯）に、各年の率を重み付けし直した値。
+    </p>
+    <details class="fold">
+      <summary>一口価格の影響と、年ごとの価格帯の内訳</summary>
+      <p>
+        募集年・性別・一口価格を同時に入れたロジスティック回帰で、一口価格の影響は {formatP(termOf('yearSexPrice', '一口価格(万円)').p)}
+        （1万円あたりのオッズ比 {termOf('yearSexPrice', '一口価格(万円)').oddsRatio.toFixed(3)}）。
+      </p>
+      <div class="table-scroll">
+        <table class="tier-table">
+          <thead>
+            <tr>
+              <th>募集年</th>
+              <th>{stats.standardPopulation.priceTertiles.low.max}万円以下</th>
+              <th>{stats.standardPopulation.priceTertiles.low.max}万円超〜{stats.standardPopulation.priceTertiles.mid.max}万円</th>
+              <th>それ超</th>
+            </tr>
+          </thead>
+          <tbody>
+            {stats.standardPopulation.priceTertiles.byYear.map((t) => (
+              <tr>
+                <th scope="row">{t.year}年</th>
+                <td class="num">{t.low}頭</td>
+                <td class="num">{t.mid}頭</td>
+                <td class="num">{t.high}頭</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </details>
+
+    <h2>勝ち上がりの早さ</h2>
+    <p>
+      2歳のうちに中央で勝った馬の割合は、2017・2018・2023年募集が3割前後と高い。最も低いのは2021年募集の15.4%だった。
+      2021年募集は勝ち上がった馬のうち、2歳で勝っていたのが36%しかいない。勝ち上がりが3歳にずれ込んだ年だった。
+      反対に2024年募集は、勝ち上がった馬の56%が2歳のうちに勝っている。3歳になってから勝ち上がったのは17頭（17.7%）で、8年でいちばん少なかった。
+    </p>
+    <p>
+      デビューまでたどり着いた割合は、どの年も89〜98%で、年ごとの開きは最大9ポイント。デビューした馬のうち勝ち上がった割合の開き（最大17ポイント）より小さい。
+    </p>
+    <BarChart
+      title="中央の初勝利を2歳のうちに挙げた割合（募集馬に対して）"
+      valueLabel="2歳のうちに初勝利"
+      bars={age2Bars}
+      axisMax={40}
+      height={280}
+    />
+    <p class="fig-note">
+      軸ラベルの下の「勝者中」は、勝ち上がった馬のうち2歳のうちに勝っていた割合。デビューしなかった馬も分母に含む。
+    </p>
+    <details class="fold">
+      <summary>デビューまでたどり着いた率</summary>
+      <div class="table-scroll">
+        <table class="tier-table">
+          <thead>
+            <tr>
+              <th>募集年</th>
+              <th>デビュー済み</th>
+              <th>デビューまでたどり着いた率</th>
+            </tr>
+          </thead>
+          <tbody>
+            {byYear.map((b) => (
+              <tr>
+                <th scope="row">{b.year}年</th>
+                <td class="num">{b.all.debut}／{b.all.n}頭</td>
+                <td class="num">{pct1(b.all.debutRate)}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </details>
+
+    <div class="ad-rect">
+      <AdSlot sp={AD_SP_RECT} pc={AD_PC_WIDE_A} />
+      <InArticleAd />
+    </div>
+
+    <h2>勝ち上がり率が低い年でも重賞馬は出る</h2>
+    <p>
+      勝ち上がり率が低い年からも、重賞を勝つ馬は出ている。
+      勝ち上がり率が42.9%だった2021年募集からは、ドゥレッツァ（菊花賞）とタスティエーラ（日本ダービー）。
+      42.4%の2020年募集からはナミュール（マイルCS）とキラーアビリティ（ホープフルS）。
+      いちばん低かった2024年募集からも、すでに4頭が重賞を勝っている。
+      重賞馬がいちばん多かったのは2017年募集の12頭で、サートゥルナーリア、クリソベリル、マルシュロレーヌがいる。
+    </p>
+    <div class="table-scroll">
+      <table class="tier-table">
+        <thead>
+          <tr>
+            <th>募集年</th>
+            <th>勝ち上がり率</th>
+            <th>重賞馬</th>
+            <th>うちJRAの重賞を勝った</th>
+            <th>地方・海外の重賞だけ</th>
+          </tr>
+        </thead>
+        <tbody>
+          {gradeByYear.map((g) => {
+            const b = byYear.find((x) => x.year === g.year)!;
+            return (
+              <tr>
+                <th scope="row">{g.year}年</th>
+                <td class="num">{pct1(b.all.rate)}</td>
+                <td class="num">{g.count.total}頭</td>
+                <td class="num">{g.count.jra}頭</td>
+                <td class="num">{g.count.nonJraOnly}頭</td>
+              </tr>
+            );
+          })}
+        </tbody>
+      </table>
+    </div>
+    <p class="fig-note">
+      重賞はGI〜GIIIとJpnI〜JpnIII（地方・海外の格付けを含む）。合計{gradeTotal}頭。下の表は、勝った重賞の地方・海外のものに〔地方〕〔海外〕を付けてある（無印はJRA）。
+    </p>
+    {gradeByYear.map((g) => (
+      <details class="fold">
+        <summary>{g.year}年募集の重賞馬（{g.count.total}頭）</summary>
+        <GradeWinnerTable rows={g.rows} groupFor={(h) => g.kindOf.get(h.displayName) ?? ''} groupLabel="勝った重賞の区分" />
+      </details>
+    ))}
+
+    <h2>まとめ</h2>
+    <ul class="conclusion">
+      <li>中央での勝ち上がり率は、年によって4割台から6割弱まで上下する。新しい年ほど下がっている、とまでは言えない。</li>
+      <li>はっきり差が出たのは牡と牝で、牡のほうが勝ち上がりやすい（牡55.6%、牝45.1%）。</li>
+      <li>一口価格の高さは、勝ち上がれるかどうかとほとんど関係がなかった。</li>
+      <li>勝ち上がり率が低い年からも、G1馬は出ている。</li>
+    </ul>
+
+    <div class="ad-rect">
+      <AdSlot sp={AD_SP_RECT} pc={AD_PC_WIDE_B} />
+      <InArticleAd />
+    </div>
+
+    <h2>データについて</h2>
+    <p>netkeibaの成績から、勝った競馬場で中央か地方かを分けた。地方で勝ってから中央に戻って勝った馬も、中央の勝ち上がりに数えている。</p>
+    <p class="fig-note">
+      対象は{YEAR_FROM}〜{YEAR_TO}年募集の{stats.poolSize}頭。勝ち上がりは中央（JRA）で1勝以上、分母は募集馬で、デビューしなかった馬も含む。
+      成績は{resultsAsOf}時点で、中央と地方の判別は開催場で行っている。一口価格はクラブ公式の募集価格。
+    </p>
+
+    <p>
+      <a href="/">募集馬一覧へ戻る</a> ／ <a href="/articles/">記事一覧へ</a>
+    </p>
+  </article>
+
+  <ChartTooltip />
+</BaseLayout>
+
+<style>
+  article :global(h2) {
+    margin-top: 2.5rem;
+  }
+  .fig-note {
+    margin-top: -0.5rem;
+    color: var(--muted);
+    font-size: 0.875rem;
+    line-height: 1.7;
+  }
+  .fold p {
+    font-size: 0.9375rem;
+  }
+  .table-scroll {
+    overflow-x: auto;
+    margin: 0.75rem 0;
+  }
+  .tier-table {
+    width: 100%;
+    min-width: 24rem;
+    border-collapse: collapse;
+    font-size: 0.9375rem;
+  }
+  .tier-table th,
+  .tier-table td {
+    border: 1px solid var(--border);
+    padding: 0.4rem 0.65rem;
+    text-align: left;
+  }
+  .tier-table thead th {
+    background: var(--surface);
+  }
+  .tier-table .n {
+    display: block;
+    font-size: 0.75rem;
+    color: var(--muted);
+  }
+  .tier-table .num {
+    text-align: right;
+    font-variant-numeric: tabular-nums;
+  }
+  .answer {
+    margin: 1.5rem 0 0.25rem;
+    font-size: 1.25rem;
+    font-weight: 700;
+    line-height: 1.6;
+  }
+  .conclusion {
+    padding-left: 1.25rem;
+  }
+  .conclusion li + li {
+    margin-top: 0.5rem;
+  }
+  .fold {
+    background: var(--card);
+    border-radius: 8px;
+    padding: 0.5rem 0.85rem;
+    margin: 0.5rem 0 1rem;
+  }
+  .fold summary {
+    cursor: pointer;
+    font-weight: 600;
+    padding: 0.25rem 0;
+  }
+  .fold :global(.table-scroll) {
+    margin-top: 0.5rem;
+  }
+  .ad-rect {
+    display: flex;
+    justify-content: center;
+    margin: 1.75rem 0 0.5rem;
+  }
+</style>

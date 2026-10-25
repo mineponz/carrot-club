@@ -198,6 +198,15 @@ const ARTICLES = {
     chips: ['牡は中央値+31kg', '牝の3割近くは軽くなってデビュー', '重賞馬の実例も'],
     buildChart: debutWeightGainChart,
   },
+  'win-up-rate': {
+    out: 'og-article-win-up-rate-v1.png',
+    headline: ['勝ち上がり率は', '下がっているのか？'],
+    lead: 'キャロットクラブ 2017〜2024年募集の中央勝ち上がり率',
+    yearRangePlaceholder: '2017〜2024年',
+    // 結論はチップに焼き込まない（成績更新で向きが動きうる）
+    chips: ['募集年ごとの推移', '牡と牝に分けて比較', '重賞馬の実例も'],
+    buildChart: winUpRateChart,
+  },
 };
 
 const slug = process.argv[2];
@@ -726,6 +735,28 @@ function debutWeightGainChart() {
     yearRangeLabel: `${YEAR_FROM}〜${YEAR_TO}年`,
     html: barsHtml(bins.map((b) => b.count)),
     caption: '増え方の分布（10kg刻み）',
+  };
+}
+
+/**
+ * 募集年ごとの勝ち上がり率（中央で1勝以上）のミニ棒グラフ。`win-up-rate-stats.json`
+ * （`scripts/build-win-up-rate.mjs` の出力）から引くので、記事本文と同じ値になる。
+ * 棒の高さは0〜100%に対する比率で、数字そのものはカードに焼き込まない。
+ */
+function winUpRateChart() {
+  const stats = JSON.parse(readFileSync(join(repoRoot, 'analysis', 'data', 'win-up-rate-stats.json'), 'utf8'));
+  const rates = stats.byYear.map((b) => b.all.rate);
+  const n = rates.length;
+  const gap = 7;
+  const barWidth = Math.floor((220 - (n - 1) * gap) / n);
+  const bars = rates
+    .map((r) => `<div class="bar" style="width:${barWidth}px;height:${Math.max(4, Math.round((r / 100) * 96))}px"></div>`)
+    .join('');
+  return {
+    total: stats.poolSize,
+    yearRangeLabel: `${stats.years[0]}〜${stats.years[n - 1]}年`,
+    html: `<div class="mini-chart" style="gap:${gap}px">${bars}</div>`,
+    caption: '募集年ごとの勝ち上がり率',
   };
 }
 
