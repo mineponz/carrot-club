@@ -25,7 +25,7 @@ export const analysisArticles: AnalysisArticle[] = [
     title: '勝ち上がり率は下がっているのか？2017〜2024年募集を振り返る',
     description:
       'キャロの募集馬が中央で勝ち上がった割合は、年によって4割台から6割弱まで上下していた。新しい年ほど下がっているとまでは言えない。はっきり差が出たのは牡と牝で、牡55.6%・牝45.1%だった。2017〜2024年募集の721頭で調べた。',
-    image: '/og-article-win-up-rate-v1.png',
+    image: '/og-article-win-up-rate-v2.png',
     kind: 'analysis',
   },
   {

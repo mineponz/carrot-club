@@ -18,6 +18,10 @@
  * 対象頭数と体高分布のミニ棒グラフは `analysis/data/recruits.json`（過去分は確定）から
  * 毎回計算しているので、記事と食い違わない。
  *
+ * ## 地色（theme）
+ * 2026-10-25 以降に足す記事は白地（`theme` を書かなければ白）。それより前の記事は
+ * `theme: 'cream'`（元デザイン og-v2.png と同じ地色）を明示してあり、作り直しても見た目は変わらない。
+ *
  * ## 作り替えたらファイル名も変える
  * `og-article-height-v1.png` → `-v2.png` のように上げる。XなどのSNSは画像URL単位で
  * キャッシュするため、同じURLのまま中身だけ差し替えても古いカードが出続ける
@@ -65,9 +69,16 @@ const PARTS = {
 };
 
 /** 記事ごとの文言と出力先。スラッグは `/articles/<slug>/` に対応させる。 */
+/** 地色ごとの色。白地ではチップを薄い灰の面にして地と区別する。 */
+const THEMES = {
+  white: { bg: '#ffffff', chipBg: '#f4f4f4', chipBorder: '#e2e2e2' },
+  cream: { bg: '#faf7ef', chipBg: '#fff', chipBorder: '#d8d2c4' },
+};
+
 const ARTICLES = {
   height: {
     out: 'og-article-height-v1.png',
+    theme: 'cream',
     // 見出しは2行で組む（1行が長いとカードのサムネイルで潰れる）
     headline: ['体高と成績の関係を', '<em>470頭</em>のデータで見る'],
     // 見出しの470頭は recruits.json の件数で置き換える（下の buildHeadline）
@@ -80,6 +91,7 @@ const ARTICLES = {
   },
   'dam-age': {
     out: 'og-article-dam-age-v1.png',
+    theme: 'cream',
     headline: ['母馬の年齢と成績の関係を', '<em>815頭</em>のデータで見る'],
     countPlaceholder: '815頭',
     lead: 'キャロットクラブ 2017〜2025年募集の募集時データ × 現在の競走成績',
@@ -89,6 +101,7 @@ const ARTICLES = {
   },
   'birth-month': {
     out: 'og-article-birth-month-v1.png',
+    theme: 'cream',
     headline: ['誕生月と体格・成績の', '関係を見てみた'],
     lead: 'キャロットクラブ 2017〜2025年募集の募集時データ × 現在の競走成績',
     yearRangePlaceholder: '2017〜2025年',
@@ -97,6 +110,7 @@ const ARTICLES = {
   },
   'chest-girth': {
     out: 'og-article-chest-girth-v1.png',
+    theme: 'cream',
     headline: ['胸囲と成績・回収率の', '関係を見てみた'],
     lead: 'キャロットクラブ 2017〜2025年募集の募集時データ × 現在の競走成績',
     yearRangePlaceholder: '2017〜2025年',
@@ -105,6 +119,7 @@ const ARTICLES = {
   },
   'birth-order': {
     out: 'og-article-birth-order-v1.png',
+    theme: 'cream',
     headline: ['何番目の仔かと成績の', '関係を見てみた'],
     lead: 'キャロットクラブ 2017〜2025年募集の募集時データ × 現在の競走成績',
     yearRangePlaceholder: '2017〜2025年',
@@ -113,6 +128,7 @@ const ARTICLES = {
   },
   'caret-girth': {
     out: 'og-article-caret-girth-v1.png',
+    theme: 'cream',
     headline: ['管囲が太い馬は', '走るのか？'],
     lead: 'キャロットクラブ 2017〜2025年募集の募集時データ × 現在の競走成績',
     yearRangePlaceholder: '2017〜2025年',
@@ -121,6 +137,7 @@ const ARTICLES = {
   },
   methods: {
     out: 'og-article-methods-v1.png',
+    theme: 'cream',
     headline: ['分析記事の', '読み方'],
     lead: '順位相関・p値・偏相関を、図と実際の集計例で説明します',
     chips: ['中央値と平均', '順位相関とp値', '偏相関と交絡'],
@@ -128,6 +145,7 @@ const ARTICLES = {
   },
   weight: {
     out: 'og-article-weight-v1.png',
+    theme: 'cream',
     headline: ['馬体重と成績の', '関係を見てみた'],
     lead: 'キャロットクラブ 2017〜2025年募集の募集時データ × 現在の競走成績',
     yearRangePlaceholder: '2017〜2025年',
@@ -136,6 +154,7 @@ const ARTICLES = {
   },
   'club-siblings': {
     out: 'og-article-club-siblings-v1.png',
+    theme: 'cream',
     headline: ['母がサンデー出身の', '募集馬は活躍しているか？'],
     lead: 'キャロットクラブ 2017〜2025年募集の募集時データ × 現在の競走成績',
     yearRangePlaceholder: '2017〜2025年',
@@ -144,6 +163,7 @@ const ARTICLES = {
   },
   'horse-names': {
     out: 'og-article-horse-names-v1.png',
+    theme: 'cream',
     // 読み物区分の1本目。カード左上のタグも「分析記事」ではなく「読み物」にする。
     tag: '読み物',
     headline: ['キャロの馬名は', 'どこから来ているのか'],
@@ -154,6 +174,7 @@ const ARTICLES = {
   },
   'secondary-offering': {
     out: 'og-article-secondary-offering-v1.png',
+    theme: 'cream',
     headline: ['1.5次募集に回った馬にも', '当たりはいるのか？'],
     lead: 'キャロットクラブ 2022〜2024年度募集の1.5次募集対象馬 × 現在の競走成績',
     chips: ['過去4年の当たり馬を実名で', '同期トップ10入りが3年連続', '募集価格超えの回収率も'],
@@ -161,6 +182,7 @@ const ARTICLES = {
   },
   'second-offering': {
     out: 'og-article-second-offering-v1.png',
+    theme: 'cream',
     headline: ['第2次募集の15頭を', '過去のデータで見比べる'],
     lead: 'キャロットクラブ 第2次募集の対象馬 × 2017〜2023年度募集・牝285頭の測尺データ',
     chips: ['牝は体重・胸囲の大きさで4群に', '牡は測尺で絞れない', '重賞勝ち兄姉の実例も'],
@@ -170,6 +192,7 @@ const ARTICLES = {
     // v1は「3歳シーズンのリーディング」基準の記事だった。募集年基準へ作り直したので -v2
     // （SNSは画像URL単位でキャッシュするため、中身を変えたらファイル名を上げる）。
     out: 'og-article-stable-leading-v2.png',
+    theme: 'cream',
     headline: ['リーディング上位の厩舎に', '入った馬は走るのか？'],
     lead: 'キャロットクラブ 2017〜2025年募集・JRA所属594頭 × 現在の競走成績',
     countPlaceholder: '594頭',
@@ -181,6 +204,7 @@ const ARTICLES = {
   },
   'hokkaido-departure': {
     out: 'og-article-hokkaido-departure-v1.png',
+    theme: 'cream',
     tag: '育成',
     headline: ['北海道を出る時期を', '<em>501頭</em>のデータで見る'],
     countPlaceholder: '501頭',
@@ -191,6 +215,7 @@ const ARTICLES = {
   },
   'debut-weight-gain': {
     out: 'og-article-debut-weight-gain-v1.png',
+    theme: 'cream',
     tag: '育成',
     headline: ['デビューまでにたくさん', '増えた馬は走るのか？'],
     lead: 'キャロットクラブ 2017〜2022年募集の測尺とデビュー時の馬体重 × 成績',
@@ -199,7 +224,7 @@ const ARTICLES = {
     buildChart: debutWeightGainChart,
   },
   'win-up-rate': {
-    out: 'og-article-win-up-rate-v1.png',
+    out: 'og-article-win-up-rate-v2.png',
     headline: ['勝ち上がり率は', '下がっているのか？'],
     lead: 'キャロットクラブ 2017〜2024年募集の中央勝ち上がり率',
     yearRangePlaceholder: '2017〜2024年',
@@ -765,14 +790,15 @@ function cardHtml({ fonts, source, chart }) {
     .map((line) => `<span class="headline-line">${line.replace(/<em>(.*?)<\/em>/, '<em>$1</em>')}</span>`)
     .join('');
   const chips = article.chips.map((c) => `<span class="chip">${c}</span>`).join('');
+  const theme = THEMES[article.theme ?? 'white'];
   return `<!doctype html><html lang="ja"><head><meta charset="utf-8" /><style>
     @font-face { font-family: 'NotoJP'; font-weight: 400; src: url('${fonts[400]}') format('truetype'); }
     @font-face { font-family: 'NotoJP'; font-weight: 700; src: url('${fonts[700]}') format('truetype'); }
     @font-face { font-family: 'NotoJP'; font-weight: 900; src: url('${fonts[900]}') format('truetype'); }
     html, body { margin: 0; padding: 0; width: ${WIDTH}px; height: ${HEIGHT}px; overflow: hidden; }
-    /* 地色・線の色は元デザイン（og-v2.png）と揃える */
+    /* 線の色は元デザイン（og-v2.png）と揃える。地色は THEMES から */
     .card { position: relative; box-sizing: border-box; width: ${WIDTH}px; height: ${HEIGHT}px;
-      background: #faf7ef; font-family: 'NotoJP', sans-serif; color: #2f4634;
+      background: ${theme.bg}; font-family: 'NotoJP', sans-serif; color: #2f4634;
       display: flex; align-items: stretch; padding: 46px 56px; gap: 32px; }
     .frame { position: absolute; inset: 14px; border: 2px solid #2f4634; border-radius: 10px; }
     .main { position: relative; flex: 1; display: flex; flex-direction: column; }
@@ -789,8 +815,8 @@ function cardHtml({ fonts, source, chart }) {
     .headline-line { display: block; }
     .lead { margin-top: 22px; font-size: 23px; font-weight: 700; color: #4a5b4a; line-height: 1.5; }
     .chips { margin-top: 24px; display: flex; flex-wrap: wrap; gap: 10px; }
-    .chip { font-size: 20px; font-weight: 700; color: #2f4634; background: #fff;
-      border: 2px solid #d8d2c4; border-radius: 8px; padding: 7px 14px; }
+    .chip { font-size: 20px; font-weight: 700; color: #2f4634; background: ${theme.chipBg};
+      border: 2px solid ${theme.chipBorder}; border-radius: 8px; padding: 7px 14px; }
     .url { font-size: 18px; font-weight: 700; color: #7a8478; }
     .side { width: 250px; display: flex; flex-direction: column; align-items: center;
       justify-content: space-between; padding-bottom: 6px; }
@@ -875,6 +901,33 @@ async function main() {
 
     await page.setContent(cardHtml({ fonts, source, chart }), { waitUntil: 'load' });
     await page.evaluate(() => document.fonts.ready);
+    // 元デザイン画像の地はクリーム色なので、白地ではにんじん・スタンプの周りが四角く残る。
+    // クリームに近い画素だけ透明にした画像に差し替えてから撮る（線の縁はなだらかに抜く）。
+    if ((article.theme ?? 'white') === 'white') {
+      await page.evaluate(async () => {
+        const crops = [...document.querySelectorAll('.crop')];
+        if (crops.length === 0) return;
+        const url = getComputedStyle(crops[0]).backgroundImage.slice(5, -2);
+        const img = new Image();
+        img.src = url;
+        await img.decode();
+        const canvas = document.createElement('canvas');
+        canvas.width = img.naturalWidth;
+        canvas.height = img.naturalHeight;
+        const ctx = canvas.getContext('2d');
+        ctx.drawImage(img, 0, 0);
+        const data = ctx.getImageData(0, 0, canvas.width, canvas.height);
+        const px = data.data;
+        const [cr, cg, cb] = [250, 247, 239]; // #faf7ef
+        for (let i = 0; i < px.length; i += 4) {
+          const d = Math.hypot(px[i] - cr, px[i + 1] - cg, px[i + 2] - cb);
+          px[i + 3] = d < 12 ? 0 : d < 40 ? Math.round((255 * (d - 12)) / 28) : px[i + 3];
+        }
+        ctx.putImageData(data, 0, 0);
+        const keyed = canvas.toDataURL('image/png');
+        for (const el of crops) el.style.backgroundImage = `url('${keyed}')`;
+      });
+    }
     await page.screenshot({ path: outPath });
     console.log(`[og] 書き出しました: ${outPath} (${WIDTH}x${HEIGHT})`);
   } finally {
