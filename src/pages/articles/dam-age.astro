@@ -178,22 +178,19 @@ const description = `【非公式】キャロットクラブ${yearRangeLabel}${a
     <p>
       「高齢の母馬より、脂の乗った若い母馬の産駒の方が良いのでは」というのは一口馬主界隈で
       たまに聞く話で、私も募集馬を選ぶときに何となく母の年齢を気にしていた。
-      <a href="/articles/height/">前回の体高の記事</a>に続いて、今度はこの「母齢」を実際のデータで
-      確かめてみた。{yearRangeLabel}募集（{yearCounts}）に、{resultsAsOf}時点の獲得賞金・通算成績を
-      突き合わせた独自集計。
     </p>
+    <p>
+      <a href="/articles/height/">前回の体高の記事</a>に続いて、今度はこの「母齢」を実際のデータで確かめた。
+      {yearRangeLabel}募集の{all.length}頭に、{resultsAsOf}時点の獲得賞金・通算成績を突き合わせた独自集計。
+    </p>
+
+    <p class="answer">母の年齢から、その後の成績はほぼ読めなかった。</p>
 
     <StatTiles
       tiles={[
-        { label: '対象頭数', value: `${all.length}頭` },
-        { label: '出走済み', value: `${raced.length}頭` },
-        { label: '未出走', value: `${unraced}頭`, note: '大半が直近の募集組' },
-        {
-          label: '母齢 × 獲得賞金合計',
-          value: ageR !== null ? `r=${ageR.toFixed(3)}` : '—',
-          note: 'ほぼ無相関',
-        },
-        { label: '母齢の範囲', value: `${ageMin}〜${ageMax}歳` },
+        { label: '母齢 × 獲得賞金', value: ageR !== null ? `r=${ageR.toFixed(3)}` : '—', note: 'ほぼ無相関' },
+        { label: '重賞馬の母齢', value: `${gradeAgeMin}〜${gradeAgeMax}歳`, note: `${gradeWinners.length}頭がほぼ全域から` },
+        { label: '古い世代だけで見ても', value: ageROlder !== null ? `r=${ageROlder.toFixed(3)}` : '—', note: '2017〜2021年募集' },
       ]}
     />
 
@@ -204,24 +201,15 @@ const description = `【非公式】キャロットクラブ${yearRangeLabel}${a
 
     <h2>母齢の分布</h2>
     <p>
-      まず母集団を見ておくと、{all.length}頭の母齢は{ageMin}〜{ageMax}歳に広く分布していて、
-      特定の年齢に偏っているわけではなかった。2歳刻みでヒストグラムにするとこんな感じ。
+      {all.length}頭の母齢は{ageMin}〜{ageMax}歳に広く分布していて、特定の年齢に偏っているわけではなかった。
+      2歳刻みでヒストグラムにするとこんな感じ。
     </p>
     <BarChart title={`母齢の分布（全${all.length}頭・2歳刻み）`} bars={ageBins} valueLabel="頭数" />
 
     <AdSlot sp={AD_SP_WIDE_B} pc={AD_PC_WIDE_B} />
 
     <h2>母齢 × 獲得賞金合計</h2>
-    <p>
-      出走済みの{raced.length}頭で、母齢と獲得賞金合計（中央+地方、万円）を散布図にしてみた。
-      <TermLink to="correlation">相関係数</TermLink>は r={ageR?.toFixed(3)}。体高（前回の記事でr=0.2台）はおろか、
-      「ほぼ無相関」と言っていた一口価格よりもさらにゼロに近い数字で、率直に言って
-      <strong>母齢から成績はまったく読めなかった</strong>。
-      {ageScatterOmitted > 0 && (
-        <>獲得賞金合計が1億円を超える{ageScatterOmitted}頭はグラフの外に出るため省略した
-        （後述の代表馬紹介を参照）。</>
-      )}
-    </p>
+    <p>出走済みの{raced.length}頭で、母齢と獲得賞金合計（中央+地方、万円）を散布図にした。</p>
     <ScatterChart
       title={`母齢 × 獲得賞金合計（出走済み・1億円未満${ageScatterPoints.length}頭）`}
       points={ageScatterPoints}
@@ -235,14 +223,23 @@ const description = `【非公式】キャロットクラブ${yearRangeLabel}${a
       formatX={(v) => `${v}`}
       formatY={(v) => (v === 0 ? '0' : `${v / 1000}k`)}
     />
+    {ageScatterOmitted > 0 && (
+      <p class="fig-note">
+        獲得賞金合計が1億円を超える{ageScatterOmitted}頭はグラフの外に出るため省略した（後述の重賞馬の一覧を参照）。
+      </p>
+    )}
+    <p>
+      <TermLink to="correlation">相関係数</TermLink>は r={ageR?.toFixed(3)}。
+      体高はおろか、「ほぼ無相関」と言っていた一口価格よりもさらにゼロに近い。
+      率直に言って、<strong>母齢から成績はまったく読めなかった</strong>。
+    </p>
 
     <AdSlot sp={AD_SP_WIDE_A} pc={AD_PC_WIDE_A} />
 
-    <h2>母齢階級別に見ると</h2>
+    <h2>母齢の階級別に見た成績</h2>
     <p>
-      4階級に分けて平均を取っても、はっきりした傾向は出なかった。棒の高さがバラついては
-      いるけれど、年齢が上がるにつれて右肩上がり／右肩下がりになるような単調な並びには
-      なっていない。
+      4階級に分けて平均を取っても、はっきりした傾向は出なかった。棒の高さはバラついているが、
+      年齢が上がるにつれて右肩上がりや右肩下がりになるような並びにはなっていない。
     </p>
     <BarChart
       title="母齢階級別 平均獲得賞金合計"
@@ -257,10 +254,8 @@ const description = `【非公式】キャロットクラブ${yearRangeLabel}${a
 
     <h2>実際にどんな馬がいたか</h2>
     <p>
-      この{all.length}頭の中で実際に重賞を勝った{gradeWinners.length}頭を獲得賞金の多い順に
-      並べておく。母齢の列を見てもらうと分かる通り、{gradeAgeMin}〜{gradeAgeMax}歳までほぼ
-      全域にわたって重賞馬が出ている。表が長くなるので、開いているのは上位{GRADE_WINNERS_VISIBLE}頭で、
-      残り{gradeWinnersRest.length}頭はその下の折りたたみに入れてある。
+      この{all.length}頭の中で重賞を勝った{gradeWinners.length}頭を、獲得賞金の多い順に並べた。
+      母齢の列を見てもらうと分かる通り、{gradeAgeMin}〜{gradeAgeMax}歳までほぼ全域で重賞馬が出ている。
     </p>
     <GradeWinnerTable rows={gradeWinnersTop} />
     {gradeWinnersRest.length > 0 && (
@@ -270,31 +265,31 @@ const description = `【非公式】キャロットクラブ${yearRangeLabel}${a
       </details>
     )}
     <p class="table-note">
-      折りたたみを開いた{gradeWinners.length}頭が、{all.length}頭のうち重賞（中央G1〜G3・Jpn1〜3、
-      地方重賞含む）を勝った馬のすべて。
+      上位{GRADE_WINNERS_VISIBLE}頭と折りたたみの中を合わせた{gradeWinners.length}頭が、
+      {all.length}頭のうち重賞（中央G1〜G3・Jpn1〜3、地方重賞含む）を勝った馬のすべて。
     </p>
 
-    <div class="finding">
-      <p class="finding-lead">デビュー時期の偏りではないか？</p>
-      <p>
-        直近の募集組（2022〜2025年）は未出走が多く、それだけで「若い母の方が成績が良く見える」
-        ような見かけ上の偏りが出ないか気になったので、レースを重ねている
-        2017〜2021年募集（{olderOnly.length}頭）だけに絞って相関係数を出し直した。
-        結果は r={ageROlder?.toFixed(3)}。絞り込む前（r={ageR?.toFixed(3)}）とほぼ変わらず、
-        デビュー時期の偏りで説明できる差ではなかった。
-      </p>
-    </div>
+    <h2>デビュー時期の偏りの確認</h2>
+    <p>
+      直近の募集組（2022〜2025年）は未出走が多い。それだけで「若い母の方が成績が良く見える」ような
+      見かけ上の偏りが出ないか気になったので、レースを重ねている2017〜2021年募集（{olderOnly.length}頭）だけで
+      相関係数を出し直した。
+    </p>
+    <p>
+      結果は r={ageROlder?.toFixed(3)}。絞り込む前（r={ageR?.toFixed(3)}）とほぼ変わらず、
+      デビュー時期の偏りで説明できる差ではなかった。
+    </p>
 
     <div class="ad-rect">
       <AdSlot sp={AD_SP_RECT} pc={AD_PC_WIDE_A} />
       <InArticleAd />
     </div>
 
-    <h2>2026年募集馬はどこに当てはまる？</h2>
+    <h2>2026年募集馬の母齢</h2>
     <p>
-      せっかくなので、今の2026年募集{horses2026.length}頭の母齢が、この階級分けのどこに入るかも
-      並べておく（下の各行をタップすると開く。馬名は個別ページへのリンク）。母齢での絞り込みも
-      <a href="/">出資馬検討ツール</a>にあるので、実際に条件を変えて自分で探したい人はそちらもどうぞ。
+      今の2026年募集{horses2026.length}頭の母齢がこの階級分けのどこに入るかも並べておく
+      （各行をタップすると開く。馬名は個別ページへのリンク）。
+      母齢での絞り込みは<a href="/">出資馬検討ツール</a>にもあるので、条件を変えて自分で探したい人はそちらもどうぞ。
     </p>
     {buckets2026.map((b) => (
       <details class="bucket-accordion">
@@ -314,20 +309,21 @@ const description = `【非公式】キャロットクラブ${yearRangeLabel}${a
 
     <h2>まとめ</h2>
     <ul class="conclusion">
-      <li>母齢と獲得賞金合計の相関係数はr={ageR?.toFixed(3)}で、体高（弱い正の相関があった）とも
-        一口価格（ほぼ無相関だった）とも違い、<strong>ほぼゼロ</strong>だった。</li>
+      <li>母齢と獲得賞金合計の相関係数はr={ageR?.toFixed(3)}で、<strong>ほぼゼロ</strong>だった。
+        弱い正の相関があった体高とも、ほぼ無相関だった一口価格とも違う。</li>
       <li>階級別に見ても、重賞馬の顔ぶれを見ても、母齢が上がるほど・下がるほど成績が良い／悪い
-        という傾向は見つからなかった。実際の重賞馬も{gradeAgeMin}〜{gradeAgeMax}歳の母から
-        まんべんなく出ている。</li>
+        という傾向は見つからなかった。重賞馬も{gradeAgeMin}〜{gradeAgeMax}歳の母からまんべんなく出ている。</li>
       <li>直近募集組の未出走が多いことによる見かけ上の偏りも、古い世代だけに絞った再集計
         （r={ageROlder?.toFixed(3)}）で否定できた。</li>
-      <li>「高齢母は不利」「若い母の方がいい」という話は、少なくとも今回のデータからは
-        裏付けられなかった。ただし相関係数は線形の関係しか見ておらず、極端に高齢（20歳超）の
-        母だけを取り出すとまた違うかもしれない ―― サンプル数が{ages.filter((a) => a >= 20).length}頭
-        しかなく、今回はそこまで踏み込めていない。</li>
-      <li>個人的には「母の年齢を気にして選んでいた時間は、他の条件を見る時間に回した方が
-        よかったかも」というのが正直な感想。</li>
+      <li>「高齢母は不利」「若い母の方がいい」という話は、少なくとも今回のデータからは裏付けられなかった。</li>
     </ul>
+    <p>
+      ただし相関係数は線形の関係しか見ておらず、極端に高齢（20歳超）の母だけを取り出すとまた違うかもしれない。
+      その母の仔は{ages.filter((a) => a >= 20).length}頭しかおらず、今回はそこまで踏み込めていない。
+    </p>
+    <p>
+      個人的には「母の年齢を気にして選んでいた時間は、他の条件を見る時間に回した方がよかったかも」というのが正直な感想。
+    </p>
 
     <div class="ad-rect">
       <AdSlot sp={AD_SP_RECT} pc={AD_PC_WIDE_B} />
@@ -336,15 +332,14 @@ const description = `【非公式】キャロットクラブ${yearRangeLabel}${a
 
     <h2>データについて</h2>
     <p>
-      母齢は「募集年 - 母馬の生年」で算出した年齢で、実際の出産時の年齢（誕生日ベース）とは
-      1歳前後ずれることがある。
-      競走成績は{resultsAsOf}時点のスナップショットで、今後レースを重ねるたびに変わっていく。
-      直近の募集組はまだ大半が未出走〜デビュー間もないため、今回の集計は出走済みの
-      {raced.length}頭が中心になっている点は割り引いて見てほしい。獲得賞金は中央（JRA）・
-      地方（NAR）の合計で、海外レースで得た賞金は含まれていない。
-      相関係数はあくまで線形の関係の強さの目安で、これだけで「母齢が成績に影響しない」と
-      断言できるわけではない。出資判断の材料というより、あくまで趣味の分析として楽しんで
-      もらえたら。
+      母齢は「募集年 - 母馬の生年」で算出した年齢で、実際の出産時の年齢（誕生日ベース）とは1歳前後ずれることがある。
+      競走成績は{resultsAsOf}時点のもので、今後レースを重ねるたびに変わっていく。
+      直近の募集組はまだ大半が未出走〜デビュー間もないため、集計は出走済みの{raced.length}頭が中心になっている点は割り引いて見てほしい。
+      獲得賞金は中央（JRA）・地方（NAR）の合計で、海外レースで得た賞金は含まれていない。
+    </p>
+    <p>
+      相関係数はあくまで線形の関係の強さの目安で、これだけで「母齢が成績に影響しない」と断言できるわけではない。
+      出資判断の材料というより、趣味の分析として楽しんでもらえたら。
     </p>
 
     <p>
@@ -363,18 +358,17 @@ const description = `【非公式】キャロットクラブ${yearRangeLabel}${a
     font-size: 0.8125rem;
     color: var(--muted);
   }
-  .finding {
-    margin: 1.25rem 0;
-    padding: 0.9rem 1.1rem;
-    background: var(--card);
-    border-radius: 6px;
-  }
-  .finding-lead {
-    margin: 0 0 0.5rem;
+  .answer {
+    margin: 1.5rem 0 0.25rem;
+    font-size: 1.25rem;
     font-weight: 700;
+    line-height: 1.6;
   }
-  .finding p:last-child {
-    margin-bottom: 0;
+  .fig-note {
+    margin-top: -0.5rem;
+    color: var(--muted);
+    font-size: 0.875rem;
+    line-height: 1.7;
   }
   .ad-rect {
     display: flex;

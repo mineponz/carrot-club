@@ -666,47 +666,35 @@ const description = `【非公式】キャロットクラブ${yearRangeLabel}募
       <strong>その馬の募集年の時点で担当調教師がJRAリーディングの上位に入っていたかどうか</strong>で分け、
       {resultsAsOf}時点の獲得賞金・通算成績と突き合わせた独自集計。
     </p>
+    <p class="answer">募集時にリーディング上位の厩舎だったかどうかは、その後の成績とほとんど関係がなかった。</p>
+
+    <StatTiles
+      tiles={[
+        {
+          label: '重賞馬率（10位以内）',
+          value: `${cut10.grade.aRate.toFixed(1)}%`,
+          note: `それ以外は${cut10.grade.bRate.toFixed(1)}%`,
+        },
+        {
+          label: '獲得賞金の中央値（10位以内）',
+          value: `${formatManYen(cut10.prize.aMed)}万円`,
+          note: `それ以外は${formatManYen(cut10.prize.bMed)}万円`,
+        },
+        {
+          label: '出走率（30位以内）',
+          value: `${cut30.start.aRate.toFixed(1)}%`,
+          note: `それ以外は${cut30.start.bRate.toFixed(1)}%。唯一はっきりした差`,
+        },
+      ]}
+    />
     <p>
-      先に結論を書くと、<strong>ほとんど関係がなかった</strong>。
-      重賞に届く率も獲得賞金の中央値も、上位の厩舎かどうかでたいして変わらない。
-      それどころか線の引き方によっては、<strong>上位側のほうが数字が低い</strong>。
-      そしていちばんはっきり出た差は、期待とは逆向きの
-      「<strong>上位の厩舎に入った馬のほうが、そもそも出走にたどり着いていない</strong>」だった。
+      線の引き方によっては、<strong>上位側のほうが数字が低い</strong>。
+      いちばんはっきり出た差も期待とは逆向きで、<strong>上位の厩舎に入った馬のほうが、そもそも出走にたどり着いていない</strong>。
     </p>
     <p>
       正直、書いていて拍子抜けした。ただ、こういう結果こそ載せる価値があると思うので、
       弱い数字も逆向きの数字も隠さずに全部出す。
     </p>
-
-    <StatTiles
-      tiles={[
-        {
-          label: '対象頭数',
-          value: `${jra.length}頭`,
-          note: `美浦${east.length}頭・栗東${west.length}頭`,
-        },
-        {
-          label: '重賞を勝った馬',
-          value: `${gradeWinners.length}頭`,
-          note: `全体の${((100 * gradeWinners.length) / jra.length).toFixed(1)}%`,
-        },
-        {
-          label: '募集時に10位以内の厩舎',
-          value: `${cut10.hit.length}頭`,
-          note: `対象の${((100 * cut10.hit.length) / jra.length).toFixed(1)}%`,
-        },
-        {
-          label: '重賞馬率',
-          value: `${cut10.grade.aRate.toFixed(1)}% vs ${cut10.grade.bRate.toFixed(1)}%`,
-          note: `10位以内 / それ以外・${ratePText(cut10.grade)}`,
-        },
-        {
-          label: '獲得賞金の中央値',
-          value: `${formatManYen(cut10.prize.aMed)}万 vs ${formatManYen(cut10.prize.bMed)}万`,
-          note: `10位以内 / それ以外・${formatP(cut10.prize.mw.p)}`,
-        },
-      ]}
-    />
 
     <ArticleToc />
     <MethodsLink />
@@ -717,7 +705,7 @@ const description = `【非公式】キャロットクラブ${yearRangeLabel}募
     <p>分け方はできるだけ単純にした。そのうえで、ひとつだけこだわった点がある。</p>
     <p>
       JRAは毎年、調教師をその年の勝利数の順に並べた<strong>リーディング</strong>を出している。
-      この記事では、<strong>その馬の募集年の時点でのリーディングで、担当調教師が上位何位までに
+      この記事では<strong>その馬の募集年の時点でのリーディングで、担当調教師が上位何位までに
       入っていたか</strong>だけを見る。基準は10位以内・20位以内・30位以内の3通りを用意した。
       3つは入れ子になっていて、10位以内の馬は20位以内にも30位以内にも含まれる。
     </p>
@@ -751,7 +739,7 @@ const description = `【非公式】キャロットクラブ${yearRangeLabel}募
       という一点だけで、それ以上の細かい分類はしていない。
     </p>
 
-    <h2>重賞に届く率は、ほとんど変わらない</h2>
+    <h2>重賞に届く率はほとんど変わらない</h2>
     <p>まず重賞馬率から。3通りの線で切ると、こうなった。</p>
     <GroupedBarChart
       title="リーディング順位別の重賞馬率（募集時点）"
@@ -793,11 +781,9 @@ const description = `【非公式】キャロットクラブ${yearRangeLabel}募
     <p>
       <strong>
         10位以内で切ると、{cut10.grade.aRate.toFixed(1)}%対{cut10.grade.bRate.toFixed(1)}%。
-        {ratePText(cut10.grade)}で差とは呼べない。
+        <TermLink to="p-value">p値</TermLink>は{ratePText(cut10.grade)}で差とは呼べない。
       </strong>
       いちばん厳しい線で切って、いちばん差が出そうなところなのに、ほぼ横並びだった。
-      （<TermLink to="p-value">p値</TermLink>は「差がまったくないとしたら、これくらいの偏りが
-      偶然出る確率」の目安で、大きいほど「偶然でも普通に起きる」という意味になる。）
     </p>
     <p>
       差らしい差が出るのは20位以内の線だけで、{cut20.grade.aRate.toFixed(1)}%対
@@ -814,10 +800,9 @@ const description = `【非公式】キャロットクラブ${yearRangeLabel}募
 
     <AdSlot sp={AD_SP_WIDE_B} pc={AD_PC_WIDE_B} />
 
-    <h2>獲得賞金の中央値は、線を広げると逆に出る</h2>
+    <h2>獲得賞金の中央値は線を広げると逆に出る</h2>
     <p>
-      重賞は稀な出来事なので、もっと日常的な指標でも見ておきたい。
-      獲得賞金合計の中央値はこうなった。
+      重賞は稀な出来事なので、もっと日常的な指標として獲得賞金合計の中央値も見ておく。
     </p>
     <GroupedBarChart
       title="リーディング順位別の獲得賞金合計の中央値（募集時点）"
@@ -872,10 +857,10 @@ const description = `【非公式】キャロットクラブ${yearRangeLabel}募
       <InArticleAd />
     </div>
 
-    <h2>いちばんはっきり出たのは、出走率の逆転</h2>
+    <h2>いちばんはっきり出たのは出走率の逆転</h2>
     <p>
       一方で、3本の線すべてで向きが揃った指標がひとつだけある。<strong>出走率</strong>だ。
-      しかもそれは、期待とは逆向きだった。
+      しかもそれは期待とは逆向きだった。
     </p>
     <GroupedBarChart
       title="リーディング順位別の出走率（募集時点）"
@@ -924,24 +909,29 @@ const description = `【非公式】キャロットクラブ${yearRangeLabel}募
       3本のうち通ったのが1本だけである以上、強い主張にはできない。
       ただ、<strong>向きが3本とも同じで、しかもいちばん幅の広い線でいちばん大きく出ている</strong>のは、
       重賞馬率や賞金のように「線を動かすと向きごと入れ替わる」指標とは明らかに様子が違う。
-      ここだけは、偶然の揺れとして片付けにくいと思う。
+      ここだけは偶然の揺れとして片付けにくいと思う。
     </p>
     <p>
       <strong>なぜそうなるのかは分からない。</strong>
       厩舎ごとの預かり頭数の構成が違うのかもしれないし、まったく別の要因かもしれないが、
       この集計からは決められないので、理由は書かないでおく。
-      数字としてこう出た、という以上のことは言えない。
     </p>
     <p class="caveat">
       出走率は「募集年が新しい馬ほど低く出る」指標でもある（まだデビュー前の馬がいるため）。
       ただし後述のとおり、直近5年（{RECENT_FROM}〜{LAST_YEAR}年募集）だけに絞っても同じ向きが出ている。
     </p>
 
-    <h2>直近5年だけで見ても、上位が強い形にはならない</h2>
+    <h2>直近5年だけで見た場合</h2>
     <p>
       古い募集ぶんが結果を引っ張っている可能性もあるので、
       {RECENT_FROM}〜{LAST_YEAR}年募集のJRA所属{recent.length}頭だけでも同じ集計をした。
     </p>
+    <p>
+      <strong>古い募集ぶんを外しても「上位の厩舎だから走る」という形は出てこない</strong>。
+      賞金中央値は向きが揃わず、出走率は9年ぶんと同じく3本とも上位側が低い。
+    </p>
+    <details class="more-winners">
+      <summary>直近5年の数字を見る</summary>
     <div class="table-scroll">
       <table class="bands">
         <thead>
@@ -1010,12 +1000,9 @@ const description = `【非公式】キャロットクラブ${yearRangeLabel}募
       {recentCutStats[1].start.aRate.toFixed(1)}%対{recentCutStats[1].start.bRate.toFixed(1)}%、
       {recentCutStats[2].start.aRate.toFixed(1)}%対{recentCutStats[2].start.bRate.toFixed(1)}%）、
       <strong>通ったのはやはり30位以内の1本だけ</strong>（{ratePText(recentCutStats[2].start)}）。
-      9年ぶんで見えた形が、直近5年に絞っても同じ場所に残っている。
+      9年ぶんで見えた形が直近5年に絞っても同じ場所に残っている。
     </p>
-    <p>
-      要するに、<strong>古い募集ぶんを外しても「上位の厩舎だから走る」という形は出てこない</strong>。
-      出てくるのは、相変わらず出走率の逆向きだけだ。
-    </p>
+    </details>
 
     <AdSlot sp={AD_SP_WIDE_A} pc={AD_PC_WIDE_A} />
 
@@ -1042,7 +1029,7 @@ const description = `【非公式】キャロットクラブ${yearRangeLabel}募
       なお「30位外」といっても、{outsideWinners.length}頭のうち{outsideRanked.length}頭は
       具体的な順位まで分かっていて、{outsideRankMin}位から{outsideRankMax}位まで幅広く散らばっている。
       リーディングにまったく名前が出てこない（順位が付かない）のは
-      {outsideUnrankedCount}頭だけだ。下の表では、その具体的な順位をそのまま出している。
+      {outsideUnrankedCount}頭だけだ。下の表ではその具体的な順位をそのまま出している。
     </p>
     <p>もうひとつ、賞金の分布を見ると分かりやすい形が出ている。</p>
     <div class="finding">
@@ -1154,7 +1141,7 @@ const description = `【非公式】キャロットクラブ${yearRangeLabel}募
       <InArticleAd />
     </div>
 
-    <h2>東西（美浦と栗東）は、言うほど差がない</h2>
+    <h2>東西（美浦と栗東）は言うほど差がない</h2>
     <p>
       ついでに、よく話題になる東西の別も見ておく。
       こちらは所属地域なので年によって入れ替わることがなく、素直に比べられる。
@@ -1198,6 +1185,8 @@ const description = `【非公式】キャロットクラブ${yearRangeLabel}募
       父の系統で切っても方向はばらついて、エピファネイア・モーリスといったロベルト系は美浦のほうが上、
       それ以外の系統は栗東のほうが上、と揃わない。
     </p>
+    <details class="more-winners">
+      <summary>父の系統ごとに見る</summary>
     <div class="table-scroll">
       <table class="bands">
         <thead>
@@ -1227,8 +1216,9 @@ const description = `【非公式】キャロットクラブ${yearRangeLabel}募
       残りはすべて「その他」にまとめている。「その他」は中身が混ざった袋なので、
       系統としての比較には使えない。
     </p>
+    </details>
     <p>
-      まとめると、<strong>古い募集ぶんではわずかに栗東寄りの数字が出るが、最近の募集では消えている</strong>。
+      <strong>古い募集ぶんではわずかに栗東寄りの数字が出るが、最近の募集では消えている</strong>。
       少なくともキャロットの募集馬に関しては、
       東西のどちらかというだけで出資先を選り分ける材料にはならなさそうだ。
     </p>
@@ -1248,7 +1238,7 @@ const description = `【非公式】キャロットクラブ${yearRangeLabel}募
       そこは検証していないので、原因については何も主張しない。
     </p>
     <p>
-      <strong>2. 単年のリーディング順位は、調教師のキャリア全体の評価ではない。</strong>
+      <strong>2. 単年のリーディング順位は調教師のキャリア全体の評価ではない。</strong>
       リーディングはその年の勝利数だけで決まるので、順位は年ごとにかなり動く。
       ある年に30位圏外だった厩舎が翌年には20位以内、ということも珍しくない。
       この記事で見ているのは「募集した年に、たまたまどのあたりにいたか」という一点で、
@@ -1268,7 +1258,7 @@ const description = `【非公式】キャロットクラブ${yearRangeLabel}募
       賞金の逆転にいたっては{formatP(cut30.prize.mw.p)}で、差の証拠としては何も残らない。
       <strong>「上位側が有利」も「上位側が不利」も、
       このデータでは支持されない</strong>というのが正確な読み方で、
-      出走率の逆転だけは無視できない、というくらいの温度感になる。
+      出走率の逆転だけは無視できない、というくらいの受け止め方になる。
     </p>
     <p>
       <strong>5. 新しい募集年の馬は、まだ結果が出そろっていない。</strong>
@@ -1281,56 +1271,28 @@ const description = `【非公式】キャロットクラブ${yearRangeLabel}募
     <h2>まとめ</h2>
     <ul class="conclusion">
       <li>
-        募集時点で担当調教師がJRAリーディング<strong>10位以内</strong>だった{cut10.grade.aN}頭の
-        重賞馬率は<strong>{cut10.grade.aRate.toFixed(1)}%</strong>、
-        それ以外{cut10.grade.bN}頭は<strong>{cut10.grade.bRate.toFixed(1)}%</strong>
-        （{ratePText(cut10.grade)}）。獲得賞金の中央値は
-        <strong>{formatManYen(cut10.prize.aMed)}万円対{formatManYen(cut10.prize.bMed)}万円</strong>で、
-        1割ほど上位側が高いが{formatP(cut10.prize.mw.p)}。
-        <strong>いちばん厳しい線で切っても差が出なかった。</strong>
+        募集時点で担当調教師がJRAリーディング<strong>10位以内</strong>だった馬の重賞馬率は{cut10.grade.aRate.toFixed(1)}%、
+        それ以外は{cut10.grade.bRate.toFixed(1)}%。獲得賞金の中央値も1割ほど上位側が高い程度で、
+        <strong>いちばん厳しい線で切っても差が出なかった</strong>。
+      </li>
+      <li>20位以内で切ると重賞馬率だけ差が出るが、30位まで広げると消える。<strong>線の引き方で出たり消えたりする。</strong></li>
+      <li>
+        <strong>獲得賞金は、線を広げると上位側のほうが低くなる</strong>。ただし検定には何も出ておらず、
+        「上位に預けると稼ぐ」という向きの数字はどの線でも出なかった。
       </li>
       <li>
-        20位以内で切ると重賞馬率だけ{cut20.grade.aRate.toFixed(1)}%対{cut20.grade.bRate.toFixed(1)}%
-        （{ratePText(cut20.grade)}）と差が出るが、
-        30位まで広げると{cut30.grade.aRate.toFixed(1)}%対{cut30.grade.bRate.toFixed(1)}%
-        （{ratePText(cut30.grade)}）で消える。<strong>線の引き方で出たり消えたりする。</strong>
+        <strong>唯一はっきりしたのは出走率で、しかも逆向き。</strong>3本の線すべてで上位側が低く、
+        検定が通ったのは30位以内の1本だけ。理由は分からない。
       </li>
-      <li>
-        <strong>獲得賞金は、線を広げると上位側のほうが低くなる</strong>
-        （30位以内で{formatManYen(cut30.prize.aMed)}万円対{formatManYen(cut30.prize.bMed)}万円・
-        {formatP(cut30.prize.mw.p)}）。
-        ただし検定には何も出ておらず、「上位に預けると稼ぐ」という向きの数字もどの線でも出なかった。
-      </li>
-      <li>
-        <strong>唯一はっきりしたのは出走率で、しかも逆向き。</strong> 3本の線すべてで上位側が低く、
-        30位以内では{cut30.start.aRate.toFixed(1)}%対{cut30.start.bRate.toFixed(1)}%
-        （{ratePText(cut30.start)}）と10ポイント以上ひらく。
-        10位以内（{cut10.start.aRate.toFixed(1)}%対{cut10.start.bRate.toFixed(1)}%・{ratePText(cut10.start)}）・
-        20位以内（{cut20.start.aRate.toFixed(1)}%対{cut20.start.bRate.toFixed(1)}%・{ratePText(cut20.start)}）
-        では検定に届かないので、通ったのは30位以内の1本だけ。理由は分からない。
-      </li>
-      <li>
-        <strong>直近5年（{RECENT_FROM}〜{LAST_YEAR}年募集{recent.length}頭）でも、上位が強い形にはならない。</strong>
-        賞金中央値は向きが揃わず（20位以内だけ上位側が高い）、出走率は3本とも上位側が低くて
-        30位以内で{ratePText(recentCutStats[2].start)}。
-      </li>
+      <li>直近5年（{RECENT_FROM}〜{LAST_YEAR}年募集）に絞っても、上位が強い形にはならない。</li>
       <li>
         <strong>重賞を勝った{gradeWinners.length}頭のうち{outsideWinners.length}頭は30位外の厩舎から。</strong>
-        獲得賞金5億円超の{bigEarners.length}頭は10位以内1頭・11〜20位2頭・30位外3頭とばらけていて、
-        最高額は{gradeWinners[0].displayName}
-        （{formatPrize(gradeWinners[0].totalPrizeManYen)}・募集時{rankDisplayOf(gradeWinners[0])}）だった。
+        最高額は{gradeWinners[0].displayName}（{formatPrize(gradeWinners[0].totalPrizeManYen)}・募集時{rankDisplayOf(gradeWinners[0])}）だった。
       </li>
+      <li><strong>東西も言うほど差がない。</strong>9年ぶんでは栗東寄りの数字が出るがほぼ五分で、直近5年では消える。</li>
       <li>
-        <strong>東西も言うほど差がない。</strong>
-        9年ぶんでは賞金中央値が美浦{formatManYen(ewPrize.bMed)}万円・栗東{formatManYen(ewPrize.aMed)}万円
-        （{formatP(ewPrize.mw.p)}）だが、優越確率{ewPrize.superiority?.toFixed(2)}とほぼ五分で、
-        直近5年では消える（{formatP(ewRecentPrize.mw.p)}）。
-      </li>
-      <li>
-        実務的には、<a href="/">募集馬一覧</a>の厩舎欄を見るときに、
-        <strong>想像しているほど当てにはならない</strong>、というくらいの重みに下げておくのが、
-        このデータの形には一番合っていると思う。
-        厩舎名で加点も減点もしないぶん、他の材料をじっくり見られる。
+        <a href="/">募集馬一覧</a>の厩舎欄は<strong>想像しているほど当てにはならない</strong>、というくらいの重みに
+        下げておくのが、このデータの形には一番合っていると思う。厩舎名で加点も減点もしないぶん、他の材料をじっくり見られる。
       </li>
     </ul>
 
@@ -1340,7 +1302,7 @@ const description = `【非公式】キャロットクラブ${yearRangeLabel}募
       募集後に地方へ移った馬は含んでいない。
     </p>
     <p>
-      「リーディング上位」の判定は、<strong>各馬の募集年のリーディング順位</strong>で行っている。
+      「リーディング上位」の判定は<strong>各馬の募集年のリーディング順位</strong>で行っている。
       対象9年ぶんすべてに実際のリーディングの表があり、代用した年はない。
     </p>
     <p>
@@ -1396,6 +1358,12 @@ const description = `【非公式】キャロットクラブ${yearRangeLabel}募
   .caveat {
     font-size: 0.875rem;
     color: var(--muted);
+  }
+  .answer {
+    margin: 1.5rem 0 0.25rem;
+    font-size: 1.25rem;
+    font-weight: 700;
+    line-height: 1.6;
   }
   .ad-rect {
     display: flex;

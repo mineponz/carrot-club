@@ -336,32 +336,20 @@ const description = `【非公式】母がサンデーレーシング・シル�
     </p>
 
     <p>
-      引っかかるのはこういうところだ。母が向こうのクラブ ―― サンデーレーシング、シルク
-      レーシング、G1レーシング ―― で走って、引退して繁殖に上がった。
-      その仔が向こうではなくキャロットに出てくる。<strong
-        >なぜこの馬はこっちに来たんだろう</strong
-      >と、つい勘ぐってしまう。何か身体に不安があるのか、評価が低かったのか ――
-      そう思い始めると、良く見えていた馬体まで疑わしく見えてくる。
+      引っかかるのはこういうところだ。母が向こうのクラブ（サンデーレーシング、シルクレーシング、
+      G1レーシング）で走って、引退して繁殖に上がった。その仔が向こうではなくキャロットに出てくる。
+      <strong>なぜこの馬はこっちに来たんだろう</strong>と、つい勘ぐってしまう。
+      何か身体に不安があるのか、評価が低かったのか。そう思い始めると、良く見えていた馬体まで疑わしく見えてくる。
     </p>
 
     <p>
       せっかく手元に過去の募集データがあるので、本当にそうなのか確かめてみた。
-      結論から言うと、<strong>「走らない」は言い過ぎだった</strong>。ただし
-      <strong>まったくの思い込みでもなかった</strong>。
     </p>
+
+    <p class="answer">「走らない」は言い過ぎだった。ただ、重賞まで届いた馬はいない。</p>
 
     <StatTiles
       tiles={[
-        {
-          label: '母が向こうのクラブ出身',
-          value: `${groups.majorClubDamCount}頭`,
-          note: 'サンデー・シルク・G1レーシング',
-        },
-        {
-          label: '集計した募集馬',
-          value: `${ssStats.n}頭`,
-          note: `${MATURE}年までに生まれた仔`,
-        },
         {
           label: '出走率',
           value: fmtPct(ssStats.debutRate),
@@ -375,7 +363,7 @@ const description = `【非公式】母がサンデーレーシング・シル�
         {
           label: '重賞を勝った馬',
           value: `${ssStats.gradeWinners}頭`,
-          note: `全体は${allStats.gradeWinners}頭（${fmtPct(allStats.gradeRate)}）`,
+          note: `${ssStats.n}頭のうち。全体では${fmtPct(allStats.gradeRate)}`,
         },
       ]}
     />
@@ -468,7 +456,7 @@ const description = `【非公式】母がサンデーレーシング・シル�
     </div>
     <p class="table-note">
       馬名はこのサイトの個別ページへ、母と兄姉はnetkeibaへのリンクになっている。
-      「向こうの兄姉」は、同じ母からサンデーレーシング・シルクレーシング・G1レーシングで
+      「向こうの兄姉」は同じ母からサンデーレーシング・シルクレーシング・G1レーシングで
       募集された仔で、重賞を勝っている場合はレース名を出している。
       {
         cancelledRecruits2026.length > 0 && (
@@ -525,7 +513,7 @@ const description = `【非公式】母がサンデーレーシング・シル�
       まとめて「向こう」として扱う。
     </p>
 
-    <h2>まず、走ってはいる</h2>
+    <h2>出走率は全体より高い</h2>
     <p>
       いちばん確かめたかったのは出走率だ。「訳あり」が本当なら、身体が弱かったり
       成長が遅れたりしてデビューにたどり着けない馬が多いはずで、そこに差が出る。
@@ -541,8 +529,9 @@ const description = `【非公式】母がサンデーレーシング・シル�
       デビューまでたどり着いたのは{ssStats.raced}頭。<strong
         >出走率{fmtPct(ssStats.debutRate)}で、全体の{fmtPct(allStats.debutRate)}を上回っている</strong
       >。未出走のまま終わったのは{ssStats.withRecord - ssStats.raced}頭だけだ。
-      未出走馬という珍しい出来事を{ssStats.n}頭で切ると検定に足るサンプルにならないので
-      有意差がどうという話はできないが、少なくとも
+    </p>
+    <p>
+      頭数が少なく、有意差がどうという話はできないが、少なくとも
       <strong>「回ってきた馬はデビューにたどり着けない」という形にはまったくなっていない</strong>。
       勝ち上がり率も{fmtPct(ssStats.winRate)}で、全体の{fmtPct(allStats.winRate)}と比べて
       極端に低いわけではない。
@@ -550,7 +539,7 @@ const description = `【非公式】母がサンデーレーシング・シル�
 
     <AdSlot sp={AD_SP_WIDE_A} pc={AD_PC_WIDE_A} />
 
-    <h2>ただし、稼いでいる額は低い</h2>
+    <h2>稼いでいる額は低い</h2>
     <p>
       走ってはいる。問題はその先だった。
     </p>
@@ -562,9 +551,11 @@ const description = `【非公式】母がサンデーレーシング・シル�
     />
     <p>
       獲得賞金の<TermLink to="median">中央値</TermLink>は<strong>{fmtMan(ssStats.medianPrize)}</strong>で、
-      それ以外の募集馬の{fmtMan(restStats.medianPrize)}を下回る。賞金は一部の稼ぎ頭に
-      極端に引っ張られる分布なので、順位で比べるマン・ホイットニーの検定をかけたところ、
-      <strong>この差は偶然とは言いにくかった（{fmtP(prizeTest.p)}）</strong>。
+      それ以外の募集馬の{fmtMan(restStats.medianPrize)}を下回る。
+      <strong>この差は偶然とは言いにくい大きさだった（{fmtP(prizeTest.p)}）</strong>。
+    </p>
+    <p class="table-note">
+      賞金は一部の稼ぎ頭に極端に引っ張られる分布なので、順位で比べる検定（マン・ホイットニー）を使った。
     </p>
     <p>
       差がはっきり出るのは上のほうだ。獲得賞金{(BIG_PRIZE / 1000).toFixed(0)}千万円以上まで
@@ -582,21 +573,22 @@ const description = `【非公式】母がサンデーレーシング・シル�
         いちばん象徴的なのがこれだった。全体では{allStats.n}頭中{allStats.gradeWinners}頭
         （{fmtPct(allStats.gradeRate)}）が重賞を勝っている。同じ割合なら
         {ssStats.n}頭からは{(restStats.gradeRate * ssStats.n).toFixed(1)}頭ほど出ていい計算になる。
-        実際は<strong>0頭</strong>だ。頭数が少ないので「たまたま0頭」も十分ありえて、
-        その確率を計算すると{fmtPct(zeroGradeChance)}。珍しくはあるが、
-        これだけで断定できるほどではない。それでも、
+        実際は<strong>0頭</strong>だ。
+      </p>
+      <p>
+        頭数が少ないので「たまたま0頭」も十分ありえて、その確率を計算すると{fmtPct(zeroGradeChance)}。
+        珍しくはあるが、これだけで断定できるほどではない。それでも
         <strong>出走率は高いのに賞金と重賞では見劣りする</strong>という形は一貫している。
       </p>
     </div>
 
     <AdSlot sp={AD_SP_WIDE_B} pc={AD_PC_WIDE_B} />
 
-    <h2>同じ母の兄姉と比べてみる</h2>
+    <h2>同じ母の兄姉との比較</h2>
     <p>
       ここまでは「他の募集馬全体」との比較なので、母の質がそもそも違う可能性が残る。
-      そこでいちばんフェアな比べ方をする。<strong
-        >同じ母から、向こうのクラブで募集された仔と、キャロットで募集された仔</strong
-      >を並べる。母は同じなのだから、血統の地力は揃っている。あとは「どちらに行ったか」の違いだけだ。
+      そこでいちばんフェアな比べ方として、<strong>同じ母から、向こうのクラブで募集された仔と、
+      キャロットで募集された仔</strong>を並べる。母は同じなのだから、血統の地力は揃っている。あとは「どちらに行ったか」の違いだけだ。
     </p>
     <p>
       両方に仔がいる母は{split.splits.length}頭いた。向こうに残った仔が{split.stayedStats.n}頭、
@@ -669,8 +661,8 @@ const description = `【非公式】母がサンデーレーシング・シル�
     </div>
 
     <p>
-      面白いのはここだ。<strong
-        >賞金の中央値には差が無い（{fmtP(splitPrizeTest.p)}）。勝ち上がり率にいたっては
+      <strong
+        >同じ母の仔どうしでは、賞金の中央値に差が無い（{fmtP(splitPrizeTest.p)}）。勝ち上がり率にいたっては
         キャロットに来た仔のほうが高い</strong
       >（{fmtPct(split.cameStats.winRate)}対{fmtPct(split.stayedStats.winRate)}）。
       同じ母から生まれた仔で比べる限り、真ん中あたりの成績はまったく変わらない。
@@ -693,7 +685,7 @@ const description = `【非公式】母がサンデーレーシング・シル�
 
     <AdSlot sp={AD_SP_WIDE_A} pc={AD_PC_WIDE_A} />
 
-    <h2>兄姉が重賞を勝っている馬はどうだったか</h2>
+    <h2>兄姉が重賞を勝っている馬</h2>
     <p>
       いちばん期待したくなるのは、<strong
         >向こうで重賞馬が出ている母から、キャロットに回ってきた仔</strong
@@ -789,7 +781,7 @@ const description = `【非公式】母がサンデーレーシング・シル�
       {fmtMan(gradeCaseStats.medianPrize)}、
       <strong>重賞を勝った馬は{gradeCaseStats.gradeWinners}頭</strong>だった。
       最高でも{fmtMan(gradeCaseStats.maxPrize)}。
-      ここでも同じ形が出ている ―― <strong>走る。ただし突き抜けない</strong>。
+      ここでも同じ形が出ている。<strong>走るが、突き抜けない</strong>。
     </p>
     {
       gradeCaseUpcoming.length > 0 && (
@@ -807,7 +799,7 @@ const description = `【非公式】母がサンデーレーシング・シル�
 
     <h2>この数字をどこまで信じるか</h2>
     <p>
-      いくつか、差の原因になりそうなものを潰しておく。
+      差の原因になりそうなものを、いくつか確かめておく。
     </p>
     <ul class="compare">
       <li>
@@ -847,15 +839,13 @@ const description = `【非公式】母がサンデーレーシング・シル�
       </li>
       <li>
         <strong>同じ母の兄姉と比べても、真ん中の成績は変わらない。</strong>
-        賞金の中央値に差は無く（{fmtP(splitPrizeTest.p)}）、勝ち上がり率はむしろ
-        キャロットに来た仔のほうが高かった。
+        賞金の中央値に差は無く、勝ち上がり率はむしろキャロットに来た仔のほうが高かった。
       </li>
       <li>
         <strong>差が出るのは上振れだけ。</strong>{ssStats.n}頭から重賞馬は0頭。
         同じ母で比べても{split.stayedStats.gradeWinners}頭対
         {split.cameStats.gradeWinners}頭。向こうで重賞馬が出ている母から来た
-        {gradeCaseStats.n}頭でも0頭だった。全体の賞金分布が有意に低い（{fmtP(prizeTest.p)}）のも、
-        この一点に集約される。
+        {gradeCaseStats.n}頭でも0頭だった。全体の賞金が低く出るのも、この一点に集約される。
       </li>
       <li>
         <strong>出資判断としてどう使うか。</strong>「母が向こうのクラブ出身だから消し」
@@ -1032,6 +1022,12 @@ const description = `【非公式】母がサンデーレーシング・シル�
     color: var(--danger);
     border-radius: 4px;
     white-space: nowrap;
+  }
+  .answer {
+    margin: 1.5rem 0 0.25rem;
+    font-size: 1.25rem;
+    font-weight: 700;
+    line-height: 1.6;
   }
   .finding {
     margin: 1.25rem 0;

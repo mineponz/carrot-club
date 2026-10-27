@@ -865,32 +865,24 @@ const description = `【非公式】キャロットクラブ${yearRangeLabel}${a
 
     <p>
       カタログの測尺欄で、たぶん一番みんなが気にするのが馬体重だ。「大きい馬は完成度が高い」
-      「大型馬は使いづらい」など言い分はいろいろあるけれど、募集時の馬体重は本当に
-      その後の成績と関係するのか。体高・胸囲・管囲と見てきた測尺シリーズの最後として、
-      {yearRangeLabel}募集（{yearCounts}）に{resultsAsOf}時点の獲得賞金・通算成績を
-      突き合わせて調べた独自集計。
+      「大型馬は使いづらい」など言い分はいろいろあるけれど、募集時の馬体重は本当にその後の成績と関係するのか。
     </p>
     <p>
-      先に結論を書くと、<strong>はっきり出たのは牝だけだった</strong>。牝は「大きいほど稼ぐ」方向に
-      きれいに出て、牡は賞金で見るかぎり関係が見えない。
+      体高・胸囲・管囲と見てきた測尺シリーズの最後として、{yearRangeLabel}募集の{all.length}頭に
+      {resultsAsOf}時点の獲得賞金・通算成績を突き合わせて調べた独自集計。
+    </p>
+
+    <p class="answer">馬体重と成績の関係がはっきり出たのは、牝だけだった。</p>
+    <p>
+      牝は「大きいほど稼ぐ」方向にきれいに出て、牡は賞金で見るかぎり関係が見えない。
       「牝は小柄でも走る」「小さい牡は不安」という一般的なイメージとは、少しずれた結果になっている。
     </p>
 
     <StatTiles
       tiles={[
-        {
-          label: '対象頭数',
-          value: `${all.length}頭`,
-          note: `牡${males.length}頭・牝${females.length}頭${sexUnknown > 0 ? `・性別不明${sexUnknown}頭` : ''}`,
-        },
-        { label: '出走済み', value: `${raced.length}頭` },
-        { label: '未出走', value: `${unraced}頭`, note: '大半が直近の募集組' },
-        { label: '馬体重の範囲', value: `${weightMin}〜${weightMax}kg`, note: `中央値${weightMedian}kg` },
-        {
-          label: '牡と牝の中央値の差',
-          value: `${maleWeightMedian - femaleWeightMedian}kg`,
-          note: `牡${maleWeightMedian}kg / 牝${femaleWeightMedian}kg`,
-        },
+        { label: '牝の馬体重 × 獲得賞金', value: `r=${rFemale.spearman?.toFixed(3)}`, note: '大きいほど稼ぐ向き' },
+        { label: '牡の馬体重 × 獲得賞金', value: `r=${rMale.spearman?.toFixed(3)}`, note: 'ほぼゼロ' },
+        { label: '牝の最軽量1/4から出た重賞馬', value: `${femaleGradeCounts[0].hits}頭`, note: `${femaleLightCut}kg以下の${femaleWinRates[0].n}頭` },
       ]}
     />
 
@@ -901,9 +893,9 @@ const description = `【非公式】キャロットクラブ${yearRangeLabel}${a
 
     <h2>馬体重の分布</h2>
     <p>
-      まず母集団から。{all.length}頭の募集時馬体重は{weightMin}〜{weightMax}kgに分布していて、
-      平均{weightMean.toFixed(1)}kg・<TermLink to="median">中央値</TermLink>{weightMedian}kg。牡と牝を分けると中央値は
-      牡{maleWeightMedian}kg・牝{femaleWeightMedian}kgで、その差{maleWeightMedian - femaleWeightMedian}kg。
+      {all.length}頭の募集時馬体重は{weightMin}〜{weightMax}kgに分布していて、
+      平均{weightMean.toFixed(1)}kg・<TermLink to="median">中央値</TermLink>{weightMedian}kg。
+      牡と牝を分けると中央値は牡{maleWeightMedian}kg・牝{femaleWeightMedian}kgで、その差{maleWeightMedian - femaleWeightMedian}kg。
       牡の方が重いが、山はかなり重なっている。
     </p>
     <BarChart title={`募集時馬体重の分布（全${all.length}頭・10kg刻み）`} bars={allBins} valueLabel="頭数" />
@@ -922,11 +914,10 @@ const description = `【非公式】キャロットクラブ${yearRangeLabel}${a
 
     <AdSlot sp={AD_SP_WIDE_B} pc={AD_PC_WIDE_B} />
 
-    <h2>まとめて見ると、大きい馬ほどわずかに稼ぐ</h2>
+    <h2>全頭で見ると大きい馬ほどわずかに稼ぐ</h2>
     <p>
-      出走済みの{raced.length}頭を募集時馬体重で4等分して、獲得賞金合計（中央+地方、万円）の
-      中央値を取るとこうなった。獲得賞金は一部の大物に大きく引っ張られるので、平均ではなく
-      外れ値に強い中央値で見ている。各棒の下にその群の体重の範囲と頭数を書いた。
+      出走済みの{raced.length}頭を募集時馬体重で4等分して、獲得賞金合計（中央+地方、万円）の中央値を取った。
+      獲得賞金は一部の大物に大きく引っ張られるので、平均ではなく外れ値に強い中央値で見ている。
     </p>
     <BarChart
       title="馬体重の4分位別 獲得賞金合計の中央値（出走済み）"
@@ -935,13 +926,15 @@ const description = `【非公式】キャロットクラブ${yearRangeLabel}${a
       nLabel="中央値の母数（出走済み）"
       noteLabel="体重の範囲"
     />
+    <p class="fig-note">各棒の下にその群の体重の範囲と頭数を書いた。</p>
     <p>
-      ゆるやかに右上がりで、{allScheme.lightest}（{endsAll.lightN}頭）の
-      {formatManYen(Math.round(endsAll.lightMed))}万円に対して{allScheme.heaviest}（{endsAll.heavyN}頭）は
-      {formatManYen(Math.round(endsAll.heavyMed))}万円。2群の差の検定（Mann-Whitney）は
-      {formatP(endsAll.mw.p)}。<TermLink to="correlation">相関係数</TermLink>は順位ベースの<TermLink to="spearman">スピアマン</TermLink>で r={rAll.spearman?.toFixed(3)}
-      （{formatP(rAll.spearmanP ?? NaN)}）と、<a href="/articles/height/">体高</a>
-      （r={heightRow.all.spearman?.toFixed(3)}）と同じくらいの弱い正の相関だ。
+      ゆるやかに右上がりで、{allScheme.lightest}（{endsAll.lightN}頭）の{formatManYen(Math.round(endsAll.lightMed))}万円に対して、
+      {allScheme.heaviest}（{endsAll.heavyN}頭）は{formatManYen(Math.round(endsAll.heavyMed))}万円。
+      <a href="/articles/height/">体高</a>と同じくらいの、弱い正の相関だ。
+    </p>
+    <p class="fig-note">
+      2群の差の検定（Mann-Whitney）は{formatP(endsAll.mw.p)}。<TermLink to="spearman">スピアマン</TermLink>の順位相関は
+      r={rAll.spearman?.toFixed(3)}（{formatP(rAll.spearmanP ?? NaN)}）で、体高はr={heightRow.all.spearman?.toFixed(3)}。
     </p>
     <ScatterChart
       title={`馬体重 × 獲得賞金合計（出走済み・1億円未満${scatterPoints.length}頭）`}
@@ -956,10 +949,7 @@ const description = `【非公式】キャロットクラブ${yearRangeLabel}${a
       formatX={(v) => `${v}`}
       formatY={(v) => (v === 0 ? '0' : `${v / 1000}k`)}
     />
-    <p class="table-note">
-      獲得賞金合計が1億円以上の{scatterOmitted}頭はグラフの外に出るため省略した
-      （後述の重賞馬の表を参照）。
-    </p>
+    <p class="fig-note">獲得賞金合計が1億円以上の{scatterOmitted}頭はグラフの外に出るため省略した（後述の重賞馬の表を参照）。</p>
     <p>
       「弱いけど正の相関」という点では体高の記事と同じ結論に見える。ところが
       <strong>牡と牝を分けると、この弱い相関の中身がまったく違う</strong>ことが分かった。
@@ -967,10 +957,10 @@ const description = `【非公式】キャロットクラブ${yearRangeLabel}${a
 
     <AdSlot sp={AD_SP_WIDE_A} pc={AD_PC_WIDE_A} />
 
-    <h2>牡と牝で分けると、様子がまるで違う</h2>
+    <h2>牡と牝で分けると様子がまるで違う</h2>
     <p>
-      同じ4分位別の賞金中央値を、牡{racedMales.length}頭・牝{racedFemales.length}頭で
-      別々に出す。2つのグラフは物差しを揃えてある。
+      同じ4分位別の賞金中央値を、牡{racedMales.length}頭・牝{racedFemales.length}頭で別々に出した。
+      2つのグラフは物差しを揃えてある。
     </p>
     <BarChart
       title={`牡だけ・馬体重の4分位別 獲得賞金合計の中央値（出走済み${racedMales.length}頭）`}
@@ -992,29 +982,29 @@ const description = `【非公式】キャロットクラブ${yearRangeLabel}${a
       <p class="finding-lead">牡は賞金との関係が見えない</p>
       <p>
         牡の棒はデコボコで、{maleScheme.lightest}が{formatManYen(Math.round(endsMale.lightMed))}万円と
-        <strong>むしろ2番目に高く</strong>、{maleScheme.heaviest}が
-        {formatManYen(Math.round(endsMale.heavyMed))}万円。両端の検定は{formatP(endsMale.mw.p)}、
-        順位相関も r={rMale.spearman?.toFixed(3)}（{formatP(rMale.spearmanP ?? NaN)}）とほぼゼロだ。
-        軽い群と重い群から1頭ずつ選んで重い方が上回る確率も
-        <strong>{((endsMale.superiority ?? 0) * 100).toFixed(1)}%</strong>（差が無ければ50%）で、
-        ほぼコイン投げ。出走済み{racedMales.length}頭あってこれなので、
-        頭数不足で見えないのではなさそうだ。
+        <strong>むしろ2番目に高く</strong>、{maleScheme.heaviest}は{formatManYen(Math.round(endsMale.heavyMed))}万円。
+        順位相関も r={rMale.spearman?.toFixed(3)} とほぼゼロだ。
       </p>
       <p>
-        ただし<strong>賞金以外の指標は、弱いながらどれも重い側が上を向いている</strong>ので、
-        そこは正直に書いておきたい。勝ち上がり率が
-        {maleWinRates.map((r) => r.rate.toFixed(1) + '%').join(' → ')}、
-        重賞を勝った頭数が{maleGradeCounts.map((r) => r.hits + '頭').join(' → ')}、
-        デビュー到達率が{maleDebutRates[0].rate.toFixed(1)}% →
-        {maleDebutRates[3].rate.toFixed(1)}%。ただし両端の検定はそれぞれ
-        {ratePText(maleWinTest)}・{ratePText(maleGradeTest)}・{ratePText(maleDebutTest)}で、
-        <strong>どれも誤差の範囲を出ない</strong>。牡について言えるのは
-        「賞金で見るかぎり関係は見えない。他の指標もこの頭数では差と呼べない」までで、
+        軽い群と重い群から1頭ずつ選んで重い方が上回る確率も{((endsMale.superiority ?? 0) * 100).toFixed(1)}%
+        （差が無ければ50%）で、ほぼコイン投げ。出走済み{racedMales.length}頭あってこれなので、頭数不足で見えないのではなさそうだ。
+      </p>
+      <p>
+        ただし賞金以外の指標は、弱いながらどれも重い側が上を向いているので、そこは正直に書いておきたい。
+        勝ち上がり率・重賞を勝った頭数・デビュー到達率のどれも、誤差の範囲は出ない。
+        牡について言えるのは「賞金で見るかぎり関係は見えない。他の指標もこの頭数では差と呼べない」までで、
         <strong>「まったく無関係だと確かめられた」ではない</strong>。
+      </p>
+      <p class="fig-note">
+        両端の賞金差の検定は{formatP(endsMale.mw.p)}、順位相関は{formatP(rMale.spearmanP ?? NaN)}。
+        軽い→重いの順に、勝ち上がり率{maleWinRates.map((r) => r.rate.toFixed(1) + '%').join(' → ')}、
+        重賞を勝った頭数{maleGradeCounts.map((r) => r.hits + '頭').join(' → ')}、
+        デビュー到達率{maleDebutRates[0].rate.toFixed(1)}% → {maleDebutRates[3].rate.toFixed(1)}%。
+        両端の検定はそれぞれ{ratePText(maleWinTest)}・{ratePText(maleGradeTest)}・{ratePText(maleDebutTest)}。
       </p>
     </div>
     <div class="finding">
-      <p class="finding-lead">牝ははっきり効く</p>
+      <p class="finding-lead">牝ははっきり差が出る</p>
       <p>
         牝の棒は<strong>きれいな右上がり</strong>で、
         {femalePrizeBars.map((b, i) => (
@@ -1024,36 +1014,36 @@ const description = `【非公式】キャロットクラブ${yearRangeLabel}${a
           </>
         ))}
         （{femalePrizeBars.map((b) => b.label).join(' / ')}）。
-        {femaleScheme.lightest}（{endsFemale.lightN}頭）と{femaleScheme.heaviest}
-        （{endsFemale.heavyN}頭）の賞金差は{formatP(endsFemale.mw.p)}、
-        順位相関は r={rFemale.spearman?.toFixed(3)}（{formatP(rFemale.spearmanP ?? NaN)}）。
         勝ち上がり率も{femaleWinRates[0].rate.toFixed(1)}%（{femaleScheme.lightest}）から
-        {femaleWinRates[3].rate.toFixed(1)}%（{femaleScheme.heaviest}）へと上がり、
-        こちらは{ratePText(femaleWinTest)}。そして<strong>{femaleScheme.lightest}
-        （{femaleLightCut}kg以下）の{femaleWinRates[0].n}頭からは、重賞勝ち馬が1頭も出ていない</strong>
-        （他の3つの群からは{femaleGradeCounts[1].hits}頭・{femaleGradeCounts[2].hits}頭・
-        {femaleGradeCounts[3].hits}頭）。
+        {femaleWinRates[3].rate.toFixed(1)}%（{femaleScheme.heaviest}）へ上がる。
+      </p>
+      <p>
+        そして<strong>{femaleScheme.lightest}（{femaleLightCut}kg以下）の{femaleWinRates[0].n}頭からは、重賞勝ち馬が1頭も出ていない</strong>
+        （他の3つの群からは{femaleGradeCounts[1].hits}頭・{femaleGradeCounts[2].hits}頭・{femaleGradeCounts[3].hits}頭）。
+      </p>
+      <p class="fig-note">
+        {femaleScheme.lightest}（{endsFemale.lightN}頭）と{femaleScheme.heaviest}（{endsFemale.heavyN}頭）の賞金差は{formatP(endsFemale.mw.p)}、
+        順位相関は r={rFemale.spearman?.toFixed(3)}（{formatP(rFemale.spearmanP ?? NaN)}）、勝ち上がり率の差は{ratePText(femaleWinTest)}。
       </p>
       <p class="caveat">
-        この「ゼロ」は、他の群並みなら{femaleGradeTest.lightExpected.toFixed(1)}頭ほど出ている
-        計算のところが0頭、という意味だ。ただし牝の重賞馬は全部で{gradeFemales.length}頭しかおらず、
-        いちばん軽い勝ち馬が{Math.min(...gradeFemales.map((h) => h.weight as number))}kg・
+        この「ゼロ」は、他の群並みなら{femaleGradeTest.lightExpected.toFixed(1)}頭ほど出ている計算のところが0頭、という意味だ。
+        ただし牝の重賞馬は全部で{gradeFemales.length}頭しかおらず、いちばん軽い勝ち馬が{Math.min(...gradeFemales.map((h) => h.weight as number))}kg・
         群の区切りが{femaleLightCut}kgなので、<strong>この線自体は数kgずれれば動く</strong>。
         「{femaleLightCut}kg以下は重賞を勝てない」という閾値があるとまでは読まないでほしい。
       </p>
     </div>
     <p>
-      「牝は小柄でも走る」という言い方はよく聞くけれど、少なくともキャロットの
-      {yearRangeLabel}募集の牝に関しては、<strong>小柄な馬は賞金も勝ち上がり率も平均して低い</strong>。
-      もちろん順位相関は{rFemale.spearman?.toFixed(3)}で、これは分布全体の「傾向」であって
-      一頭一頭の結果を決めるものではない（小柄でも走った牝は後述する）。
-      通説がまるごと逆というより、<strong>「体は気にしなくていい」とまでは言えなさそう</strong>、
-      という受け取り方がいちばん近いと思う。
+      「牝は小柄でも走る」という言い方はよく聞くけれど、少なくともキャロットの{yearRangeLabel}募集の牝に関しては、
+      <strong>小柄な馬は賞金も勝ち上がり率も平均して低い</strong>。
+      もちろん順位相関は{rFemale.spearman?.toFixed(3)}で、これは分布全体の「傾向」であって一頭一頭の結果を決めるものではない
+      （小柄でも走った牝は後述する）。
     </p>
     <p>
-      なお、直近の募集組はまだ賞金を積み上げる途中なので、走る時間が足りている
-      {MATURE_YEAR}年募集までに絞っても確かめた。牝 r={rMatureFemale?.toFixed(3)}・
-      牡 r={rMatureMale?.toFixed(3)}で、<strong>若い世代を外しても同じ形</strong>だった。
+      通説がまるごと逆というより、「体は気にしなくていい」とまでは言えなさそう、という受け取り方がいちばん近いと思う。
+    </p>
+    <p>
+      なお、直近の募集組はまだ賞金を積み上げる途中なので、走る時間が足りている{MATURE_YEAR}年募集までに絞っても確かめた。
+      牝 r={rMatureFemale?.toFixed(3)}・牡 r={rMatureMale?.toFixed(3)}で、<strong>若い世代を外しても同じ形</strong>だった。
     </p>
 
     <div class="ad-rect">
@@ -1061,69 +1051,74 @@ const description = `【非公式】キャロットクラブ${yearRangeLabel}${a
       <InArticleAd />
     </div>
 
-    <h2>牝では「体高」ではなく「体重」で見る</h2>
+    <h2>牝は体重で見る</h2>
     <p>
-      牝で体重が効くとして、次に気になるのは「じゃあ体高（体の高さ）と体重、どっちを見れば
-      いいのか」だ。この2つは連動していて（牝で相関 r={femaleWeightHeightR?.toFixed(3)}）、
-      片方が効いて見えてももう片方の影のことがある。そこで<strong><TermLink to="partial">偏相関</TermLink></strong>を使って切り分ける。
+      牝で体重が成績と結びつくなら、次に気になるのは「じゃあ体高（体の高さ）と体重、どっちを見ればいいのか」だ。
+      この2つは連動していて（牝で相関 r={femaleWeightHeightR?.toFixed(3)}）、片方が効いて見えても、もう片方の影のことがある。
+    </p>
+    <p>
+      そこで<TermLink to="partial">偏相関</TermLink>を使って切り分ける。
       「もう一方の測尺を同じにそろえたうえで、その測尺だけを動かしたらどうか」を見る数字だ。
     </p>
-    <div class="table-scroll">
-      <table class="measures">
-        <thead>
-          <tr>
-            <th>見たい関係（牝・出走済み{racedFemales.length}頭）</th>
-            <th>順位相関</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr>
-            <td>体重 ↔ 賞金（そのまま）</td>
-            <td>r={rFemale.spearman?.toFixed(3)}<br /><span class="sub">{formatP(rFemale.spearmanP ?? NaN)}</span></td>
-          </tr>
-          <tr class="highlight">
-            <td>体重 ↔ 賞金（<strong>体高をそろえて</strong>）</td>
-            <td>r={partials.weightGivenHeight?.toFixed(3)}<br /><span class="sub">{formatP(partialWeightGivenHeightP ?? NaN)}</span></td>
-          </tr>
-          <tr>
-            <td>体高 ↔ 賞金（そのまま）</td>
-            <td>r={heightRow.female.spearman?.toFixed(3)}<br /><span class="sub">{formatP(heightRow.female.spearmanP ?? NaN)}</span></td>
-          </tr>
-          <tr>
-            <td>体高 ↔ 賞金（<strong>体重をそろえて</strong>）</td>
-            <td>r={partials.heightGivenWeight?.toFixed(3)}<br /><span class="sub">{formatP(partialHeightGivenWeightP ?? NaN)}</span></td>
-          </tr>
-          <tr>
-            <td>体重 ↔ 賞金（管囲をそろえて）</td>
-            <td>r={partials.weightGivenCaret?.toFixed(3)}<br /><span class="sub">{formatP(partialWeightGivenCaretP ?? NaN)}</span></td>
-          </tr>
-          <tr>
-            <td>体重 ↔ 賞金（誕生日をそろえて）</td>
-            <td>r={partials.weightGivenBirth?.toFixed(3)}<br /><span class="sub">{formatP(partialWeightGivenBirthP ?? NaN)}</span></td>
-          </tr>
-        </tbody>
-      </table>
-    </div>
+    <ul class="points">
+      <li>
+        <strong>体高をそろえても、体重の相関はほぼそのまま残る</strong>
+        （r={rFemale.spearman?.toFixed(3)} → {partials.weightGivenHeight?.toFixed(3)}）。管囲や誕生日をそろえても同じ。
+      </li>
+      <li>
+        「小柄な牝は単に遅生まれだから」という説明も当たらない。誕生日をそろえると、むしろ{partials.weightGivenBirth?.toFixed(3)}に上がる。
+      </li>
+      <li>
+        体高の方は牝だけで見ると単独でも有意ではなく（r={heightRow.female.spearman?.toFixed(3)}）、体重をそろえるとゼロ近くまで落ちる
+        （{partials.heightGivenWeight?.toFixed(3)}）。
+      </li>
+    </ul>
     <p>
-      読み方はこうだ。<strong>体高をそろえても体重の相関はほぼそのまま残る</strong>
-      （r={rFemale.spearman?.toFixed(3)} → {partials.weightGivenHeight?.toFixed(3)}・
-      {formatP(partialWeightGivenHeightP ?? NaN)}）。管囲をそろえても、誕生日をそろえても同じで、
-      <strong>「小柄な牝は単に遅生まれだから」という説明も当たらない</strong>
-      （誕生日をそろえるとむしろ{partials.weightGivenBirth?.toFixed(3)}に上がる）。
-    </p>
-    <p>
-      体高の方は、そもそも<strong>牝だけで見ると単独でも有意ではない</strong>
-      （r={heightRow.female.spearman?.toFixed(3)}・{formatP(heightRow.female.spearmanP ?? NaN)}）。
-      そこから体重をそろえるとゼロ近くまで落ちる
-      （{partials.heightGivenWeight?.toFixed(3)}・{formatP(partialHeightGivenWeightP ?? NaN)}）。
-      つまり「体高に効果があったが体重が正体だった」というより、
-      <strong>牝で残るのは体重の方だけ、というのが正しい</strong>。
+      つまり「体高に効果があったが体重が正体だった」というより、<strong>牝で残るのは体重の方だけ</strong>というのが正しい。
       <a href="/articles/height/">体高の記事</a>の結論（全頭で弱い正の相関）を否定するものではなく、
       牝に絞ると体高単独では傾向と呼べるほど出てこない、という話だ。
     </p>
+    <details class="fold">
+      <summary>偏相関の表を見る（p値つき）</summary>
+      <div class="table-scroll">
+        <table class="measures">
+          <thead>
+            <tr>
+              <th>見たい関係（牝・出走済み{racedFemales.length}頭）</th>
+              <th>順位相関</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>体重 ↔ 賞金（そのまま）</td>
+              <td>r={rFemale.spearman?.toFixed(3)}<br /><span class="sub">{formatP(rFemale.spearmanP ?? NaN)}</span></td>
+            </tr>
+            <tr class="highlight">
+              <td>体重 ↔ 賞金（<strong>体高をそろえて</strong>）</td>
+              <td>r={partials.weightGivenHeight?.toFixed(3)}<br /><span class="sub">{formatP(partialWeightGivenHeightP ?? NaN)}</span></td>
+            </tr>
+            <tr>
+              <td>体高 ↔ 賞金（そのまま）</td>
+              <td>r={heightRow.female.spearman?.toFixed(3)}<br /><span class="sub">{formatP(heightRow.female.spearmanP ?? NaN)}</span></td>
+            </tr>
+            <tr>
+              <td>体高 ↔ 賞金（<strong>体重をそろえて</strong>）</td>
+              <td>r={partials.heightGivenWeight?.toFixed(3)}<br /><span class="sub">{formatP(partialHeightGivenWeightP ?? NaN)}</span></td>
+            </tr>
+            <tr>
+              <td>体重 ↔ 賞金（管囲をそろえて）</td>
+              <td>r={partials.weightGivenCaret?.toFixed(3)}<br /><span class="sub">{formatP(partialWeightGivenCaretP ?? NaN)}</span></td>
+            </tr>
+            <tr>
+              <td>体重 ↔ 賞金（誕生日をそろえて）</td>
+              <td>r={partials.weightGivenBirth?.toFixed(3)}<br /><span class="sub">{formatP(partialWeightGivenBirthP ?? NaN)}</span></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </details>
     <p>
-      「体高の割にどれだけ体重が乗っているか」を体型スコアにして、牝を華奢・真ん中・詰まったで
-      3等分すると、賞金の中央値はこうなる。
+      「体高の割にどれだけ体重が乗っているか」を体型スコアにして、牝を華奢・真ん中・詰まったで3等分すると、賞金の中央値はこうなる。
     </p>
     <BarChart
       title={`牝だけ・体型（体高の割の体重）別 獲得賞金合計の中央値（出走済み）`}
@@ -1132,94 +1127,95 @@ const description = `【非公式】キャロットクラブ${yearRangeLabel}${a
       nLabel="中央値の母数（出走済み）"
     />
     <p>
-      詰まった側がやや高い（華奢{formatManYen(Math.round(buildFemale.lowMed))}万円 vs
-      詰まった{formatManYen(Math.round(buildFemale.highMed))}万円、{formatP(buildFemale.mw.p)}）。
-      体型スコアと賞金の順位相関も r={femaleBuildR?.toFixed(3)}
-      （{formatP(femaleBuildRP ?? NaN)}）で出る。ところが<strong>体重をそろえて同じことをすると
-      r={femaleBuildGivenWeight?.toFixed(3)}（{formatP(femaleBuildGivenWeightP ?? NaN)}）まで落ちる</strong>。
-      体型そのものが効いているのではなく、<strong>体重が効いているのを別の角度から見ていただけ</strong>
-      ということだ。牡は体型で分けても差は出ない（{formatP(buildMale.mw.p)}）。
-      結局「牝は体重を見る」に尽きる。
+      詰まった側がやや高い（華奢{formatManYen(Math.round(buildFemale.lowMed))}万円、詰まった{formatManYen(Math.round(buildFemale.highMed))}万円）。
+      ところが<strong>体重をそろえて同じことをすると、相関は r={femaleBuildGivenWeight?.toFixed(3)} まで落ちる</strong>。
+      体型そのものが成績と結びついているのではなく、体重の差を別の角度から見ていただけということだ。
+      牡は体型で分けても差は出ない。結局「牝は体重を見る」に尽きる。
+    </p>
+    <p class="fig-note">
+      華奢と詰まったの差は{formatP(buildFemale.mw.p)}。体型スコアと賞金の順位相関は r={femaleBuildR?.toFixed(3)}（{formatP(femaleBuildRP ?? NaN)}）、
+      体重をそろえると r={femaleBuildGivenWeight?.toFixed(3)}（{formatP(femaleBuildGivenWeightP ?? NaN)}）。牡の体型の差は{formatP(buildMale.mw.p)}。
     </p>
 
     <AdSlot sp={AD_SP_WIDE_B} pc={AD_PC_WIDE_B} />
 
-    <h2>他の測尺との比べ</h2>
+    <h2>他の測尺との比較</h2>
     <p>
-      測尺4種を、全体・牡・牝それぞれで賞金との順位相関（とp値）に並べるとこうなる。
-      あわせて「その測尺が牡と牝でどれだけ違うか」を、牡牝の中央値の差がその測尺の
-      ばらつき（<TermLink to="sd">標準偏差</TermLink>）何個ぶんかに換算して載せた。
+      測尺4種のうち、牝で賞金と結びついているのは体重（r={weightRow.female.spearman?.toFixed(3)}）と
+      胸囲（r={measureRows.find((m) => m.key === 'chestGirth')!.female.spearman?.toFixed(3)}）だった。
+      胸囲は<a href="/articles/chest-girth/">前に調べたとき</a>、体重とほぼ同じものを測っていると分かっている
+      （牝で相関 r={femaleWeightChestR?.toFixed(3)}）ので、これも実質は体重だ。
     </p>
-    <div class="table-scroll">
-      <table class="measures">
-        <thead>
-          <tr>
-            <th>測尺</th>
-            <th>全体（{raced.length}頭）</th>
-            <th>牡（{racedMales.length}頭）</th>
-            <th>牝（{racedFemales.length}頭）</th>
-            <th>牡牝の差<br />（標準偏差ぶん）</th>
-          </tr>
-        </thead>
-        <tbody>
-          {measureRows.map((m) => (
-            <tr class={m.key === 'weight' ? 'highlight' : undefined}>
-              <td>{m.label}</td>
-              <td>r={m.all.spearman?.toFixed(3)}<br /><span class="sub">{formatP(m.all.spearmanP ?? NaN)}</span></td>
-              <td>r={m.male.spearman?.toFixed(3)}<br /><span class="sub">{formatP(m.male.spearmanP ?? NaN)}</span></td>
-              <td>r={m.female.spearman?.toFixed(3)}<br /><span class="sub">{formatP(m.female.spearmanP ?? NaN)}</span></td>
-              <td>{m.sex.gapInSd.toFixed(2)} SD</td>
+    <details class="fold">
+      <summary>測尺4種の表を見る（全体・牡・牝の順位相関と、牡牝の差）</summary>
+      <div class="table-scroll">
+        <table class="measures">
+          <thead>
+            <tr>
+              <th>測尺</th>
+              <th>全体（{raced.length}頭）</th>
+              <th>牡（{racedMales.length}頭）</th>
+              <th>牝（{racedFemales.length}頭）</th>
+              <th>牡牝の差<br />（標準偏差ぶん）</th>
             </tr>
-          ))}
-        </tbody>
-      </table>
-    </div>
-    <p class="table-note">いずれも出走済みのみ・スピアマンの順位相関。</p>
-    <p>
-      牝の列を見ると、体重（r={weightRow.female.spearman?.toFixed(3)}）と
-      胸囲（r={measureRows.find((m) => m.key === 'chestGirth')!.female.spearman?.toFixed(3)}）が効いている。
-      胸囲は<a href="/articles/chest-girth/">前に調べたとき</a>、体重とほぼ同じものを測っていると
-      分かっている（牝で相関 r={femaleWeightChestR?.toFixed(3)}）ので、これも実質は体重だ。
-    </p>
+          </thead>
+          <tbody>
+            {measureRows.map((m) => (
+              <tr class={m.key === 'weight' ? 'highlight' : undefined}>
+                <td>{m.label}</td>
+                <td>r={m.all.spearman?.toFixed(3)}<br /><span class="sub">{formatP(m.all.spearmanP ?? NaN)}</span></td>
+                <td>r={m.male.spearman?.toFixed(3)}<br /><span class="sub">{formatP(m.male.spearmanP ?? NaN)}</span></td>
+                <td>r={m.female.spearman?.toFixed(3)}<br /><span class="sub">{formatP(m.female.spearmanP ?? NaN)}</span></td>
+                <td>{m.sex.gapInSd.toFixed(2)} SD</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+      <p class="table-note">
+        いずれも出走済みのみ・スピアマンの順位相関。右端は、牡牝の中央値の差がその測尺のばらつき
+        （<TermLink to="sd">標準偏差</TermLink>）何個ぶんかを示す。
+      </p>
+    </details>
     <div class="finding">
-      <p class="finding-lead">馬体重は、管囲のような「性別の代理」ではない</p>
+      <p class="finding-lead">馬体重は管囲のような「性別の代理」ではない</p>
       <p>
-        管囲は牡牝の中央値が{caretRow.sex.gapInSd.toFixed(2)}SDも離れていて（体重は
-        {weightRow.sex.gapInSd.toFixed(2)}SD）、太い群＝ほぼ牡・細い群＝ほぼ牝になる。
-        <a href="/articles/caret-girth/">管囲の記事</a>で書いたとおり、管囲で並べることは
-        ほぼ性別で並べることだった。馬体重ではそうならない。4分位の牡の割合は
-        {allQuartileMaleShare.map((q) => q.share.toFixed(1) + '%').join(' → ')}で、
+        管囲は牡牝の中央値が{caretRow.sex.gapInSd.toFixed(2)}SDも離れていて（体重は{weightRow.sex.gapInSd.toFixed(2)}SD）、
+        太い群＝ほぼ牡・細い群＝ほぼ牝になる。<a href="/articles/caret-girth/">管囲の記事</a>で書いたとおり、
+        管囲で並べることはほぼ性別で並べることだった。
+      </p>
+      <p>
+        馬体重ではそうならない。4分位の牡の割合は{allQuartileMaleShare.map((q) => q.share.toFixed(1) + '%').join(' → ')}で、
         管囲のように片側へ寄り切らない。
       </p>
       <p>
-        同じ物差しで確かめるとこうなる。<strong>性別をそろえたうえで相関を取り直す</strong>と、
-        管囲は r={caretSexControlled.raw?.toFixed(3)} → {caretSexControlled.controlled?.toFixed(3)} と
-        大きく目減りするのに対し、馬体重は
-        r={weightSexControlled.raw?.toFixed(3)} → {weightSexControlled.controlled?.toFixed(3)} で
-        だいぶ残る。<strong>この記事は「性別の代理を掴んでいた」話ではなく、同じ物差しでも
-        牡と牝で効き方が違うという話</strong>だ。
-        （とはいえ全頭の r={weightSexControlled.raw?.toFixed(3)} には性別構成の影も
-        いくらか混じっている。牡{rMale.spearman?.toFixed(3)}・牝{rFemale.spearman?.toFixed(3)}の
-        単純な中間より高いのはそのためで、混ぜたままの数字を額面どおりに受け取らない方がいい。）
+        性別をそろえたうえで相関を取り直すと、管囲は r={caretSexControlled.raw?.toFixed(3)} → {caretSexControlled.controlled?.toFixed(3)} と
+        大きく目減りするのに対し、馬体重は r={weightSexControlled.raw?.toFixed(3)} → {weightSexControlled.controlled?.toFixed(3)} でだいぶ残る。
+        <strong>この記事は「性別の代理を掴んでいた」話ではなく、同じ物差しでも牡と牝で結びつき方が違うという話</strong>だ。
+      </p>
+      <p class="fig-note">
+        とはいえ全頭の r={weightSexControlled.raw?.toFixed(3)} には性別構成の影もいくらか混じっている。
+        牡{rMale.spearman?.toFixed(3)}・牝{rFemale.spearman?.toFixed(3)}の単純な中間より高いのはそのためで、
+        混ぜたままの数字を額面どおりに受け取らない方がいい。
       </p>
     </div>
 
     <AdSlot sp={AD_SP_WIDE_A} pc={AD_PC_WIDE_A} />
 
-    <h2>「大きい馬は骨が丈夫」は確かめられるか</h2>
+    <h2>「骨が丈夫な馬は長く走る」説の確認</h2>
     <p>
-      もう一つよく聞くのが「体の割に管（前脚の細い部分）が太い馬は骨がしっかりしていて、
-      故障せず長く走れる」という話だ。これを見るために、性別ごとに
-      <strong>体重の割に管囲が太いか（骨っぽさ）</strong>でスコアを作り、細い側1/3と骨っぽい側1/3で
-      「丈夫さの間接指標」を比べた。
+      もう一つよく聞くのが「体の割に管（前脚の細い部分）が太い馬は骨がしっかりしていて、故障せず長く走れる」という話だ。
+      これを見るために、性別ごとに<strong>体重の割に管囲が太いか（骨っぽさ）</strong>でスコアを作り、
+      細い側1/3と骨っぽい側1/3で「丈夫さの間接指標」を比べた。
     </p>
     <p>
-      ここで注意がいるのが出走数の扱いだ。<strong>中央競馬の未勝利戦は3歳の9月上旬で終わるので、
-      そこまでに勝ち上がれなかった馬はほとんどの場合そこで中央を去る</strong>
-      （地方へ移ったり障害に転じたりして走り続ける馬もいる）。だから出走数をそのまま使うと
-      「丈夫だったか」ではなく「勝ち上がれたか」を測ってしまう。実際、すでに3歳を終えた
-      {MATURE_YEAR}年募集までで見ると、デビューして未勝利で終わった馬の出走数は
-      中央値{noWinStartsMedian}戦、勝ち上がった馬は中央値{winnerStartsMedian}戦だ。
+      ここで注意がいるのが出走数の扱いだ。中央競馬の未勝利戦は3歳の9月上旬で終わるので、
+      そこまでに勝ち上がれなかった馬はほとんどの場合そこで中央を去る（地方へ移ったり障害に転じたりして走り続ける馬もいる）。
+      出走数をそのまま使うと、「丈夫だったか」ではなく「勝ち上がれたか」を測ってしまう。
+    </p>
+    <p>
+      実際、すでに3歳を終えた{MATURE_YEAR}年募集までで見ると、デビューして未勝利で終わった馬の出走数は中央値{noWinStartsMedian}戦、
+      勝ち上がった馬は中央値{winnerStartsMedian}戦だ。
       なので<strong>デビューに辿り着いた率</strong>と<strong>勝ち上がった馬に絞った出走数</strong>で見る。
     </p>
     <div class="table-scroll">
@@ -1256,18 +1252,16 @@ const description = `【非公式】キャロットクラブ${yearRangeLabel}${a
       </table>
     </div>
     <p>
-      デビュー率の差は牡が{formatP(boneMale.debutTest.p)}、牝が{formatP(boneFemale.debutTest.p)}。
-      勝ち上がった後の出走数の差は牡が{formatP(boneMale.startsTest.p)}、
-      牝が{formatP(boneFemale.startsTest.p)}。<strong>4つとも差とは言えない</strong>。
-      <strong>「体の割に骨が太い馬が丈夫だ」という証拠は、このデータからは出てこなかった。</strong>
+      4つの比較のどれにも差は出なかった。<strong>「体の割に骨が太い馬が丈夫だ」という証拠は、このデータからは出てこなかった。</strong>
+    </p>
+    <p class="fig-note">
+      デビュー率の差は牡{formatP(boneMale.debutTest.p)}・牝{formatP(boneFemale.debutTest.p)}、
+      勝ち上がった後の出走数の差は牡{formatP(boneMale.startsTest.p)}・牝{formatP(boneFemale.startsTest.p)}。
     </p>
     <p class="table-note">
-      骨折や長期休養そのもののデータは手元に無いので、ここで見ているのは
-      「デビューまで辿り着いたか」「勝った後どれだけ走ったか」という間接的な指標。
-      しかも性別で割って3等分すると各群は100頭前後まで減るので、
-      <strong>はっきりした差は否定できても、小さな差は見逃しうる</strong>。
-      「差が無いと確かめられた」ではなく「骨っぽい方が丈夫だという証拠は出なかった」という
-      程度に受け取ってほしい。
+      骨折や長期休養そのもののデータは手元に無いので、ここで見ているのは「デビューまで辿り着いたか」「勝った後どれだけ走ったか」という間接的な指標。
+      しかも性別で割って3等分すると各群は100頭前後まで減るので、<strong>はっきりした差は否定できても、小さな差は見逃しうる</strong>。
+      「差が無いと確かめられた」ではなく「骨っぽい方が丈夫だという証拠は出なかった」という程度に受け取ってほしい。
     </p>
 
     <div class="ad-rect">
@@ -1277,10 +1271,9 @@ const description = `【非公式】キャロットクラブ${yearRangeLabel}${a
 
     <h2>重賞を勝った馬の馬体重</h2>
     <p>
-      この{all.length}頭のうち重賞（中央G1〜G3・Jpn1〜3、地方重賞含む）を勝ったのは
-      {gradeWinners.length}頭。募集時馬体重の中央値は牡の重賞馬{gradeMales.length}頭が
-      {gradeMaleWeightMedian}kg（牡全体は{maleWeightMedian}kg）、牝の重賞馬{gradeFemales.length}頭が
-      {gradeFemaleWeightMedian}kg（牝全体は{femaleWeightMedian}kg）。
+      この{all.length}頭のうち重賞（中央G1〜G3・Jpn1〜3、地方重賞含む）を勝ったのは{gradeWinners.length}頭。
+      募集時馬体重の中央値は、牡の重賞馬{gradeMales.length}頭が{gradeMaleWeightMedian}kg（牡全体は{maleWeightMedian}kg）、
+      牝の重賞馬{gradeFemales.length}頭が{gradeFemaleWeightMedian}kg（牝全体は{femaleWeightMedian}kg）。
     </p>
     <GradeWinnerTable rows={gradeWinnersTop} groupFor={(h) => h.sex ?? '不明'} groupLabel="性別" />
     {gradeWinnersRest.length > 0 && (
@@ -1289,9 +1282,7 @@ const description = `【非公式】キャロットクラブ${yearRangeLabel}${a
         <GradeWinnerTable rows={gradeWinnersRest} groupFor={(h) => h.sex ?? '不明'} groupLabel="性別" />
       </details>
     )}
-    <p class="table-note">
-      上の表と折りたたみを合わせた{gradeWinners.length}頭が、{all.length}頭のうち重賞を勝った馬のすべて。
-    </p>
+    <p class="table-note">上の表と折りたたみを合わせた{gradeWinners.length}頭が、{all.length}頭のうち重賞を勝った馬のすべて。</p>
     {lightFemaleGradeWinners.length > 0 && (
       <div class="finding">
         <p class="finding-lead">小柄な牝で走った馬もいる</p>
@@ -1303,11 +1294,12 @@ const description = `【非公式】キャロットクラブ${yearRangeLabel}${a
               <strong>{h.displayName}</strong>（{h.weight}kg・{h.gradeWins[0]}）
             </>
           ))}
-          。420kg台でもG1を勝った牝はいる。ただし前述のとおり
-          <strong>いちばん小さい群（{femaleLightCut}kg以下）からは1頭も出ていない</strong>。
-          もっとも、いちばん軽い勝ち馬と群の区切りの差は数kgしかないので、
-          「{femaleLightCut}kgが境目」という話ではない。小柄でも走る牝はいるが、
-          平均すればその層は数字が落ちる、というくらいの温度感で。
+          。420kg台でもG1を勝った牝はいる。
+        </p>
+        <p>
+          ただし前述のとおり、いちばん小さい群（{femaleLightCut}kg以下）からは1頭も出ていない。
+          もっとも、いちばん軽い勝ち馬と群の区切りの差は数kgしかないので、「{femaleLightCut}kgが境目」という話ではない。
+          小柄でも走る牝はいるが、平均すればその層は数字が落ちる、というくらいに受け取ってほしい。
         </p>
       </div>
     )}
@@ -1323,14 +1315,13 @@ const description = `【非公式】キャロットクラブ${yearRangeLabel}${a
             </>
           ))}
           。実際、牡の{maleScheme.lightest}（{maleScheme.rangeOfGroup(maleScheme.lightest)}）は
-          賞金中央値が{formatManYen(Math.round(endsMale.lightMed))}万円と4群で2番目に高く、
-          重賞馬も{maleGradeCounts[0].hits}頭出ている。
+          賞金中央値が{formatManYen(Math.round(endsMale.lightMed))}万円と4群で2番目に高く、重賞馬も{maleGradeCounts[0].hits}頭出ている。
         </p>
         <p>
           正直に補足すると、小柄な牡は<strong>デビューに辿り着く率だけは低め</strong>だ
           （{maleDebutRates[0].rate.toFixed(1)}% vs 重い1/4の{maleDebutRates[3].rate.toFixed(1)}%・
           {ratePText(maleDebutTest)}なので誤差の範囲ではあるが）。
-          <strong>走り出しさえすれば成績は落ちない</strong>、というのがこのデータの形で、
+          走り出しさえすれば成績は落ちない、というのがこのデータの形で、
           カタログの馬体重欄を見て「牡なのに小さいから」と外す材料にはならなさそうだ。
         </p>
       </div>
@@ -1338,67 +1329,42 @@ const description = `【非公式】キャロットクラブ${yearRangeLabel}${a
 
     <h2>まとめ</h2>
     <ul class="conclusion">
-      <li>全頭をまとめると、募集時の馬体重は獲得賞金と弱く正に相関する
-        （順位相関 r={rAll.spearman?.toFixed(3)}・{formatP(rAll.spearmanP ?? NaN)}）。体高の記事と
-        同じくらいの弱さだ。</li>
-      <li><strong>ところが牡では賞金との関係が見えない</strong>（{maleScheme.lightest} vs
-        {maleScheme.heaviest}で{formatP(endsMale.mw.p)}、順位相関
-        r={rMale.spearman?.toFixed(3)} / {formatP(rMale.spearmanP ?? NaN)}、<TermLink to="superiority">優越確率</TermLink>
-        {((endsMale.superiority ?? 0) * 100).toFixed(1)}%）。賞金の中央値は最軽量群がむしろ2番目に高い。
-        勝ち上がり率・重賞頭数・デビュー率は弱く重い側を向くが（
-        {maleWinRates[0].rate.toFixed(1)}%→{maleWinRates[3].rate.toFixed(1)}%、
-        {maleGradeCounts[0].hits}頭→{maleGradeCounts[3].hits}頭、
-        {maleDebutRates[0].rate.toFixed(1)}%→{maleDebutRates[3].rate.toFixed(1)}%）、
-        いずれも{ratePText(maleWinTest)}・{ratePText(maleGradeTest)}・{ratePText(maleDebutTest)}で
-        <strong>誤差の範囲</strong>。「無関係だと確かめられた」ではなく「差と呼べるものは出なかった」。</li>
-      <li><strong>牝でははっきり効く</strong>。4分位の賞金中央値が
-        {femalePrizeBars.map((b) => b.displayValue).join(' → ')}と単調に上がり
-        （両端で{formatP(endsFemale.mw.p)}）、勝ち上がり率も
-        {femaleWinRates[0].rate.toFixed(1)}% → {femaleWinRates[3].rate.toFixed(1)}%
-        （{ratePText(femaleWinTest)}）。順位相関 r={rFemale.spearman?.toFixed(3)}・
-        {formatP(rFemale.spearmanP ?? NaN)}。<strong>最軽量25%（{femaleLightCut}kg以下）からは
-        重賞勝ち馬が出ていない</strong>（他の群並みなら{femaleGradeTest.lightExpected.toFixed(1)}頭ほどの計算）。
-        ただし牝の重賞馬は{gradeFemales.length}頭しかおらず、この区切りは数kgずれれば動く。</li>
-      <li>牝で見るべきは体高ではなく体重。体高をそろえても体重の相関は残る
-        （r={partials.weightGivenHeight?.toFixed(3)}・{formatP(partialWeightGivenHeightP ?? NaN)}）。
-        体高の方は<strong>牝だけだと単独でも有意でなく</strong>
-        （r={heightRow.female.spearman?.toFixed(3)}・{formatP(heightRow.female.spearmanP ?? NaN)}）、
-        体重をそろえるとゼロ近くまで落ちる。誕生日をそろえても体重の相関は落ちないので
-        「小柄な牝は遅生まれだから」でもない。</li>
-      <li>馬体重の性差は{weightRow.sex.gapInSd.toFixed(2)}SDと穏やか（管囲は{caretRow.sex.gapInSd.toFixed(2)}SD）。
-        性別をそろえて相関を取り直しても、管囲が{caretSexControlled.raw?.toFixed(3)} →
-        {caretSexControlled.controlled?.toFixed(3)}と大きく落ちるのに対し体重は
-        {weightSexControlled.raw?.toFixed(3)} → {weightSexControlled.controlled?.toFixed(3)}で残る。
-        <strong>管囲のように「性別の代理を見ていた」話ではなく、同じ物差しでも牡と牝で
-        効き方が違うという話</strong>。</li>
-      <li>「体の割に管が太い＝骨が丈夫で長く走れる」は、デビュー到達率
-        （牡 {formatP(boneMale.debutTest.p)}・牝 {formatP(boneFemale.debutTest.p)}）でも
-        勝ち上がり馬の出走数（牡 {formatP(boneMale.startsTest.p)}・牝 {formatP(boneFemale.startsTest.p)}）でも
-        差が出なかった。ただし直接の故障データは無く、各群も100頭前後なので中くらいの差は見逃しうる。</li>
-      <li>実務的には、<a href="/">募集馬一覧</a>で馬体重を並べ替えて見るなら
-        <strong>先に性別で絞ってから</strong>。牝は小柄な側が平均して苦戦する傾向、牡は
-        体重を判断材料にしづらい、という別々の話になる。</li>
+      <li>全頭をまとめると、募集時の馬体重は獲得賞金と弱く正に相関する（r={rAll.spearman?.toFixed(3)}）。体高の記事と同じくらいの弱さだ。</li>
+      <li>
+        <strong>ところが牡では賞金との関係が見えない</strong>（r={rMale.spearman?.toFixed(3)}）。賞金の中央値は最軽量群がむしろ2番目に高い。
+        勝ち上がり率・重賞頭数・デビュー率は弱く重い側を向くが、いずれも誤差の範囲。「無関係だと確かめられた」ではなく「差と呼べるものは出なかった」。
+      </li>
+      <li>
+        <strong>牝でははっきり差が出る</strong>。4分位の賞金中央値が{femalePrizeBars.map((b) => b.displayValue).join(' → ')}と単調に上がり、
+        勝ち上がり率も{femaleWinRates[0].rate.toFixed(1)}% → {femaleWinRates[3].rate.toFixed(1)}%。
+        最軽量25%（{femaleLightCut}kg以下）からは重賞勝ち馬が出ていないが、牝の重賞馬は{gradeFemales.length}頭しかおらず、この区切りは数kgずれれば動く。
+      </li>
+      <li>牝で見るべきは体重。体高をそろえても体重の相関は残り、体高の方は体重をそろえるとゼロ近くまで落ちる。誕生日をそろえても体重の相関は落ちない。</li>
+      <li>馬体重の性差は穏やかで、性別をそろえても相関が残る。管囲のように「性別の代理を見ていた」話ではない。</li>
+      <li>「体の割に管が太い＝骨が丈夫で長く走れる」は、デビュー到達率でも勝ち上がり馬の出走数でも差が出なかった。ただし直接の故障データは無く、中くらいの差は見逃しうる。</li>
     </ul>
+    <p>
+      実務的には、<a href="/">募集馬一覧</a>で馬体重を並べ替えて見るなら<strong>先に性別で絞ってから</strong>。
+      牝は小柄な側が平均して苦戦する傾向、牡は体重を判断材料にしづらい、という別々の話になる。
+    </p>
 
     <h2>データについて</h2>
     <p>
-      馬体重は募集時にクラブが公表した測尺データが元で、{allRecruits.length}頭中{all.length}頭ぶん揃っている。
-      競走成績は{resultsAsOf}時点のスナップショットで、今後レースを重ねるたびに変わっていく。
-      直近の募集組はまだ大半が未出走〜デビュー間もないため、獲得賞金のクロス集計は出走済みの
-      {raced.length}頭が母数。<strong>勝ち上がり率とデビュー率だけは未出走の馬も分母に入れている</strong>
-      （まだ走っていない馬を「勝てなかった」に数える形になるので、そのぶん率は低めに出る）。
+      馬体重は募集時にクラブが公表した測尺データが元。競走成績は{resultsAsOf}時点のもので、今後レースを重ねるたびに変わっていく。
+      直近の募集組はまだ大半が未出走〜デビュー間もないため、獲得賞金のクロス集計は出走済みの{raced.length}頭が母数。
+      勝ち上がり率とデビュー率だけは未出走の馬も分母に入れている（まだ走っていない馬を「勝てなかった」に数える形になるので、そのぶん率は低めに出る）。
       獲得賞金は中央（JRA）・地方（NAR）の合計で、海外レースの賞金は含まない。
-      賞金は走った年数ぶん積み上がるので募集年の影響を受ける。主要な主張は性別ごとなので
-      性別ごとに確かめると、牝は{femaleScheme.lightest}と{femaleScheme.heaviest}の平均募集年が
-      {yearEndsFemale.light.toFixed(2)}年と{yearEndsFemale.heavy.toFixed(2)}年でほぼ揃っている。
-      牡は{yearEndsMale.light.toFixed(2)}年と{yearEndsMale.heavy.toFixed(2)}年とやや開くが、
-      <strong>軽い側の方が新しい世代なのに賞金中央値は高い</strong>ので、この偏りは
-      「牡では関係が見えない」という結論を弱める方向には働かない。
+    </p>
+    <p>
+      賞金は走った年数ぶん積み上がるので、募集年の影響を受ける。主要な主張は性別ごとなので性別ごとに確かめると、
+      牝は{femaleScheme.lightest}と{femaleScheme.heaviest}の平均募集年が{yearEndsFemale.light.toFixed(2)}年と{yearEndsFemale.heavy.toFixed(2)}年でほぼ揃っている。
+      牡は{yearEndsMale.light.toFixed(2)}年と{yearEndsMale.heavy.toFixed(2)}年とやや開くが、軽い側の方が新しい世代なのに賞金中央値は高いので、
+      この偏りは「牡では関係が見えない」という結論を弱める方向には働かない。
       走る時間が足りている{MATURE_YEAR}年募集までに絞った確認も本文に載せてある。
-      性別は募集時のもの。{sexUnknown > 0 && `性別が取れなかった${sexUnknown}頭は牡牝の比較から除いている。`}
-      4分位は母集団の体重の25/50/75パーセンタイルで切り、体型・骨っぽさの比較は
-      性別ごとに標準化してから3等分している。相関係数はあくまで関係の強さの目安で、
-      これだけで「馬体重が成績に影響する／しない」と断言できるわけではない。
+    </p>
+    <p>
+      性別は募集時のもの。4分位は母集団の体重の25/50/75パーセンタイルで切り、体型・骨っぽさの比較は性別ごとに標準化してから3等分している。
+      相関係数はあくまで関係の強さの目安で、これだけで「馬体重が成績に影響する／しない」と断言できるわけではない。
       出資判断の材料というより、あくまで趣味の分析として楽しんでもらえたら。
     </p>
 
@@ -1413,6 +1379,34 @@ const description = `【非公式】キャロットクラブ${yearRangeLabel}${a
 <style>
   article :global(h2) {
     margin-top: 2.5rem;
+  }
+  .answer {
+    margin: 1.5rem 0 0.25rem;
+    font-size: 1.25rem;
+    font-weight: 700;
+    line-height: 1.6;
+  }
+  .fig-note {
+    color: var(--muted);
+    font-size: 0.875rem;
+    line-height: 1.7;
+  }
+  .points {
+    padding-left: 1.25rem;
+  }
+  .points li + li {
+    margin-top: 0.5rem;
+  }
+  .fold {
+    background: var(--card);
+    border-radius: 8px;
+    padding: 0.5rem 0.85rem;
+    margin: 0.75rem 0 1rem;
+  }
+  .fold summary {
+    cursor: pointer;
+    font-weight: 600;
+    padding: 0.25rem 0;
   }
   .table-note {
     font-size: 0.8125rem;

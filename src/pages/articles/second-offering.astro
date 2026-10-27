@@ -289,26 +289,30 @@ const CATEGORY_NOTE: Record<FemaleSizeCategory, string> = {
       第2次募集が始まった。1次、1.5次と進んで、今から出資できる馬は{targetIds.length}頭まで減った。1次で満口にならなかった馬が過去にどうなったかは、<a href="/articles/secondary-offering/">1.5次募集に回った馬の記事</a>で追いかけている。
     </p>
     <p>
-      私は1.5次募集で1頭に申し込んで、出資が決まった。そのとき困ったのは、残っている馬がどれも同じくらいに見えてしまうことだった。1次で人気が集まらなかった馬どうしを比べるのだから、無理もない。だから、過去の募集馬のデータで確かめられる物差しを1本だけ探して、それで並べ直した。この記事は、その物差しを残りの{targetIds.length}頭に当てたものだ。
+      私は1.5次募集で1頭に申し込んで、出資が決まった。そのとき困ったのは、残っている馬がどれも同じくらいに見えてしまうことだった。1次で人気が集まらなかった馬どうしを比べるのだから、無理もない。だから、過去の募集馬のデータで確かめられる物差しを1本だけ探して、それで並べ直した。この記事はその物差しを残りの{targetIds.length}頭に当てたものだ。
     </p>
     <p>
-      結論から書く。<strong>牝馬は、募集時の馬体重と胸囲がどちらも過去の牝の真ん中より上かどうかで、その後の稼ぎがはっきり分かれてきた。{targetIds.length}頭の中でそれに当てはまるのはNo.{bothAboveHorses.map((f) => f.horse.id).join('とNo.')}の{bothAboveHorses.length}頭</strong>。牡馬のほうは、この物差しでは差が出ない。そこも正直に書いておく。
+      牝馬は、募集時の馬体重と胸囲がどちらも過去の牝の真ん中より上かどうかで、その後の稼ぎがはっきり分かれてきた。
+      牡馬のほうは、この物差しでは差が出ない。そこも正直に書いておく。
+    </p>
+
+    <p class="answer">
+      {targetIds.length}頭の中で条件に当てはまる牝は、No.{bothAboveHorses.map((f) => f.horse.id).join('とNo.')}の{bothAboveHorses.length}頭。
     </p>
 
     <StatTiles
       tiles={[
-        { label: '第2次募集の対象', value: `${targetIds.length}頭`, note: `牝${screen.females.length}頭・牡${screen.males.length}頭` },
-        {
-          label: '牝の物差し（過去データ）',
-          value: `${benchmark.medianWeightKg}kg / ${benchmark.medianChestGirthCm}cm`,
-          note: '2017〜2023年度募集・牝の体重・胸囲の中央値',
-        },
-        {
-          label: '両方中央値超の回収率100%超',
-          value: `${Math.round(benchmark.above.over100RatePct)}%`,
-          note: `それ以外は${Math.round(benchmark.restOrEqual.over100RatePct)}%（${formatP(benchmark.over100RateTest.p)}）`,
-        },
         { label: '条件に当てはまる牝', value: `No.${bothAboveHorses.map((f) => f.horse.id).join('・')}`, note: '体重・胸囲とも中央値超' },
+        {
+          label: '募集価格以上に稼いだ割合',
+          value: `${Math.round(benchmark.above.over100RatePct)}%`,
+          note: `それ以外の牝は${Math.round(benchmark.restOrEqual.over100RatePct)}%`,
+        },
+        {
+          label: '牝の物差し（馬体重）',
+          value: `${benchmark.medianWeightKg}kg`,
+          note: `胸囲は${benchmark.medianChestGirthCm}cm。過去の中央値`,
+        },
       ]}
     />
 
@@ -382,17 +386,20 @@ const CATEGORY_NOTE: Record<FemaleSizeCategory, string> = {
 
     <p class="table-note">回収率＝獲得賞金 ÷ 募集総額（一口価格×口数）。「中央値超」は境界値ちょうどを含まない。割合の差の検定は{formatP(benchmark.over100RateTest.p)}。</p>
     <p>
-      募集価格以上に稼いだ馬の割合は、ほぼ2倍の開きになる。回収率の真ん中の値で比べると、差はもっと大きい。偶然でこれだけ開くことは、まず無い。
+      募集価格以上に稼いだ馬の割合はほぼ2倍の開きになる。回収率の真ん中の値で比べると、差はもっと大きい。偶然でこれだけ開くことは、まず無い。
     </p>
     <p>
-      ひとつ断っておくと、体重と胸囲はどちらも「体の大きさ」を測っている。根拠が2つ重なっているわけではなく、「大きい牝」という1本の物差しだと思って読んでほしい。体重だけ、胸囲だけで見た結果は<a href="/articles/weight/">馬体重の記事</a>と<a href="/articles/chest-girth/">胸囲の記事</a>に書いた。
+      体重と胸囲は、どちらも「体の大きさ」を測っている。根拠が2つ重なっているわけではなく、「大きい牝」という1本の物差しだと思って読んでほしい。体重だけ、胸囲だけで見た結果は<a href="/articles/weight/">馬体重の記事</a>と<a href="/articles/chest-girth/">胸囲の記事</a>に書いた。
     </p>
 
     <AdSlot sp={AD_SP_WIDE_B} pc={AD_PC_WIDE_B} />
 
     <h2>牝{screen.females.length}頭を群で見る</h2>
     <p>
-      残りの牝も同じ物差しで並べた。体重と胸囲の片方だけが真ん中を超えている馬、どちらも届かない馬、そして体重が過去の牝の下位1/4（{benchmark.bottomQuartileWeightBoundaryKg}kg未満）に入る馬に分けている。下の群ほど、この物差しの上では分が悪い。ただ、分が悪いというだけで、走らないと決まったわけではない。牝の体重と成績の関係は、<a href="/articles/weight/">馬体重の記事</a>の「牝では『体高』ではなく『体重』で見る」の節にもう少し詳しく書いた。
+      残りの牝も同じ物差しで並べた。体重と胸囲の片方だけが真ん中を超えている馬、どちらも届かない馬、そして体重が過去の牝の下位1/4（{benchmark.bottomQuartileWeightBoundaryKg}kg未満）に入る馬に分けている。
+    </p>
+    <p>
+      下の群ほど、この物差しの上では分が悪い。ただ、分が悪いというだけで、走らないと決まったわけではない。牝の体重と成績の関係は、<a href="/articles/weight/">馬体重の記事</a>の「牝では『体高』ではなく『体重』で見る」の節にもう少し詳しく書いた。
     </p>
 
     {
@@ -487,13 +494,16 @@ const CATEGORY_NOTE: Record<FemaleSizeCategory, string> = {
         </tbody>
       </table>
     </div>
-    <p class="table-note">項目名のリンク先は、その項目を牡牝あわせて調べた記事。一口価格と賞金の関係は<a href="/articles/height/">体高の記事</a>の「参考: 一口価格との比較」で扱っている。勝ち上がり率は出走した馬のうち1勝以上した割合。回収率の定義は牝と同じ。「真ん中の値」ちょうどの馬は、体高・体重・価格では低い側、誕生日では遅生まれ側に入れている。</p>
+    <p class="table-note">項目名のリンク先はその項目を牡牝あわせて調べた記事。一口価格と賞金の関係は<a href="/articles/height/">体高の記事</a>の「参考: 一口価格との比較」で扱っている。勝ち上がり率は出走した馬のうち1勝以上した割合。回収率の定義は牝と同じ。「真ん中の値」ちょうどの馬は、体高・体重・価格では低い側、誕生日では遅生まれ側に入れている。</p>
 
     <p>
       牝の体の大きさのような、はっきりした差はどこにも出なかった。勝ち上がり率はどの項目で分けてもほぼ同じだ。回収率の中央値は開いて見える項目もあるが、1頭ごとのばらつきが大きく、偶然でも出る程度の差に収まっている。
     </p>
     <p>
-      唯一、差らしく見えるのが<strong>体高と重賞馬の関係</strong>だ。背の高い側から重賞馬が{coltHeight.focus.gradeWinners}頭、低い側からは{coltHeight.rest.gradeWinners}頭。割合にすると{Math.round(coltHeight.focus.gradeRatePct)}%と{Math.round(coltHeight.rest.gradeRatePct)}%になる。ただ、4項目×3つの見方で12回比べた中の1つだけなので、偶然の可能性を消しきれない。勝ち上がり率ではむしろ低い側がわずかに上だ。「背の高い牡からは大物が出やすいかもしれない」くらいに受け取っておくのがいいと思う。
+      唯一、差らしく見えるのが<strong>体高と重賞馬の関係</strong>だ。背の高い側から重賞馬が{coltHeight.focus.gradeWinners}頭、低い側からは{coltHeight.rest.gradeWinners}頭。割合にすると{Math.round(coltHeight.focus.gradeRatePct)}%と{Math.round(coltHeight.rest.gradeRatePct)}%になる。
+    </p>
+    <p>
+      ただ、4項目×3つの見方で12回比べた中の1つだけなので、偶然の可能性を消しきれない。勝ち上がり率ではむしろ低い側がわずかに上だ。「背の高い牡からは大物が出やすいかもしれない」くらいに受け取っておくのがいいと思う。
     </p>
     <p>
       今回の牡{screen.males.length}頭を、この4項目で見るとこうなる。印（▲）が付いているのは、背が高い・重い・早生まれ・価格が高い側に入っている項目だ。
@@ -537,7 +547,7 @@ const CATEGORY_NOTE: Record<FemaleSizeCategory, string> = {
       体高が真ん中を超えているのは{tallColts.map((r) => `No.${r.m.horse.id}`).join('・')}だけで、地方所属の予定だ。中央に入る予定の{centralColts.map((r) => `No.${r.m.horse.id}`).join('と')}は、どちらも早生まれの側に入っている。早生まれ側からは重賞馬が{coltBirth.focus.gradeWinners}頭、遅生まれ側からは{coltBirth.rest.gradeWinners}頭出ているが、これも偶然で片づけられる程度の差だ。誕生日と体格・成績の関係は<a href="/articles/birth-month/">誕生月の記事</a>でまとめて見ている。
     </p>
     <p>
-      結局、牡の{screen.males.length}頭をデータで順位付けする根拠は無い。選ぶ材料は、血統や厩舎、ツアーで見た印象のほうにある。
+      結局、牡の{screen.males.length}頭をデータで順位付けする根拠は無い。選ぶ材料は血統や厩舎、ツアーで見た印象のほうにある。
     </p>
 
     <h2>地方所属予定の馬について</h2>
@@ -614,6 +624,12 @@ const CATEGORY_NOTE: Record<FemaleSizeCategory, string> = {
 </BaseLayout>
 
 <style>
+  .answer {
+    margin: 1.5rem 0 0.25rem;
+    font-size: 1.25rem;
+    font-weight: 700;
+    line-height: 1.6;
+  }
   article :global(h2) {
     margin-top: 2.5rem;
   }

@@ -383,31 +383,21 @@ const description = `1次募集で満口にならなかった馬たちのその�
       私もそうだ。そして今年も、満口にならなかった馬が{leftoverThisYear}頭、1.5次募集に回った。
     </p>
     <p>
-      このリストを見て「1次で売れ残った馬か」と思うのは自然だ。実際、みんなが欲しがった馬から
-      順に埋まっていくのだから、残っているのは人気がなかった馬である。それは間違いない。
+      このリストを見て「1次で売れ残った馬か」と思うのは自然だ。みんなが欲しがった馬から順に埋まっていくのだから、
+      残っているのは人気がなかった馬である。それは間違いない。
     </p>
     <p>
       ただ、<strong>人気がなかったことと、走らないことは別の話だ</strong>。
       過去4年ぶんの「1.5次募集に回った馬」を全頭洗い出して、その後どうなったかを追いかけた。
     </p>
-    <p>
-      結論から書く。<strong>成績が出そろっている3世代は、どの年も同期の獲得賞金トップ10に
-      1.5次組が1頭ずつ入っている</strong>。オープンを勝った馬もいるし、募集価格より多く稼いだ馬も5頭いる。
-    </p>
+
+    <p class="answer">成績が出そろった3世代とも、同期の獲得賞金トップ10に1.5次組が1頭ずつ入っている。</p>
 
     <StatTiles
       tiles={[
-        {
-          label: '今年の1.5次募集対象',
-          value: `${leftoverThisYear}頭`,
-          note: secondaryRoundSettled
-            ? `${soldOutInSecondaryCount}頭が満口・${stillRemainingCount}頭が${SECOND_OFFERING_ROUND_LABEL}へ`
-            : '1次募集で満口にならなかった馬',
-        },
-        { label: '集計した世代（成熟3世代）', value: `${matureCount}頭`, note: '2022〜2024年度募集' },
-        { label: '同期トップ10入り', value: '3世代とも1頭ずつ', note: '獲得賞金で同期に並べた順位' },
-        { label: '募集価格を上回った馬', value: `${roi100Rows.length}頭`, note: '回収率100%超' },
-        { label: '勝ち上がり', value: `${winners}頭`, note: `${matureCount}頭中・未勝利は${noWin}頭` },
+        { label: '同期トップ10入り', value: '3世代とも', note: '1.5次組から毎年1頭' },
+        { label: '募集価格を上回った馬', value: `${roi100Rows.length}頭`, note: `${matureCount}頭中` },
+        { label: '重賞を勝った馬', value: '0頭', note: `同じ3世代の全体では${cohortGradeWinners.length}頭` },
       ]}
     />
 
@@ -419,8 +409,8 @@ const description = `1次募集で満口にならなかった馬たちのその�
     <h2>この記事で見ている馬</h2>
     <p>
       キャロットの1歳馬募集は、1次募集で満口にならなかった馬だけが1.5次募集に回る。
-      クラブが毎年9月に出す「第1次募集最終集計結果」に、その年どの馬が1.5次募集の対象になったかが
-      載っている。この記事はそれをそのまま使っている。
+      どの馬が1.5次募集の対象になったかは、クラブが毎年9月に出す「第1次募集最終集計結果」に載っていて、
+      この記事はそれをそのまま使っている。
     </p>
 
     <div class="table-scroll">
@@ -452,10 +442,10 @@ const description = `1次募集で満口にならなかった馬たちのその�
       <strong>2022〜2024年度の{matureCount}頭</strong>でする。
     </p>
 
-    <h3>なぜ2022年度からなのか</h3>
+    <details class="fold">
+    <summary>2021年度より前を入れていない理由</summary>
     <p>
-      さかのぼれるだけさかのぼって、そこで止まったわけではない。それより前は
-      <strong>同じ土俵に並べられない</strong>からだ。
+      さかのぼれるだけさかのぼって、そこで止まったわけではない。それより前は同じ土俵に並べられないからだ。
     </p>
     <p>
       <strong>2021年度は、そもそも1.5次募集が無かった。</strong>1次募集で全馬が満口になり、
@@ -474,13 +464,13 @@ const description = `1次募集で満口にならなかった馬たちのその�
       ただし枠組みが上記のとおり違うので、本文の集計には入れていない。
       2019年度以前は、クラブのサイトに該当する発表が残っていないため確認できなかった。
     </p>
+    </details>
 
     <AdSlot sp={AD_SP_WIDE_B} pc={AD_PC_WIDE_B} />
 
     <h2>同期3位まで来た馬がいる</h2>
     <p>
-      いちばんはっきりしているのがこれだ。1.5次募集に回った馬を、同じ年に募集された馬全部と
-      獲得賞金で並べたときの順位。
+      いちばんはっきりしているのは、1.5次募集に回った馬を、同じ年に募集された馬全部と獲得賞金で並べたときの順位だ。
     </p>
 
     <div class="table-scroll">
@@ -546,7 +536,7 @@ const description = `1次募集で満口にならなかった馬たちのその�
       <InArticleAd />
     </div>
 
-    <h2>「1頭だけたまたま」ではない</h2>
+    <h2>トップ10の下の層</h2>
     <p>
       トップ10級はたしかに1頭ずつだが、その下も空っぽではない。
       同期の獲得賞金の<TermLink to="median">中央値</TermLink>を上回った馬の数はこうなる。
@@ -606,7 +596,7 @@ const description = `1次募集で満口にならなかった馬たちのその�
 
     <AdSlot sp={AD_SP_WIDE_A} pc={AD_PC_WIDE_A} />
 
-    <h2>正直に書いておくこと</h2>
+    <h2>重賞と勝ち上がり率</h2>
     <p>いいことばかり書いたので、そうでない部分も出しておく。</p>
     <p>
       <strong>{matureCount}頭から重賞を勝った馬は1頭も出ていない。</strong> 2022〜2024年度の3世代で0頭だ。
@@ -620,8 +610,8 @@ const description = `1次募集で満口にならなかった馬たちのその�
         1.5次組が{fmtPct1(winRateLeftoverPct)}（{winners}/{matureCount}頭）、1次で満口になった組が
         {fmtPct1(winRateSoldOutPct)}（{soldOutWinners}/{matureSoldOut.length}頭）
       </strong>。
-      {winRateGapPt.toFixed(1)}ポイントの差だ。ただ、差そのものは統計的にはっきり出るほど大きくはない
-      （{formatP(winRateTest.p)}）。母数が少ないので、この差を細かく読み込みすぎないほうがいい。
+      {winRateGapPt.toFixed(1)}ポイントの差だ。ただ、統計的にはっきり出るほど大きな差ではないので
+      （{formatP(winRateTest.p)}）、細かく読み込みすぎないほうがいい。
     </p>
     <p>
       一方で、<strong>募集価格以上に稼いだ馬の割合</strong>で比べると、差はほとんど無くなる。
@@ -635,8 +625,7 @@ const description = `1次募集で満口にならなかった馬たちのその�
       勝ち上がれなかったのは{noWin}頭。この現実は変わらない。
     </p>
     <p>
-      つまり、こういうことになる。
-      <strong>上のほう（重賞）は薄い。でも「勝ち上がって、そこそこ稼ぐ」層の厚みは、そこまで変わらない。</strong>
+      <strong>上のほう（重賞）は薄い。でも「勝ち上がって、そこそこ稼ぐ」層の厚みは、そこまで変わらない</strong>。
       1.5次募集に期待するなら、この現実的な線を見たほうがいい。
     </p>
 
@@ -661,8 +650,8 @@ const description = `1次募集で満口にならなかった馬たちのその�
           。1回の優先受付で3分の1が埋まった計算になる。
         </p>
         <p>
-          埋まり方にも順番があった。1.5次募集の時点で残り口数の実数が出ていた
-          ——つまり残口が100口（地方入厩予定馬は25口）以下だった{smallRemainingIds.length}頭のうち、
+          埋まり方にも順番があった。1.5次募集の時点で残り口数の実数が出ていた馬、
+          つまり残口が100口（地方入厩予定馬は25口）以下だった{smallRemainingIds.length}頭のうち、
           {smallRemainingSoldOut}頭が満口になっている。あと少しで埋まる馬から先に決まっていく、
           というのは感覚どおりだ。逆に言えば、今残っているのはまだ口数に余裕がある馬が中心で、
           焦って決めなくてもいい状況ではある。
@@ -689,7 +678,7 @@ const description = `1次募集で満口にならなかった馬たちのその�
     <p>
       過去4年を追いかけて言えるのは、この{leftoverThisYear}頭の中にも、
       数年後に「あのとき申し込んでおけば」と言われる馬がおそらく混ざっている、ということだ。
-      1次で外れた人が、ここで拾える。
+      1次で外れた人がここで拾える。
     </p>
 
     <h2>データについて</h2>
@@ -733,6 +722,23 @@ const description = `1次募集で満口にならなかった馬たちのその�
   table.data-table th {
     color: var(--muted);
     font-weight: 600;
+  }
+  .answer {
+    margin: 1.5rem 0 0.25rem;
+    font-size: 1.25rem;
+    font-weight: 700;
+    line-height: 1.6;
+  }
+  .fold {
+    background: var(--card);
+    border-radius: 8px;
+    padding: 0.5rem 0.85rem;
+    margin: 0.75rem 0 1rem;
+  }
+  .fold summary {
+    cursor: pointer;
+    font-weight: 600;
+    padding: 0.25rem 0;
   }
   .ad-rect {
     display: flex;

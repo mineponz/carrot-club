@@ -263,25 +263,26 @@ const description = `【非公式】キャロットクラブ${yearRangeLabel}${a
 
     <p>
       募集馬を選ぶとき、体高や馬体重はみんな気にするけれど、「胸囲」まで注目している人は
-      案外少ない気がする。胸が深い馬は肺活量が大きく、スタミナに優れるという話も聞くので、
-      <a href="/articles/height/">体高</a>・<a href="/articles/dam-age/">母齢</a>・
-      <a href="/articles/birth-month/">誕生月</a>に続いて、今度はこの「胸囲」を実際のデータで
-      確かめてみた。{yearRangeLabel}募集（{yearCounts}）に、{resultsAsOf}時点の獲得賞金・通算成績を
-      突き合わせた独自集計。今回は獲得賞金だけでなく、「安く仕入れて活躍できたか」を見る
-      <strong>回収率</strong>（獲得賞金合計 ÷ 募集総額）でも合わせて見ていく。
+      案外少ない気がする。胸が深い馬は肺活量が大きく、スタミナに優れるという話も聞く。
     </p>
+    <p>
+      そこで<a href="/articles/height/">体高</a>・<a href="/articles/dam-age/">母齢</a>・
+      <a href="/articles/birth-month/">誕生月</a>に続いて、胸囲を実際のデータで確かめた。
+      {yearRangeLabel}募集（{yearCounts}）の{resultsAsOf}時点の成績を、獲得賞金と<strong>回収率</strong>
+      （獲得賞金合計 ÷ 募集総額）の両方で見ている。
+    </p>
+
+    <p class="answer">胸囲だけを見て成績を読むのは難しい。</p>
 
     <StatTiles
       tiles={[
-        { label: '対象頭数', value: `${all.length}頭` },
-        { label: '出走済み', value: `${raced.length}頭` },
-        { label: '未出走', value: `${unraced}頭`, note: '大半が直近の募集組' },
+        { label: '胸囲 × 獲得賞金', value: girthR !== null ? `r=${girthR.toFixed(3)}` : '—', note: 'ほぼ無相関' },
+        { label: '胸囲 × 馬体重', value: girthWeightR !== null ? `r=${girthWeightR.toFixed(3)}` : '—', note: '体の大きさの言い換えに近い' },
         {
-          label: '胸囲 × 獲得賞金合計',
-          value: girthR !== null ? `r=${girthR.toFixed(3)}` : '—',
-          note: '線形ではほぼ無相関',
+          label: '回収率の中央値',
+          value: `${Math.round(roiBars[0]?.value ?? 0)}%→${Math.round(roiBars[roiBars.length - 1]?.value ?? 0)}%`,
+          note: '胸囲の小さい階級→大きい階級',
         },
-        { label: '胸囲の範囲', value: `${girthMin}〜${girthMax}cm` },
       ]}
     />
 
@@ -292,26 +293,17 @@ const description = `【非公式】キャロットクラブ${yearRangeLabel}${a
 
     <h2>胸囲の分布</h2>
     <p>
-      まず母集団を見ておくと、{all.length}頭の胸囲は{girthMin}〜{girthMax}cmに分布していて、
-      平均は{girthMean.toFixed(1)}cm・<TermLink to="median">中央値</TermLink>は{girthMedian.toFixed(1)}cm。3cm刻みでヒストグラムに
-      するとこんな感じ。
+      {all.length}頭の胸囲は{girthMin}〜{girthMax}cmに分布していて、
+      平均は{girthMean.toFixed(1)}cm・<TermLink to="median">中央値</TermLink>は{girthMedian.toFixed(1)}cm。3cm刻みで並べるとこうなる。
     </p>
     <BarChart title={`胸囲の分布（全${all.length}頭・3cm刻み）`} bars={girthBins} valueLabel="頭数" />
 
     <AdSlot sp={AD_SP_WIDE_B} pc={AD_PC_WIDE_B} />
 
-    <h2>胸囲 × 獲得賞金合計</h2>
+    <h2>胸囲と獲得賞金</h2>
     <p>
-      出走済みの{raced.length}頭で、胸囲と獲得賞金合計（中央+地方、万円）を散布図にしてみた。
-      <TermLink to="correlation">相関係数</TermLink>（ピアソン）は r={girthR?.toFixed(3)}。体高（r={heightPrizeR?.toFixed(3)}）よりも
-      ゼロに近い数字で、<strong>胸囲だけを見て成績を読むのはかなり難しい</strong>という結果になった。
-      獲得賞金は少数の稼ぎ頭に大きく引っ張られる歪んだ分布なので、大きさに引っ張られない
-      順位ベースの相関係数（<TermLink to="spearman">スピアマン</TermLink>）でも確認すると r={girthSpearmanR?.toFixed(3)}で、
-      ピアソンよりは高く出るものの、それでも弱い部類であることに変わりはない。
-      {girthScatterOmitted > 0 && (
-        <>獲得賞金合計が1億円を超える{girthScatterOmitted}頭はグラフの外に出るため省略した
-        （後述の代表馬紹介を参照）。</>
-      )}
+      出走済みの{raced.length}頭で、胸囲と獲得賞金合計（中央＋地方）を散布図にした。
+      <strong>胸囲だけを見て成績を読むのはかなり難しい</strong>という結果になった。
     </p>
     <ScatterChart
       title={`胸囲 × 獲得賞金合計（出走済み・1億円未満${girthScatterPoints.length}頭）`}
@@ -326,16 +318,19 @@ const description = `【非公式】キャロットクラブ${yearRangeLabel}${a
       formatX={(v) => `${v}`}
       formatY={(v) => (v === 0 ? '0' : `${v / 1000}k`)}
     />
+    <p class="fig-note">
+      <TermLink to="correlation">相関係数</TermLink>（ピアソン）は r={girthR?.toFixed(3)}で、体高（r={heightPrizeR?.toFixed(3)}）よりもゼロに近い。
+      獲得賞金は少数の稼ぎ頭に引っ張られる分布なので、順位で見る<TermLink to="spearman">スピアマン</TermLink>でも確かめると
+      r={girthSpearmanR?.toFixed(3)}。ピアソンよりは高いが、弱い部類であることに変わりはない。
+      {girthScatterOmitted > 0 && <>獲得賞金合計が1億円を超える{girthScatterOmitted}頭はグラフの外に出るので省いた（重賞馬の表に入っている）。</>}
+    </p>
 
     <AdSlot sp={AD_SP_WIDE_A} pc={AD_PC_WIDE_A} />
 
-    <h2>胸囲階級別に見ると</h2>
+    <h2>胸囲の階級別</h2>
     <p>
-      4階級に分けて平均を取ると、一番小さい階級（{prizeBars[0]?.n ?? 0}頭）が一番平均獲得賞金の
-      低いグループにはなっているものの、3番目の階級が一番高く、4番目（一番大きい階級）は
-      逆に下がるなど、階級が上がるほど単調に伸びていく並びにはなっていない。平均勝ち数も
-      同様の凸凹した並びで、相関係数の弱さ（r={girthR?.toFixed(3)}）が示す通り、
-      胸囲の大小からはっきりした傾向は読み取れなかった。
+      4階級に分けて平均を取ると、一番小さい階級（{prizeBars[0]?.n ?? 0}頭）がいちばん低いものの、
+      3番目の階級がいちばん高く、一番大きい階級は逆に下がる。階級が上がるほど伸びていく並びにはなっていない。
     </p>
     <BarChart
       title="胸囲階級別 平均獲得賞金合計"
@@ -345,60 +340,57 @@ const description = `【非公式】キャロットクラブ${yearRangeLabel}${a
       noteLabel="階級全体"
     />
     <BarChart title="胸囲階級別 平均勝ち数" bars={winBars} valueLabel="平均勝ち数" />
+    <p>平均勝ち数も同じように凸凹していて、胸囲の大小からはっきりした傾向は読み取れなかった。</p>
 
     <div class="finding">
       <p class="finding-lead">胸囲は「馬体重・体高の言い換え」に近い</p>
       <p>
-        胸囲は馬体重とr={girthWeightR?.toFixed(3)}、体高ともr={girthHeightR?.toFixed(3)}と、
-        いずれもはっきりした相関がある。つまり胸囲が大きい馬は単純に馬体重も体高も大きい馬であることが多く、
-        胸囲だけが独自に持っている情報はそれほど多くない。<a href="/articles/height/">体高の記事</a>
-        で見た「体高もごく弱い正の相関」という結果と方向性は近く、胸囲を単体の判断材料として
-        重視するほどの根拠は見つからなかった。
+        胸囲は馬体重とr={girthWeightR?.toFixed(3)}、体高ともr={girthHeightR?.toFixed(3)}と、どちらともはっきり連動している。
+        胸囲が大きい馬は馬体重も体高も大きいことが多く、胸囲だけが持っている情報はそれほど多くない。
+      </p>
+      <p>
+        <a href="/articles/height/">体高の記事</a>で見た「体高もごく弱い正の相関」と向きは近く、
+        胸囲を単体の判断材料として重視するほどの根拠は見つからなかった。
       </p>
     </div>
 
     <AdSlot sp={AD_SP_WIDE_B} pc={AD_PC_WIDE_B} />
 
-    <h2>胸囲 × 回収率（安く仕入れて稼げたか）</h2>
+    <h2>胸囲と回収率</h2>
     <p>
-      獲得賞金の絶対額だけでなく、「安く仕入れて活躍できたか」という観点でも見てみる。
-      出走済みかつ募集価格が分かっている{racedWithOffering.length}頭
-      {racedWithoutPrice > 0 && <>（残り{racedWithoutPrice}頭は募集価格の記載が確認できなかった馬）</>}
-      で、<strong>回収率 ＝ 獲得賞金合計 ÷ 募集総額</strong>（一口価格 × 口数）を計算した。
-      100%なら「額面の獲得賞金が募集総額とちょうど同じ」という意味になる。全体の中央値は
-      {roiMedianPct.toFixed(1)}%（募集総額の中央値{formatManYen(offeringMedianOverall)}万円・
-      獲得賞金合計の中央値{formatManYen(prizeMedianOverall)}万円）で、
-      <strong>典型的な募集馬は生涯かけて募集総額の3分の1ほどを額面の賞金で戻す</strong>、
-      という水準感になる。
-      <strong>ここでの回収率は賞金の額面ベースで、管理費・維持費や引退時の売却額を
-      加味した実際の会員配当そのものではない</strong>（配当の計算方法はクラブ・馬ごとに複雑で、
-      今回のデータからは分からない）。
+      「安く仕入れて活躍できたか」という見方でも確かめる。出走済みで募集価格が分かっている{racedWithOffering.length}頭について、
+      <strong>回収率 ＝ 獲得賞金合計 ÷ 募集総額</strong>（一口価格 × 口数）を計算した。
+      100%なら、額面の獲得賞金が募集総額とちょうど同じという意味になる。
     </p>
     <p>
-      胸囲と回収率の相関係数（ピアソン）はr={roiR?.toFixed(3)}で、獲得賞金合計で見たとき
-      （r={girthR?.toFixed(3)}）とほぼ同じくらい弱い。回収率も獲得賞金と同様に一部の稼ぎ頭に
-      大きく引っ張られる歪んだ分布（中央値は{roiMedianPct.toFixed(1)}%でも、最大は
-      {roiMaxPct.toFixed(0)}%）なので、順位ベースの相関係数（スピアマン）でも確認すると
-      r={roiSpearmanR?.toFixed(3)}で、こちらもピアソンより少しだけ高く出る。
+      全体の中央値は{roiMedianPct.toFixed(1)}%（募集総額の中央値{formatManYen(offeringMedianOverall)}万円・
+      獲得賞金合計の中央値{formatManYen(prizeMedianOverall)}万円）。
+      <strong>典型的な募集馬は生涯かけて募集総額の3分の1ほどを額面の賞金で戻す</strong>という水準だ。
+      ここでの回収率は賞金の額面で、管理費・維持費や引退時の売却額を加味した実際の会員配当ではない（配当の計算方法はクラブ・馬ごとに複雑で、今回のデータからは分からない）。
+    </p>
+    <p>
+      胸囲と回収率の相関は、獲得賞金で見たときとほぼ同じくらい弱い。
+    </p>
+    <p class="fig-note">
+      相関係数（ピアソン）は r={roiR?.toFixed(3)}（獲得賞金は r={girthR?.toFixed(3)}）、スピアマンは r={roiSpearmanR?.toFixed(3)}。
+      回収率も中央値{roiMedianPct.toFixed(1)}%に対して最大{roiMaxPct.toFixed(0)}%と、一部の馬に大きく引っ張られる分布になっている。
     </p>
     <BarChart title="胸囲階級別 回収率（中央値）" bars={roiBars} valueLabel="回収率(中央値)" />
     <p>
-      外れ値の影響を受けにくいはずの中央値で見ても、階級が上がるほど回収率は単調に
-      高くなっている（{roiBars[0]?.displayValue}→{roiBars[roiBars.length - 1]?.displayValue}）。
-      実際、胸囲174cm未満と174cm以上の2群で回収率の分布を比べる検定
-      （Mann-WhitneyのU検定）をすると z={roiMw.z.toFixed(2)}・p={roiMw.p.toFixed(3)}となり、
-      5%水準では統計的にも差が見られた。ここまでの記事で唯一、検定で有意差が出た結果になる。
-      ただし前段の「胸囲は馬体重・体高の言い換えに近い」（胸囲は馬体重とr={girthWeightR?.toFixed(3)}・
-      体高とr={girthHeightR?.toFixed(3)}）を踏まえると、これは胸囲そのものが持つ独自の効果というより、
-      胸囲が馬体重・体高の代わりに「体が大きい馬ほどやや稼ぐ傾向」（体高記事で見たr={heightPrizeR?.toFixed(3)}
-      と同じ効果）を間接的に拾っているだけの可能性が高い。胸囲を単体で見て「安くて化ける馬」を
-      選別できるという主張はできない。
+      ただ、外れ値の影響を受けにくいはずの中央値で見ると、階級が上がるほど回収率は高くなっている
+      （{roiBars[0]?.displayValue}→{roiBars[roiBars.length - 1]?.displayValue}）。
+      胸囲174cm未満と174cm以上の2群で回収率の分布を比べると、5%水準で差が出た
+      （Mann-WhitneyのU検定、z={roiMw.z.toFixed(2)}・p={roiMw.p.toFixed(3)}）。
+    </p>
+    <p>
+      ただし、胸囲は馬体重・体高の言い換えに近い。これは胸囲そのものの効果というより、
+      「体が大きい馬ほどやや稼ぐ傾向」（体高の記事で見たr={heightPrizeR?.toFixed(3)}と同じもの）を、
+      胸囲が間接的に拾っているだけの可能性が高い。胸囲を単体で見て「安くて化ける馬」を選べるとは言えない。
     </p>
 
     <h3>回収率が高かった馬</h3>
     <p>
-      参考までに、回収率が高かった上位{ROI_TOP_N}頭を挙げておく。安い募集価格から
-      重賞を勝つところまで駆け上がった馬が並ぶ。
+      回収率が高かった上位{ROI_TOP_N}頭を挙げておく。安い募集価格から重賞を勝つところまで駆け上がった馬が並ぶ。
     </p>
     <div class="table-scroll">
       <table class="roi-table">
@@ -429,11 +421,8 @@ const description = `【非公式】キャロットクラブ${yearRangeLabel}${a
       </table>
     </div>
     <p class="table-note">
-      胸囲の列を見ると、上位{ROI_TOP_N}頭は{roiTopGirthMin}〜{roiTopGirthMax}cmに集まっていて、
-      母集団の中央値（{girthMedian.toFixed(1)}cm）以上の馬が{roiTopAboveMedian}頭を占める。
-      前段の階級別中央値で見た「階級が上がるほど回収率が高い」傾向とは整合するが、
-      {ROI_TOP_N}頭だけでは数が少なく、この表単体で「胸囲が大きい馬の方が化けやすい」と
-      判断するのは早計。
+      上位{ROI_TOP_N}頭の胸囲は{roiTopGirthMin}〜{roiTopGirthMax}cmで、母集団の中央値（{girthMedian.toFixed(1)}cm）以上が{roiTopAboveMedian}頭。
+      階級別の中央値で見た傾向とは合うが、{ROI_TOP_N}頭だけで「胸囲が大きい馬の方が化けやすい」と判断するのは早い。
     </p>
 
     <div class="ad-rect">
@@ -443,10 +432,9 @@ const description = `【非公式】キャロットクラブ${yearRangeLabel}${a
 
     <h2>実際にどんな馬がいたか</h2>
     <p>
-      この{all.length}頭の中で実際に重賞を勝った{gradeWinners.length}頭を獲得賞金の多い順に
-      並べておく。胸囲の列を見てもらうと分かる通り、{gradeGirthMin}〜{gradeGirthMax}cmまで
-      ほぼ全域にわたって重賞馬が出ている。表が長くなるので、開いているのは上位
-      {GRADE_WINNERS_VISIBLE}頭で、残り{gradeWinnersRest.length}頭はその下の折りたたみに入れてある。
+      {all.length}頭の中で重賞を勝った{gradeWinners.length}頭を、獲得賞金の多い順に並べた。
+      胸囲の列を見ると、{gradeGirthMin}〜{gradeGirthMax}cmまでほぼ全域から重賞馬が出ている。
+      上位{GRADE_WINNERS_VISIBLE}頭を表に出し、残り{gradeWinnersRest.length}頭は折りたたみに入れた。
     </p>
     <GradeWinnerTable rows={gradeWinnersTop} showRoi />
     {gradeWinnersRest.length > 0 && (
@@ -463,10 +451,9 @@ const description = `【非公式】キャロットクラブ${yearRangeLabel}${a
     <div class="finding">
       <p class="finding-lead">デビュー時期の偏りではないか？</p>
       <p>
-        直近の募集組（2022〜2025年）は未出走が多く、それだけで見かけ上の偏りが出ないか
-        気になったので、レースを重ねている2017〜2021年募集（{olderOnly.length}頭）だけに
-        絞って相関係数を出し直した。結果は r={girthROlder?.toFixed(3)}。絞り込む前
-        （r={girthR?.toFixed(3)}）とほぼ変わらず、デビュー時期の偏りで説明できる差ではなかった。
+        直近の募集組（2022〜2025年）は未出走が多く、それだけで見かけの偏りが出ないか気になった。
+        レースを重ねている2017〜2021年募集（{olderOnly.length}頭）だけで相関係数を出し直すと r={girthROlder?.toFixed(3)}。
+        絞り込む前（r={girthR?.toFixed(3)}）とほぼ変わらず、デビュー時期の偏りで説明できる差ではなかった。
       </p>
     </div>
 
@@ -477,36 +464,33 @@ const description = `【非公式】キャロットクラブ${yearRangeLabel}${a
 
     <h2>まとめ</h2>
     <ul class="conclusion">
-      <li>胸囲と獲得賞金合計の線形の相関係数（ピアソン）はr={girthR?.toFixed(3)}、回収率で見ても
-        r={roiR?.toFixed(3)}と、<strong>どちらの見方でも弱かった</strong>。順位ベースの相関係数
-        （スピアマン）で見ると獲得賞金r={girthSpearmanR?.toFixed(3)}・回収率r={roiSpearmanR?.toFixed(3)}
-        とやや高くなり、回収率は174cmを境にした2群比較（Mann-Whitney検定、p={roiMw.p.toFixed(3)}）
-        で統計的な差も見られたが、これは次で述べる<TermLink to="confounding">交絡</TermLink>を踏まえるとそのまま「胸囲が効いている」
-        とは言えない。</li>
-      <li>胸囲は馬体重（r={girthWeightR?.toFixed(3)}）・体高（r={girthHeightR?.toFixed(3)}）といずれも
-        はっきり連動しており、胸囲そのものが独自に持っている情報は薄い。回収率で見えた差も、
-        胸囲が馬体重・体高の代わりに「体が大きい馬ほどやや稼ぐ傾向」を間接的に拾っているだけの
-        可能性が高く、「胸囲が大きい＝馬体が大きい」以上のことは今回のデータからは言えなかった。</li>
-      <li>重賞馬の顔ぶれを見ても、実際の重賞馬は{gradeGirthMin}〜{gradeGirthMax}cmの中で
-        まんべんなく出ており、胸囲の大小だけで重賞馬になれるかが決まるような単純な話ではない。</li>
-      <li>直近募集組の未出走が多いことによる見かけ上の偏りも、古い世代だけに絞った再集計
-        （r={girthROlder?.toFixed(3)}）で否定できた。</li>
-      <li>「胸囲は軽視されがち」という話自体は間違っていないと思うが、今回のデータを見る限り
-        軽視されているなりの理由（体高・馬体重で見ている情報とほぼ重なる）はありそうだった。</li>
+      <li>
+        胸囲と獲得賞金の相関はr={girthR?.toFixed(3)}、回収率でもr={roiR?.toFixed(3)}と、<strong>どちらの見方でも弱かった</strong>。
+      </li>
+      <li>
+        回収率は174cmを境にした2群で差が出た。ただ胸囲は馬体重（r={girthWeightR?.toFixed(3)}）・体高（r={girthHeightR?.toFixed(3)}）と
+        はっきり連動しているので、<TermLink to="confounding">交絡</TermLink>を踏まえると「胸囲が効いている」とは言えない。
+        回収率で見えた差も、胸囲が「体が大きい馬ほどやや稼ぐ傾向」を間接的に拾っているだけの可能性が高く、
+        「胸囲が大きい＝馬体が大きい」以上のことは今回のデータからは言えなかった。
+      </li>
+      <li>重賞馬は{gradeGirthMin}〜{gradeGirthMax}cmの中でまんべんなく出ていて、胸囲の大小だけで決まるような単純な話ではない。</li>
+      <li>古い世代だけで集計し直しても、結果はほぼ同じだった（r={girthROlder?.toFixed(3)}）。</li>
+      <li>
+        「胸囲は軽視されがち」という話自体は間違っていないと思うが、今回のデータを見る限り、
+        軽視されているなりの理由（体高・馬体重で見ている情報とほぼ重なる）はありそうだった。
+      </li>
     </ul>
 
     <h2>データについて</h2>
     <p>
-      胸囲は募集時にクラブが公表した測尺データが元。競走成績は{resultsAsOf}時点のスナップショットで、
-      今後レースを重ねるたびに変わっていく。直近の募集組はまだ大半が未出走〜デビュー間もないため、
-      今回の集計は出走済みの{raced.length}頭が中心になっている点は割り引いて見てほしい。獲得賞金は
-      中央（JRA）・地方（NAR）の合計で、海外レースで得た賞金は含まれていない。回収率
-      （獲得賞金合計 ÷ 募集総額）は募集総額に対する賞金の額面の大きさの目安であり、
-      管理費・維持費や引退時の売却額を加味した実際の会員配当そのものではない点にも注意してほしい。
-      募集口数は各馬のnetkeibaの募集情報から取得し、記載が無い馬はキャロットで最も一般的な
-      400口とみなした。相関係数はあくまで線形の関係の強さの目安で、
-      これだけで「胸囲が成績に影響しない」と断言できるわけではない。出資判断の材料というより、
-      あくまで趣味の分析として楽しんでもらえたら。
+      胸囲は募集時にクラブが公表した測尺データが元。競走成績は{resultsAsOf}時点のもので、今後レースを重ねるたびに変わっていく。
+      直近の募集組はまだ大半が未出走〜デビュー間もないので、集計は出走済みの{raced.length}頭が中心になっている。
+      獲得賞金は中央（JRA）・地方（NAR）の合計で、海外レースの賞金は含まない。
+      募集口数は各馬のnetkeibaの募集情報から取り、記載が無い馬はキャロットで最も一般的な400口とみなした。
+    </p>
+    <p>
+      相関係数は線形の関係の強さの目安で、これだけで「胸囲が成績に影響しない」と言い切れるわけではない。
+      出資判断の材料というより、趣味の分析として楽しんでもらえたら。
     </p>
 
     <p>
@@ -518,6 +502,18 @@ const description = `【非公式】キャロットクラブ${yearRangeLabel}${a
 </BaseLayout>
 
 <style>
+  .fig-note {
+    margin-top: -0.5rem;
+    color: var(--muted);
+    font-size: 0.875rem;
+    line-height: 1.7;
+  }
+  .answer {
+    margin: 1.5rem 0 0.25rem;
+    font-size: 1.25rem;
+    font-weight: 700;
+    line-height: 1.6;
+  }
   article :global(h2) {
     margin-top: 2.5rem;
   }

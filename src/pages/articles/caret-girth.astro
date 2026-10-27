@@ -731,24 +731,29 @@ const description = `【非公式】キャロットクラブ${yearRangeLabel}${a
       調べてみた。{yearRangeLabel}募集（{yearCounts}）に、{resultsAsOf}時点の獲得賞金・
       通算成績を突き合わせた独自集計。
     </p>
-    <p>
-      先に言ってしまうと、<strong>管囲は最初「これは効いている」と思わせておいて、
-      正体は牡と牝の差だった</strong>。測尺を見るときの落とし穴の話として読んでもらえたら。
-    </p>
+
+    <p class="answer">管囲が太い馬ほど稼いで見えるのは、太い側に牡が多いからだった。</p>
 
     <StatTiles
       tiles={[
-        { label: '対象頭数', value: `${all.length}頭`, note: `牡${males.length}頭・牝${females.length}頭` },
-        { label: '出走済み', value: `${raced.length}頭` },
-        { label: '未出走', value: `${unraced}頭`, note: '大半が直近の募集組' },
-        { label: '管囲の範囲', value: `${girthMin}〜${girthMax}cm`, note: `中央値${girthMedian}cm` },
         {
-          label: '牡と牝の中央値の差',
+          label: '牡と牝の管囲の差',
           value: `${(maleGirthMedian - femaleGirthMedian).toFixed(1)}cm`,
-          note: `牡${maleGirthMedian}cm / 牝${femaleGirthMedian}cm`,
+          note: `中央値 牡${maleGirthMedian}cm・牝${femaleGirthMedian}cm`,
+        },
+        {
+          label: '太い馬が上回る割合（全頭）',
+          value: `${((endsAll.superiority ?? 0) * 100).toFixed(0)}%`,
+          note: '細い馬と1頭ずつ比べたとき',
+        },
+        {
+          label: '同じ比べ方（牡だけ）',
+          value: `${((endsMale.superiority ?? 0) * 100).toFixed(0)}%`,
+          note: '差が無いときは50%',
         },
       ]}
     />
+    <p>測尺を見るときの落とし穴の話として読んでもらえたら。</p>
 
     <ArticleToc />
     <MethodsLink />
@@ -762,8 +767,7 @@ const description = `【非公式】キャロットクラブ${yearRangeLabel}${a
       {heightRange.min}〜{heightRange.max}cm（幅{(heightRange.max - heightRange.min).toFixed(0)}cm）、
       胸囲は{chestRange.min}〜{chestRange.max}cm（同{(chestRange.max - chestRange.min).toFixed(0)}cm）に
       広がるので、<strong>管囲は{(girthMax - girthMin).toFixed(1)}cmの幅にほぼ全頭が収まる、
-      目盛りの細かい指標</strong>ということになる。0.1cm刻みで測られていて、
-      1cmの違いがかなり大きな差になる。
+      目盛りの細かい指標</strong>ということになる。0.1cm刻みで測られていて、1cmの違いがかなり大きい。
     </p>
     <BarChart
       title={`管囲の分布（全${all.length}頭・0.5cm刻み）`}
@@ -773,7 +777,7 @@ const description = `【非公式】キャロットクラブ${yearRangeLabel}${a
 
     <AdSlot sp={AD_SP_WIDE_B} pc={AD_PC_WIDE_B} />
 
-    <h2>まとめて見ると、太い馬ほど稼いでいる</h2>
+    <h2>まとめて見ると太い馬ほど稼いでいる</h2>
     <p>
       出走済みの{raced.length}頭を管囲で3階級に分けて、獲得賞金合計（中央+地方、万円）の
       中央値を取るとこうなった。獲得賞金は一部の大物に大きく引っ張られるので、平均ではなく
@@ -789,13 +793,14 @@ const description = `【非公式】キャロットクラブ${yearRangeLabel}${a
     <p>
       きれいに右上がりで、{BUCKET_THIN}（{endsAll.thinN}頭）の{formatManYen(Math.round(endsAll.thinMed))}万円に対して
       {BUCKET_THICK}（{endsAll.thickN}頭）は{formatManYen(Math.round(endsAll.thickMed))}万円。
-      2群の差の検定（Mann-Whitney）でも {formatP(endsAll.mw.p)} で、はっきり差が出ている。
-      勝ち上がり（1勝以上）の率も{winAll.thinRate.toFixed(1)}%（{winAll.thinN}頭中）に対して
-      {winAll.thickRate.toFixed(1)}%（{winAll.thickN}頭中）で、
-      {formatP(winAll.test.p)}。<TermLink to="correlation">相関係数</TermLink>もピアソンで r={rAll.pearson?.toFixed(3)}、
-      順位ベースの<TermLink to="spearman">スピアマン</TermLink>で r={rAll.spearman?.toFixed(3)}と、
-      体高（r={heightRow.all.pearson?.toFixed(3)}）や胸囲（r={chestRow.all.pearson?.toFixed(3)}）を
-      上回る。これまで調べた測尺の中で一番強い数字だ。
+      勝ち上がり（1勝以上）の率も{winAll.thinRate.toFixed(1)}%から{winAll.thickRate.toFixed(1)}%へ上がる。
+      <strong>これまで調べた測尺の中で一番強い数字</strong>だ。
+    </p>
+    <p class="table-note">
+      獲得賞金の差の検定（Mann-Whitney）は{formatP(endsAll.mw.p)}、勝ち上がり率は{formatP(winAll.test.p)}
+      （{winAll.thinN}頭中・{winAll.thickN}頭中）。<TermLink to="correlation">相関係数</TermLink>はピアソンで r={rAll.pearson?.toFixed(3)}、
+      順位ベースの<TermLink to="spearman">スピアマン</TermLink>で r={rAll.spearman?.toFixed(3)}。
+      体高は r={heightRow.all.pearson?.toFixed(3)}、胸囲は r={chestRow.all.pearson?.toFixed(3)}。
     </p>
     <ScatterChart
       title={`管囲 × 獲得賞金合計（出走済み・1億円未満${scatterPoints.length}頭）`}
@@ -815,7 +820,7 @@ const description = `【非公式】キャロットクラブ${yearRangeLabel}${a
       （後述の重賞馬の表を参照）。
     </p>
     <p>
-      ……ところが、この散布図の点の色をよく見てほしい。<strong>左側にほとんど牡（青）がいない。</strong>
+      ところがこの散布図の点の色をよく見てほしい。<strong>左側にほとんど牡（青）がいない。</strong>
     </p>
 
     <AdSlot sp={AD_SP_WIDE_A} pc={AD_PC_WIDE_A} />
@@ -824,8 +829,7 @@ const description = `【非公式】キャロットクラブ${yearRangeLabel}${a
     <p>
       同じ0.5cm刻みで、牡{males.length}頭と牝{females.length}頭を別々にヒストグラムにすると、
       山の位置がはっきりずれている。中央値は牡{maleGirthMedian}cm・牝{femaleGirthMedian}cmで、
-      その差{(maleGirthMedian - femaleGirthMedian).toFixed(1)}cm。分布の幅が
-      {(girthMax - girthMin).toFixed(1)}cmしかない指標での{(maleGirthMedian - femaleGirthMedian).toFixed(1)}cm差は大きい。
+      その差は{(maleGirthMedian - femaleGirthMedian).toFixed(1)}cm。分布の幅が{(girthMax - girthMin).toFixed(1)}cmしかない指標なので、この差は大きい。
     </p>
     <BarChart
       title={`管囲の分布・牡${males.length}頭（0.5cm刻み）`}
@@ -840,7 +844,7 @@ const description = `【非公式】キャロットクラブ${yearRangeLabel}${a
       axisMax={sexHistAxisMax}
     />
     <p>
-      結果として、管囲で並べ替えると事実上「牡から並ぶ」ことになる。
+      管囲で並べ替えると、事実上「牡から並ぶ」ことになる。
       {BUCKET_THICK}の{thickHorses.length}頭のうち牡は<strong>{thickMaleShare.toFixed(1)}%</strong>、
       逆に{BUCKET_THIN}の{thinHorses.length}頭では牡は<strong>{thinMaleShare.toFixed(1)}%</strong>しかいない。
       さっきの「太い階級と細い階級の比較」は、ほとんど<strong>牡の群と牝の群を比べていた</strong>ことになる。
@@ -861,13 +865,10 @@ const description = `【非公式】キャロットクラブ${yearRangeLabel}${a
 
     <h2>性別を揃えて比べ直す</h2>
     <p>
-      では牡だけ・牝だけで比べ直す。ここで注意がいるのが階級の切り方で、
-      さっきと同じ20cm・21cmで切ると<strong>牝の「21cm以上」は{females.filter(isThick).length}頭しか
-      いない</strong>（牝{females.length}頭の{((100 * females.filter(isThick).length) / females.length).toFixed(1)}%）。
-      これでは比較にならないし、かといって牝だけ境界を1cm下げると、境界の置き方しだいで
-      結果が動いてしまう。そこで<strong>同性の中で細い方から3等分</strong>という、
-      迷いようのない切り方にした。牡と牝で同じラベルになるので、2つのグラフをそのまま
-      見比べられる。実際のcm範囲は各棒の下に書いてある。
+      では牡だけ・牝だけで比べ直す。階級は<strong>同性の中で細い方から3等分</strong>して切った。
+      さっきと同じ20cm・21cmで切ると、牝の「21cm以上」は{females.filter(isThick).length}頭しかいない
+      （牝{females.length}頭の{((100 * females.filter(isThick).length) / females.length).toFixed(1)}%）ためだ。
+      実際のcm範囲は各棒の下に書いてある。
     </p>
     <BarChart
       title={`牡だけ・管囲の3分位別 獲得賞金合計の中央値（出走済み${racedMales.length}頭）`}
@@ -919,6 +920,8 @@ const description = `【非公式】キャロットクラブ${yearRangeLabel}${a
       全頭をまとめると{((endsAll.superiority ?? 0) * 100).toFixed(1)}%と五分から離れるのに、
       性別を揃えると牡{((endsMale.superiority ?? 0) * 100).toFixed(1)}%・
       牝{((endsFemale.superiority ?? 0) * 100).toFixed(1)}%で、ほぼコイン投げに戻る。
+    </p>
+    <p>
       勝ち上がり率も同じで、全頭では{winAll.thinRate.toFixed(1)}% →
       {winAll.thickRate.toFixed(1)}%（{formatP(winAll.test.p)}）と開いていたのに、
       牡は{winMale.thinRate.toFixed(1)}% → {winMale.thickRate.toFixed(1)}%
@@ -962,7 +965,7 @@ const description = `【非公式】キャロットクラブ${yearRangeLabel}${a
     <h2>他の測尺はどうなのか</h2>
     <p>
       同じことを体高・馬体重・胸囲でもやってみた。まず「その測尺が牡と牝でどれだけ違うか」。
-      cmとkgをそのまま比べても大小は言えないので、<strong>牡牝の中央値の差が、その測尺の
+      cmとkgをそのまま比べても大小は言えないので、<strong>牡牝の中央値の差がその測尺の
       ばらつき（<TermLink to="sd">標準偏差</TermLink>）何個ぶんか</strong>に換算してある。0.5なら「牡牝の分布が半個ぶんずれている」、
       0なら「牡も牝も同じ」という読み方になる。
     </p>
@@ -997,11 +1000,11 @@ const description = `【非公式】キャロットクラブ${yearRangeLabel}${a
       どこが大きくなるかは測尺ごとにまるで違って、<strong>骨の太さの目安とされる管囲に性差が
       集中している</strong>。だから管囲で並べると性別で並んでしまう。
     </p>
+    <details class="more-winners">
+    <summary>測尺ごとの賞金との相関を見る（全体・牡・牝）</summary>
     <p>
-      では賞金との相関はどうか。こちらは全体・牡・牝に分けて、相関係数と一緒に
+      母数が違う群の相関係数だけを見比べると、頭数が減って揺らいだだけなのを「関係が消えた」と読んでしまうので、
       「その数字が偶然でも起こりうる程度か」（p値）も並べておく。
-      母数が違う群の相関係数だけを見比べると、頭数が減って揺らいだだけなのを
-      「効果が消えた」と読んでしまうので。
     </p>
     <div class="table-scroll">
       <table class="measures">
@@ -1033,10 +1036,11 @@ const description = `【非公式】キャロットクラブ${yearRangeLabel}${a
       体高がぎりぎり（r={heightRow.male.pearson?.toFixed(3)} /
       {formatP(heightRow.male.pearsonP ?? NaN)}）で、牝だけだとどれも有意にならない。
       頭数が半分になれば当然そうなりやすいので、この表から
-      「この測尺は効く／効かない」を決めることはできない。
+      「この測尺は成績と結びつく／結びつかない」を決めることはできない。
     </p>
+    </details>
     <div class="finding">
-      <p class="finding-lead">それでも、落ち方は管囲だけが極端</p>
+      <p class="finding-lead">性別を揃えたときの落ち方は、管囲だけが極端</p>
       <p>
         体高は全体 r={heightRow.all.pearson?.toFixed(3)} → 牡 r={heightRow.male.pearson?.toFixed(3)}と、
         数字そのものはほとんど目減りしない。牡牝を分けても見え方が変わらない、という意味だ。
@@ -1068,15 +1072,17 @@ const description = `【非公式】キャロットクラブ${yearRangeLabel}${a
       （{formatP(startsRaced.mw.p)}）と差とは言えないのだが、<strong>勝ち上がった馬だけに絞ると
       {startsWinners.thinMed}戦（{startsWinners.thinN}頭）と{startsWinners.thickMed}戦
       （{startsWinners.thickN}頭）で、細い側の方がむしろ多い（{formatP(startsWinners.mw.p)}）</strong>。
-      性別ごとに（同性内の細い1/3 vs 太い1/3で）見ても、牡が{startsWinnersMale.thinMed}戦
+      性別ごとに見ても差は出なかった。
+      育成中に潰れずデビューまで辿り着いた率は{debutAll.thinRate.toFixed(1)}%と
+      {debutAll.thickRate.toFixed(1)}%で、太い側が5ポイントほど高いものの、誤差の範囲に収まる。
+    </p>
+    <p class="table-note">
+      性別ごと（同性内の細い1/3 vs 太い1/3）の勝ち上がった馬の出走数は、牡が{startsWinnersMale.thinMed}戦
       （{startsWinnersMale.thinN}頭）vs {startsWinnersMale.thickMed}戦
       （{startsWinnersMale.thickN}頭）で{formatP(startsWinnersMale.mw.p)}、
       牝が{startsWinnersFemale.thinMed}戦（{startsWinnersFemale.thinN}頭）vs
       {startsWinnersFemale.thickMed}戦（{startsWinnersFemale.thickN}頭）で
-      {formatP(startsWinnersFemale.mw.p)}。
-      育成中に潰れずデビューまで辿り着いた率は{debutAll.thinRate.toFixed(1)}%と
-      {debutAll.thickRate.toFixed(1)}%で、太い側が5ポイントほど高いものの
-      {ratePText(debutAll)}で誤差の範囲に収まる。
+      {formatP(startsWinnersFemale.mw.p)}。デビュー率の差は{ratePText(debutAll)}。
     </p>
     <p class="table-note">
       骨折や長期休養そのもののデータは手元に無いので、ここで見ているのは
@@ -1143,45 +1149,35 @@ const description = `【非公式】キャロットクラブ${yearRangeLabel}${a
     <ul class="conclusion">
       <li>全頭をまとめて見ると、管囲は獲得賞金とはっきり結びついて見える
         （{BUCKET_THIN} {formatManYen(Math.round(endsAll.thinMed))}万円 vs
-        {BUCKET_THICK} {formatManYen(Math.round(endsAll.thickMed))}万円、{formatP(endsAll.mw.p)}）。
-        これまで調べた測尺の中で一番強い数字だった。</li>
-      <li>ところが管囲は<strong>牡と牝で中央値が{(maleGirthMedian - femaleGirthMedian).toFixed(1)}cm違う</strong>
-        （牡{maleGirthMedian}cm / 牝{femaleGirthMedian}cm、性別との相関 r={caretRow.sex.r?.toFixed(3)}）。
-        {BUCKET_THICK}の{thickMaleShare.toFixed(1)}%が牡、{BUCKET_THIN}では牡は{thinMaleShare.toFixed(1)}%。
-        管囲で並べることは、ほぼ牡牝で並べることだった。</li>
-      <li><strong>牡の中では、管囲と成績の関係は見当たらない</strong>
-        （同性内の細い1/3 vs 太い1/3で{formatP(endsMale.mw.p)}、順位相関も
-        r={rMale.spearman?.toFixed(3)} / {formatP(rMale.spearmanP ?? NaN)}）。
-        出走済み{racedMales.length}頭で見てこれなので、頭数不足ではなく関係そのものが無さそう。</li>
-      <li><strong>牝には弱い傾向が残る</strong>。ただし太いほど良いのではなく、
-        極端に細い側（{femaleScheme.rangeOfGroup('細い1/3')}）だけが沈んでいる形。
-        両端の検定は{formatP(endsFemale.mw.p)}で通らず、順位相関で
-        r={rFemale.spearman?.toFixed(3)}（{formatP(rFemale.spearmanP ?? NaN)}）という程度。</li>
-      <li>「管が太い＝丈夫で長く走れる」も、勝ち上がった馬に絞って出走数を比べると差は出なかった
-        （{formatP(startsWinners.mw.p)}・細い側の方がむしろ多い）。デビューに辿り着く率も誤差の範囲。
-        ただしこちらも各群が数十頭なので、中くらいの差なら見逃している。</li>
-      <li>性別を揃えるとどの測尺も弱くなるので、この記事で
-        「効く測尺／効かない測尺」を決めたわけではない。言えるのは
-        <strong>混ぜて見たときと分けて見たときで話が変わるのは管囲だけ</strong>ということ
-        （体高は全体 r={heightRow.all.pearson?.toFixed(3)} → 牡 r={heightRow.male.pearson?.toFixed(3)}で
-        ほとんど変わらない）。</li>
-      <li>実務的には、<a href="/">募集馬一覧</a>で管囲を並べ替えるときは
-        <strong>先に性別で絞ってから</strong>見るのがおすすめ。混ぜたまま上から見ると、
-        「管が太くて良さそうな馬」を選んでいるつもりで牡を選んでいることになる。</li>
+        {BUCKET_THICK} {formatManYen(Math.round(endsAll.thickMed))}万円）。</li>
+      <li>ところが管囲は<strong>牡と牝で中央値が{(maleGirthMedian - femaleGirthMedian).toFixed(1)}cm違う</strong>。
+        {BUCKET_THICK}の{thickMaleShare.toFixed(1)}%が牡で、管囲で並べることはほぼ牡牝で並べることだった。</li>
+      <li><strong>牡の中では、管囲と成績の関係は見当たらない</strong>。出走済み{racedMales.length}頭で見てこれなので、
+        頭数不足ではなく関係そのものが無さそう。</li>
+      <li><strong>牝には弱い傾向が残る</strong>。ただし太いほど良いのではなく、極端に細い側だけが沈んでいる形。</li>
+      <li>「管が太い＝丈夫で長く走れる」も、勝ち上がった馬に絞って出走数を比べると差は出なかった。
+        ただし各群が数十頭なので、中くらいの差なら見逃している。</li>
+      <li>性別を揃えるとどの測尺も弱くなる。そのなかで、<strong>混ぜて見たときと分けて見たときで話が変わるのは管囲だけ</strong>だった。</li>
+      <li><a href="/">募集馬一覧</a>で管囲を並べ替えるときは、<strong>先に性別で絞ってから</strong>見るのがおすすめ。
+        混ぜたまま上から見ると、「管が太くて良さそうな馬」を選んでいるつもりで牡を選んでいることになる。</li>
     </ul>
 
     <h2>データについて</h2>
     <p>
-      管囲は募集時にクラブが公表した測尺データが元で、{allRecruits.length}頭中{all.length}頭ぶん揃っている。
+      管囲は募集時にクラブが公表した測尺データが元で、対象は{all.length}頭。
       競走成績は{resultsAsOf}時点のスナップショットで、今後レースを重ねるたびに変わっていく。
       直近の募集組はまだ大半が未出走〜デビュー間もないため、獲得賞金のクロス集計は出走済みの
       {raced.length}頭が母数。<strong>勝ち上がり率とデビュー率だけは未出走の馬も分母に入れている</strong>
       （まだ走っていない馬を「勝てなかった」に数える形になるので、そのぶん率は低めに出る）。
       獲得賞金は中央（JRA）・地方（NAR）の合計で、海外レースの賞金は含まない。
+    </p>
+    <p>
       賞金は走った年数ぶん積み上がるので募集年の影響を受けるが、{BUCKET_THICK}と{BUCKET_THIN}の
       平均募集年は{mean(thickHorses.map((h) => h.recruitYear)).toFixed(1)}年と
       {mean(thinHorses.map((h) => h.recruitYear)).toFixed(1)}年で、階級間の偏りは小さい。
-      性別は募集時のもの。{sexUnknown > 0 && `性別が取れなかった${sexUnknown}頭は牡牝の比較から除いている。`}
+      性別は募集時のもの。
+    </p>
+    <p>
       階級は、全頭をまとめて見るときは20cm・21cmで、性別ごとに見るときは
       <strong>その性別の中で細い順に3等分</strong>して切っている
       （牡と牝で管囲が1cm近く違うため、共通のcm境界だと片方の端が数十頭しか残らない）。
@@ -1219,6 +1215,12 @@ const description = `【非公式】キャロットクラブ${yearRangeLabel}${a
   }
   .finding p:last-child {
     margin-bottom: 0;
+  }
+  .answer {
+    margin: 1.5rem 0 0.25rem;
+    font-size: 1.25rem;
+    font-weight: 700;
+    line-height: 1.6;
   }
   .ad-rect {
     display: flex;

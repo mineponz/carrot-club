@@ -418,7 +418,7 @@ const description = `【非公式】キャロットクラブ${yearRangeLabel}${a
     <p>
       「母の年齢そのものより、<strong>何番目の仔か</strong>の方が効くんじゃないか」というのは
       一口馬主界隈でたまに聞く話だ。良い繁殖牝馬は2〜3番仔あたりで一発出している気がする、
-      逆に初仔は身体が小さく出て走らない ―― どちらもよく聞くし、私も何となくそう思っていた。
+      逆に初仔は身体が小さく出て走らない。どちらもよく聞くし、私も何となくそう思っていた。
       <a href="/articles/dam-age/">前回の母齢の記事</a>で「母の年齢からは成績が読めなかった」
       という結果になったので、今度は産次の方を確かめてみた。
       {yearRangeLabel}募集（{yearCounts}）に、{resultsAsOf}時点の獲得賞金・通算成績を
@@ -432,17 +432,17 @@ const description = `【非公式】キャロットクラブ${yearRangeLabel}${a
       ついでに検証した。
     </p>
 
+    <p class="answer">産次から成績はほとんど読めなかった。</p>
+
     <StatTiles
       tiles={[
-        { label: '対象頭数', value: `${all.length}頭` },
-        { label: '出走済み', value: `${raced.length}頭` },
-        { label: '未出走', value: `${unraced}頭`, note: '大半が直近の募集組' },
+        { label: '産次 × 獲得賞金', value: parityR !== null ? `r=${parityR.toFixed(3)}` : '—', note: 'ほぼ無相関' },
+        { label: '産次 × 母齢', value: parityDamAgeR !== null ? `r=${parityDamAgeR.toFixed(3)}` : '—', note: 'ほぼ同じものを測っている' },
         {
-          label: '産次 × 獲得賞金合計',
-          value: parityR !== null ? `r=${parityR.toFixed(3)}` : '—',
-          note: 'ほぼ無相関',
+          label: '空胎明けの重賞馬率',
+          value: `${afterRestGrade.rate.toFixed(1)}%`,
+          note: `連産は${consecutiveGrade.rate.toFixed(1)}%。有意には届かない`,
         },
-        { label: '産次の範囲', value: `${parityMin}〜${parityMax}番仔`, note: `中央値${parityMedian}番仔` },
       ]}
     />
 
@@ -451,9 +451,9 @@ const description = `【非公式】キャロットクラブ${yearRangeLabel}${a
 
     <AdSlot sp={AD_SP_WIDE_A} pc={AD_PC_WIDE_A} />
 
-    <h2>まず産次の分布</h2>
+    <h2>産次の分布</h2>
     <p>
-      母集団を見ておくと、{all.length}頭は{parityMin}番仔から{parityMax}番仔まで分布していて、
+      {all.length}頭は{parityMin}番仔から{parityMax}番仔まで分布していて、
       <TermLink to="median">中央値</TermLink>は{parityMedian}番仔だった。初仔が{all.filter((h) => parityOf(h) === 1).length}頭と
       一番多く、番号が上がるにつれてなだらかに減っていく。クラブの募集は
       「若い繁殖の仔ばかり」でも「ベテラン繁殖の仔ばかり」でもなく、かなり広く散らばっている。
@@ -494,7 +494,7 @@ const description = `【非公式】キャロットクラブ${yearRangeLabel}${a
     <div class="finding">
       <p class="finding-lead">産次と母齢は、ほぼ同じものを測っている</p>
       <p>
-        結果を見る前から薄々分かってはいたのだが、産次と母齢の相関係数は
+        結果を見る前から薄々分かってはいたが、産次と母齢の相関係数は
         <strong>r={parityDamAgeR?.toFixed(3)}</strong>だった。当たり前といえば当たり前で、
         仔を産むたびに母は1歳ずつ年を取っていくので、産次が進むことと母が高齢になることは
         ほぼ同じ現象を別の角度から呼んでいるにすぎない。
@@ -641,7 +641,7 @@ const description = `【非公式】キャロットクラブ${yearRangeLabel}${a
       上回っている。正直、書いていて一番「おっ」と思った数字だ。
     </p>
     <p>
-      ただし ―― ここが大事なところなのだが ―― <strong>検定にかけると有意には届かない</strong>。
+      ただし、ここが大事なところで、<strong>検定にかけると有意には届かない</strong>。
       重賞馬率の差は{propRest.usable ? fmtP(propRest.p) : '（サンプル不足で検定できず）'}、
       賞金の分布の差は{fmtP(mwRest.p)}。空胎明けは{afterRest.length}頭しかなく、
       重賞馬は{afterRestGrade.winners}頭。仮に本当は差が無くても、この頭数なら
@@ -654,10 +654,8 @@ const description = `【非公式】キャロットクラブ${yearRangeLabel}${a
         なお空胎明けの重賞馬{restGradeWinners.length}頭の筆頭は
         <strong>{topRestWinner.displayName}</strong>（{topRestWinner.damParity}番仔・
         前の仔から{topRestWinner.damGapBeforeYears}年空き）で、
-        獲得賞金は{formatManYen(topRestWinner.totalPrizeManYen)}万円
-        {topRestWinnerIsOverallTop && <>―― この{all.length}頭で最も稼いだ1頭でもある</>}。
-        こういう馬が1頭いるだけで「空胎明けは走る」という印象は簡単に作られてしまう
-        ―― という見本のような例でもある。
+        獲得賞金は{formatManYen(topRestWinner.totalPrizeManYen)}万円{topRestWinnerIsOverallTop && <>で、この{all.length}頭で最も稼いだ1頭でもある</>}。
+        こういう馬が1頭いるだけで、「空胎明けは走る」という印象は簡単に作られてしまう。
       </p>
     )}
 
@@ -733,8 +731,7 @@ const description = `【非公式】キャロットクラブ${yearRangeLabel}${a
       {gradeWinners.length}頭のうち3番仔以内は{gradeWithin3}頭
       （{pct(gradeWithin3, gradeWinners.length).toFixed(1)}%）で、
       母集団に占める3番仔以内の割合（{pct(within3.length, all.length).toFixed(1)}%）と
-      ほぼ同じだ。表が長くなるので、開いているのは上位{GRADE_WINNERS_VISIBLE}頭、
-      残り{gradeWinnersRest.length}頭はその下の折りたたみに入れてある。
+      ほぼ同じだ。上位{GRADE_WINNERS_VISIBLE}頭を表に出し、残り{gradeWinnersRest.length}頭は折りたたみに入れた。
     </p>
     <GradeWinnerTable rows={gradeWinnersTop} showParity />
     {gradeWinnersRest.length > 0 && (
@@ -744,8 +741,8 @@ const description = `【非公式】キャロットクラブ${yearRangeLabel}${a
       </details>
     )}
     <p class="table-note">
-      折りたたみを開いた{gradeWinners.length}頭が、{all.length}頭のうち重賞（中央G1〜G3・Jpn1〜3、
-      地方重賞含む）を勝った馬のすべて。産次の「（空胎明け）」は、前の仔から2年以上空けて
+      上の表と折りたたみを合わせた{gradeWinners.length}頭が、{all.length}頭のうち重賞（中央G1〜G3・Jpn1〜3、
+      地方重賞含む）を勝った馬のすべて。産次の「（空胎明け）」は前の仔から2年以上空けて
       産まれたことを示す。
     </p>
 
@@ -768,7 +765,7 @@ const description = `【非公式】キャロットクラブ${yearRangeLabel}${a
 
     <h2>2026年募集馬はどこに当てはまる？</h2>
     <p>
-      今の2026年募集{horses2026.length}頭が、この産次の階級分けのどこに入るかも並べておく
+      今の2026年募集{horses2026.length}頭がこの産次の階級分けのどこに入るかも並べておく
       （各行をタップすると開く。馬名は個別ページへのリンク）。今年は初仔が
       {first2026}頭いる。産次は<a href="/">出資馬検討ツール</a>の一覧にも母齢の隣に列で
       出しているので、並べ替えて眺めたい人はそちらもどうぞ。
@@ -820,7 +817,7 @@ const description = `【非公式】キャロットクラブ${yearRangeLabel}${a
       <li>
         そもそも<strong>産次と母齢は r={parityDamAgeR?.toFixed(3)} でほぼ同じものを測っている</strong>。
         母齢で読めなかったものが産次で読めるようになる、という期待は最初から筋が良くなかった
-        のかもしれない。「年齢より何番仔か」は、データの上ではほとんど同じ問いだった。
+        のかもしれない。「年齢より何番仔か」はデータの上ではほとんど同じ問いだった。
       </li>
       <li>
         個人的な結論としては、<strong>産次は出資馬を絞り込む条件には使えない</strong>。
@@ -858,6 +855,12 @@ const description = `【非公式】キャロットクラブ${yearRangeLabel}${a
 </BaseLayout>
 
 <style>
+  .answer {
+    margin: 1.5rem 0 0.25rem;
+    font-size: 1.25rem;
+    font-weight: 700;
+    line-height: 1.6;
+  }
   article :global(h2) {
     margin-top: 2.5rem;
   }
