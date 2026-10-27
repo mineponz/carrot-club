@@ -15,6 +15,7 @@ import StatTiles from '../../../components/charts/StatTiles.astro';
 import MethodsLink from '../../../components/MethodsLink.astro';
 import TermLink from '../../../components/TermLink.astro';
 import AdSlot from '../../../components/AdSlot.astro';
+import InArticleAd from '../../../components/InArticleAd.astro';
 import { AD_SP_TOP, AD_PC_TOP } from '../../../data/ad-slots.ts';
 import { loadRecruitsWithResults, RACE_RESULTS_FETCHED_AT } from '../../../lib/analysis-data.ts';
 import { formatResultsAsOf } from '../../../lib/sibling-recruits.ts';
@@ -278,7 +279,10 @@ const description = `出資している2歳牝馬スイートリディアを、2
       これほど何の主張もない数字が並ぶことがあるのかと。
     </p>
 
-    <AdSlot sp={AD_SP_TOP} pc={AD_PC_TOP} />
+    <div class="ad-rect">
+      <AdSlot sp={AD_SP_TOP} pc={AD_PC_TOP} />
+      <InArticleAd />
+    </div>
 
     <h2>母は堅実に走る馬を出している。でも、それは当てにならない</h2>
     <p>
@@ -385,7 +389,10 @@ const description = `出資している2歳牝馬スイートリディアを、2
       移動日という形で外から見えている、というだけの話です。
     </p>
 
-    <AdSlot sp={AD_SP_TOP} pc={AD_PC_TOP} />
+    <div class="ad-rect">
+      <AdSlot sp={AD_SP_TOP} pc={AD_PC_TOP} />
+      <InArticleAd />
+    </div>
 
     <h2>父アドマイヤマーズという追い風</h2>
     <p>
@@ -614,6 +621,11 @@ const description = `出資している2歳牝馬スイートリディアを、2
 </BaseLayout>
 
 <style>
+  .ad-rect {
+    display: flex;
+    justify-content: center;
+    margin: 1.75rem 0 0.5rem;
+  }
   .horse-essay { line-height: 1.9; }
   .lede {
     font-size: 1.05rem;

@@ -35,6 +35,7 @@ import StatTiles from '../../components/charts/StatTiles.astro';
 import ArticleToc from '../../components/ArticleToc.astro';
 import MethodsLink from '../../components/MethodsLink.astro';
 import AdSlot from '../../components/AdSlot.astro';
+import InArticleAd from '../../components/InArticleAd.astro';
 import { horses2026 } from '../../data/horses2026.ts';
 import { LOTTERY_STATUS_SNAPSHOTS } from '../../data/lotteryStatus2026.ts';
 import {
@@ -319,7 +320,10 @@ const CATEGORY_NOTE: Record<FemaleSizeCategory, string> = {
     <ArticleToc />
     <MethodsLink />
 
-    <AdSlot sp={AD_SP_WIDE_A} pc={AD_PC_WIDE_A} />
+    <div class="ad-rect">
+      <AdSlot sp={AD_SP_WIDE_A} pc={AD_PC_WIDE_A} />
+      <InArticleAd />
+    </div>
 
     <h2>条件に当てはまる牝</h2>
     <p>
@@ -392,7 +396,10 @@ const CATEGORY_NOTE: Record<FemaleSizeCategory, string> = {
       体重と胸囲は、どちらも「体の大きさ」を測っている。根拠が2つ重なっているわけではなく、「大きい牝」という1本の物差しだと思って読んでほしい。体重だけ、胸囲だけで見た結果は<a href="/articles/weight/">馬体重の記事</a>と<a href="/articles/chest-girth/">胸囲の記事</a>に書いた。
     </p>
 
-    <AdSlot sp={AD_SP_WIDE_B} pc={AD_PC_WIDE_B} />
+    <div class="ad-rect">
+      <AdSlot sp={AD_SP_WIDE_B} pc={AD_PC_WIDE_B} />
+      <InArticleAd />
+    </div>
 
     <h2>牝{screen.females.length}頭を群で見る</h2>
     <p>
@@ -447,7 +454,10 @@ const CATEGORY_NOTE: Record<FemaleSizeCategory, string> = {
       })
     }
 
-    <AdSlot sp={AD_SP_RECT} pc={AD_PC_WIDE_A} />
+    <div class="ad-rect">
+      <AdSlot sp={AD_SP_RECT} pc={AD_PC_WIDE_A} />
+      <InArticleAd />
+    </div>
 
     <h2>牡{screen.males.length}頭</h2>
     <p>
@@ -564,7 +574,10 @@ const CATEGORY_NOTE: Record<FemaleSizeCategory, string> = {
       }
     </ul>
 
-    <AdSlot sp={AD_SP_WIDE_A} pc={AD_PC_WIDE_A} />
+    <div class="ad-rect">
+      <AdSlot sp={AD_SP_WIDE_A} pc={AD_PC_WIDE_A} />
+      <InArticleAd />
+    </div>
 
     <h2>重賞勝ちの兄姉がいる馬</h2>
     {
