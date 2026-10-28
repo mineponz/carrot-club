@@ -232,6 +232,16 @@ const ARTICLES = {
     chips: ['募集年ごとの推移', '牡と牝に分けて比較', '重賞馬の実例も'],
     buildChart: winUpRateChart,
   },
+  // 2026-10-27 追加。白地（theme省略）。
+  'debut-timing': {
+    out: 'og-article-debut-timing-v2.png',
+    headline: ['デビューが遅れると', '勝ち上がれない？'],
+    lead: 'キャロットクラブ 2017〜2024年募集の721頭',
+    yearRangePlaceholder: '2017〜2024年',
+    // 結論はチップに焼き込まない（成績更新で向きが動きうる）
+    chips: ['デビュー時期ごとの勝ち上がり率', '牡と牝に分けて比較', 'デビューが遅れた重賞馬も'],
+    buildChart: debutTimingChart,
+  },
 };
 
 const slug = process.argv[2];
@@ -782,6 +792,27 @@ function winUpRateChart() {
     yearRangeLabel: `${stats.years[0]}〜${stats.years[n - 1]}年`,
     html: `<div class="mini-chart" style="gap:${gap}px">${bars}</div>`,
     caption: '募集年ごとの勝ち上がり率',
+  };
+}
+
+/**
+ * デビュー時期の区分（未出走を除く5区分）ごとの勝ち上がり率のミニ棒グラフ。`debut-timing-stats.json`
+ * （`scripts/build-debut-timing.mjs` の出力）から引くので記事本文と同じ値になる。数字は焼き込まない。
+ */
+function debutTimingChart() {
+  const stats = JSON.parse(readFileSync(join(repoRoot, 'analysis', 'data', 'debut-timing-stats.json'), 'utf8'));
+  const rates = stats.buckets.filter((b) => b.label !== '未出走').map((b) => b.all.rate);
+  const n = rates.length;
+  const gap = 7;
+  const barWidth = Math.floor((220 - (n - 1) * gap) / n);
+  const bars = rates
+    .map((r) => `<div class="bar" style="width:${barWidth}px;height:${Math.max(4, Math.round((r / 100) * 96))}px"></div>`)
+    .join('');
+  return {
+    total: stats.poolSize,
+    yearRangeLabel: `${stats.years[0]}〜${stats.years[1]}年`,
+    html: `<div class="mini-chart" style="gap:${gap}px">${bars}</div>`,
+    caption: '時期ごとの勝ち上がり率',
   };
 }
 

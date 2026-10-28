@@ -21,6 +21,14 @@ export interface AnalysisArticle {
 
 export const analysisArticles: AnalysisArticle[] = [
   {
+    href: '/articles/debut-timing/',
+    title: 'デビューが遅れると勝ち上がれない？キャロ募集馬721頭で見るデビュー時期',
+    description:
+      '2歳の10月までにデビューした馬は、約3分の2が中央で勝ち上がった。11月から3歳の3月までにデビューした馬は4割台で、3歳の4月以降にずれ込んだ馬は2割に届かなかった。2017〜2024年募集の721頭で調べた。',
+    image: '/og-article-debut-timing-v2.png',
+    kind: 'analysis',
+  },
+  {
     href: '/articles/win-up-rate/',
     title: '勝ち上がり率は下がっているのか？2017〜2024年募集を振り返る',
     description:

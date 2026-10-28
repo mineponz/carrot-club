@@ -1,0 +1,415 @@
+---
+/**
+ * 分析記事「デビューが遅れると勝ち上がれない？キャロ募集馬721頭で見るデビュー時期」。
+ *
+ * キャロの募集馬（2017〜2024年募集の721頭）を、デビューした時期で6つに分け、中央（JRA）で1勝以上した率
+ * （＝勝ち上がり率。分母は募集馬で、デビューしなかった馬も含む）を並べる。集計と検定は
+ * `scripts/build-debut-timing.mjs` が `analysis/data/debut-timing-stats.json` に書き出したものを読むだけで、
+ * このページでは計算しない。本文の主張の前提は `src/lib/debut-timing.ts` の `assertDebutTimingClaims` が
+ * ビルド時に固定する（崩れたらビルドが止まる）。
+ *
+ * 本文はyomiyasu推敲済みの確定稿をそのまま入れてある。数値は `debut-timing-stats.json` の実測値を写したもので、
+ * 集計を更新したら本文と assertDebutTimingClaims を合わせて直すこと。
+ */
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import BarChart from '../../components/charts/BarChart.astro';
+import StatTiles from '../../components/charts/StatTiles.astro';
+import ChartTooltip from '../../components/charts/ChartTooltip.astro';
+import ArticleToc from '../../components/ArticleToc.astro';
+import MethodsLink from '../../components/MethodsLink.astro';
+import AdSlot from '../../components/AdSlot.astro';
+import InArticleAd from '../../components/InArticleAd.astro';
+import { AD_SP_WIDE_A, AD_SP_WIDE_B, AD_SP_RECT, AD_PC_WIDE_A, AD_PC_WIDE_B } from '../../data/ad-slots.ts';
+import { formatResultsAsOf } from '../../lib/sibling-recruits.ts';
+import { formatP } from '../../lib/chart-math.ts';
+import { assertDebutTimingClaims, termOf, type DebutTimingStats } from '../../lib/debut-timing.ts';
+import statsJson from '../../../analysis/data/debut-timing-stats.json';
+
+const stats = statsJson as unknown as DebutTimingStats;
+// 本文の前提が崩れていたらここで止まる（閾値と実測値は src/lib/debut-timing.ts）。
+assertDebutTimingClaims(stats);
+
+const title = 'デビューが遅れると勝ち上がれない？キャロ募集馬721頭で見るデビュー時期';
+const resultsAsOf = formatResultsAsOf(stats.resultsFetchedAt);
+const pct1 = (v: number) => `${v.toFixed(1)}%`;
+const buckets = stats.buckets;
+const bucketOf = (label: string) => buckets.find((b) => b.label === label)!;
+
+const tiles = ['2歳8月まで', '2歳11〜12月', '3歳4月以降'].map((l) => ({
+  label: `${l}にデビュー（${bucketOf(l).all.n}頭）の勝ち上がり率`,
+  value: pct1(bucketOf(l).all.rate),
+}));
+
+const rateBars = buckets.map((b) => ({
+  label: b.label,
+  value: b.all.rate,
+  displayValue: pct1(b.all.rate),
+  n: b.all.n,
+}));
+
+// 重賞馬（区分ごと。未出走・重賞馬0頭の区分は出さない）
+const gradeByBucket = buckets
+  .map((b) => ({ label: b.label, rows: stats.gradeWinners.filter((g) => g.bucket === b.label) }))
+  .filter((g) => g.rows.length > 0);
+const debutLabel = (ym: string) => `${ym.slice(0, 4)}年${Number(ym.slice(5, 7))}月`;
+const t910 = termOf(stats, 'sex', '2歳9〜10月');
+const centralOf = (label: string) => stats.centralOnly.buckets.find((b) => b.label === label)!;
+const localEarly = stats.localDebut.byBucket.find((b) => b.label === '2歳8月まで')!.n;
+const statTerms = ['2歳9〜10月', '2歳11〜12月', '3歳1〜3月', '3歳4月以降'];
+
+const description =
+  '2歳の10月までにデビューした馬は、約3分の2が中央で勝ち上がった。11月から3歳の3月までにデビューした馬は4割台で、3歳の4月以降にずれ込んだ馬は2割に届かなかった。2017〜2024年募集の721頭で調べた。';
+---
+
+<BaseLayout
+  title={title}
+  description={description}
+  breadcrumb={[{ label: '記事一覧', href: '/articles/' }, { label: title, href: '/articles/debut-timing/' }]}
+  showHeaderNotices={false}
+  ogImage="/og-article-debut-timing-v2.png"
+  ogImageAlt={`分析記事「${title}」のカード画像（【非公式】キャロットクラブ出資馬検討ツール）`}
+>
+  <article>
+    <h1>{title}</h1>
+
+    <p class="answer">
+      2歳の10月までにデビューした馬は、約3分の2が中央で勝ち上がった。11月から3歳の3月までにデビューした馬は4割台で、3歳の4月以降にずれ込んだ馬は2割に届かなかった。
+    </p>
+    <p>夏にデビューした馬と9〜10月にデビューした馬の間には、はっきりした差は見られなかった。下がり始めるのは2歳の11月からだった。</p>
+
+    <StatTiles tiles={tiles} />
+
+    <div class="table-scroll">
+      <table class="tier-table">
+        <thead>
+          <tr>
+            <th>デビューした時期</th>
+            <th>勝ち上がり率</th>
+          </tr>
+        </thead>
+        <tbody>
+          {buckets.map((b) => (
+            <tr>
+              <th scope="row">{b.label}</th>
+              <td class="num">{pct1(b.all.rate)}<span class="n">{b.all.n}頭</span></td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+    <p class="fig-note">勝ち上がり＝中央（JRA）で1勝以上。成績は{resultsAsOf}時点。</p>
+
+    <ArticleToc />
+    <MethodsLink />
+
+    <AdSlot sp={AD_SP_WIDE_A} pc={AD_PC_WIDE_A} />
+
+    <h2>デビュー時期ごとの勝ち上がり率</h2>
+    <p>
+      2017〜2024年募集の721頭を、デビューした時期で6つに分けた。勝ち上がりは中央（JRA）で1勝以上したことで、率の分母にはデビューしなかった馬も含めている。
+    </p>
+    <p>
+      2歳8月までにデビューした203頭は65.5%、9〜10月の173頭は64.2%が勝ち上がった。この2つの間に、はっきりした差は見られなかった。
+      2歳11〜12月の137頭は44.5%、3歳1〜3月の104頭は44.2%で、20ポイントほど低い。3歳4月以降の57頭は17.5%だった。
+    </p>
+    <BarChart
+      title="デビュー時期ごとの勝ち上がり率"
+      valueLabel="中央で1勝以上"
+      bars={rateBars}
+      axisMax={80}
+      height={280}
+    />
+    <p class="fig-note">棒は{resultsAsOf}時点の率。未出走は、デビューしなかった馬（勝ち上がりは0頭）。</p>
+    <details class="fold">
+      <summary>検定の数字（区分による差があるか）</summary>
+      <p>
+        未出走を除く5区分の勝ち上がり率の差は、カイ二乗検定で {formatP(stats.tests.chi.p)}（χ²={stats.tests.chi.chi2.toFixed(2)}、自由度{stats.tests.chi.df}）。
+        デビューが遅いほど下がる傾向の検定（Cochran-Armitage）は {formatP(stats.tests.trend.p)}（z={stats.tests.trend.z.toFixed(2)}）。
+      </p>
+      <p>
+        性別をそろえたロジスティック回帰（基準＝2歳8月まで・対象{stats.tests.regression.sex.n}頭）では、2歳9〜10月が {formatP(termOf(stats, 'sex', '2歳9〜10月').p)}、
+        2歳11〜12月が {formatP(termOf(stats, 'sex', '2歳11〜12月').p)}、3歳1〜3月が {formatP(termOf(stats, 'sex', '3歳1〜3月').p)}、3歳4月以降が {formatP(termOf(stats, 'sex', '3歳4月以降').p)}。
+      </p>
+      <p>
+        2歳9〜10月の、性別をそろえたオッズ比（基準＝2歳8月まで）は {t910.oddsRatio.toFixed(2)}、95%信頼区間は {t910.oddsRatioLo.toFixed(2)}〜{t910.oddsRatioHi.toFixed(2)}。
+        1をまたいでいるので差があるとは言えないが、差がないことを示したわけではない。
+      </p>
+    </details>
+
+    <h2>牡と牝の違い</h2>
+    <p>牡と牝に分けても、形は同じだった。どちらも10月までの2つの区分が高く、11月以降で下がり、3歳4月以降がいちばん低い。</p>
+    <p>牡のほうが全体に高く、3歳4月以降でも牡は24.0%、牝は12.5%だった。</p>
+    <div class="table-scroll">
+      <table class="tier-table">
+        <thead>
+          <tr>
+            <th>デビューした時期</th>
+            <th>牡</th>
+            <th>牝</th>
+          </tr>
+        </thead>
+        <tbody>
+          {buckets.map((b) => (
+            <tr>
+              <th scope="row">{b.label}</th>
+              <td class="num">{pct1(b.male.rate)}<span class="n">{b.male.n}頭</span></td>
+              <td class="num">{pct1(b.female.rate)}<span class="n">{b.female.n}頭</span></td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+
+    <AdSlot sp={AD_SP_WIDE_B} pc={AD_PC_WIDE_B} />
+
+    <h2>一口価格をそろえた比較</h2>
+    <p>
+      早くデビューする馬はもともと評価の高い馬なのではないか、と考える人もいるかもしれない。ただ、一口価格の中央値はどの区分も7.5〜8.5万円で、ほとんど違わなかった。
+    </p>
+    <p>
+      一口価格の高さと勝ち上がりの間にも、はっきりした関係はなかった。性別と一口価格を同時にそろえて計算し直しても、11月以降にデビューした3つの区分は、2歳8月までの区分よりはっきり低いままだった。
+    </p>
+    <details class="fold">
+      <summary>一口価格の中央値と、性別＋一口価格をそろえた回帰の数字</summary>
+      <div class="table-scroll">
+        <table class="tier-table">
+          <thead>
+            <tr>
+              <th>デビューした時期</th>
+              <th>一口価格の中央値</th>
+            </tr>
+          </thead>
+          <tbody>
+            {buckets.map((b) => (
+              <tr>
+                <th scope="row">{b.label}</th>
+                <td class="num">{b.priceMedianManYen}万円</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+      <div class="table-scroll">
+        <table class="tier-table">
+          <thead>
+            <tr>
+              <th>区分（基準＝2歳8月まで）</th>
+              <th>性別をそろえた回帰（係数／p）</th>
+              <th>性別＋一口価格をそろえた回帰（係数／p）</th>
+            </tr>
+          </thead>
+          <tbody>
+            {statTerms.map((l) => (
+              <tr>
+                <th scope="row">{l}</th>
+                <td class="num">{termOf(stats, 'sex', l).coef.toFixed(3)}／{formatP(termOf(stats, 'sex', l).p)}</td>
+                <td class="num">{termOf(stats, 'sexPrice', l).coef.toFixed(3)}／{formatP(termOf(stats, 'sexPrice', l).p)}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+      <p>
+        対象はデビューした{stats.tests.regression.sex.n}頭（未出走は除く）。係数が負のほど、2歳8月までより勝ち上がりにくい。
+        一口価格そのものの項は {formatP(termOf(stats, 'sexPrice', '一口価格(万円)').p)}（1万円あたりのオッズ比 {termOf(stats, 'sexPrice', '一口価格(万円)').oddsRatio.toFixed(3)}）。
+      </p>
+    </details>
+
+    <h2>未勝利戦までに走れる回数</h2>
+    <p>
+      未勝利戦は3歳の9月で終わる。3歳4月以降にデビューした馬がそれまでに走れた回数は、中央値で2回だった。2歳8月までにデビューした馬は6回走れている。
+    </p>
+    <p>勝ち上がるまでに使える回数が、そもそも少ない。</p>
+    <p class="fig-note">出走数は地方のレースも含む（出走取消・競走除外は数えない）。</p>
+    <details class="fold">
+      <summary>区分ごとの、3歳9月末までの出走数（中央値）</summary>
+      <div class="table-scroll">
+        <table class="tier-table">
+          <thead>
+            <tr>
+              <th>デビューした時期</th>
+              <th>出走数の中央値</th>
+            </tr>
+          </thead>
+          <tbody>
+            {buckets.map((b) => (
+              <tr>
+                <th scope="row">{b.label}</th>
+                <td class="num">{b.startsToSep3Median}回</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </details>
+
+    <div class="ad-rect">
+      <AdSlot sp={AD_SP_RECT} pc={AD_PC_WIDE_A} />
+      <InArticleAd />
+    </div>
+
+    <h2>遅れてデビューした重賞馬</h2>
+    <p>
+      デビューが遅くても、大きなレースを勝った馬はいる。2歳11月以降にデビューして重賞を勝った馬は、721頭のうち11頭いた。
+    </p>
+    <ul>
+      <li>タスティエーラ（2歳11月デビュー）: 東京優駿（日本ダービー）</li>
+      <li>ヘデントール（2歳11月デビュー）: 天皇賞（春）</li>
+      <li>レイパパレ（3歳1月デビュー）: 大阪杯</li>
+      <li>マルシュロレーヌ（3歳2月デビュー）: ブリーダーズカップ・ディスタフ</li>
+      <li>ヴェラアズール（3歳3月デビュー）: ジャパンカップ</li>
+      <li>パラレルヴィジョン（3歳4月デビュー）: ダービー卿チャレンジトロフィー</li>
+    </ul>
+    <p>
+      11月以降にデビューした298頭のうち、117頭は中央で勝ち上がっている。出資馬のデビューが年明けにずれ込んでも、それだけで見切る理由にはならない。
+    </p>
+    <p class="fig-note">
+      下の表は、重賞（GI〜GIIIとJpnI〜JpnIII）を勝った全{stats.gradeWinners.length}頭をデビュー時期の区分ごとにまとめたもの。地方・海外の重賞には〔地方〕〔海外〕を付けてある（無印はJRA）。
+    </p>
+    {gradeByBucket.map((g) => (
+      <details class="fold">
+        <summary>{g.label}にデビューした重賞馬（{g.rows.length}頭）</summary>
+        <div class="table-scroll">
+          <table class="tier-table grade-table">
+            <thead>
+              <tr>
+                <th>馬名</th>
+                <th>募集年</th>
+                <th>デビュー</th>
+                <th>勝った重賞</th>
+              </tr>
+            </thead>
+            <tbody>
+              {g.rows.map((r) => (
+                <tr>
+                  <th scope="row">{r.name}</th>
+                  <td>{r.recruitYear}年</td>
+                  <td>{debutLabel(r.debutYm)}</td>
+                  <td>{r.gradeWins.join('、')}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </details>
+    ))}
+
+    <h2>この記事の限界</h2>
+    <p>デビューの早さは、仕上がりの早さや体の丈夫さの結果でもある。早くデビューさせれば勝ち上がれる、という話ではない。</p>
+    <p>
+      デビューには地方競馬での初出走も含めている。地方でデビューした{stats.localDebut.n}頭は、どれも中央では勝っていない。そのうち{localEarly}頭が2歳8月までの区分に入っていて、この区分の率を押し下げている。中央でデビューした馬だけに絞ると、2歳8月までは{pct1(centralOf('2歳8月まで').rate)}、9〜10月は{pct1(centralOf('2歳9〜10月').rate)}だった。
+    </p>
+    <details class="fold">
+      <summary>中央でデビューした馬だけの、区分ごとの勝ち上がり率</summary>
+      <div class="table-scroll">
+        <table class="tier-table">
+          <thead>
+            <tr>
+              <th>デビューした時期</th>
+              <th>勝ち上がり率（中央デビューのみ）</th>
+              <th>地方デビュー（頭数）</th>
+            </tr>
+          </thead>
+          <tbody>
+            {stats.centralOnly.buckets.map((b) => (
+              <tr>
+                <th scope="row">{b.label}</th>
+                <td class="num">{pct1(b.rate)}<span class="n">{b.n}頭</span></td>
+                <td class="num">{stats.localDebut.byBucket.find((x) => x.label === b.label)?.n ?? 0}頭</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+      <p>未出走は含まない。地方でデビューした馬は全頭が中央で勝っていないので、全体の表との差はこの馬たちの分。</p>
+    </details>
+
+    <div class="ad-rect">
+      <AdSlot sp={AD_SP_RECT} pc={AD_PC_WIDE_B} />
+      <InArticleAd />
+    </div>
+
+    <h2>データについて</h2>
+    <p>
+      2017〜2024年募集のうち、netkeibaで成績を確認できた721頭を対象にした。デビュー日はnetkeibaの戦績表で最初に走った日で、年齢は生まれた年から数えた競走馬の年齢。2歳5月にデビューした5頭は「2歳8月まで」に含めている。
+    </p>
+    <p class="fig-note">成績は{resultsAsOf}時点。一口価格はクラブ公式の募集価格。</p>
+
+    <p>
+      <a href="/">募集馬一覧へ戻る</a> ／ <a href="/articles/">記事一覧へ</a>
+    </p>
+  </article>
+
+  <ChartTooltip />
+</BaseLayout>
+
+<style>
+  article :global(h2) {
+    margin-top: 2.5rem;
+  }
+  .fig-note {
+    margin-top: -0.5rem;
+    color: var(--muted);
+    font-size: 0.875rem;
+    line-height: 1.7;
+  }
+  .fold p {
+    font-size: 0.9375rem;
+  }
+  .table-scroll {
+    overflow-x: auto;
+    margin: 0.75rem 0;
+  }
+  .tier-table {
+    width: 100%;
+    min-width: 20rem;
+    border-collapse: collapse;
+    font-size: 0.9375rem;
+  }
+  .tier-table th,
+  .tier-table td {
+    border: 1px solid var(--border);
+    padding: 0.4rem 0.65rem;
+    text-align: left;
+  }
+  .tier-table thead th {
+    background: var(--surface);
+  }
+  .tier-table .n {
+    display: block;
+    font-size: 0.75rem;
+    color: var(--muted);
+  }
+  .tier-table .num {
+    text-align: right;
+    font-variant-numeric: tabular-nums;
+  }
+  .grade-table {
+    min-width: 36rem;
+  }
+  .answer {
+    margin: 1.5rem 0 0.25rem;
+    font-size: 1.25rem;
+    font-weight: 700;
+    line-height: 1.6;
+  }
+  .fold {
+    background: var(--card);
+    border-radius: 8px;
+    padding: 0.5rem 0.85rem;
+    margin: 0.5rem 0 1rem;
+  }
+  .fold summary {
+    cursor: pointer;
+    font-weight: 600;
+    padding: 0.25rem 0;
+  }
+  .fold :global(.table-scroll) {
+    margin-top: 0.5rem;
+  }
+  .ad-rect {
+    display: flex;
+    justify-content: center;
+    margin: 1.75rem 0 0.5rem;
+  }
+</style>
