@@ -25,6 +25,7 @@
  * データを取り直して前提が崩れたらビルドを落とす（20260825-assert-article-premises-at-build-time）。
  */
 import BaseLayout from '../../layouts/BaseLayout.astro';
+import RelatedArticles from '../../components/RelatedArticles.astro';
 import StatTiles from '../../components/charts/StatTiles.astro';
 import BarChart from '../../components/charts/BarChart.astro';
 import ShareBar from '../../components/charts/ShareBar.astro';
@@ -1529,6 +1530,7 @@ const description =
     <p>
       <a href="/">募集馬一覧へ戻る</a> ／ <a href="/articles/">記事一覧へ</a>
     </p>
+    <RelatedArticles href="/articles/horse-names/" />
   </article>
 
   {/* グラフのホバー/フォーカス時のツールチップ（ページに1つ）。 */}

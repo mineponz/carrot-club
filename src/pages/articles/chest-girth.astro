@@ -14,6 +14,7 @@
  *   配当される金額そのものではない点を本文で明記する（配当計算式は複雑で不明）。
  */
 import BaseLayout from '../../layouts/BaseLayout.astro';
+import RelatedArticles from '../../components/RelatedArticles.astro';
 import BarChart from '../../components/charts/BarChart.astro';
 import ScatterChart from '../../components/charts/ScatterChart.astro';
 import ChartTooltip from '../../components/charts/ChartTooltip.astro';
@@ -496,6 +497,7 @@ const description = `【非公式】キャロットクラブ${yearRangeLabel}${a
     <p>
       <a href="/">募集馬一覧へ戻る</a> ／ <a href="/articles/">分析記事一覧へ</a>
     </p>
+    <RelatedArticles href="/articles/chest-girth/" />
   </article>
 
   <ChartTooltip />

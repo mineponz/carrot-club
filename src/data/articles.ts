@@ -17,6 +17,11 @@ export interface AnalysisArticle {
    * 'training' = 募集後〜デビュー前の育成の節目を扱う記事（2026-09-23、北海道を出る時期の記事で導入）。
    */
   kind: 'analysis' | 'training' | 'reading';
+  /**
+   * 記事末尾の「関連記事」に出す記事のhref（ちょうど3本）。自動選択にせず手で決める。
+   * 存在しないhref・自分自身・本数違いは `articles.test.ts` が落とす（2026-10-28導入）。
+   */
+  related: string[];
 }
 
 export const analysisArticles: AnalysisArticle[] = [
@@ -27,6 +32,11 @@ export const analysisArticles: AnalysisArticle[] = [
       '2歳の10月までにデビューした馬は、約3分の2が中央で勝ち上がった。11月から3歳の3月までにデビューした馬は4割台で、3歳の4月以降にずれ込んだ馬は2割に届かなかった。2017〜2024年募集の721頭で調べた。',
     image: '/og-article-debut-timing-v2.png',
     kind: 'analysis',
+    related: [
+      '/articles/win-up-rate/',
+      '/articles/debut-weight-gain/',
+      '/articles/hokkaido-departure/',
+    ],
   },
   {
     href: '/articles/win-up-rate/',
@@ -35,6 +45,11 @@ export const analysisArticles: AnalysisArticle[] = [
       'キャロの募集馬が中央で勝ち上がった割合は、年によって4割台から6割弱まで上下していた。新しい年ほど下がっているとまでは言えない。はっきり差が出たのは牡と牝で、牡55.6%・牝45.1%だった。2017〜2024年募集の721頭で調べた。',
     image: '/og-article-win-up-rate-v2.png',
     kind: 'analysis',
+    related: [
+      '/articles/debut-timing/',
+      '/articles/weight/',
+      '/articles/stable-leading/',
+    ],
   },
   {
     href: '/articles/debut-weight-gain/',
@@ -43,6 +58,11 @@ export const analysisArticles: AnalysisArticle[] = [
       '1歳8月の測尺からデビュー戦まで、馬体重がどれだけ増えたかと、その後の成績を約500頭で比べた。たくさん増えた馬が走るとは言えず、見かけの差はデビューまでの日数だった。増え方を決めていたのは、測尺時の小ささと遅生まれ。',
     image: '/og-article-debut-weight-gain-v1.png',
     kind: 'training',
+    related: [
+      '/articles/debut-timing/',
+      '/articles/hokkaido-departure/',
+      '/articles/weight/',
+    ],
   },
   {
     href: '/articles/hokkaido-departure/',
@@ -51,6 +71,11 @@ export const analysisArticles: AnalysisArticle[] = [
       '測尺から本州の育成場・トレセンへ移るまでの日数を、2017〜2022年募集の約500頭で数えた。牡は2歳4〜5月、牝は5月と8〜9月に山。早く出た馬ほどよく走るが、ダービー馬もジャパンカップ馬も遅く出た側にいた。',
     image: '/og-article-hokkaido-departure-v1.png',
     kind: 'training',
+    related: [
+      '/articles/debut-timing/',
+      '/articles/debut-weight-gain/',
+      '/articles/birth-month/',
+    ],
   },
   {
     href: '/articles/second-offering/',
@@ -59,6 +84,11 @@ export const analysisArticles: AnalysisArticle[] = [
       '第2次募集で今から出資できる15頭（牝11・牡4）を、過去の募集データで確かめた物差しで見比べた。牝は募集時の体重・胸囲がともに過去の中央値を超えると回収率100%超の割合がおよそ2倍になる。牡は測尺で絞れない。',
     image: '/og-article-second-offering-v1.png',
     kind: 'analysis',
+    related: [
+      '/articles/secondary-offering/',
+      '/articles/weight/',
+      '/articles/chest-girth/',
+    ],
   },
   {
     href: '/articles/horse-names/',
@@ -67,6 +97,11 @@ export const analysisArticles: AnalysisArticle[] = [
       '募集馬の名前は誰から来ているのか。クラブが公開している「馬名の意味・由来」を2016〜2024年生まれの全頭ぶん読んで数えた。母から付く馬が3頭に2頭、言語は30種類以上。母が独語なら仔も独語、父の初年度産駒は父から付きやすい。',
     image: '/og-article-horse-names-v1.png',
     kind: 'reading',
+    related: [
+      '/articles/club-siblings/',
+      '/articles/debut-timing/',
+      '/articles/win-up-rate/',
+    ],
   },
   {
     href: '/articles/secondary-offering/',
@@ -75,6 +110,11 @@ export const analysisArticles: AnalysisArticle[] = [
       '1次募集で満口にならなかった馬たちのその後を、過去4年ぶんさかのぼって調べた。成績が出そろった3世代とも、同期の獲得賞金トップ10に1頭ずつ入っている。オープンを勝った馬も、募集価格を上回って稼いだ馬もいる。',
     image: '/og-article-secondary-offering-v1.png',
     kind: 'analysis',
+    related: [
+      '/articles/second-offering/',
+      '/articles/stable-leading/',
+      '/articles/weight/',
+    ],
   },
   {
     href: '/articles/stable-leading/',
@@ -83,6 +123,11 @@ export const analysisArticles: AnalysisArticle[] = [
       '募集時点でリーディング上位の厩舎に入った馬と、そうでない馬。重賞に届く率も獲得賞金の中央値も、ほとんど変わらなかった。線を広げると上位側のほうが低いことさえある。唯一はっきり出たのは、上位側のほうが出走率が低いという予想外の向きだった。',
     image: '/og-article-stable-leading-v2.png',
     kind: 'analysis',
+    related: [
+      '/articles/win-up-rate/',
+      '/articles/secondary-offering/',
+      '/articles/debut-timing/',
+    ],
   },
   {
     href: '/articles/weight/',
@@ -91,6 +136,11 @@ export const analysisArticles: AnalysisArticle[] = [
       '測尺で一番みんなが見る馬体重。全体では弱い正の相関だが、牡と牝に分けると牡では消え、牝でだけはっきり残った。小柄な牝は数字が振るわず、牡はサイズと成績が無関係。',
     image: '/og-article-weight-v1.png',
     kind: 'analysis',
+    related: [
+      '/articles/height/',
+      '/articles/chest-girth/',
+      '/articles/caret-girth/',
+    ],
   },
   {
     href: '/articles/caret-girth/',
@@ -99,6 +149,11 @@ export const analysisArticles: AnalysisArticle[] = [
       '測尺の右端にある「管囲」と成績の関係を調べたら、これまでで一番はっきりした差が出た。ところが正体は牡と牝の差だった。測尺は性別を揃えて見ないと危ない、という話。',
     image: '/og-article-caret-girth-v1.png',
     kind: 'analysis',
+    related: [
+      '/articles/weight/',
+      '/articles/chest-girth/',
+      '/articles/height/',
+    ],
   },
   {
     href: '/articles/club-siblings/',
@@ -107,6 +162,11 @@ export const analysisArticles: AnalysisArticle[] = [
       '「先に取られた残りが回ってくる」という説を検証。出走率はむしろ高く、同じ母の兄姉と中位の成績も互角。ただし重賞級だけが向こうに出ていた。',
     image: '/og-article-club-siblings-v1.png',
     kind: 'analysis',
+    related: [
+      '/articles/dam-age/',
+      '/articles/birth-order/',
+      '/articles/horse-names/',
+    ],
   },
   {
     href: '/articles/birth-order/',
@@ -115,6 +175,11 @@ export const analysisArticles: AnalysisArticle[] = [
       '「良い母は3番仔以内に走るのを出す」「初仔は走らない」「空胎明けは走る」――産次にまつわる3つの俗説を、牡馬・牝馬に分けても検証した。',
     image: '/og-article-birth-order-v1.png',
     kind: 'analysis',
+    related: [
+      '/articles/dam-age/',
+      '/articles/club-siblings/',
+      '/articles/birth-month/',
+    ],
   },
   {
     href: '/articles/chest-girth/',
@@ -123,6 +188,11 @@ export const analysisArticles: AnalysisArticle[] = [
       '体高・馬体重の陰で見落とされがちな「胸囲」は成績と関係あるのか。獲得賞金だけでなく、安く仕入れて稼いだ馬を測る「回収率」でも検証。',
     image: '/og-article-chest-girth-v1.png',
     kind: 'analysis',
+    related: [
+      '/articles/weight/',
+      '/articles/height/',
+      '/articles/caret-girth/',
+    ],
   },
   {
     href: '/articles/birth-month/',
@@ -131,6 +201,11 @@ export const analysisArticles: AnalysisArticle[] = [
       '「早生まれのほうが大きく出る」は馬にも当てはまるか。1月生まれなのに小さい馬と、4月生まれで小さい馬。デビュー率と成績にどれだけ差が出るかを検証。',
     image: '/og-article-birth-month-v1.png',
     kind: 'analysis',
+    related: [
+      '/articles/hokkaido-departure/',
+      '/articles/birth-order/',
+      '/articles/height/',
+    ],
   },
   {
     href: '/articles/dam-age/',
@@ -139,6 +214,11 @@ export const analysisArticles: AnalysisArticle[] = [
       '「高齢の母馬は不利」という俗説を、母齢と獲得賞金の相関係数・階級別グラフで検証。結果はほぼ無相関だった。',
     image: '/og-article-dam-age-v1.png',
     kind: 'analysis',
+    related: [
+      '/articles/birth-order/',
+      '/articles/club-siblings/',
+      '/articles/birth-month/',
+    ],
   },
   {
     href: '/articles/height/',
@@ -147,5 +227,35 @@ export const analysisArticles: AnalysisArticle[] = [
       '募集時の体高と、その後の中央・地方獲得賞金の関係を散布図・階級別グラフで見る。ダービー馬タスティエーラなど実際の代表馬も紹介。',
     image: '/og-article-height-v1.png',
     kind: 'analysis',
+    related: [
+      '/articles/weight/',
+      '/articles/chest-girth/',
+      '/articles/caret-girth/',
+    ],
   },
 ];
+
+/**
+ * スイートリディアの記事（`/my-horses/article/sweet-lydia/`）は上の一覧に入らない読み物なので、
+ * 関連記事だけここで別に持つ。検証は `articles.test.ts`。
+ */
+export const SWEET_LYDIA_HREF = '/my-horses/article/sweet-lydia/';
+export const sweetLydiaRelated: string[] = [
+  '/articles/debut-timing/',
+  '/articles/debut-weight-gain/',
+  '/articles/hokkaido-departure/',
+];
+
+/** 現在ページのhrefから関連記事3本のカード情報を返す。未定義のhrefは例外（ビルドを止める）。 */
+export function relatedArticlesFor(href: string): AnalysisArticle[] {
+  const hrefs =
+    href === SWEET_LYDIA_HREF
+      ? sweetLydiaRelated
+      : analysisArticles.find((a) => a.href === href)?.related;
+  if (!hrefs) throw new Error(`[related] 関連記事が未定義のページ: ${href}`);
+  return hrefs.map((h) => {
+    const a = analysisArticles.find((x) => x.href === h);
+    if (!a) throw new Error(`[related] ${href} の関連先 ${h} が analysisArticles に存在しない`);
+    return a;
+  });
+}

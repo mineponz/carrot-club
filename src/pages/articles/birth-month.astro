@@ -33,6 +33,7 @@
  * 馬体重の相関（早生まれ効果そのもの）は成績を使わないので、2025年募集も含めた全頭で計算する。
  */
 import BaseLayout from '../../layouts/BaseLayout.astro';
+import RelatedArticles from '../../components/RelatedArticles.astro';
 import BarChart from '../../components/charts/BarChart.astro';
 import GroupedBarChart from '../../components/charts/GroupedBarChart.astro';
 import ChartTooltip from '../../components/charts/ChartTooltip.astro';
@@ -695,6 +696,7 @@ const description = `【非公式】キャロットクラブ${yearRangeLabel}${a
     <p>
       <a href="/">募集馬一覧へ戻る</a> ／ <a href="/articles/">分析記事一覧へ</a>
     </p>
+    <RelatedArticles href="/articles/birth-month/" />
   </article>
 
   <ChartTooltip />

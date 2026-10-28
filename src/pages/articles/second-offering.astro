@@ -31,6 +31,7 @@
  * 実データで検算し、崩れたらビルドを落とす（[[20260825-assert-article-premises-at-build-time]]）。
  */
 import BaseLayout from '../../layouts/BaseLayout.astro';
+import RelatedArticles from '../../components/RelatedArticles.astro';
 import StatTiles from '../../components/charts/StatTiles.astro';
 import ArticleToc from '../../components/ArticleToc.astro';
 import MethodsLink from '../../components/MethodsLink.astro';
@@ -633,6 +634,7 @@ const CATEGORY_NOTE: Record<FemaleSizeCategory, string> = {
     <p>
       <a href="/">募集馬一覧へ戻る</a> ／ <a href="/articles/">分析記事一覧へ</a>
     </p>
+    <RelatedArticles href="/articles/second-offering/" />
   </article>
 </BaseLayout>
 

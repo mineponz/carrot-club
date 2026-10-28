@@ -32,6 +32,7 @@
  *   前提が崩れたらビルドが落ちる（数字だけ更新されて地の文が嘘になるのを防ぐ）。
  */
 import BaseLayout from '../../layouts/BaseLayout.astro';
+import RelatedArticles from '../../components/RelatedArticles.astro';
 import BarChart from '../../components/charts/BarChart.astro';
 import ChartTooltip from '../../components/charts/ChartTooltip.astro';
 import StatTiles from '../../components/charts/StatTiles.astro';
@@ -883,6 +884,7 @@ const description = `【非公式】母がサンデーレーシング・シル�
     <p>
       <a href="/">募集馬一覧へ戻る</a> ／ <a href="/articles/">分析記事一覧へ</a>
     </p>
+    <RelatedArticles href="/articles/club-siblings/" />
   </article>
 
   <ChartTooltip />

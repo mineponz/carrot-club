@@ -12,6 +12,7 @@
  * 集計を更新したら本文と assertDebutTimingClaims を合わせて直すこと。
  */
 import BaseLayout from '../../layouts/BaseLayout.astro';
+import RelatedArticles from '../../components/RelatedArticles.astro';
 import BarChart from '../../components/charts/BarChart.astro';
 import StatTiles from '../../components/charts/StatTiles.astro';
 import ChartTooltip from '../../components/charts/ChartTooltip.astro';
@@ -338,6 +339,7 @@ const description =
     <p>
       <a href="/">募集馬一覧へ戻る</a> ／ <a href="/articles/">記事一覧へ</a>
     </p>
+    <RelatedArticles href="/articles/debut-timing/" />
   </article>
 
   <ChartTooltip />

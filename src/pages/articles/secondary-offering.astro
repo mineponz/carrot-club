@@ -28,6 +28,7 @@
  * 成績を取り直して前提が崩れたらビルドが落ちる（[[20260825-assert-article-premises-at-build-time]]）。
  */
 import BaseLayout from '../../layouts/BaseLayout.astro';
+import RelatedArticles from '../../components/RelatedArticles.astro';
 import StatTiles from '../../components/charts/StatTiles.astro';
 import ArticleToc from '../../components/ArticleToc.astro';
 import MethodsLink from '../../components/MethodsLink.astro';
@@ -691,6 +692,7 @@ const description = `1次募集で満口にならなかった馬たちのその�
     <p>
       <a href="/">募集馬一覧へ戻る</a> ／ <a href="/articles/">分析記事一覧へ</a>
     </p>
+    <RelatedArticles href="/articles/secondary-offering/" />
   </article>
 </BaseLayout>
 

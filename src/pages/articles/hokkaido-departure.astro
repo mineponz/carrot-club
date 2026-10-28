@@ -15,6 +15,7 @@
  * 数字は全部このページで計算する（ハードコードしない）。
  */
 import BaseLayout from '../../layouts/BaseLayout.astro';
+import RelatedArticles from '../../components/RelatedArticles.astro';
 import BarChart from '../../components/charts/BarChart.astro';
 import ScatterChart from '../../components/charts/ScatterChart.astro';
 import StatTiles from '../../components/charts/StatTiles.astro';
@@ -689,6 +690,7 @@ const description = `【非公式】キャロットクラブ${YEAR_FROM}〜${YEA
     <p>
       <a href="/">募集馬一覧へ戻る</a> ／ <a href="/articles/">記事一覧へ</a>
     </p>
+    <RelatedArticles href="/articles/hokkaido-departure/" />
   </article>
 
   <ChartTooltip />

@@ -1,0 +1,106 @@
+---
+/**
+ * 記事末尾の「関連する記事」。記事側は `<RelatedArticles href="/articles/xxx/" />` を
+ * 本文の最後（`</article>` の直前）に1行置くだけ。関連3本は `src/data/articles.ts` の
+ * `related`（スイートリディアは `sweetLydiaRelated`）で手で決めている。
+ * 存在しないhrefや未定義ページはここで例外になりビルドが止まる。
+ * カードの作りは記事一覧（`/articles/`）と同じ。
+ */
+import { relatedArticlesFor } from '../data/articles.ts';
+
+interface Props {
+  href: string;
+}
+const { href } = Astro.props;
+const items = relatedArticlesFor(href);
+---
+
+<section class="related-articles" aria-labelledby="related-articles-heading">
+  <h2 id="related-articles-heading">関連する記事</h2>
+  <ul class="related-list">
+    {items.map((a) => (
+      <li>
+        <a class="related-card" href={a.href}>
+          <img
+            class="related-card-thumb"
+            src={a.image}
+            alt=""
+            width="1200"
+            height="630"
+            loading="lazy"
+          />
+          <span class="related-card-body">
+            <span class="related-card-title">{a.title}</span>
+          </span>
+        </a>
+      </li>
+    ))}
+  </ul>
+</section>
+
+<style>
+  .related-articles {
+    margin: 2.5rem 0 1.5rem;
+  }
+  .related-list {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(14rem, 1fr));
+    gap: 1.25rem;
+    margin: 1rem 0;
+    padding: 0;
+    list-style: none;
+  }
+  .related-card {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    overflow: hidden;
+    border-radius: 10px;
+    background: var(--card);
+    text-decoration: none;
+    transition: transform 0.15s ease;
+  }
+  .related-card:hover {
+    transform: translateY(-2px);
+  }
+  .related-card-thumb {
+    display: block;
+    width: 100%;
+    height: auto;
+    aspect-ratio: 1200 / 630;
+    object-fit: cover;
+    background: var(--card);
+  }
+  .related-card-body {
+    display: flex;
+    flex: 1;
+    padding: 0.85rem 1rem 1rem;
+  }
+  .related-card-title {
+    font-size: 0.9375rem;
+    font-weight: 700;
+    line-height: 1.5;
+    color: var(--text);
+  }
+  .related-card:hover .related-card-title {
+    text-decoration: underline;
+  }
+  /* スマホ幅で3枚を縦に積むとサムネだけで画面3つ分になるので、小さいサムネ＋タイトルの横並びにする。 */
+  @media (max-width: 40rem) {
+    .related-list {
+      grid-template-columns: 1fr;
+      gap: 0.75rem;
+    }
+    .related-card {
+      flex-direction: row;
+      align-items: center;
+    }
+    .related-card-thumb {
+      width: 8rem;
+      flex-shrink: 0;
+    }
+    .related-card-body {
+      padding: 0.5rem 0.85rem;
+    }
+  }
+</style>
